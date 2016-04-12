@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="Definitions_1" exporter="camunda modeler" exporterVersion="3.0.0" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Install-PT-Concrete-Deck" name="Install PT Concrete Deck" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>SequenceFlow_0aot2u7</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0aot2u7" sourceRef="Start" targetRef="BPMN-Start"/>
+    <bpmn:callActivity id="Install-Sprinker-Hangers" name="Install Sprinker&#xA;hangers" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 83 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_014p7jg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1fxs3xr</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1fxs3xr" sourceRef="Install-Sprinker-Hangers" targetRef="Install-Tension-Cables"/>
+    <bpmn:callActivity id="Install-Rebars" name="Install Rebars" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 31 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1o11n5h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-Plumbing-Cans-and-Hangers"/>
+    <bpmn:serviceTask id="BPMN-Start" camunda:class="com.buildwhiz.jelly.BpmnStart" name="BPMN Start">
+      <bpmn:incoming>SequenceFlow_0aot2u7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_035sl6l</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_035sl6l" sourceRef="BPMN-Start" targetRef="Install-Shoring-and-Forms"/>
+    <bpmn:callActivity id="Install-Shoring-and-Forms" name="Install&#xA;Shoring&#xA;and Forms" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 31 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_035sl6l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1o11n5h</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1o11n5h" sourceRef="Install-Shoring-and-Forms" targetRef="Install-Rebars"/>
+    <bpmn:callActivity id="Install-Plumbing-Cans-and-Hangers" name="Install&#xA;Plumbing&#xA;Cans and hangers" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 63 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_014p7jg</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_014p7jg" sourceRef="Install-Plumbing-Cans-and-Hangers" targetRef="Install-Sprinker-Hangers"/>
+    <bpmn:callActivity id="Install-Tension-Cables" name="Install&#xA;Tension Cables" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 31 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1fxs3xr</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-Tension-Cables" targetRef="Install-in-deck-Electrical-Conduits"/>
+    <bpmn:callActivity id="Install-in-deck-Electrical-Conduits" name="Install in-deck&#xA;Electrical&#xA;Conduits" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 76 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Install-in-deck-Electrical-Conduits" targetRef="Install-Hold-Downs-and-Anchor-Bolts"/>
+    <bpmn:callActivity id="Install-Hold-Downs-and-Anchor-Bolts" name="Install&#xA;Hold downs&#xA;and&#xA;Anchor bolts" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 10 11" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1yl6hl7</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1yl6hl7" sourceRef="Install-Hold-Downs-and-Anchor-Bolts" targetRef="Pour-Concrete"/>
+    <bpmn:callActivity id="Apply-Tension-to-Cables" name="Apply&#xA;Tension&#xA;to Cables" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_0uqvi6i</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_05222qt</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_05222qt" sourceRef="Apply-Tension-to-Cables" targetRef="BPMN-End"/>
+    <bpmn:intermediateCatchEvent id="Tension-Delay" name="Tension Delay">
+      <bpmn:incoming>SequenceFlow_0h4r5wa</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0uqvi6i</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${tension_delay}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0uqvi6i" sourceRef="Tension-Delay" targetRef="Apply-Tension-to-Cables"/>
+    <bpmn:callActivity id="Pour-Concrete" name="Pour Concrete" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 31 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1yl6hl7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1r6xtmh" sourceRef="Pour-Concrete" targetRef="Shoring-Removal-Delay"/>
+    <bpmn:callActivity id="Remove-Shoring" name="Remove&#xA;Shoring" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property value="33-41 31 00" name="bw-skill"/>
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0q23eej</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0h4r5wa</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0h4r5wa" sourceRef="Remove-Shoring" targetRef="Tension-Delay"/>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>SequenceFlow_0il3n4r</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:intermediateCatchEvent id="Shoring-Removal-Delay" name="Shoring Removal&#xA;Delay">
+      <bpmn:incoming>SequenceFlow_1r6xtmh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0q23eej</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${shoring_removal_delay}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0q23eej" sourceRef="Shoring-Removal-Delay" targetRef="Remove-Shoring"/>
+    <bpmn:serviceTask id="BPMN-End" camunda:class="com.buildwhiz.jelly.BpmnEnd" name="BPMN End">
+      <bpmn:incoming>SequenceFlow_05222qt</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0il3n4r</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0il3n4r" sourceRef="BPMN-End" targetRef="End"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Install-PT-Concrete-Deck">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds height="36.0" width="36.0" x="36.0" y="58.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="22.0" width="34.0" x="37.0" y="94.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0erzl33_di" bpmnElement="Install-Shoring-and-Forms">
+        <dc:Bounds height="80.0" width="100.0" x="274.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1o11n5h_di" bpmnElement="SequenceFlow_1o11n5h">
+        <di:waypoint xsi:type="dc:Point" x="374.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="394.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="392.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0f22fsk_di" bpmnElement="Install-Rebars">
+        <dc:Bounds height="80.0" width="100.0" x="394.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
+        <di:waypoint xsi:type="dc:Point" x="494.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="528.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="524.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_05m0npm_di" bpmnElement="Install-Tension-Cables">
+        <dc:Bounds height="80.0" width="100.0" x="785.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
+        <di:waypoint xsi:type="dc:Point" x="885.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="916.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="781.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0wjxat3_di" bpmnElement="Install-in-deck-Electrical-Conduits">
+        <dc:Bounds height="80.0" width="100.0" x="916.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0xsjrrw_di" bpmnElement="SequenceFlow_0xsjrrw">
+        <di:waypoint xsi:type="dc:Point" x="1016.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="1050.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="1050.0" y="154.0"/>
+        <di:waypoint xsi:type="dc:Point" x="54.0" y="154.0"/>
+        <di:waypoint xsi:type="dc:Point" x="54.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="144.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="826.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0sbyu9r_di" bpmnElement="Pour-Concrete">
+        <dc:Bounds height="80.0" width="100.0" x="270.0" y="192.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
+        <dc:Bounds height="36.0" width="36.0" x="960.0" y="214.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="22.0" width="29.0" x="964.0" y="250.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1r6xtmh_di" bpmnElement="SequenceFlow_1r6xtmh">
+        <di:waypoint xsi:type="dc:Point" x="370.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="409.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="388.0" y="232.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0aot2u7_di" bpmnElement="SequenceFlow_0aot2u7">
+        <di:waypoint xsi:type="dc:Point" x="72.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="124.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="253.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_014p7jg_di" bpmnElement="SequenceFlow_014p7jg">
+        <di:waypoint xsi:type="dc:Point" x="628.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="659.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="788.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_071ocqr_di" bpmnElement="Install-Plumbing-Cans-and-Hangers">
+        <dc:Bounds height="80.0" width="100.0" x="528.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1fxs3xr_di" bpmnElement="SequenceFlow_1fxs3xr">
+        <di:waypoint xsi:type="dc:Point" x="759.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="785.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="785.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1ose5xs_di" bpmnElement="Install-Sprinker-Hangers">
+        <dc:Bounds height="80.0" width="100.0" x="659.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1yl6hl7_di" bpmnElement="SequenceFlow_1yl6hl7">
+        <di:waypoint xsi:type="dc:Point" x="244.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="270.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="259.0" y="222.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1qgniww_di" bpmnElement="Install-Hold-Downs-and-Anchor-Bolts">
+        <dc:Bounds height="80.0" width="100.0" x="144.0" y="192.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0q23eej_di" bpmnElement="SequenceFlow_0q23eej">
+        <di:waypoint xsi:type="dc:Point" x="445.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="493.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="471.0" y="232.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_0lxseu7_di" bpmnElement="Shoring-Removal-Delay">
+        <dc:Bounds height="36.0" width="36.0" x="409.0" y="214.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="38.0" width="106.0" x="374.0" y="250.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0h4r5wa_di" bpmnElement="SequenceFlow_0h4r5wa">
+        <di:waypoint xsi:type="dc:Point" x="593.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="625.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="599.0" y="222.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1a9syhx_di" bpmnElement="Remove-Shoring">
+        <dc:Bounds height="80.0" width="100.0" x="493.0" y="192.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0uqvi6i_di" bpmnElement="SequenceFlow_0uqvi6i">
+        <di:waypoint xsi:type="dc:Point" x="661.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="697.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="685.0" y="232.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_05222qt_di" bpmnElement="SequenceFlow_05222qt">
+        <di:waypoint xsi:type="dc:Point" x="797.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="829.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="808.0" y="222.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_19sl3sn_di" bpmnElement="Apply-Tension-to-Cables">
+        <dc:Bounds height="80.0" width="100.0" x="697.0" y="192.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_0omxl1s_di" bpmnElement="Tension-Delay">
+        <dc:Bounds height="36.0" width="36.0" x="625.0" y="214.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="22.0" width="89.0" x="599.0" y="250.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_035sl6l_di" bpmnElement="SequenceFlow_035sl6l">
+        <di:waypoint xsi:type="dc:Point" x="224.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="274.0" y="76.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="249.0" y="66.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1w1s6e2_di" bpmnElement="BPMN-Start">
+        <dc:Bounds height="80.0" width="100.0" x="124.0" y="36.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0il3n4r_di" bpmnElement="SequenceFlow_0il3n4r">
+        <di:waypoint xsi:type="dc:Point" x="929.0" y="232.0"/>
+        <di:waypoint xsi:type="dc:Point" x="960.0" y="232.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="957.0" y="222.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0rpjqd6_di" bpmnElement="BPMN-End">
+        <dc:Bounds height="80.0" width="100.0" x="829.0" y="192.0"/>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

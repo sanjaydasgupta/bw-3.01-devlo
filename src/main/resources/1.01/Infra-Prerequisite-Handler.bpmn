@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_KV9gEFYQEeWo7tFJJZq3oA" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="camunda modeler" exporterVersion="2.7.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="Infra-Prerequisite-Handler" name="Infra Prerequisite Handler" isExecutable="true">
+    <bpmn2:serviceTask id="Test-Prerequisite" name="Test-Prerequisite" camunda:class="com.buildwhiz.jelly.PrerequisiteTest">
+      <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="Test-Prerequisite" targetRef="Prerequisite-OK" />
+    <bpmn2:intermediateCatchEvent id="Await-Prerequisite" name="Await&#10;Prerequisite" camunda:asyncAfter="true" camunda:exclusive="false">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.WaitForActionSetup" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>Prerequisite-OK-No</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+      <bpmn2:messageEventDefinition id="MessageEventDefinition_1" messageRef="Message_2" />
+    </bpmn2:intermediateCatchEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="Await-Prerequisite" targetRef="ExclusiveGateway_1" />
+    <bpmn2:endEvent id="End" name="End">
+      <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:exclusiveGateway id="Prerequisite-OK" name="Prerequisite&#10;OK?" default="Prerequisite-OK-No">
+      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:outgoing>Prerequisite-OK-No</bpmn2:outgoing>
+      <bpmn2:outgoing>Prerequisite-OK-Yes</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:sequenceFlow id="Prerequisite-OK-No" name="No" sourceRef="Prerequisite-OK" targetRef="Await-Prerequisite" />
+    <bpmn2:sequenceFlow id="Prerequisite-OK-Yes" name="Yes" sourceRef="Prerequisite-OK" targetRef="ExclusiveGateway_1">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("prerequisite_ok") && execution.getVariable("prerequisite_ok")]]></bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="Start" targetRef="Test-Prerequisite" />
+    <bpmn2:exclusiveGateway id="ExclusiveGateway_1">
+      <bpmn2:incoming>Prerequisite-OK-Yes</bpmn2:incoming>
+      <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_6</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_6" name="" sourceRef="ExclusiveGateway_1" targetRef="End" />
+    <bpmn2:textAnnotation id="TextAnnotation_1">    <bpmn2:text>A start-listener attached to this wait-event stores its own id in the database for later use in an API call to resume execution</bpmn2:text>
+</bpmn2:textAnnotation>
+    <bpmn2:association id="Association_1" sourceRef="TextAnnotation_1" targetRef="Await-Prerequisite" />
+    <bpmn2:textAnnotation id="TextAnnotation_2">    <bpmn2:text><![CDATA[Checks database, and sets the process variable "prerequisite_ok" to "true" if the prerequisite is already satisfied]]></bpmn2:text>
+</bpmn2:textAnnotation>
+    <bpmn2:association id="Association_2" sourceRef="TextAnnotation_2" targetRef="Test-Prerequisite" />
+    <bpmn2:textAnnotation id="TextAnnotation_4">    <bpmn2:text>Following variables must exist on entry: project_id, phase_id, activity_id, prerequisite_name</bpmn2:text>
+</bpmn2:textAnnotation>
+  </bpmn2:process>
+  <bpmn2:message id="Message_1" name="prerequisite" />
+  <bpmn2:message id="Message_2" name="Action-Complete" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Infra-Prerequisite-Handler">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_14" bpmnElement="Start">
+        <dc:Bounds x="18" y="133" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="19" y="174" width="34" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_47" bpmnElement="End">
+        <dc:Bounds x="801" y="133" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="805" y="175" width="29" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_StartEvent_14" targetElement="_BPMNShape_ServiceTask_2">
+        <di:waypoint xsi:type="dc:Point" x="54" y="151" />
+        <di:waypoint xsi:type="dc:Point" x="93" y="151" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8" y="103" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_2" bpmnElement="Test-Prerequisite">
+        <dc:Bounds x="93" y="111" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ServiceTask_2" targetElement="_BPMNShape_ExclusiveGateway_2">
+        <di:waypoint xsi:type="dc:Point" x="193" y="151" />
+        <di:waypoint xsi:type="dc:Point" x="237" y="151" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="164" y="127" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_2" bpmnElement="Prerequisite-OK" isMarkerVisible="true">
+        <dc:Bounds x="237" y="126" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="287" y="132" width="75" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="Prerequisite-OK-Yes" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="_BPMNShape_ExclusiveGateway_3">
+        <di:waypoint xsi:type="dc:Point" x="262" y="126" />
+        <di:waypoint xsi:type="dc:Point" x="262" y="55" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="55" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="126" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="274" y="91" width="28" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="Prerequisite-OK-No" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_2">
+        <di:waypoint xsi:type="dc:Point" x="262" y="176" />
+        <di:waypoint xsi:type="dc:Point" x="262" y="256" />
+        <di:waypoint xsi:type="dc:Point" x="482" y="256" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="277" y="175" width="23" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_2" bpmnElement="Await-Prerequisite">
+        <dc:Bounds x="482" y="238" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="409" y="206" width="75" height="38" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_IntermediateCatchEvent_2" targetElement="_BPMNShape_ExclusiveGateway_3">
+        <di:waypoint xsi:type="dc:Point" x="518" y="256" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="256" />
+        <di:waypoint xsi:type="dc:Point" x="735" y="176" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="557" y="207" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_50" bpmnElement="TextAnnotation_1">
+        <dc:Bounds x="384" y="132" width="265" height="59" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_1" bpmnElement="Association_1" sourceElement="_BPMNShape_TextAnnotation_50" targetElement="_BPMNShape_IntermediateCatchEvent_2">
+        <di:waypoint xsi:type="dc:Point" x="511" y="190" />
+        <di:waypoint xsi:type="dc:Point" x="503" y="238" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_51" bpmnElement="TextAnnotation_2">
+        <dc:Bounds x="46" y="217" width="195" height="73" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_Association_2" bpmnElement="Association_2" sourceElement="_BPMNShape_TextAnnotation_51" targetElement="_BPMNShape_ServiceTask_2">
+        <di:waypoint xsi:type="dc:Point" x="143" y="217" />
+        <di:waypoint xsi:type="dc:Point" x="143" y="191" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_53" bpmnElement="TextAnnotation_4">
+        <dc:Bounds x="19" y="14" width="667" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_3" bpmnElement="ExclusiveGateway_1" isMarkerVisible="true">
+        <dc:Bounds x="710" y="126" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="735" y="181" width="0" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ExclusiveGateway_3" targetElement="_BPMNShape_EndEvent_47">
+        <di:waypoint xsi:type="dc:Point" x="760" y="151" />
+        <di:waypoint xsi:type="dc:Point" x="801" y="151" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="793" y="93" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

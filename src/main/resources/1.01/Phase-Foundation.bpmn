@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="Definitions_1" exporter="camunda modeler" exporterVersion="3.0.0" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Phase-Foundation" name="Phase Foundation" isExecutable="true">
+    <bpmn:parallelGateway id="ParallelGateway_08yqqu4">
+      <bpmn:incoming>SequenceFlow_0cais9f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0lcokuh</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_01o2b6s</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0lcokuh" sourceRef="ParallelGateway_08yqqu4" targetRef="Install-Concrete-Walls"/>
+    <bpmn:sequenceFlow id="SequenceFlow_01o2b6s" sourceRef="ParallelGateway_08yqqu4" targetRef="Install-Concrete-Columns"/>
+    <bpmn:callActivity id="Install-Slab-0n-grade" name="Install&#xA;Slab-0n-grade" calledElement="Install-Slab-on-Grade">
+      <bpmn:incoming>SequenceFlow_1px2phb</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0cais9f</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0cais9f" sourceRef="Install-Slab-0n-grade" targetRef="ParallelGateway_08yqqu4"/>
+    <bpmn:callActivity id="Foundation-Grading" name="Foundation&#xA;Grading" calledElement="Foundation-Grading">
+      <bpmn:incoming>SequenceFlow_0cctfkg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1px2phb</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1px2phb" sourceRef="Foundation-Grading" targetRef="Install-Slab-0n-grade"/>
+    <bpmn:callActivity id="De-Construction" name="De Construction" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1dohiuh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0cctfkg</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0cctfkg" sourceRef="De-Construction" targetRef="Foundation-Grading"/>
+    <bpmn:serviceTask id="BPMN-Start" camunda:class="com.buildwhiz.jelly.BpmnStart" name="BPMN Start">
+      <bpmn:incoming>SequenceFlow_1mi94gn</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1dohiuh</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1dohiuh" sourceRef="BPMN-Start" targetRef="De-Construction"/>
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>SequenceFlow_1mi94gn</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1mi94gn" sourceRef="Start" targetRef="BPMN-Start"/>
+    <bpmn:callActivity id="Install-Concrete-Columns" name="Install&#xA;Concrete&#xA;Columns" calledElement="Install-Concrete-Columns">
+      <bpmn:incoming>SequenceFlow_01o2b6s</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1a1r4t1</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1a1r4t1" sourceRef="Install-Concrete-Columns" targetRef="ParallelGateway_108k6d1"/>
+    <bpmn:callActivity id="Install-Concrete-Walls" name="Install&#xA;Concrete&#xA;Walls" calledElement="Install-CIP-Concrete-Walls">
+      <bpmn:incoming>SequenceFlow_0lcokuh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ncdmet</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0ncdmet" sourceRef="Install-Concrete-Walls" targetRef="ParallelGateway_108k6d1"/>
+    <bpmn:parallelGateway id="ParallelGateway_108k6d1">
+      <bpmn:incoming>SequenceFlow_0ncdmet</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1a1r4t1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_015y1zq</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_015y1zq" sourceRef="ParallelGateway_108k6d1" targetRef="Install-PT-Concrete-Deck"/>
+    <bpmn:callActivity id="Install-PT-Concrete-Deck" name="Install&#xA;PT Concrete&#xA;Deck" calledElement="Install-PT-Concrete-Deck">
+      <bpmn:incoming>SequenceFlow_015y1zq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1502mqv</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1502mqv" sourceRef="Install-PT-Concrete-Deck" targetRef="BPMN-End"/>
+    <bpmn:serviceTask id="BPMN-End" camunda:class="com.buildwhiz.jelly.BpmnEnd" name="BPMN End">
+      <bpmn:incoming>SequenceFlow_1502mqv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1sxzf6d</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1sxzf6d" sourceRef="BPMN-End" targetRef="End"/>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>SequenceFlow_1sxzf6d</bpmn:incoming>
+    </bpmn:endEvent>
+  </bpmn:process>
+  <bpmn:signal id="Signal_068wzrt" name="O"/>
+  <bpmn:signal id="Signal_14zjup9" name="K"/>
+  <bpmn:signal id="Signal_1s81ery" name=" to "/>
+  <bpmn:signal id="Signal_1yg9vcd" name="s"/>
+  <bpmn:signal id="Signal_0qtbs7v" name="tart "/>
+  <bpmn:signal id="Signal_0ejbwxs" name="R"/>
+  <bpmn:signal id="Signal_1c2trj2" name="o"/>
+  <bpmn:signal id="Signal_08pkgn7" name="u"/>
+  <bpmn:signal id="Signal_1ug6c8i" name="ok "/>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Foundation">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds height="36.0" width="36.0" x="33.0" y="118.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="22.0" width="34.0" x="34.0" y="154.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_03vi1lx_di" bpmnElement="De-Construction">
+        <dc:Bounds height="80.0" width="100.0" x="226.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0a1tv04_di" bpmnElement="Foundation-Grading">
+        <dc:Bounds height="80.0" width="100.0" x="360.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1mi94gn_di" bpmnElement="SequenceFlow_1mi94gn">
+        <di:waypoint xsi:type="dc:Point" x="69.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="96.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="83.0" y="136.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cctfkg_di" bpmnElement="SequenceFlow_0cctfkg">
+        <di:waypoint xsi:type="dc:Point" x="326.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="360.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="353.0" y="126.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1px2phb_di" bpmnElement="SequenceFlow_1px2phb">
+        <di:waypoint xsi:type="dc:Point" x="460.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="492.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="481.0" y="126.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1ufa8jo_di" bpmnElement="Install-Slab-0n-grade">
+        <dc:Bounds height="80.0" width="100.0" x="492.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_0o4vioe_di" bpmnElement="End">
+        <dc:Bounds height="36.0" width="36.0" x="1164.0" y="119.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="22.0" width="29.0" x="1168.0" y="155.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cais9f_di" bpmnElement="SequenceFlow_0cais9f">
+        <di:waypoint xsi:type="dc:Point" x="592.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="624.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="618.0" y="126.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ncdmet_di" bpmnElement="SequenceFlow_0ncdmet">
+        <di:waypoint xsi:type="dc:Point" x="782.0" y="190.0"/>
+        <di:waypoint xsi:type="dc:Point" x="817.0" y="190.0"/>
+        <di:waypoint xsi:type="dc:Point" x="817.0" y="160.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="752.0" y="180.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1pm2tmm_di" bpmnElement="Install-Concrete-Walls">
+        <dc:Bounds height="80.0" width="100.0" x="682.0" y="150.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0lcokuh_di" bpmnElement="SequenceFlow_0lcokuh">
+        <di:waypoint xsi:type="dc:Point" x="649.0" y="161.0"/>
+        <di:waypoint xsi:type="dc:Point" x="649.0" y="190.0"/>
+        <di:waypoint xsi:type="dc:Point" x="682.0" y="190.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="634.0" y="151.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_08yqqu4_di" bpmnElement="ParallelGateway_08yqqu4">
+        <dc:Bounds height="50.0" width="50.0" x="624.0" y="111.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="649.0" y="161.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_01o2b6s_di" bpmnElement="SequenceFlow_01o2b6s">
+        <di:waypoint xsi:type="dc:Point" x="649.0" y="111.0"/>
+        <di:waypoint xsi:type="dc:Point" x="649.0" y="78.0"/>
+        <di:waypoint xsi:type="dc:Point" x="682.0" y="78.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="663.0" y="78.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0gbs8qa_di" bpmnElement="Install-Concrete-Columns">
+        <dc:Bounds height="80.0" width="100.0" x="682.0" y="38.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_108k6d1_di" bpmnElement="ParallelGateway_108k6d1">
+        <dc:Bounds height="50.0" width="50.0" x="792.0" y="110.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="817.0" y="160.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1a1r4t1_di" bpmnElement="SequenceFlow_1a1r4t1">
+        <di:waypoint xsi:type="dc:Point" x="782.0" y="78.0"/>
+        <di:waypoint xsi:type="dc:Point" x="817.0" y="78.0"/>
+        <di:waypoint xsi:type="dc:Point" x="817.0" y="110.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="814.0" y="68.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1502mqv_di" bpmnElement="SequenceFlow_1502mqv">
+        <di:waypoint xsi:type="dc:Point" x="988.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="1020.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="983.0" y="126.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_015y1zq_di" bpmnElement="SequenceFlow_015y1zq">
+        <di:waypoint xsi:type="dc:Point" x="842.0" y="135.0"/>
+        <di:waypoint xsi:type="dc:Point" x="888.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="858.0" y="135.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0srmjwc_di" bpmnElement="Install-PT-Concrete-Deck">
+        <dc:Bounds height="80.0" width="100.0" x="888.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dohiuh_di" bpmnElement="SequenceFlow_1dohiuh">
+        <di:waypoint xsi:type="dc:Point" x="196.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="226.0" y="136.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="226.0" y="126.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0a7v29q_di" bpmnElement="BPMN-Start">
+        <dc:Bounds height="80.0" width="100.0" x="96.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1sxzf6d_di" bpmnElement="SequenceFlow_1sxzf6d">
+        <di:waypoint xsi:type="dc:Point" x="1120.0" y="136.0"/>
+        <di:waypoint xsi:type="dc:Point" x="1164.0" y="137.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="1149.0" y="127.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1i4kd8p_di" bpmnElement="BPMN-End">
+        <dc:Bounds height="80.0" width="100.0" x="1020.0" y="96.0"/>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

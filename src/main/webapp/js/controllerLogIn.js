@@ -1,6 +1,6 @@
 ﻿app.controller("BuildWhizNgAppLogInCtrl", function ($http, $scope, BuildWhizNgAppLogInService) {
     document.getElementById("inputEmail").focus();
-    $scope.email = "sanjay.dasgupta@buildwhiz.com";
+    $scope.email = "???@buildwhiz.com";
     //=====check validation====
     function CheckLogInForm() {
         var bValidate = true;

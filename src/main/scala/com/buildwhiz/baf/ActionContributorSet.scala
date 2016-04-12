@@ -1,0 +1,88 @@
+package com.buildwhiz.baf
+
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
+import org.bson.types.ObjectId
+
+import scala.collection.JavaConversions._
+
+class ActionContributorSet extends HttpServlet with Utils {
+
+  private def sendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
+        actionName: String): Unit = {
+    BWLogger.log(getClass.getName, "sendMail()", "ENTRY")
+    try {
+      val subject1 = "Action role assignment"
+      val message1 = s"You have been assigned the role of contributor for action '$actionName'"
+      BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
+        "recipient_person_id" -> assignedPersonOid, "subject" -> subject1, "message" -> message1))
+      val subject2 = "Action role de-assignment"
+      val message2 = s"You have been de-assigned from the role of contributor for action '$actionName'"
+      BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
+        "recipient_person_id" -> deAssignedPersonOid, "subject" -> subject2, "message" -> message2))
+    } catch {
+      case t: Throwable =>
+        t.printStackTrace()
+        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+    }
+    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+  }
+
+  private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().toSeq
+    for (project <- projects) {
+      val phaseIds: Seq[ObjectId] = project.phase_ids[ObjectIdList]
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).toSeq
+      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList])
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).toSeq
+      val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
+      val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||
+        phases.exists(_.admin_person_id[ObjectId] == personOid) ||
+        projects.exists(_.admin_person_id[ObjectId] == personOid)
+      if (isAssociated) {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
+          Map("$addToSet" -> Map("project_ids" -> project._id[ObjectId])))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+      } else {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
+          Map("$pull" -> Map("project_ids" -> project._id[ObjectId])))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+      }
+    }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val parameters = getParameterMap(request)
+    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    try {
+      val assignedPersonOid = new ObjectId(parameters("person_id"))
+      val activityOid = new ObjectId(parameters("activity_id"))
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
+      val actionName = parameters("action_name")
+      val actionIdx = actionNames.indexOf(actionName)
+      val actions: Seq[DynDoc] = theActivity.actions[DocumentList]
+      val deAssignedPersonOid = actions(actionIdx).assignee_person_id[ObjectId]
+      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        Map("$set" -> Map(s"actions.$actionIdx.assignee_person_id" -> assignedPersonOid)))
+      if (updateResult.getModifiedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      adjustPersonsProjectIds(assignedPersonOid)
+      adjustPersonsProjectIds(deAssignedPersonOid)
+      sendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName)
+      response.setStatus(HttpServletResponse.SC_OK)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        t.printStackTrace()
+        throw t
+    }
+    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+  }
+}

@@ -1,0 +1,207 @@
+<html ng-app="buildWhizApp">
+<head>
+  <title>Test BW</title>
+  <script src="angular.min.js"></script>
+</head>
+<body ng-controller="BuildWhizCtrl as bwCtrl">
+  <!-- Name Tabs -->
+  <button ng-repeat="person in bwCtrl.persons" ng-click="bwCtrl.personSelected(person)"
+      style="background-color: {{bwCtrl.personTabColor(person)}};">
+    {{person.first_name}} {{person.last_name}}
+  </button>
+  <hr color="red"/>
+  <!-- Main Menu -->
+
+  <button ng-click="bwCtrl.refreshView()" style="background-color: yellow;">Refresh</button>
+  &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="bwCtrl.expandAllSelection"
+      ng-change="bwCtrl.expandAll()" /> Expand ALL
+  &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="bwCtrl.mineOnly" disabled /> Mine ONLY
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="api/BrowseMails?person_id={{bwCtrl.personId}}"
+      target="_blank"><button ng-disabled="!bwCtrl.personId">Mails</button></a>
+  <hr color="red"/>
+
+  <!-- Projects Projects Projects Projects Projects Projects Projects Projects -->
+  <div ng-repeat="project in bwCtrl.projects" ng-controller="ProjectManageCtrl as projMgmtCtrl" style="border: 2px solid blue; margin-top: 5px">
+    <h3 style="margin: 5px 0px 0px 0px; background-color: {{bwCtrl.statusColor(project.display_status)}};">
+      <input type="checkbox" ng-model="project.displayDetails" ng-change="bwCtrl.projectSelectionChange(project, bwCtrl.personId)" />
+      Project '{{project.name}}' (status={{project.status}})
+      <span ng-if="project.is_managed">
+        <button ng-click="projMgmtCtrl.launchProject(project)" ng-disabled="project.status != 'defined'">Launch</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="checkbox" ng-model="project.public" ng-change="bwCtrl.projectSetPublic(project)"
+            ng-true-value="true" ng-false-value="false"/>Public
+        &nbsp;&nbsp;&nbsp;&nbsp;New-Phase:
+        <select ng-model="project.newPhaseName" ng-disabled="project.status == 'ended'">
+          <option ng-repeat ="phaseName in bwCtrl.phaseNames">{{phaseName}}</option>
+        </select>
+        <button ng-click="projMgmtCtrl.addPhase(project)" ng-disabled="project.status == 'ended'">Add</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button ng-click="projMgmtCtrl.endProject(project)" ng-disabled="!project.can_end">End</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button ng-click="projMgmtCtrl.deleteProject(project)" ng-disabled="project.status == 'running'">Delete</button>
+      </span>
+    </h3>
+
+    <!-- Phases Phases Phases Phases Phases Phases Phases Phases Phases Phases -->
+    <!--div ng-if="project.displayDetails || bwCtrl.expandAll" ng-repeat="phase in project.phases" style="border: 1px solid gray; margin: 5px 0px 5px 20px;"-->
+    <div ng-repeat="phase in project.phases" style="border: 1px solid gray; margin: 5px 0px 5px 20px;">
+      <h4 style="margin: 0px 0px 0px 0px; background-color: {{bwCtrl.statusColor(phase.display_status)}}">
+        <input type="checkbox" ng-model="phase.displayDetails" ng-change="bwCtrl.phaseSelectionChange(phase, bwCtrl.personId)"/>
+        Phase '{{phase.name}}' ({{phase.status}})
+        <span ng-if="phase.is_managed">
+          <!--a href="ManagePhase.html" target="_blank"><button>Manage</button></a-->
+          <button ng-click="projMgmtCtrl.launchPhase(project, phase)"
+                  ng-disabled="phase.status != 'defined' || project.status != 'running'">Launch</button>
+        </span>
+        <span ng-if="project.is_managed">
+          &nbsp;&nbsp;&nbsp;&nbsp;Administrator:
+          <select ng-disabled="phase.status != 'defined'" ng-model="phase.admin_person_id">
+            <option ng-repeat="person in bwCtrl.persons" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
+          </select>
+          <button ng-click="projMgmtCtrl.setPhaseAdministrator(project, phase)" ng-disabled="phase.status != 'defined'">Set</button>
+        </span>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        BPMN: {{phase.bpmn_name}}
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <button ng-click="projMgmtCtrl.deletePhase(phase)" ng-disabled="phase.status == 'running'">Delete</button>
+      </h4>
+
+      <!-- Processes Processes Processes Processes Processes Processes Processes -->
+      <!--div ng-if="phase.displayDetails || bwCtrl.expandAll" ng-repeat="process in phase.processes" style="border: 1px solid gray; margin: 5px 0px 5px 20px;"-->
+      <div ng-repeat="process in phase.processes" style="border: 1px solid gray; margin: 5px 0px 5px 20px;">
+        <h4 style="margin: 0px 0px 0px 0px; background-color: {{bwCtrl.statusColor(process.display_status)}};">
+          <input type="checkbox" ng-model="process.displayDetails" ng-change="bwCtrl.processSelectionChange(phase, process, bwCtrl.personId)" />
+          Process '{{process.bpmn_name}}' ({{process.status}})
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <input type="checkbox" ng-model="process.displayBpmn"/> BPMN
+        </h4>
+        <table width="100%" border="1"  ng-if="(process.timers.length != 0 || process.variables.length != 0) && (phase.is_managed || project.is_managed)">
+          <tr ng-if="process.timers.length != 0 && (project.is_managed || phase.is_managed)"><td width="10%" align="center">Timers</td><td width="90%">
+              <span ng-repeat="timer in process.timers">
+                {{timer.name}}:
+                <input type="text" placeholder="{{timer.duration}}" size="10" pattern="(?:(?:\d{1,2}:)?\d{1,2}:)?\d{1,2}"
+                       ng-model="timer.duration" ng-disabled="phase.status != 'defined'" required />
+                <button ng-click="projMgmtCtrl.setTimerDuration(phase, timer)" ng-disabled="phase.status != 'defined'">Set</button>
+              </span>
+          </td></tr>
+          <tr ng-if="process.variables.length != 0 && (project.is_managed || phase.is_managed)"><td width="10%" align="center">Variables</td><td width="90%">
+              <span ng-repeat="variable in process.variables">
+                {{variable.label}}:
+                <input type="text" placeholder="{{variable.value}}" size="10"
+                       ng-model="variable.value" ng-disabled="phase.status != 'defined'" required />
+                <button ng-click="projMgmtCtrl.setVariableValue(phase, variable)" ng-disabled="phase.status != 'defined'">Set</button>
+              </span>
+          </td></tr>
+        </table>
+        <div ng-if="process.displayBpmn">
+          <img src="baf/PhaseBpmnImage?bpmn_name={{process.bpmn_name}}" align="center"/>
+        </div>
+
+      <!-- Activities Activities Activities Activities Activities Activities Activities -->
+      <!--div ng-if="process.displayDetails || bwCtrl.expandAll" ng-repeat="activity in process.activities" style="border: 1px solid gray; margin: 5px 0px 5px 20px;"-->
+      <div ng-repeat="activity in process.activities" style="border: 1px solid gray; margin: 5px 0px 5px 20px;">
+        <h4 style="margin: 0px 0px 0px 0px; background-color: {{bwCtrl.statusColor(activity.display_status)}}">
+          <input type="checkbox" ng-model="activity.displayDetails" ng-change="bwCtrl.activitySelectionChange(activity, bwCtrl.personId)" />
+          Activity '{{activity.name}}' ({{activity.status}})
+          <span ng-if="phase.is_managed || project.is_managed">
+            &nbsp;&nbsp;&nbsp;&nbsp;Prerequisite:
+            <input type="text" ng-model="activity.newPrerequisiteName" ng-disabled="activity.status != 'defined'" required />
+            <button ng-click="projMgmtCtrl.addPrerequisiteAction(activity, bwCtrl.personId)"
+                    ng-disabled="activity.status != 'defined'">Add</button>
+            &nbsp;&nbsp;&nbsp;&nbsp;Review:
+            <input type="text" ng-model="activity.newReviewName" ng-disabled="activity.status != 'defined'" required />
+            <button ng-click="projMgmtCtrl.addReviewAction(activity, bwCtrl.personId)"
+                    ng-disabled="activity.status != 'defined'">Add</button>
+          </span>
+        </h4>
+        <p style="margin: 5px 0px 5px 0px;">{{activity.description}}</p>
+
+        <!-- Actions Actions Actions Actions Actions Actions Actions Actions -->
+        <!--div ng-if="activity.displayDetails || bwCtrl.expandAll" ng-repeat="action in activity.actions" style="border: 1px solid gray; margin: 5px 0px 5px 20px;"-->
+        <div ng-repeat="action in activity.actions" style="border: 1px solid gray; margin: 5px 0px 5px 20px;">
+          <h4 style="margin: 0px 0px 0px 0px; background-color: {{bwCtrl.statusColor(action.display_status)}}">
+            <input type="checkbox" ng-model="action.displayDetails" ng-disabled="action.assignee_person_id != bwCtrl.personId" />
+            Action ({{action.type}}) '{{action.name}}' (status={{action.status}})
+            &nbsp;&nbsp;&nbsp;&nbsp;Duration
+            <span ng-switch="phase.is_managed || project.is_managed">
+              <span ng-switch-when=false>: {{action.duration}}</span>
+              <span ng-switch-when=true>
+                <input type="text" placeholder="{{action.duration}}" size="10" pattern="(?:(?:\d{1,2}:)?\d{1,2}:)?\d{1,2}"
+                       ng-model="action.duration" ng-disabled="action.status != 'defined'" required />
+                <button ng-click="projMgmtCtrl.setActionDuration(activity, action)" ng-disabled="action.status != 'defined'">Set</button>
+              </span>
+            </span>
+            <span ng-if="phase.is_managed || project.is_managed">
+              &nbsp;&nbsp;&nbsp;&nbsp;Assign to:
+              <select ng-disabled="action.status != 'defined'" ng-model="action.assignee_person_id">
+                <option ng-repeat="person in bwCtrl.persons" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
+              </select>
+              <button ng-click="projMgmtCtrl.setActionAssignee(project, activity, action)" ng-disabled="action.status != 'defined'">Set</button>
+            </span>
+          </h4>
+          <div ng-if="(action.displayDetails || bwCtrl.expandAll) && action.assignee_person_id == bwCtrl.personId" style="margin: 5px 5px 5px 5px;">
+            <!--p style="background-color: #bbbbff; margin: 0px 0px 5px 0px;">Description: {{action.description}}</p-->
+            <table width="100%" border="1">
+              <tr><td width="50%" align="center">Available Files</td>
+                <td width="50%" align="center">Required Files</td>
+              </tr>
+              <tr>
+                <td>
+                  <span ng-repeat="document in action.inDocuments">
+                    <a ng-if="document.is_ready" href="baf/DocumentDownload/{{document.name}}?project_id={{project._id}}&document_id={{document._id}}" target="_blank">
+                      {{document.name}}
+                    </a>
+                    <span ng-if="!document.is_ready">{{document.name}}</span>
+                    <br/>
+                  </span>
+                </td>
+                <td>
+                  <div ng-repeat="document in action.outDocuments" onchange="">
+                    {{document.name}}:
+                    <input bw-upload ng-if="projMgmtCtrl.uploadDisabled(project, action)" type="file" project="project" document="document"
+                           action="action" activity="activity" disabled />
+                    <input bw-upload ng-if="!projMgmtCtrl.uploadDisabled(project, action)" type="file" project="project" document="document"
+                           action="action" activity="activity" />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td width="50%" bgcolor="gray"></td>
+                <td width="50%" align="center">
+                  <span ng-if="action.type == 'review'">
+                    Review result:
+                    <select ng-model="action.review_ok" ng-disabled="projMgmtCtrl.actionCompleteDisabled(project, action)">
+                      <option value="OK">OK</option><option value="Not-OK">Not-OK</option>
+                    </select>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                  </span>
+                  <button ng-click="projMgmtCtrl.completeAction(activity, action)"
+                          ng-disabled="projMgmtCtrl.actionCompleteDisabled(project, action)">Complete</button>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
+  <div ng-if="bwCtrl.projects.length == 0">
+    <h3 align="center" style="margin: 0px 0px 0px 0px; color: red;">
+      There are no projects at this time
+    </h3>
+  </div>
+  <hr color="red"/>
+  <!-- End of projects view -->
+  New Project:<input type="text" ng-model="bwCtrl.newProjectName"/>
+  <button ng-click="bwCtrl.createNewProject()">Add</button>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="BrowseMongoDB" target="_blank"><button>MongoDB</button></a>
+  <a href="BrowseAmazonS3" target="_blank"><button>AmazonS3</button></a>
+  <a href="TraceLog?count=200" target="_blank"><button>Log-Trace</button></a>
+  <a href="REPL.html" target="_blank"><button>REPL</button></a>
+  Sample Project: <button ng-click="bwCtrl.sampleProjectSetup()" style="background-color: red;">Setup</button>
+  Person Records: <button ng-click="bwCtrl.personRecordsRedo()" style="background-color: red;">Redo</button>
+  Document Records: <button ng-click="bwCtrl.documentRecordsRedo()" style="background-color: red;">Redo</button>
+  <script type="text/javascript" src="sdg.js"></script>
+</body>
+</html>

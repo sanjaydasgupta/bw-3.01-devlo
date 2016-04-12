@@ -20,6 +20,12 @@ class ActionAdd extends HttpServlet with Utils {
     }
   }
 
+  private def mainInbox(activityOid: ObjectId, actionName: String): ObjectIdList = {
+    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val mainAction: DynDoc = activity.actions[DocumentList].find(_.`type`[String] == "main").head
+    mainAction.inbox[ObjectIdList]
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
@@ -35,7 +41,7 @@ class ActionAdd extends HttpServlet with Utils {
       if (typ == "review")
         outbox.append(getTempDoc(s"$actionName-review-report"))
       val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
-        "inbox" -> new java.util.ArrayList[ObjectId], "outbox" -> outbox, "duration" -> "00:00:00",
+        "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> "00:00:00",
         "assignee_person_id" -> assigneeOid, "bpmn_name" -> bpmnName)
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$push" -> Map("actions" -> action)))
       if (updateResult.getModifiedCount == 0)

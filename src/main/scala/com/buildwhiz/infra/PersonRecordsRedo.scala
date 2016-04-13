@@ -96,7 +96,7 @@ object PersonRecordsRedo extends App {
       newBsonDoc("project_ids") = projectIds
       // passwords for testing
       val firstName = newBsonDoc("first_name").asInstanceOf[String]
-      newBsonDoc("password") = if (firstName.matches("Prabhas|Sanjay|Tester")) "aha" else firstName
+      newBsonDoc("password") = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
       val roles = new java.util.ArrayList[String]
       if (newBsonDoc.containsKey("role")) {
         roles.addAll(newBsonDoc("role").asInstanceOf[String].split(",").toSeq)

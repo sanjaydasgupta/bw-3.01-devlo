@@ -7,10 +7,17 @@ import scala.collection.JavaConversions._
 
 object DocumentRecordsRedo extends App {
 
-  val docCoverSheet: Document = Map("name" -> "Cover Sheet", "file_extension" -> ".txt",
-    "description" -> "", "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b42"))
-  val docSitePlan: Document = Map("name" -> "Site Plan", "file_extension" -> ".txt",
-    "description" -> "", "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b3a"))
+  val docRfiRequest: Document = Map("name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream",
+    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d38"))
+  val docRfiResponse: Document = Map("name" -> "RFI-Response", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream",
+    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
+
+  val docCoverSheet: Document = Map("name" -> "Cover Sheet", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b42"))
+  val docSitePlan: Document = Map("name" -> "Site Plan", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b3a"))
   val docBasementFloorPlan: Document = Map("name" -> "Basement Floor Plan", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b3b"))
 
@@ -45,17 +52,11 @@ object DocumentRecordsRedo extends App {
   val docBasementConstructionManagersReview: Document = Map("name" -> "Basement-Construction-Managers-Review-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d37"))
-  val docRfi: Document = Map("name" -> "Request-For-Information",
-    "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
-    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d38"))
-  val docRfi2: Document = Map("name" -> "Request-For-Information2",
-    "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
-    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
 
   val allDocuments = Seq(docOwnersProjectReport, docDemolitionPermit, docDemolitionComplete, docDemolitionManagersReview,
     docDemolitionCityReview, docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
     docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
-    docBasementConstructionManagersReview, docRfi, docRfi2, docSitePlan, docCoverSheet, docBasementFloorPlan)
+    docBasementConstructionManagersReview, docRfiRequest, docRfiResponse, docSitePlan, docCoverSheet, docBasementFloorPlan)
   BWMongoDB3.document_master.drop()
   BWMongoDB3.document_master.insertMany(allDocuments)
 }

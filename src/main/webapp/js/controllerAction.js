@@ -204,9 +204,11 @@
 
     }
     //==========================uploadDisabled()    
-    $scope.uploadDisabled = function (project, action) {
+    $scope.uploadDisabled = function (project, action, document) {
         if (project.status != 'running') {
             return true;
+        } if ((document.name == 'RFI-Request') || (document.name == 'RFI-Response')) {
+            return false;
         } else if (action.type == 'prerequisite') {
             return action.status == 'ended' || action.status == 'ready';
         } else if (action.type == 'main') {

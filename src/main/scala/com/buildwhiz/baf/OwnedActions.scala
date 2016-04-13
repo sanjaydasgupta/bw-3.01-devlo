@@ -11,7 +11,8 @@ import scala.collection.JavaConversions._
 
 class OwnedActions extends HttpServlet with Utils {
 
-  private val rfiDocOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
+  private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
+  private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
@@ -48,42 +49,35 @@ class OwnedActions extends HttpServlet with Utils {
       val (phase, project) = activityOidToPhaseAndProject(activityOid)
       for (action <- sortedActions) {
         action.review_ok = ""
-        //action.description = s"""This is the placeholder description text for the action '${action.name[String]}'.
-        //     |It will be replaced by the actual description when the system is in use.""".stripMargin.replaceAll("\n", " ")
         action.display_status = action.status[String]
         val isWaiting = action.status[String] == "waiting"
-        val assigneeIsRequestor = action.assignee_person_id[ObjectId] == personOid
-        val phaseManagerIsRequestor = phase.admin_person_id[ObjectId] == personOid
+        val assigneeIsUser = action.assignee_person_id[ObjectId] == personOid
+        val phaseManagerIsUser = phase.admin_person_id[ObjectId] == personOid
+        action.assignee_is_user = assigneeIsUser
         if (isWaiting) {
-          action.displayDetails = assigneeIsRequestor
-          if (!assigneeIsRequestor)
+          action.displayDetails = assigneeIsUser
+          if (!assigneeIsUser)
             action.display_status = "waiting2"
         } else {
           action.displayDetails = false
         }
-//        val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-//        action.inDocuments = docList(project, action.inbox[ObjectIdList], p0)
-//        val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-//        action.outDocuments = docList(project, action.outbox[ObjectIdList] += rfiDocOid, t0)
-//        val outDocs: Seq[DynDoc] = action.outDocuments[DocumentList]
-//        action.is_ready = (action.`type`[String] == "review") || outDocs.forall(_.is_ready[Boolean])
-        val isRelevant = assigneeIsRequestor | phaseManagerIsRequestor
+        val isRelevant = assigneeIsUser | phaseManagerIsUser
         action.is_relevant = isRelevant
         if (isRelevant) {
           val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
           action.inDocuments = docList(project, action.inbox[ObjectIdList], p0)
           val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-//          val outDocs: ObjectIdList = if (action.name[String] == "DocZTest") {
-//            val rfiDocs = new java.util.ArrayList[ObjectId]
-//            rfiDocs.add(new ObjectId("56fe4e6bd5d8ad3da60d5d38")); rfiDocs.add(new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
-//            action.outbox[ObjectIdList] ++ rfiDocs
-//          } else {
-//            action.outbox[ObjectIdList]
-//          }
-          val outDocs = docList(project, action.outbox[ObjectIdList] += rfiDocOid, t0)
+          val outDocumentsOids: Seq[ObjectId] =
+            if (assigneeIsUser) {
+              rfiRequestOid +: action.outbox[ObjectIdList]
+            } else if (phaseManagerIsUser && action.inbox[ObjectIdList].contains(rfiRequestOid)) {
+              Seq(rfiResponseOid)
+            } else
+              Nil
+          val outDocs = docList(project, outDocumentsOids, t0)
           action.outDocuments = outDocs
           action.is_ready = (action.`type`[String] == "review") ||
-            outDocs.forall(doc => doc.is_ready[Boolean] || doc._id[ObjectId] == rfiDocOid)
+            outDocs.forall(doc => doc.is_ready[Boolean] || doc._id[ObjectId] == rfiRequestOid)
         }
         action.remove("inbox")
         action.remove("outbox")

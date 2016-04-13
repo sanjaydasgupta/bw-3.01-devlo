@@ -356,9 +356,9 @@
                                             <div class="text-left text-danger" data-ng-if="action.outDocuments.length <= 0"  style="width:95%; margin:0px auto;">No Upload Required.</div>            
                                             <div class="actionContent" data-ng-repeat="document in action.outDocuments" onchange="" data-ng-if="action.outDocuments.length != 0">
                                               <span class="pull-left spanDocumentName">{{document.name}} </span> 
-                                                <input bw-upload data-ng-if="uploadDisabled(project, action)" type="file" project="project" document="document"
+                                                <input bw-upload data-ng-if="uploadDisabled(project, action, document)" type="file" project="project" document="document"
                                                 action="action" activity="activity" disabled style="width:100px; padding-left:5px;"  />
-                                                <input bw-upload data-ng-if="!uploadDisabled(project, action)" type="file" project="project" document="document"
+                                                <input bw-upload data-ng-if="!uploadDisabled(project, action, document)" type="file" project="project" document="document"
                                                 action="action" activity="activity" callback-Function="callbackFunction" style="width:100px; padding-left:5px;" />                                          
                                             </div>
                                           </div>
@@ -366,7 +366,7 @@
                                       </td>
                               
                                     </tr>
-                                    <tr> 
+                                    <tr data-ng-if="action.assignee_is_user">
                                       <th colspan="2" width="50%" class="text-right thActionContentFooter">
                                         <span data-ng-if="action.type == 'review'">
                                           Review Result

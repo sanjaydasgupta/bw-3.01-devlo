@@ -1,0 +1,384 @@
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+         http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+                    
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/applicationContext.xml</param-value>
+  </context-param>
+ 
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+
+  <servlet>
+    <servlet-name>BrowseTomcatLog</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseTomcatLog</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseTomcatLog</servlet-name>
+    <url-pattern>/BrowseTomcatLog/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>TraceLog</servlet-name>
+    <servlet-class>com.buildwhiz.tools.TraceLog</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TraceLog</servlet-name>
+    <url-pattern>/TraceLog</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>REPL</servlet-name>
+    <servlet-class>com.buildwhiz.tools.REPL</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>REPL</servlet-name>
+    <url-pattern>/repl</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseMongoDB</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseMongoDB</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseMongoDB</servlet-name>
+    <url-pattern>/BrowseMongoDB/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseAmazonS3</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseAmazonS3</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseAmazonS3</servlet-name>
+    <url-pattern>/BrowseAmazonS3/*</url-pattern>
+  </servlet-mapping>
+
+  <!--servlet>
+    <servlet-name>ParseTest</servlet-name>
+    <servlet-class>com.buildwhiz.obsolete.ParseTest</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ParseTest</servlet-name>
+    <url-pattern>/ParseTest/*</url-pattern>
+  </servlet-mapping-->
+
+  <servlet>
+    <servlet-name>LinkedInLogin</servlet-name>
+    <servlet-class>com.buildwhiz.web.LinkedInLogin</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LinkedInLogin</servlet-name>
+    <url-pattern>/LinkedInLogin/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>LinkedCallback</servlet-name>
+    <servlet-class>com.buildwhiz.web.LinkedCallback</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LinkedCallback</servlet-name>
+    <url-pattern>/linkedin-callback/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Person</servlet-name>
+    <servlet-class>com.buildwhiz.rest.RestPerson</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Person</servlet-name>
+    <url-pattern>/api/person/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Organization</servlet-name>
+    <servlet-class>com.buildwhiz.rest.RestOrganization</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Organization</servlet-name>
+    <url-pattern>/api/organization/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Project</servlet-name>
+    <servlet-class>com.buildwhiz.rest.RestProject</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Project</servlet-name>
+    <url-pattern>/api/project/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ViewMain</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ViewMain</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ViewMain</servlet-name>
+    <url-pattern>/api/mainview/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OwnedProjects</servlet-name>
+    <servlet-class>com.buildwhiz.baf.OwnedProjects</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OwnedProjects</servlet-name>
+    <url-pattern>/api/ownedprojects/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OwnedPhases</servlet-name>
+    <servlet-class>com.buildwhiz.baf.OwnedPhases</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OwnedPhases</servlet-name>
+    <url-pattern>/api/ownedphases/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OwnedProcesses</servlet-name>
+    <servlet-class>com.buildwhiz.baf.OwnedProcesses</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OwnedProcesses</servlet-name>
+    <url-pattern>/api/ownedprocesses/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OwnedActivities</servlet-name>
+    <servlet-class>com.buildwhiz.baf.OwnedActivities</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OwnedActivities</servlet-name>
+    <url-pattern>/api/ownedactivities/*</url-pattern>
+    <url-pattern>/api/ownedactivities2/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>OwnedActions</servlet-name>
+    <servlet-class>com.buildwhiz.baf.OwnedActions</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>OwnedActions</servlet-name>
+    <url-pattern>/api/ownedactions/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseActions</servlet-name>
+    <servlet-class>com.buildwhiz.web.BrowseActions</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseActions</servlet-name>
+    <url-pattern>/BrowseActions/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseMails</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseMails</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseMails</servlet-name>
+    <url-pattern>/api/BrowseMails/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseOrphans</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseOrphans</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseOrphans</servlet-name>
+    <url-pattern>/api/BrowseOrphans/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>Phase</servlet-name>
+    <servlet-class>com.buildwhiz.rest.RestPhase</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Phase</servlet-name>
+    <url-pattern>/api/phase/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhaseAdd</servlet-name>
+    <servlet-class>com.buildwhiz.baf.PhaseAdd</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhaseAdd</servlet-name>
+    <url-pattern>/baf/PhaseAdd/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhaseBpmnImage</servlet-name>
+    <servlet-class>com.buildwhiz.baf.PhaseBpmnImage</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhaseBpmnImage</servlet-name>
+    <url-pattern>/baf/PhaseBpmnImage/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ActionAdd</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ActionAdd</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ActionAdd</servlet-name>
+    <url-pattern>/baf/ActionAdd/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ProjectLaunch</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ProjectLaunch</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProjectLaunch</servlet-name>
+    <url-pattern>/baf/ProjectLaunch/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ProjectEnd</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ProjectEnd</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProjectEnd</servlet-name>
+    <url-pattern>/baf/ProjectEnd/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ActionDurationSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ActionDurationSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ActionDurationSet</servlet-name>
+    <url-pattern>/baf/ActionDurationSet/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>TimerDurationSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.TimerDurationSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TimerDurationSet</servlet-name>
+    <url-pattern>/baf/TimerDurationSet/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>VariableValueSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.VariableValueSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VariableValueSet</servlet-name>
+    <url-pattern>/baf/VariableValueSet/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhaseAdministratorSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.PhaseAdministratorSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhaseAdministratorSet</servlet-name>
+    <url-pattern>/baf/PhaseAdministratorSet/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ActionContributorSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ActionContributorSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ActionContributorSet</servlet-name>
+    <url-pattern>/baf/AssignedContributorSet/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhaseBpmnNamesFetch</servlet-name>
+    <servlet-class>com.buildwhiz.baf.PhaseBpmnNamesFetch</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhaseBpmnNamesFetch</servlet-name>
+    <url-pattern>/baf/PhaseBpmnNamesFetch/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DocumentDownload</servlet-name>
+    <servlet-class>com.buildwhiz.baf.DocumentDownload</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DocumentDownload</servlet-name>
+    <url-pattern>/baf/DocumentDownload/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DocumentUpload</servlet-name>
+    <servlet-class>com.buildwhiz.baf.DocumentUpload</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DocumentUpload</servlet-name>
+    <url-pattern>/baf/DocumentUpload/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>PhaseLaunch</servlet-name>
+    <servlet-class>com.buildwhiz.baf.PhaseLaunch</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>PhaseLaunch</servlet-name>
+    <url-pattern>/baf/PhaseLaunch/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ActionComplete</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ActionComplete</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ActionComplete</servlet-name>
+    <url-pattern>/baf/ActionComplete/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>LoginPost</servlet-name>
+    <servlet-class>com.buildwhiz.baf.LoginPost</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginPost</servlet-name>
+    <url-pattern>/baf/loginpost/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>ProjectSetPublic</servlet-name>
+    <servlet-class>com.buildwhiz.baf.ProjectSetPublic</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ProjectSetPublic</servlet-name>
+    <url-pattern>/baf/ProjectSetPublic/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>MainProgramLauncher</servlet-name>
+    <servlet-class>com.buildwhiz.baf.MainProgramLauncher</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MainProgramLauncher</servlet-name>
+    <url-pattern>/baf/MainProgramLauncher/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>UploadFile</servlet-name>
+    <servlet-class>com.buildwhiz.tools.UploadFile</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UploadFile</servlet-name>
+    <url-pattern>/tools/UploadFile/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>BrowseFiles</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseFiles</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseFiles</servlet-name>
+    <url-pattern>/BrowseFiles/*</url-pattern>
+  </servlet-mapping>
+
+</web-app>

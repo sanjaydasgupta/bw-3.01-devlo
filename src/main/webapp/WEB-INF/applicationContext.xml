@@ -1,0 +1,69 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                         http://www.springframework.org/schema/beans/spring-beans.xsd
+                         http://www.springframework.org/schema/context
+                         http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<!-- bind the process engine service as Spring Bean -->
+	<bean name="processEngineService" class="org.camunda.bpm.BpmPlatform"
+		factory-method="getProcessEngineService" />
+
+	<!-- bind the default process engine as Spring Bean -->
+	<bean name="processEngine" factory-bean="processEngineService"
+		factory-method="getDefaultProcessEngine" />
+
+	<bean id="repositoryService" factory-bean="processEngine"
+		factory-method="getRepositoryService" />
+	<bean id="runtimeService" factory-bean="processEngine"
+		factory-method="getRuntimeService" />
+	<bean id="taskService" factory-bean="processEngine"
+		factory-method="getTaskService" />
+	<bean id="historyService" factory-bean="processEngine"
+		factory-method="getHistoryService" />
+	<bean id="managementService" factory-bean="processEngine"
+		factory-method="getManagementService" />
+
+	<!-- bootstrap the process application -->
+	<bean id="BuildWhiz-camunda-Application"
+		class="org.camunda.bpm.engine.spring.application.SpringServletProcessApplication" />
+
+	<context:annotation-config />
+
+	<!--bean name="buildWhizTestScaffold" factory-method="instance"
+			class="com.buildwhiz.wfe.utils.impl.BuildWhizTestScaffold" >
+		<property name="runtimeService" ref="runtimeService" />
+	</bean-->
+	
+	<!-- bean class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.Starter" 
+		/ >
+	<bean
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.TimeExceededGD" />
+	<bean
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.TimeExceededMailGD" />
+	<bean
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.ReminderMailGD" />
+	<bean
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.RecordCompletionTime_GD" />
+	<bean
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.ValidateDocument" />
+
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="localhost" />
+	</bean>
+	
+	<bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+        <property name="velocityProperties">
+            <value>
+                resource.loader=class
+                class.resource.loader.class=org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+            </value>
+        </property>
+    </bean>
+    
+    <bean id ="notifyMailGD"
+		class="com.buildwhiz.wfe.camunda.buildwhiz_wfe_spring_proto.NotifyMail">
+		<property name="mailSender" ref="mailSender"/>
+        <property name="velocityEngine" ref="velocityEngine"/>
+	</bean-->
+</beans>

@@ -1,0 +1,24 @@
+<div class="container" data-ng-controller="BuildWhizNgAppMongodbCtrl as mongoDBCtrl">
+    <p style="text-align:center; font-size: large;">MongoDB View</p>
+    <table>
+        <tr>
+            <td style="vertical-align: top; padding-right: 5px;" width="15%">
+                <div style="background-color: cyan; text-align: center; font-strength: bold;">Collections</div>
+                <span data-ng-repeat="collection in mongoDBCtrl.collections">
+                    <a style="cursor: pointer;"
+                       data-ng-click="mongoDBCtrl.displayCollection(collection.name)">{{collection.name}}</a>
+                    ({{collection.count}})<br/>
+                </span>
+            </td>
+            <td style="vertical-align: top;" width="85%">
+                <table border="1" data-ng-if="mongoDBCtrl.details.length > 0">
+                    <tr style="background-color: cyan; text-align: center; font-strength: bold;">
+                        <td>{{mongoDBCtrl.name}}</td></tr>
+                    <tr data-ng-repeat="detail in mongoDBCtrl.details">
+                        <td>{{detail}}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--//===============================container============================-->

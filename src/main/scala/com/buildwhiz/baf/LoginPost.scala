@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import java.security.MessageDigest
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
@@ -10,6 +11,14 @@ import scala.collection.JavaConversions._
 
 class LoginPost extends HttpServlet with Utils {
 
+  private def md5(password: String): String = {
+    val messageDigest = MessageDigest.getInstance("MD5")
+    messageDigest.update(password.getBytes(), 0, password.length())
+    val bytes = messageDigest.digest()
+    val hexValues = bytes.map(b => "%02x".format(b))
+    hexValues.mkString
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
@@ -18,7 +27,8 @@ class LoginPost extends HttpServlet with Utils {
       val email = parameters("email")
       val password = parameters("password")
       //val query = Map("email_work" -> userEmail, "password" -> password)
-      val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> password)
+      //val passwordHash = "%x".format(password.hashCode)
+      val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password))
       val person: Option[Document] = BWMongoDB3.persons.find(query).headOption
       val result = person match {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""

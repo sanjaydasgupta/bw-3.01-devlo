@@ -1,5 +1,7 @@
 package com.buildwhiz.infra
 
+import java.security.MessageDigest
+
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -65,6 +67,14 @@ object PersonRecordsRedo extends App {
     document("emails") = newEmailDocs
   }
 
+  private def md5(password: String): String = {
+    val messageDigest = MessageDigest.getInstance("MD5")
+    messageDigest.update(password.getBytes(), 0, password.length())
+    val bytes = messageDigest.digest()
+    val hexValues = bytes.map(b => "%02x".format(b))
+    hexValues.mkString
+  }
+
   private def processData(): Unit = {
     val fileLines = data.split("\n")
     val fieldNames = fileLines.head.split("\t").tail
@@ -96,7 +106,8 @@ object PersonRecordsRedo extends App {
       newBsonDoc("project_ids") = projectIds
       // passwords for testing
       val firstName = newBsonDoc("first_name").asInstanceOf[String]
-      newBsonDoc("password") = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
+      val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
+      newBsonDoc("password") = md5(password)
       val roles = new java.util.ArrayList[String]
       if (newBsonDoc.containsKey("role")) {
         roles.addAll(newBsonDoc("role").asInstanceOf[String].split(",").toSeq)

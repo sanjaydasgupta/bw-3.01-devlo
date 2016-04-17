@@ -14,14 +14,21 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
                 templateUrl: 'dashboard.html',
                 controller: 'BuildWhizNgAppDashboardCtrl'
             })
-        .when('/projects', {
-            templateUrl: 'project.html',
-            controller: 'BuildWhizNgAppProjectCtrl'
-            })
-            
+            .when('/projects', {
+                templateUrl: 'project.html',
+                controller: 'BuildWhizNgAppProjectCtrl'
+                })
+            .when('/mongodb', {
+                templateUrl: 'mongodb.html',
+                controller: 'BuildWhizNgAppMongodbCtrl'
+                })
+            .when('/nextGen', {
+                templateUrl: 'nextGen.html',
+                controller: 'BuildWhizNgAppNextGenCtrl'
+                })
             .otherwise({
                 redirectTo: '/login'
-            }); 
+            });
     $locationProvider.html5Mode(false).hashPrefix('!'); // This is for Hashbang Mode
 
 }]);

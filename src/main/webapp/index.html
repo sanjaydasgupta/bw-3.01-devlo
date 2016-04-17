@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" data-ng-app="BuildWhizNgApp">
 <head>
-    <title id='ttlBuildWhizMain'>BuildWihz</title>
+    <title id='ttlBuildWhizMain'>BuildWhiz</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--  <link rel="icon" href="../../favicon.ico" />-->
@@ -38,6 +38,7 @@
     <script src="js/controllerActivity.js"></script>
     <script src="js/controllerAction.js"></script>
     <script src="js/controllerDetails.js"></script>
+    <script src="js/controllerMongodb.js"></script>
 
     <!--Bootstrap Css Framework-->
     <link href="css/bootstrap.css" rel="stylesheet" />
@@ -64,10 +65,11 @@
             <div class="col-sm-4 text-center " id="divWelcomeMsg">
 
                 <div class="col-sm-12 text-right">
-                    <p>
+                    <!--p-->
                        <label id="lblWelcomePerson" name="lblWelcomePerson"></label>
-                    </p>
+                    <!--/p-->
                 </div>
+                <div class="col-sm-12 text-right"><a href="#" class="link" onclick="btnDashboard()">Dashboard</a></div>
                 <div class="col-sm-12 text-right"><a href="#" class="link" onclick="btnLogOut()">Log Out</a></div>
             </div>
 
@@ -93,7 +95,7 @@
     <!--==============================================FOOTER AREA START HERE====================================-->
     <footer class="footer">
         <div class="container">
-            <p class="text-muted text-center">Copyright &#169; 2016</p>
+            <p class="text-muted text-center">Copyright &#169; 2016 BuildWhiz</p>
         </div>
     </footer>
     <!--==============================================FOOTER AREA END HERE====================================-->
@@ -104,13 +106,15 @@
         if (document.getElementById("hndLoggedInID").value != "") {
             $("#divWelcomeMsg").show();
             document.getElementById("lblWelcomePerson").innerHTML = "Welcome " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
-
         };
 
         function btnLogOut() {         
             window.location.href = "index.html";
         }
 
+        function btnDashboard() {
+            location.hash = "#!/dashboard";
+        }
 
     </script>
     <!--//for bootstrap tooltip call function-->

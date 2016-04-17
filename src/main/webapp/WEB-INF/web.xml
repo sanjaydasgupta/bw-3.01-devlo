@@ -89,7 +89,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Person</servlet-name>
-    <url-pattern>/api/person/*</url-pattern>
+    <url-pattern>/api/Person/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -98,7 +98,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Organization</servlet-name>
-    <url-pattern>/api/organization/*</url-pattern>
+    <url-pattern>/api/Organization/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -288,7 +288,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>ActionContributorSet</servlet-name>
-    <url-pattern>/baf/AssignedContributorSet/*</url-pattern>
+    <url-pattern>/baf/ActionContributorSet/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -342,7 +342,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>LoginPost</servlet-name>
-    <url-pattern>/baf/loginpost/*</url-pattern>
+    <url-pattern>/baf/LoginPost/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -379,6 +379,15 @@
   <servlet-mapping>
     <servlet-name>BrowseFiles</servlet-name>
     <url-pattern>/BrowseFiles/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>MongoDBView</servlet-name>
+    <servlet-class>com.buildwhiz.baf.MongoDBView</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MongoDBView</servlet-name>
+    <url-pattern>/baf/MongoDBView/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

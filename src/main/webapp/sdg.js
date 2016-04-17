@@ -20,8 +20,8 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.phaseNames = [];
   self.bwGlobals = bwGlobals;
   self.displayDetails = {}
-  $log.log('calling GET api/person')
-  $http.get('api/person').then(
+  $log.log('calling GET api/Person')
+  $http.get('api/Person').then(
     function(resp) {
       self.persons = resp.data
       self.persons.forEach(function(p) {self.personsById[p._id] = p;});
@@ -191,8 +191,8 @@ buildWhizApp.controller('CreateProjectCtrl', ['$http', '$log', 'bwGlobals', func
   self.organizations = [];
   self.orgEmployees = [];
   self.project = null;
-  $log.log('calling GET api/organization')
-  $http.get('api/organization').then(
+  $log.log('calling GET api/Organization')
+  $http.get('api/Organization').then(
     function(resp) {
       self.organizations = resp.data
     },
@@ -200,8 +200,8 @@ buildWhizApp.controller('CreateProjectCtrl', ['$http', '$log', 'bwGlobals', func
   );
   self.projectOrganizationChanged = function() {
     var query = 'organization_id=' + self.project.organization_id;
-    $log.log('calling GET api/person with ' + query)
-    $http.get('api/person?' + query).then(
+    $log.log('calling GET api/Person with ' + query)
+    $http.get('api/Person?' + query).then(
       function(resp) {
         self.orgEmployees = resp.data
       },
@@ -335,8 +335,8 @@ buildWhizApp.controller('ProjectManageCtrl', ['$http', '$log', 'bwGlobals', func
   self.setActionAssignee = function(project, activity, action) {
     var p = 'activity_id=' + activity._id + '&project_id=' + project._id + '&action_name=' + action.name +
         '&person_id=' + action.assignee_person_id;
-    $log.log('calling POST baf/AssignedContributorSet?' + p)
-    $http.post('baf/AssignedContributorSet?' + p).then(
+    $log.log('calling POST baf/ActionContributorSet?' + p)
+    $http.post('baf/ActionContributorSet?' + p).then(
       function(resp) {alert('Set assignee successful'); },
       function(errResponse) {alert(errResponse);}
     );

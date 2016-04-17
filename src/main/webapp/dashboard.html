@@ -3,13 +3,36 @@
                     <i class="fa fa-arrow-left"></i>
                     Back
                 </a>-->
-    <div class="dashboardWraper">
-        <div class="col-sm-3 text-center">
-            <a href="#" data-ng-click="manageProject_Click()">
-                <img src="css/images/project1.png" />
-                <p>Manage Projects</p>
-            </a>
-        </div>
-    </div>
+    <!--div class="dashboardWraper"-->
+        <!--div class="col-sm-3 text-center"-->
+    <table>
+        <tr>
+            <td align="center">
+                <!--a href="#" data-ng-click="manageProject_Click()"-->
+                    <!--img src="css/images/project1.png" /><br/-->
+                    <button data-ng-click="manageProject_Click()" class="dashboardButtonWrapper">Projects</button>
+                <!--/a-->
+            </td>
+        </tr>
+    </table>
+    <div style="height: 300px;"></div>
+    <table>
+        <tr>
+            <td align="center">
+                <!--a href="#" data-ng-click="manageMongodb_Click()"-->
+                <!--img src="css/images/project1.png" /><br/-->
+                <button data-ng-click="manageMongodb_Click()" class="dashboardSmallButtonWrapper">MongoDB</button>
+                <!--/a-->
+            </td>
+            <td align="center">
+                <!--a href="#" data-ng-click="manageMongodb_Click()"-->
+                <!--img src="css/images/project1.png" /><br/-->
+                <button data-ng-click="manageNextGen_Click()" class="dashboardSmallButtonWrapper">NextGen</button>
+                <!--/a-->
+            </td>
+        </tr>
+    </table>
+        <!--/div-->
+    <!--/div-->
 </div>
 <!--//===============================container============================-->

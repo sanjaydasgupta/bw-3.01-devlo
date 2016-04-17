@@ -5,7 +5,7 @@ app.service("BuildWhizNgAppLogInService", function ($http) {
     this.UserAuthenticate = function (email, password) {
         var response = $http({
             method: "POST",
-            url: "baf/loginpost",
+            url: "baf/LoginPost",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             params: {
                 email: email,
@@ -17,10 +17,12 @@ app.service("BuildWhizNgAppLogInService", function ($http) {
     }
 });
 
+//*****************************************NextGen Services***************************************
+app.service("BuildWhizNgAppNextGenService", function ($http) {
+});
+
 //*****************************************Dashboard Services***************************************
 app.service("BuildWhizNgAppDashboardService", function ($http) {
-
-
 });
 
 //*****************************************Project Services***************************************
@@ -33,7 +35,7 @@ app.service("BuildWhizNgAppProjectService", function ($http) {
     }
     //==============get persons (for Administrator select box) service 
     this.getPersonsData = function () {
-        var response = $http.get('api/person');
+        var response = $http.get('api/Person');
         return response;
     }
 
@@ -181,7 +183,7 @@ app.service("BuildWhizNgAppActionService", function ($http) {
 
         var params = 'activity_id=' + sActivityID + '&project_id=' + sProjectID + '&action_name=' + sActionName + '&person_id=' + sAssignPersonID;
 
-        var response = $http.post('baf/AssignedContributorSet?' + params);
+        var response = $http.post('baf/ActionContributorSet?' + params);
         return response;
     }
 

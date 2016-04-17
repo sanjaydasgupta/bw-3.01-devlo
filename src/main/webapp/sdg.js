@@ -51,12 +51,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
     $log.log('personSelected() called')
     self.personId = person._id;
     var query = 'person_id=' + person._id;
-    $log.log('calling GET api/ownedprojects?' + query)
-    $http.get('api/ownedprojects?' + query).then(
+    $log.log('calling GET api/OwnedProjects?' + query)
+    $http.get('api/OwnedProjects?' + query).then(
       function(resp) {
         self.projects = resp.data;
       },
-      function(errResponse) {$log.log('GET api/ownedprojects ERROR: ' + errResponse);}
+      function(errResponse) {$log.log('GET api/OwnedProjects ERROR: ' + errResponse);}
     );
   }
   self.projectSetPublic = function(project) {
@@ -72,12 +72,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.projectSelectionChange = function(project, personId) {
     if (project.displayDetails) {
       var query = 'person_id=' + personId + '&project_id=' + project._id;
-      $log.log('calling GET api/ownedphases?' + query)
-      $http.get('api/ownedphases?' + query).then(
+      $log.log('calling GET api/OwnedPhases?' + query)
+      $http.get('api/OwnedPhases?' + query).then(
         function(resp) {
           project.phases = resp.data;
         },
-        function(errResponse) {$log.log('GET api/ownedphases ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET api/OwnedPhases ERROR: ' + errResponse);}
       );
     } else {
       project.phases = [];
@@ -86,12 +86,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.phaseSelectionChange = function(phase, personId) {
     if (phase.displayDetails) {
       var query = 'person_id=' + personId + '&phase_id=' + phase._id;
-      $log.log('calling GET api/ownedprocesses?' + query)
-      $http.get('api/ownedprocesses?' + query).then(
+      $log.log('calling GET api/OwnedProcesses?' + query)
+      $http.get('api/OwnedProcesses?' + query).then(
         function(resp) {
           phase.processes = resp.data;
         },
-        function(errResponse) {$log.log('GET api/ownedprocesses ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET api/OwnedProcesses ERROR: ' + errResponse);}
       );
     } else {
       phase.processes = [];
@@ -100,12 +100,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.processSelectionChange = function(phase, process, personId) {
     if (process.displayDetails) {
       var query = 'person_id=' + personId + '&phase_id=' + phase._id + '&bpmn_name=' + process.bpmn_name;
-      $log.log('calling GET api/ownedactivities?' + query)
-      $http.get('api/ownedactivities?' + query).then(
+      $log.log('calling GET api/OwnedActivities?' + query)
+      $http.get('api/OwnedActivities?' + query).then(
         function(resp) {
           process.activities = resp.data;
         },
-        function(errResponse) {$log.log('GET api/ownedactivities ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET api/OwnedActivities ERROR: ' + errResponse);}
       );
     } else {
       process.activities = [];
@@ -114,12 +114,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.activitySelectionChange = function(activity, personId) {
     if (activity.displayDetails) {
       var query = 'person_id=' + personId + '&activity_id=' + activity._id;
-      $log.log('calling GET api/ownedactions?' + query)
-      $http.get('api/ownedactions?' + query).then(
+      $log.log('calling GET api/OwnedActions?' + query)
+      $http.get('api/OwnedActions?' + query).then(
         function(resp) {
           activity.actions = resp.data;
         },
-        function(errResponse) {$log.log('GET api/ownedactions ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET api/OwnedActions ERROR: ' + errResponse);}
       );
     } else {
       activity.actions = [];
@@ -148,8 +148,8 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   }
   self.createNewProject = function() {
     var p = '{"name": "' + self.newProjectName + '", "admin_person_id": ObjectId("' + self.personId + '")}';
-    $log.log('calling POST api/project/ with ' + p)
-    $http.post('api/project/', p).then(
+    $log.log('calling POST api/Project/ with ' + p)
+    $http.post('api/Project/', p).then(
       function(resp) {
         var projects = self.projects;
         var project = resp.data;
@@ -224,16 +224,16 @@ buildWhizApp.controller('ProjectManageCtrl', ['$http', '$log', 'bwGlobals', func
   }
   self.deleteProject = function(project) {
     var p = project._id;
-    $log.log('calling DELETE api/project/' + p)
-    $http.delete('api/project/' + p).then(
+    $log.log('calling DELETE api/Project/' + p)
+    $http.delete('api/Project/' + p).then(
       function(resp) {alert('Delete project successful'); },
       function(errResponse) {'Delete error: ' + alert(errResponse);}
     );
   }
   self.deletePhase = function(phase) {
     var pid = phase._id;
-    $log.log('calling DELETE api/phase/' + pid)
-    $http.delete('api/phase/' + pid).then(
+    $log.log('calling DELETE api/Phase/' + pid)
+    $http.delete('api/Phase/' + pid).then(
       function(resp) {alert('Delete phase successful'); },
       function(errResponse) {'Delete error: ' + alert(errResponse);}
     );

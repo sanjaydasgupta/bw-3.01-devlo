@@ -107,7 +107,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Project</servlet-name>
-    <url-pattern>/api/project/*</url-pattern>
+    <url-pattern>/api/Project/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -125,7 +125,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedProjects</servlet-name>
-    <url-pattern>/api/ownedprojects/*</url-pattern>
+    <url-pattern>/api/OwnedProjects/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -134,7 +134,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedPhases</servlet-name>
-    <url-pattern>/api/ownedphases/*</url-pattern>
+    <url-pattern>/api/OwnedPhases/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -143,7 +143,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedProcesses</servlet-name>
-    <url-pattern>/api/ownedprocesses/*</url-pattern>
+    <url-pattern>/api/OwnedProcesses/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -152,8 +152,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedActivities</servlet-name>
-    <url-pattern>/api/ownedactivities/*</url-pattern>
-    <url-pattern>/api/ownedactivities2/*</url-pattern>
+    <url-pattern>/api/OwnedActivities/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -162,7 +161,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedActions</servlet-name>
-    <url-pattern>/api/ownedactions/*</url-pattern>
+    <url-pattern>/api/OwnedActions/*</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -198,7 +197,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Phase</servlet-name>
-    <url-pattern>/api/phase/*</url-pattern>
+    <url-pattern>/api/Phase/*</url-pattern>
   </servlet-mapping>
 
   <servlet>

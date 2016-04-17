@@ -51,7 +51,7 @@ class RestPhase extends HttpServlet with Utils {
     try {
       val uriParts = new URI(request.getRequestURI.replace("[", "%5B").replace("]", "%5D")).getPath.split("/").toSeq.reverse
       val phaseOid = uriParts match {
-        case idString +: "phase" +: _ => new ObjectId(idString)
+        case idString +: "Phase" +: _ => new ObjectId(idString)
         case _ => throw new IllegalArgumentException("Id not found")
       }
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head

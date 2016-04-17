@@ -55,7 +55,7 @@ class RestProject extends HttpServlet with Utils {
     try {
       val uriParts = new URI(request.getRequestURI.replace("[", "%5B").replace("]", "%5D")).getPath.split("/").toSeq.reverse
       val projectOid = uriParts match {
-        case idString +: "project" +: _ => new ObjectId(idString)
+        case idString +: "Project" +: _ => new ObjectId(idString)
         case _ => throw new IllegalArgumentException("Id not found")
       }
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head

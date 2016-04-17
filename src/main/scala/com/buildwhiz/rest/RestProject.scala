@@ -47,7 +47,7 @@ class RestProject extends HttpServlet with Utils {
   }
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPut(request, response, "project", "projects")
+    handleRestPut(request, response, "Project", "projects")
   }
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -77,7 +77,7 @@ class RestProject extends HttpServlet with Utils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestGet(request, response, "project", "projects")
+    handleRestGet(request, response, "Project", "projects")
   }
 
 }

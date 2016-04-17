@@ -43,7 +43,7 @@ class RestPhase extends HttpServlet with Utils {
   }
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPut(request, response, "phase", "phases")
+    handleRestPut(request, response, "Phase", "phases")
   }
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -70,7 +70,7 @@ class RestPhase extends HttpServlet with Utils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestGet(request, response, "phase", "phases")
+    handleRestGet(request, response, "Phase", "phases")
   }
 
 }

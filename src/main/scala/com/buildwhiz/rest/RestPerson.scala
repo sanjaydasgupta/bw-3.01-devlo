@@ -13,11 +13,11 @@ class RestPerson extends HttpServlet with Utils {
   }
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPut(request, response, "person", "persons")
+    handleRestPut(request, response, "Person", "persons")
   }
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestDelete(request, response, "person", "persons")
+    handleRestDelete(request, response, "Person", "persons")
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -27,7 +27,7 @@ class RestPerson extends HttpServlet with Utils {
       name(a) < name(b)
     }
 
-    handleRestGet(request, response, "person", "persons", Set("password"), Some(personSorter))
+    handleRestGet(request, response, "Person", "persons", Set("password"), Some(personSorter))
   }
 
 }

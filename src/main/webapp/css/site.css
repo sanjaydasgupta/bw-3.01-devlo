@@ -122,6 +122,34 @@ input[type="password"]
         font-size: 18px;
     }
 
+    .dashboardButtonWrapper
+    {
+        display: block;
+        height: 48px;
+        width: 128px;
+        margin-top: 16px;
+        margin-bottom: 16px;
+        margin-right: 12px;
+        margin-left: 12px;
+        font-size: 18px;
+        color: #337ab7;
+        text-align: center;
+    }
+
+    .dashboardSmallButtonWrapper
+    {
+        display: block;
+        height: 24px;
+        width: 64px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        margin-right: 5px;
+        margin-left: 5px;
+        font-size: 12px;
+        color: #337ab7;
+        text-align: center;
+    }
+
     .dashboardWraper img
     {
         border: 2px solid #f5f5f5;
@@ -1309,7 +1337,7 @@ img
 .Yellow.btnStatusBox
 {
     background-color: #ffffcc;
-    /*border-color: #e6b800;*/
+    /*border-#337ab7: #e6b800;*/
 }
 /*====Green====*/
 .Green.btnStatusBox

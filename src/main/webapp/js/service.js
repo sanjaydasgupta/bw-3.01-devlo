@@ -43,14 +43,14 @@ app.service("BuildWhizNgAppProjectService", function ($http) {
     this.getProjectData = function (sPersonID) {
         var query = 'person_id=' + sPersonID;
 
-        return $http.get('api/ownedprojects?' + query);
+        return $http.get('api/OwnedProjects?' + query);
     }
     //==============post createProjectData service
     this.postCreateProjectData = function (sName, sPersonID) {
 
         var params = '{"name": "' + sName + '", "status": "created", ' + '"admin_person_id": ObjectId("' + sPersonID + '")}';
 
-        var response = $http.post('api/project/', params);
+        var response = $http.post('api/Project/', params);
         return response;
     }
 
@@ -73,7 +73,7 @@ app.service("BuildWhizNgAppProjectService", function ($http) {
     //=============post delete ProjectData service
     this.postDeleteProjectData = function (project_id) {
         var params = project_id;
-        var response = $http.delete('api/project/' + params);
+        var response = $http.delete('api/Project/' + params);
         return response;
     }
     //=============post projectSetPublic service
@@ -91,7 +91,7 @@ app.service("BuildWhizNgAppPhaseService", function ($http) {
     //==============get ProjectPhase service
     this.getProjectPhaseData = function (sProjectID, sPersonID) {
         var query = 'project_id=' + sProjectID + '&person_id=' + sPersonID;
-        return $http.get('api/ownedphases?' + query);
+        return $http.get('api/OwnedPhases?' + query);
 
     }
 
@@ -122,7 +122,7 @@ app.service("BuildWhizNgAppPhaseService", function ($http) {
     //=============post delete PhaseData service
     this.postDeletePhaseData = function (sPhaseID) {
         var params = sPhaseID;       
-        var response = $http.delete('api/phase/' + params);
+        var response = $http.delete('api/Phase/' + params);
         return response;
     }
    
@@ -135,7 +135,7 @@ app.service("BuildWhizNgAppActivityService", function ($http) {
     this.getProcessActivityData = function (sPhaseID, sPersonID, sProcessBpmnName) {       
         var query = 'person_id=' + sPersonID + '&phase_id=' + sPhaseID + '&bpmn_name=' + sProcessBpmnName;
        
-        return $http.get('api/ownedactivities2?' + query);
+        return $http.get('api/OwnedActivities?' + query);
 
     }
 
@@ -148,7 +148,7 @@ app.service("BuildWhizNgAppActionService", function ($http) {
     //==============get activityAction service
     this.getActivityActionData = function (sActivityID, sPersonID) {
         var query = 'person_id=' + sPersonID + '&activity_id=' + sActivityID;
-        return $http.get('api/ownedactions?' + query);
+        return $http.get('api/OwnedActions?' + query);
     }
 
     //==============postAddActionData service
@@ -212,7 +212,7 @@ app.service("BuildWhizNgAppProcessService", function ($http) {
     //==============get phaseActivity service
     this.getPhaseProcessData = function (sPhaseID, sPersonID) {
         var query = 'person_id=' + sPersonID + '&phase_id=' + sPhaseID;
-        return $http.get('api/ownedprocesses?' + query);
+        return $http.get('api/OwnedProcesses?' + query);
         
     }
     //==============set ProcessTimerDurationData service

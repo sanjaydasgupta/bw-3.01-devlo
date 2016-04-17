@@ -1,6 +1,7 @@
 package com.buildwhiz.infra
 
 import java.net.URI
+import java.security.MessageDigest
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
@@ -12,6 +13,14 @@ import scala.collection.mutable
 import scala.io.Source
 
 trait Utils {
+
+  def md5(password: String): String = {
+    val messageDigest = MessageDigest.getInstance("MD5")
+    messageDigest.update(password.getBytes(), 0, password.length())
+    val bytes = messageDigest.digest()
+    val hexValues = bytes.map(b => "%02x".format(b))
+    hexValues.mkString
+  }
 
   def bson2json(document: Document): String = {
     def obj2str(obj: Any): String = obj match {

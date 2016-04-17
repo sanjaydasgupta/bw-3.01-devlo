@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-object PersonRecordsRedo extends App {
+object PersonRecordsRedo extends App with Utils {
   BWLogger.log(getClass.getName, "main()", "ENTRY")
 
   private val data =
@@ -65,14 +65,6 @@ object PersonRecordsRedo extends App {
     val newEmails: Seq[Map[String, AnyRef]] = emails.keys.toSeq.map(key => Map("type" -> key, "email" -> emails(key)))
     val newEmailDocs: DocumentList = newEmails.map(v => {val d: Document = v; d})
     document("emails") = newEmailDocs
-  }
-
-  private def md5(password: String): String = {
-    val messageDigest = MessageDigest.getInstance("MD5")
-    messageDigest.update(password.getBytes(), 0, password.length())
-    val bytes = messageDigest.digest()
-    val hexValues = bytes.map(b => "%02x".format(b))
-    hexValues.mkString
   }
 
   private def processData(): Unit = {

@@ -11,14 +11,6 @@ import scala.collection.JavaConversions._
 
 class LoginPost extends HttpServlet with Utils {
 
-  private def md5(password: String): String = {
-    val messageDigest = MessageDigest.getInstance("MD5")
-    messageDigest.update(password.getBytes(), 0, password.length())
-    val bytes = messageDigest.digest()
-    val hexValues = bytes.map(b => "%02x".format(b))
-    hexValues.mkString
-  }
-
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")

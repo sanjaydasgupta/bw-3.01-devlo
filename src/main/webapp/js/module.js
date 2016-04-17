@@ -8,7 +8,6 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
             .when('/login', {
                 templateUrl: 'logIn.html',
                 controller: 'BuildWhizNgAppLogInCtrl'
-               
             })
             .when('/dashboard', {
                 templateUrl: 'dashboard.html',
@@ -25,6 +24,10 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
             .when('/nextGen', {
                 templateUrl: 'nextGen.html',
                 controller: 'BuildWhizNgAppNextGenCtrl'
+                })
+            .when('/userProfile', {
+                templateUrl: 'userProfile.html',
+                controller: 'BuildWhizNgAppUserProfileCtrl'
                 })
             .otherwise({
                 redirectTo: '/login'

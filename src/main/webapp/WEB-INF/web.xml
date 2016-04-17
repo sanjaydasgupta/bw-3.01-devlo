@@ -389,4 +389,13 @@
     <url-pattern>/baf/MongoDBView/*</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>UserPasswordSet</servlet-name>
+    <servlet-class>com.buildwhiz.baf.UserPasswordSet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UserPasswordSet</servlet-name>
+    <url-pattern>/baf/UserPasswordSet/*</url-pattern>
+  </servlet-mapping>
+
 </web-app>

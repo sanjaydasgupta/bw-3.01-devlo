@@ -14,4 +14,8 @@
         location.hash = "#!/nextGen";
     }
 
+    $scope.userProfile_Click = function () {
+        location.hash = "#!/userProfile";
+    }
+
 });

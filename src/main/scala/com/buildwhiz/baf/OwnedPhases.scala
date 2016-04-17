@@ -2,13 +2,19 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
+import BWMongoDB3._
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
 class OwnedPhases extends HttpServlet with Utils {
+
+  private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
+    val activityOids = phase.activity_ids[ObjectIdList]
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).toSeq
+    activities.flatMap(_.actions[DocumentList])
+  }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
@@ -18,8 +24,11 @@ class OwnedPhases extends HttpServlet with Utils {
       val personOid = new ObjectId(parameters("person_id"))
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val projectIsPublic = project.public[Boolean]
       val phaseOids = project.phase_ids[ObjectIdList]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
+      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
+      val phases = if (projectIsPublic) allPhases else
+        allPhases.filter(phase => phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
       writer.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))
       response.setContentType("application/json")

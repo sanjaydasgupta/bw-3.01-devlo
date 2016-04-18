@@ -83,32 +83,32 @@
     <url-pattern>/linkedin-callback/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>Person</servlet-name>
-    <servlet-class>com.buildwhiz.rest.RestPerson</servlet-class>
+    <servlet-class>com.buildwhiz.rest.Person</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>Person</servlet-name>
     <url-pattern>/api/Person/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>Organization</servlet-name>
-    <servlet-class>com.buildwhiz.rest.RestOrganization</servlet-class>
+    <servlet-class>com.buildwhiz.rest.Organization</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>Organization</servlet-name>
     <url-pattern>/api/Organization/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>Project</servlet-name>
-    <servlet-class>com.buildwhiz.rest.RestProject</servlet-class>
+    <servlet-class>com.buildwhiz.rest.Project</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>Project</servlet-name>
     <url-pattern>/api/Project/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <servlet>
     <servlet-name>ViewMain</servlet-name>
@@ -119,50 +119,50 @@
     <url-pattern>/api/mainview/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>OwnedProjects</servlet-name>
     <servlet-class>com.buildwhiz.baf.OwnedProjects</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedProjects</servlet-name>
     <url-pattern>/api/OwnedProjects/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>OwnedPhases</servlet-name>
     <servlet-class>com.buildwhiz.baf.OwnedPhases</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedPhases</servlet-name>
     <url-pattern>/api/OwnedPhases/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>OwnedProcesses</servlet-name>
     <servlet-class>com.buildwhiz.baf.OwnedProcesses</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedProcesses</servlet-name>
     <url-pattern>/api/OwnedProcesses/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>OwnedActivities</servlet-name>
     <servlet-class>com.buildwhiz.baf.OwnedActivities</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedActivities</servlet-name>
     <url-pattern>/api/OwnedActivities/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>OwnedActions</servlet-name>
     <servlet-class>com.buildwhiz.baf.OwnedActions</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>OwnedActions</servlet-name>
     <url-pattern>/api/OwnedActions/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <servlet>
     <servlet-name>BrowseActions</servlet-name>
@@ -191,14 +191,14 @@
     <url-pattern>/api/BrowseOrphans/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>Phase</servlet-name>
-    <servlet-class>com.buildwhiz.rest.RestPhase</servlet-class>
+    <servlet-class>com.buildwhiz.rest.Phase</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>Phase</servlet-name>
     <url-pattern>/api/Phase/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <!--servlet>
     <servlet-name>PhaseAdd</servlet-name>
@@ -405,6 +405,7 @@
   <servlet-mapping>
     <servlet-name>Entry</servlet-name>
     <url-pattern>/baf/*</url-pattern>
+    <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

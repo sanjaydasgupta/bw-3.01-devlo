@@ -24,7 +24,7 @@ class OwnedPhases extends HttpServlet with Utils {
       val personOid = new ObjectId(parameters("person_id"))
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val projectIsPublic = project.public[Boolean]
+      val projectIsPublic = (project ? "public") && project.public[Boolean]
       val phaseOids = project.phase_ids[ObjectIdList]
       val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
       val phases = if (projectIsPublic) allPhases else

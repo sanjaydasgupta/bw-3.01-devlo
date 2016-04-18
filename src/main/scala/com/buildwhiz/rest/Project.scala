@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class RestProject extends HttpServlet with Utils {
+class Project extends HttpServlet with Utils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)

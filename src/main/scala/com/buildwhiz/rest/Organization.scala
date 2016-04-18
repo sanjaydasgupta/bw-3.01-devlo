@@ -4,7 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.Utils
 
-class RestOrganization extends HttpServlet with Utils {
+class Organization extends HttpServlet with Utils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     handleRestGet(request, response, "Organization", "organizations")

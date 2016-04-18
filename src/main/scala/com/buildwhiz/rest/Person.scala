@@ -6,7 +6,7 @@ import com.buildwhiz.infra.BWMongoDB3.DynDoc
 import com.buildwhiz.infra.Utils
 import org.bson.Document
 
-class RestPerson extends HttpServlet with Utils {
+class Person extends HttpServlet with Utils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     handleRestPost(request, response, "persons")

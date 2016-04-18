@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class RestPhase extends HttpServlet with Utils {
+class Phase extends HttpServlet with Utils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost", s"ENTRY", request)

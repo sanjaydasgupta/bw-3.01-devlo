@@ -200,167 +200,167 @@
     <url-pattern>/api/Phase/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>PhaseAdd</servlet-name>
     <servlet-class>com.buildwhiz.baf.PhaseAdd</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>PhaseAdd</servlet-name>
     <url-pattern>/baf/PhaseAdd/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>PhaseBpmnImage</servlet-name>
     <servlet-class>com.buildwhiz.baf.PhaseBpmnImage</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>PhaseBpmnImage</servlet-name>
     <url-pattern>/baf/PhaseBpmnImage/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ActionAdd</servlet-name>
     <servlet-class>com.buildwhiz.baf.ActionAdd</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ActionAdd</servlet-name>
     <url-pattern>/baf/ActionAdd/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ProjectLaunch</servlet-name>
     <servlet-class>com.buildwhiz.baf.ProjectLaunch</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ProjectLaunch</servlet-name>
     <url-pattern>/baf/ProjectLaunch/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ProjectEnd</servlet-name>
     <servlet-class>com.buildwhiz.baf.ProjectEnd</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ProjectEnd</servlet-name>
     <url-pattern>/baf/ProjectEnd/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ActionDurationSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.ActionDurationSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ActionDurationSet</servlet-name>
     <url-pattern>/baf/ActionDurationSet/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>TimerDurationSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.TimerDurationSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>TimerDurationSet</servlet-name>
     <url-pattern>/baf/TimerDurationSet/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>VariableValueSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.VariableValueSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>VariableValueSet</servlet-name>
     <url-pattern>/baf/VariableValueSet/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>PhaseAdministratorSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.PhaseAdministratorSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>PhaseAdministratorSet</servlet-name>
     <url-pattern>/baf/PhaseAdministratorSet/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ActionContributorSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.ActionContributorSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ActionContributorSet</servlet-name>
     <url-pattern>/baf/ActionContributorSet/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>PhaseBpmnNamesFetch</servlet-name>
     <servlet-class>com.buildwhiz.baf.PhaseBpmnNamesFetch</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>PhaseBpmnNamesFetch</servlet-name>
     <url-pattern>/baf/PhaseBpmnNamesFetch/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>DocumentDownload</servlet-name>
     <servlet-class>com.buildwhiz.baf.DocumentDownload</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>DocumentDownload</servlet-name>
     <url-pattern>/baf/DocumentDownload/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>DocumentUpload</servlet-name>
     <servlet-class>com.buildwhiz.baf.DocumentUpload</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>DocumentUpload</servlet-name>
     <url-pattern>/baf/DocumentUpload/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>PhaseLaunch</servlet-name>
     <servlet-class>com.buildwhiz.baf.PhaseLaunch</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>PhaseLaunch</servlet-name>
     <url-pattern>/baf/PhaseLaunch/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ActionComplete</servlet-name>
     <servlet-class>com.buildwhiz.baf.ActionComplete</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ActionComplete</servlet-name>
     <url-pattern>/baf/ActionComplete/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>LoginPost</servlet-name>
     <servlet-class>com.buildwhiz.baf.LoginPost</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LoginPost</servlet-name>
     <url-pattern>/baf/LoginPost/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ProjectSetPublic</servlet-name>
     <servlet-class>com.buildwhiz.baf.ProjectSetPublic</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ProjectSetPublic</servlet-name>
     <url-pattern>/baf/ProjectSetPublic/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>MainProgramLauncher</servlet-name>
     <servlet-class>com.buildwhiz.baf.MainProgramLauncher</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>MainProgramLauncher</servlet-name>
     <url-pattern>/baf/MainProgramLauncher/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <servlet>
     <servlet-name>UploadFile</servlet-name>
@@ -380,22 +380,31 @@
     <url-pattern>/BrowseFiles/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>MongoDBView</servlet-name>
     <servlet-class>com.buildwhiz.baf.MongoDBView</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>MongoDBView</servlet-name>
     <url-pattern>/baf/MongoDBView/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>UserPasswordSet</servlet-name>
     <servlet-class>com.buildwhiz.baf.UserPasswordSet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>UserPasswordSet</servlet-name>
     <url-pattern>/baf/UserPasswordSet/*</url-pattern>
+  </servlet-mapping-->
+
+  <servlet>
+    <servlet-name>Entry</servlet-name>
+    <servlet-class>com.buildwhiz.Entry</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Entry</servlet-name>
+    <url-pattern>/baf/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

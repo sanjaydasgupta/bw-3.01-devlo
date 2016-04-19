@@ -13,7 +13,7 @@ class ProjectSetPublic extends HttpServlet with Utils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val projectOid = new ObjectId(parameters("project_id"))
-      val public = parameters("public")
+      val public = parameters("public").toBoolean
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid), Map("$set" -> Map("public" -> public)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

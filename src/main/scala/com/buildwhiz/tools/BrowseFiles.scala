@@ -3,7 +3,7 @@ package com.buildwhiz.tools
 import java.io.{File, FileInputStream}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.Utils
+import com.buildwhiz.Utils
 
 class BrowseFiles extends HttpServlet with Utils {
 

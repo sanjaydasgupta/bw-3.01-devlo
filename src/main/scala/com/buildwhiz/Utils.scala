@@ -1,10 +1,11 @@
-package com.buildwhiz.infra
+package com.buildwhiz
 
 import java.net.URI
 import java.security.MessageDigest
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -24,7 +25,7 @@ trait Utils {
 
   def bson2json(document: Document): String = {
     def obj2str(obj: Any): String = obj match {
-      case s: String => s""""$s""""
+      case s: String => s""""${s.replaceAll("\"", "\'")}""""
       case oid: ObjectId => s""""${oid.toString}\""""
       case d: Document => bson2json(d)
       case seq: Seq[_] => seq.map(e => obj2str(e)).mkString("[", ", ", "]")

@@ -2,9 +2,11 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, Utils}
+import com.buildwhiz.Utils
+import com.buildwhiz.infra.BWLogger
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.ProcessDefinition
+
 import scala.collection.JavaConversions._
 
 class PhaseBpmnImage extends HttpServlet with Utils {

@@ -3,8 +3,9 @@ package com.buildwhiz.baf
 import java.io.InputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3, Utils}
+import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._

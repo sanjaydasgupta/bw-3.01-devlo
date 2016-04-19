@@ -3,9 +3,10 @@ package com.buildwhiz.baf
 import java.security.MessageDigest
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import BWMongoDB3._
+import com.buildwhiz.Utils
 
 import scala.collection.JavaConversions._
 

@@ -2,6 +2,7 @@ package com.buildwhiz.infra
 
 import java.security.MessageDigest
 
+import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId

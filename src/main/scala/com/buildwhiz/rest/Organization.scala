@@ -2,7 +2,7 @@ package com.buildwhiz.rest
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.Utils
+import com.buildwhiz.Utils
 
 class Organization extends HttpServlet with Utils {
 

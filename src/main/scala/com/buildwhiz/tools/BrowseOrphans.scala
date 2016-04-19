@@ -3,8 +3,9 @@ package com.buildwhiz.tools
 import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import com.buildwhiz.Utils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.ProcessDefinition

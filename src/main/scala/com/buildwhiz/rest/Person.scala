@@ -2,8 +2,8 @@ package com.buildwhiz.rest
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWMongoDB3.DynDoc
-import com.buildwhiz.infra.Utils
 import org.bson.Document
 
 class Person extends HttpServlet with Utils {

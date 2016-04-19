@@ -2,7 +2,7 @@ package com.buildwhiz
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, Utils}
+import com.buildwhiz.infra.BWLogger
 
 import scala.util.{Failure, Success, Try}
 

@@ -39,6 +39,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>BrowseFiles</servlet-name>
+    <servlet-class>com.buildwhiz.tools.BrowseFiles</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowseFiles</servlet-name>
+    <url-pattern>/BrowseFiles/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>BrowseMongoDB</servlet-name>
     <servlet-class>com.buildwhiz.tools.BrowseMongoDB</servlet-class>
   </servlet>
@@ -110,14 +119,14 @@
     <url-pattern>/api/Project/*</url-pattern>
   </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>ViewMain</servlet-name>
     <servlet-class>com.buildwhiz.baf.ViewMain</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ViewMain</servlet-name>
     <url-pattern>/api/mainview/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <!--servlet>
     <servlet-name>OwnedProjects</servlet-name>
@@ -173,23 +182,23 @@
     <url-pattern>/BrowseActions/*</url-pattern>
   </servlet-mapping>
 
-  <servlet>
+  <!--servlet>
     <servlet-name>BrowseMails</servlet-name>
     <servlet-class>com.buildwhiz.tools.BrowseMails</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>BrowseMails</servlet-name>
-    <url-pattern>/api/BrowseMails/*</url-pattern>
-  </servlet-mapping>
+    <url-pattern>/tools/BrowseMails/*</url-pattern>
+  </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>BrowseOrphans</servlet-name>
     <servlet-class>com.buildwhiz.tools.BrowseOrphans</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>BrowseOrphans</servlet-name>
-    <url-pattern>/api/BrowseOrphans/*</url-pattern>
-  </servlet-mapping>
+    <url-pattern>/tools/BrowseOrphans/*</url-pattern>
+  </servlet-mapping-->
 
   <!--servlet>
     <servlet-name>Phase</servlet-name>
@@ -355,30 +364,21 @@
 
   <!--servlet>
     <servlet-name>MainProgramLauncher</servlet-name>
-    <servlet-class>com.buildwhiz.baf.MainProgramLauncher</servlet-class>
+    <servlet-class>com.buildwhiz.tools.MainProgramLauncher</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>MainProgramLauncher</servlet-name>
-    <url-pattern>/baf/MainProgramLauncher/*</url-pattern>
+    <url-pattern>/tools/MainProgramLauncher/*</url-pattern>
   </servlet-mapping-->
 
-  <servlet>
+  <!--servlet>
     <servlet-name>UploadFile</servlet-name>
     <servlet-class>com.buildwhiz.tools.UploadFile</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>UploadFile</servlet-name>
     <url-pattern>/tools/UploadFile/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet>
-    <servlet-name>BrowseFiles</servlet-name>
-    <servlet-class>com.buildwhiz.tools.BrowseFiles</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>BrowseFiles</servlet-name>
-    <url-pattern>/BrowseFiles/*</url-pattern>
-  </servlet-mapping>
+  </servlet-mapping-->
 
   <!--servlet>
     <servlet-name>MongoDBView</servlet-name>
@@ -406,6 +406,7 @@
     <servlet-name>Entry</servlet-name>
     <url-pattern>/baf/*</url-pattern>
     <url-pattern>/api/*</url-pattern>
+    <url-pattern>/tools/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

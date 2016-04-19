@@ -1,4 +1,4 @@
-package com.buildwhiz.baf
+package com.buildwhiz.tools
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 

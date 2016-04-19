@@ -51,12 +51,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
     $log.log('personSelected() called')
     self.personId = person._id;
     var query = 'person_id=' + person._id;
-    $log.log('calling GET api/OwnedProjects?' + query)
-    $http.get('api/OwnedProjects?' + query).then(
+    $log.log('calling GET baf/OwnedProjects?' + query)
+    $http.get('baf/OwnedProjects?' + query).then(
       function(resp) {
         self.projects = resp.data;
       },
-      function(errResponse) {$log.log('GET api/OwnedProjects ERROR: ' + errResponse);}
+      function(errResponse) {$log.log('GET baf/OwnedProjects ERROR: ' + errResponse);}
     );
   }
   self.projectSetPublic = function(project) {
@@ -72,12 +72,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.projectSelectionChange = function(project, personId) {
     if (project.displayDetails) {
       var query = 'person_id=' + personId + '&project_id=' + project._id;
-      $log.log('calling GET api/OwnedPhases?' + query)
-      $http.get('api/OwnedPhases?' + query).then(
+      $log.log('calling GET baf/OwnedPhases?' + query)
+      $http.get('baf/OwnedPhases?' + query).then(
         function(resp) {
           project.phases = resp.data;
         },
-        function(errResponse) {$log.log('GET api/OwnedPhases ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET baf/OwnedPhases ERROR: ' + errResponse);}
       );
     } else {
       project.phases = [];
@@ -86,12 +86,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.phaseSelectionChange = function(phase, personId) {
     if (phase.displayDetails) {
       var query = 'person_id=' + personId + '&phase_id=' + phase._id;
-      $log.log('calling GET api/OwnedProcesses?' + query)
-      $http.get('api/OwnedProcesses?' + query).then(
+      $log.log('calling GET baf/OwnedProcesses?' + query)
+      $http.get('baf/OwnedProcesses?' + query).then(
         function(resp) {
           phase.processes = resp.data;
         },
-        function(errResponse) {$log.log('GET api/OwnedProcesses ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET baf/OwnedProcesses ERROR: ' + errResponse);}
       );
     } else {
       phase.processes = [];
@@ -100,12 +100,12 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.processSelectionChange = function(phase, process, personId) {
     if (process.displayDetails) {
       var query = 'person_id=' + personId + '&phase_id=' + phase._id + '&bpmn_name=' + process.bpmn_name;
-      $log.log('calling GET api/OwnedActivities?' + query)
-      $http.get('api/OwnedActivities?' + query).then(
+      $log.log('calling GET baf/OwnedActivities?' + query)
+      $http.get('baf/OwnedActivities?' + query).then(
         function(resp) {
           process.activities = resp.data;
         },
-        function(errResponse) {$log.log('GET api/OwnedActivities ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET baf/OwnedActivities ERROR: ' + errResponse);}
       );
     } else {
       process.activities = [];
@@ -114,34 +114,34 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.activitySelectionChange = function(activity, personId) {
     if (activity.displayDetails) {
       var query = 'person_id=' + personId + '&activity_id=' + activity._id;
-      $log.log('calling GET api/OwnedActions?' + query)
-      $http.get('api/OwnedActions?' + query).then(
+      $log.log('calling GET baf/OwnedActions?' + query)
+      $http.get('baf/OwnedActions?' + query).then(
         function(resp) {
           activity.actions = resp.data;
         },
-        function(errResponse) {$log.log('GET api/OwnedActions ERROR: ' + errResponse);}
+        function(errResponse) {$log.log('GET baf/OwnedActions ERROR: ' + errResponse);}
       );
     } else {
       activity.actions = [];
     }
   }
   self.sampleProjectSetup = function() {
-    $log.log('Calling POST baf/MainProgramLauncher?program=SampleProjectSetup')
-    $http.post('baf/MainProgramLauncher?program=SampleProjectSetup').then(
+    $log.log('Calling POST tools/MainProgramLauncher?program=SampleProjectSetup')
+    $http.post('tools/MainProgramLauncher?program=SampleProjectSetup').then(
       function(resp) {},
       function(errResponse) {alert(errResponse);}
     );
   }
   self.personRecordsRedo = function() {
-    $log.log('Calling POST baf/MainProgramLauncher?program=PersonRecordsRedo')
-    $http.post('baf/MainProgramLauncher?program=PersonRecordsRedo').then(
+    $log.log('Calling POST tools/MainProgramLauncher?program=PersonRecordsRedo')
+    $http.post('tools/MainProgramLauncher?program=PersonRecordsRedo').then(
       function(resp) {},
       function(errResponse) {alert(errResponse);}
     );
   }
   self.documentRecordsRedo = function() {
-    $log.log('Calling POST baf/MainProgramLauncher?program=DocumentRecordsRedo')
-    $http.post('baf/MainProgramLauncher?program=DocumentRecordsRedo').then(
+    $log.log('Calling POST tools/MainProgramLauncher?program=DocumentRecordsRedo')
+    $http.post('tools/MainProgramLauncher?program=DocumentRecordsRedo').then(
       function(resp) {},
       function(errResponse) {alert(errResponse);}
     );

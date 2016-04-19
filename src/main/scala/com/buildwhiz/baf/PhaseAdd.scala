@@ -3,8 +3,9 @@ package com.buildwhiz.baf
 import java.util
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3, Utils}
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -81,11 +82,12 @@ class PhaseAdd extends HttpServlet with Utils {
     }
   }
 
-  private def getActivityNamesAndRoles(processNameAndDocument: (String, dom.Document)): Seq[(String, String, String)] = {
-    // bpmn, activity-name, role
+  private def getActivityNamesRolesAndDescriptions(processNameAndDocument: (String, dom.Document)):
+      Seq[(String, String, String, String)] = {
+    // bpmn, activity-name, role, description
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
-      def getNameAndRole(callActivity: Node): (String, String, String) = {
+      def getNameRoleAndDescription(callActivity: Node): (String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s]+", " ")
         val role = callActivity.asInstanceOf[Element].getElementsByTagName("camunda:property").
@@ -94,15 +96,21 @@ class PhaseAdd extends HttpServlet with Utils {
           case Some(r) => r
           case None => "phase-manager"
         }
-        (processNameAndDocument._1, name, role)
+        val description = callActivity.asInstanceOf[Element].getElementsByTagName("camunda:property").
+          find(_.getAttributes.getNamedItem("name").getTextContent == "bw-description").
+          map(_.getAttributes.getNamedItem("value").getTextContent) match {
+          case Some(d) => d
+          case None => s"no description provided ($name)"
+        }
+        (processNameAndDocument._1, name, role, description)
       }
       val prefix = processNameAndDocument._2.getDocumentElement.getTagName.split(":")(0)
       val callActivities: Seq[Node] = processNameAndDocument._2.getElementsByTagName(s"$prefix:callActivity")
       val phaseActivityNodes = callActivities.filter(_.getAttributes.getNamedItem("calledElement").
         getTextContent == "Infra-Activity-Handler")
-      val activityNamesAndRoles = phaseActivityNodes.map(getNameAndRole)
-      BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesAndRoles.mkString(", ")})""")
-      activityNamesAndRoles
+      val activityNamesRolesAndDescriptions = phaseActivityNodes.map(getNameRoleAndDescription)
+      BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesRolesAndDescriptions.mkString(", ")})""")
+      activityNamesRolesAndDescriptions
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
@@ -165,9 +173,9 @@ class PhaseAdd extends HttpServlet with Utils {
         Map("$push" -> Map("phase_ids" -> phaseOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      val namesAndRoles = processNamesAndDocuments.flatMap(getActivityNamesAndRoles)
+      val namesRolesAndDescriptions = processNamesAndDocuments.flatMap(getActivityNamesRolesAndDescriptions)
       //BWLogger.log(getClass.getName, "doPost", s"""Activity-Names-n-Roles: ${namesAndRoles.mkString("[", ", ", "]")}""", request)
-      for ((bpmn, activityName, activityRole) <- namesAndRoles) {
+      for ((bpmn, activityName, activityRole, activityDescription) <- namesRolesAndDescriptions) {
         val availableDocumentList = Seq("56f124dfd5d8ad25b1325b42", "56f124dfd5d8ad25b1325b3a",
           "56f124dfd5d8ad25b1325b3b").map(id => new ObjectId(id))
         val inbox = new java.util.ArrayList[ObjectId]
@@ -178,7 +186,7 @@ class PhaseAdd extends HttpServlet with Utils {
         val actions = new java.util.ArrayList[Document]
         actions.append(action)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions, "status" -> "defined",
-          "role" -> activityRole, "description" -> s"This is activity '$activityName'. Placeholder for description")
+          "role" -> activityRole, "description" -> activityDescription)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

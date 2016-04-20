@@ -1,9 +1,9 @@
-package com.buildwhiz.web
+package com.buildwhiz.obsolete
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.BWMongoDB2
-import BWMongoDB2._
 
+import com.buildwhiz.infra.BWMongoDB2
+import com.buildwhiz.infra.BWMongoDB2._
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._

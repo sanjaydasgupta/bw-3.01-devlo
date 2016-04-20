@@ -22,7 +22,8 @@
       function submitAction() {
         if (!xhrBusy) {
           xhrBusy = true;
-          xhr.open("POST", "repl");
+          //xhr.open("POST", "repl");
+          xhr.open("POST", "web/REPL");
           //alert($("#command-input").val())
           xhr.send($("#command-input").val());
         }

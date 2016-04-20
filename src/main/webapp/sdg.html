@@ -2,6 +2,7 @@
 <head>
   <title>Test BW</title>
   <script src="angular.min.js"></script>
+  <script src="lib/widgets/bpmn-viewer/test/cam-widget-bpmn-viewer.build.js"></script>
 </head>
 <body ng-controller="BuildWhizCtrl as bwCtrl">
   <!-- Name Tabs -->
@@ -93,9 +94,13 @@
               </span>
           </td></tr>
         </table>
-        <div ng-if="process.displayBpmn">
+        <!--div ng-if="process.displayBpmn">
           <img src="baf/PhaseBpmnImage?bpmn_name={{process.bpmn_name}}" align="center"/>
-        </div>
+                  </div-->
+        <div ng-if="process.displayBpmn" cam-widget-bpmn-viewer
+             diagram-data='diagramXML'
+             disable-navigation='true'
+             style="height: 400px;"></div>
 
       <!-- Activities Activities Activities Activities Activities Activities Activities -->
       <!--div ng-if="process.displayDetails || bwCtrl.expandAll" ng-repeat="activity in process.activities" style="border: 1px solid gray; margin: 5px 0px 5px 20px;"-->
@@ -198,7 +203,7 @@
   &nbsp;&nbsp;&nbsp;&nbsp;<a href="web/BrowseMongoDB" target="_blank"><button>MongoDB</button></a>
   <a href="web/BrowseAmazonS3" target="_blank"><button>AmazonS3</button></a>
   <a href="web/TraceLog?count=200" target="_blank"><button>Log-Trace</button></a>
-  <a href="web/REPL.html" target="_blank"><button>REPL</button></a>
+  <a href="REPL.html" target="_blank"><button>REPL</button></a>
   Sample Project: <button ng-click="bwCtrl.sampleProjectSetup()" style="background-color: red;">Setup</button>
   Person Records: <button ng-click="bwCtrl.personRecordsRedo()" style="background-color: red;">Redo</button>
   Document Records: <button ng-click="bwCtrl.documentRecordsRedo()" style="background-color: red;">Redo</button>

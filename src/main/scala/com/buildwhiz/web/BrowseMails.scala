@@ -1,4 +1,4 @@
-package com.buildwhiz.tools
+package com.buildwhiz.web
 
 import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}

@@ -8,19 +8,19 @@ import scala.util.{Failure, Success, Try}
 
 class Entry extends HttpServlet with Utils {
 
-  private def getClazz(className: String): Try[Class[_]] = {
-    val classNames = Seq("baf", "rest", "tools").map(pkg => s"com.buildwhiz.$pkg.$className")
-    classNames.foldLeft(Failure(new ClassNotFoundException()).asInstanceOf[Try[Class[_]]])(
-      (t, cn) => t match {case Success(_) => t case Failure(_) => Try(Class.forName(cn))})
-  }
+//  private def getClazz(className: String): Try[Class[_]] = {
+//    val classNames = Seq("baf", "api", "web").map(pkg => s"com.buildwhiz.$pkg.$className")
+//    classNames.foldLeft(Failure(new ClassNotFoundException()).asInstanceOf[Try[Class[_]]])(
+//      (t, cn) => t match {case Success(_) => t case Failure(_) => Try(Class.forName(cn))})
+//  }
 
   private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
-    val bafOffset = urlParts.zipWithIndex.find(_._1.matches("baf|api|tools")).head._2
-    val className = urlParts(bafOffset + 1)
+    val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("baf|api|web")).head._2
+    val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
     Entry.cache.get(className) match {
       case Some(httpServlet) => delegateTo(httpServlet)
-      case None => getClazz(className) match {
+      case None => Try(Class.forName(className)) match {
         case Success(clazz) =>
           Try(clazz.newInstance()) match {
             case Success(httpServlet: Entry.BWServlet @ unchecked) =>

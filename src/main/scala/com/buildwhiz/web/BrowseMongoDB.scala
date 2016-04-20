@@ -1,4 +1,4 @@
-package com.buildwhiz.tools
+package com.buildwhiz.web
 
 import java.util.{Calendar, ArrayList => JArrayList}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}

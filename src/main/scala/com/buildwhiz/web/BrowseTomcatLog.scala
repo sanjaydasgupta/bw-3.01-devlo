@@ -1,4 +1,4 @@
-package com.buildwhiz.tools
+package com.buildwhiz.web
 
 import java.io.{File, PrintWriter}
 import java.text.SimpleDateFormat

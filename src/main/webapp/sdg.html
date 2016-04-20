@@ -16,7 +16,7 @@
   &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="bwCtrl.expandAllSelection"
       ng-change="bwCtrl.expandAll()" /> Expand ALL
   &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" ng-model="bwCtrl.mineOnly" disabled /> Mine ONLY
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="tools/BrowseMails?person_id={{bwCtrl.personId}}"
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="web/BrowseMails?person_id={{bwCtrl.personId}}"
       target="_blank"><button ng-disabled="!bwCtrl.personId">Mails</button></a>
   <hr color="red"/>
 
@@ -195,10 +195,10 @@
   <!-- End of projects view -->
   New Project:<input type="text" ng-model="bwCtrl.newProjectName"/>
   <button ng-click="bwCtrl.createNewProject()">Add</button>
-  &nbsp;&nbsp;&nbsp;&nbsp;<a href="BrowseMongoDB" target="_blank"><button>MongoDB</button></a>
-  <a href="BrowseAmazonS3" target="_blank"><button>AmazonS3</button></a>
-  <a href="TraceLog?count=200" target="_blank"><button>Log-Trace</button></a>
-  <a href="REPL.html" target="_blank"><button>REPL</button></a>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="web/BrowseMongoDB" target="_blank"><button>MongoDB</button></a>
+  <a href="web/BrowseAmazonS3" target="_blank"><button>AmazonS3</button></a>
+  <a href="web/TraceLog?count=200" target="_blank"><button>Log-Trace</button></a>
+  <a href="web/REPL.html" target="_blank"><button>REPL</button></a>
   Sample Project: <button ng-click="bwCtrl.sampleProjectSetup()" style="background-color: red;">Setup</button>
   Person Records: <button ng-click="bwCtrl.personRecordsRedo()" style="background-color: red;">Redo</button>
   Document Records: <button ng-click="bwCtrl.documentRecordsRedo()" style="background-color: red;">Redo</button>

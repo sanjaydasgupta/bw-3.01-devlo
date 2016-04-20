@@ -1,4 +1,4 @@
-package com.buildwhiz.rest
+package com.buildwhiz.api
 
 import java.net.URI
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}

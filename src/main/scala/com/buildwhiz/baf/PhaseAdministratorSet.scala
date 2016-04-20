@@ -11,24 +11,26 @@ import scala.collection.JavaConversions._
 
 class PhaseAdministratorSet extends HttpServlet with Utils {
 
-  private def sendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
+  private def saveAndSendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
         phaseName: String): Unit = {
-    BWLogger.log(getClass.getName, "sendMail()", "ENTRY")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val subject1 = "Manager assignment"
       val message1 = s"You have been assigned the role of phase-manager for phase '$phaseName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> assignedPersonOid, "subject" -> subject1, "message" -> message1))
+      sendMail(assignedPersonOid, subject1, message1)
       val subject2 = "Manager de-assignment"
       val message2 = s"You have been de-assigned from the role of phase-manager for phase '$phaseName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> deAssignedPersonOid, "subject" -> subject2, "message" -> message2))
+      sendMail(deAssignedPersonOid, subject2, message2)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
 
   private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
@@ -72,7 +74,7 @@ class PhaseAdministratorSet extends HttpServlet with Utils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       adjustPersonsProjectIds(assignedPersonOid)
       adjustPersonsProjectIds(deAssignedPersonOid)
-      sendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), thePhase.name[String])
+      saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), thePhase.name[String])
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>

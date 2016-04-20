@@ -48,8 +48,8 @@ class DocumentUpload extends HttpServlet with Utils {
     (fileName, fileLength)
   }
 
-  private def sendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, documentOid: ObjectId): Unit = {
-    BWLogger.log(getClass.getName, "sendMail()", "ENTRY")
+  private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, documentOid: ObjectId): Unit = {
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val reqOrResp = if (documentOid == rfiRequestOid) "request" else "response"
       val subject = s"RFI $reqOrResp received"
@@ -62,12 +62,13 @@ class DocumentUpload extends HttpServlet with Utils {
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))
+      sendMail(recipientPersonOid, subject, message)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -94,7 +95,7 @@ class DocumentUpload extends HttpServlet with Utils {
       BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
         Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
       if (documentOid == rfiRequestOid || documentOid == rfiResponseOid) {
-        sendMail(projectOid, activityOid, theActivity.actions[DocumentList].get(actionIndex), documentOid)
+        saveAndSendMail(projectOid, activityOid, theActivity.actions[DocumentList].get(actionIndex), documentOid)
       }
       response.getWriter.print(s"""{"fileName": "${result._1}", "length": ${result._2}}""")
       response.setContentType("application/json")

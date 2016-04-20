@@ -1,6 +1,8 @@
 package com.buildwhiz.jelly
 
 import java.text.SimpleDateFormat
+
+import com.buildwhiz.Utils
 //import java.time.format.DateTimeFormatter
 import java.util.{Calendar, Date}
 
@@ -11,10 +13,10 @@ import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
 import scala.collection.JavaConversions._
 
-class WaitForActionSetup extends ExecutionListener {
+class WaitForActionSetup extends ExecutionListener with Utils {
 
-  private def sendMail(action: DynDoc, projectOid: ObjectId): Unit = {
-    BWLogger.log(getClass.getName, "sendMail()", "ENTRY")
+  private def saveAndSendMail(action: DynDoc, projectOid: ObjectId): Unit = {
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     val calendar = java.util.Calendar.getInstance()
     try {
       val recipientOid = action.assignee_person_id[ObjectId]
@@ -28,12 +30,13 @@ class WaitForActionSetup extends ExecutionListener {
         s"$targetTime"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientOid, "subject" -> subject, "message" -> message))
+      sendMail(recipientOid, subject, message)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
 
   def notify(de: DelegateExecution): Unit = {
@@ -50,7 +53,7 @@ class WaitForActionSetup extends ExecutionListener {
         case idx =>
           BWLogger.log(getClass.getName, "notify()", s"Action '$actionName' wait-id: ${de.getId}", de)
           val projectOid = new ObjectId(de.getVariable("project_id").asInstanceOf[String])
-          sendMail(actions(idx), projectOid)
+          saveAndSendMail(actions(idx), projectOid)
           val updateResult = BWMongoDB3.activities.updateOne(activityQuery,
             Map("$set" -> Map(s"actions.$idx.status" -> "waiting", s"actions.$idx.camunda_execution_id" -> de.getId,
             s"actions.$idx.timestamps.start" -> System.currentTimeMillis)))

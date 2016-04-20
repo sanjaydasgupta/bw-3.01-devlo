@@ -2,15 +2,16 @@ package com.buildwhiz.jelly
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import com.buildwhiz.Utils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
 import scala.collection.JavaConversions._
 
-class EvaluateReviewReports extends JavaDelegate {
+class EvaluateReviewReports extends JavaDelegate with Utils {
 
-  private def sendMail(action: DynDoc, projectOid: ObjectId, failedReviewNames: Seq[String]): Unit = {
-    BWLogger.log(getClass.getName, "sendMail()", "ENTRY")
+  private def saveAndSendMail(action: DynDoc, projectOid: ObjectId, failedReviewNames: Seq[String]): Unit = {
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val recipientOid = action.assignee_person_id[ObjectId]
       val subject = if (failedReviewNames.isEmpty) "Successful action completion" else "Action rework Requested"
@@ -21,12 +22,13 @@ class EvaluateReviewReports extends JavaDelegate {
             s"""${failedReviewNames.mkString(", ")}"""
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientOid, "subject" -> subject, "message" -> message))
+      sendMail(recipientOid, subject, message)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
 
   def execute(de: DelegateExecution): Unit = {
@@ -51,7 +53,7 @@ class EvaluateReviewReports extends JavaDelegate {
 
       val mainAction = actions.filter(_.`type`[String] == "main").head
       val failedReviewNames = reviewActions.filterNot(_.review_ok[Boolean]).map(_.name[String])
-      sendMail(mainAction, new ObjectId(de.getVariable("project_id").asInstanceOf[String]), failedReviewNames)
+      saveAndSendMail(mainAction, new ObjectId(de.getVariable("project_id").asInstanceOf[String]), failedReviewNames)
 
       BWLogger.log(getClass.getName, s"execute(): ${reviewActions.length} reviews, ${reviewDocOids.length} documents",
         "EXIT-OK", de)

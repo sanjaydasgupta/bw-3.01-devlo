@@ -29,7 +29,8 @@ class OwnedPhases extends HttpServlet with Utils {
       val phaseOids = project.phase_ids[ObjectIdList]
       val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
       val phases = if (projectIsPublic) allPhases else
-        allPhases.filter(phase => phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
+        allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
+          phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
       writer.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))
       response.setContentType("application/json")

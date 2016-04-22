@@ -47,6 +47,17 @@ class Phase extends HttpServlet with Utils {
     handleRestPut(request, response, "Phase", "phases")
   }
 
+  private def projectParticipantOids(theProject: DynDoc): Seq[ObjectId] = {
+    val phaseOids = theProject.phase_ids[ObjectIdList]
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
+    val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
+    val activityOids = phases.flatMap(_.activity_ids[ObjectIdList])
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).toSeq
+    val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
+    val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
+    (theProject.admin_person_id[ObjectId] +: (phaseAdminPersonOids ++ actionAssigneeOids)).distinct
+  }
+
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doDelete", s"ENTRY", request)
     try {
@@ -56,11 +67,17 @@ class Phase extends HttpServlet with Utils {
         case _ => throw new IllegalArgumentException("Id not found")
       }
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val preDeleteParticipantOids = projectParticipantOids(theProject)
       val activityOids: Seq[ObjectId] = thePhase.activity_ids[ObjectIdList]
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),
         Map("$pull" -> Map("phase_ids" -> phaseOid)))
+      val postDeleteParticipantOids = projectParticipantOids(theProject)
+      val affectedPersonOids = preDeleteParticipantOids.diff(postDeleteParticipantOids)
+      BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> affectedPersonOids)),
+        Map("$pull" -> Map("project_ids" -> theProject._id[ObjectId])))
       BWLogger.log(getClass.getName, "doDelete", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>

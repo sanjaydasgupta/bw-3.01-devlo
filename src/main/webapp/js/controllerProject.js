@@ -1,21 +1,24 @@
 ﻿app.controller("BuildWhizNgAppProjectCtrl", function ($http, $scope, BuildWhizNgAppProjectService) {   
 
     $("#divProjectCreateNew").hide();
+    $("#divDemoUserShow").hide();
 
     if (document.getElementById("hdnLoggedInProjectManager").value == "y") {
         $("#divProjectCreateNew").show();
+    }
+
+    if (document.getElementById("hdnLoggedInDemoManager").value == "y") {
+        $("#divDemoUserShow").show();
     }
     $("#divPreLoad").hide();
 
 
 
-    GetPhaseNames();
     GetPersons();
+    GetPhaseNames();
+    GetAllProjectDetails();
 
-
-
-    //==============================================================Get All Phase Names 
-   
+    //==============================================================Get All Phase Names    
     function GetPhaseNames() {
 
         var PhaseNamesData = BuildWhizNgAppProjectService.getPhaseNamesData();
@@ -34,14 +37,14 @@
         personsData.then(function (response) {
             $scope.personsDataUpdate = response.data;
             // alert(JSON.stringify(response.data));
+            
         }, function (responseError) {
             alert(serviceErrorMessege);
+        }).finally(function () {
+            initAndApply();
+
         });
     };
-
-
-    GetAllProjectDetails();
-
 
     //==============================================================getAll projectPhase()
     var OnProjectRefreshHandle = $scope.$on('OnProjectRefresh', function (event, args) {
@@ -68,10 +71,10 @@
             //alert(JSON.stringify(response.data));
            
             $("#divPreLoad").hide();
-
+            $(".msgToggle").hide();
             if ($scope.projectDataUpdate.length <= 0) {
                 //document.getElementById("lblMsg")
-                $(".msgToggle").show;
+                $(".msgToggle").show();
                 document.getElementById("lblMsg").innerHTML = "No projects found.";
                //alert("No projects found.");   
             }
@@ -83,6 +86,39 @@
         });
     }
 
+    //=================================================================clickDemoUser()
+
+    $scope.clickDemoUser = function (person) {
+        $("#divProjectCreateNew").hide();
+        var sProjectManager = "n";        
+
+        document.getElementById("hndPersonID").value = person._id;
+        document.getElementById("hndPersonFName").value = person.first_name;
+        document.getElementById("hndPersonLName").value = person.last_name;
+               
+        var arrOmniClass = new Array();
+        arrOmniClass = person.omniclass34roles;
+        
+        for (var idx = 0; idx < arrOmniClass.length; idx++) {
+            // if role is Project Manager.
+            if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
+                sProjectManager = "y";
+                $("#divProjectCreateNew").show();
+            }
+          
+        }
+
+        document.getElementById("hdnLoggedInProjectManager").value = sProjectManager;
+
+        GetAllProjectDetails();
+    }
+
+    //=================================================================preSelectTab()
+    $scope.preSelectTab = function (sPersonID) {        
+        if (document.getElementById("hndPersonID").value == sPersonID) {
+            return true;
+        }
+    }
 
     //=================================================================set togglePublicProjectSync()
     $scope.togglePublicProjectSync = function (sProjectID, bChecked) {       
@@ -105,13 +141,11 @@
            
         });
     }
-
-
+    
     //==============================================================brodcaste for get projectPhase 
 
-    $scope.OnProjectClick = function (sProjectID) {
-       
-        $scope.$broadcast('OnProjectSelected', { message: sProjectID });
+    $scope.OnProjectClick = function (sProjectID, bExpand) {       
+        $scope.$broadcast('OnProjectSelected', { messegeProjectID: sProjectID, messegeExpand: bExpand });        
     }
 
     document.getElementById("inputProjectName").focus();

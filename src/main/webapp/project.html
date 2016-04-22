@@ -1,3 +1,4 @@
+
 <div class="container" data-ng-controller="BuildWhizNgAppProjectCtrl">
   <!--preloader Image load while data loading -->
   <div id="divPreLoad" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none;">
@@ -5,9 +6,19 @@
   </div>
 
 
+  <div id="divDemoUserShow">
+        <scrollable-tabset>
+          <tabset>
+            <tab ng-repeat="person in personsDataUpdate" active="preSelectTab(person._id)"  disable="person.disabled">
+              <tab-heading><div data-ng-click="clickDemoUser(person)">{{person.first_name}} {{person.last_name}}</div></tab-heading>
+             Projects for {{person.first_name}} {{person.last_name}}
+            </tab>
+          </tabset>
+        </scrollable-tabset>
+      </div>
 
   <div>
-    <div id="divProjectCreateNew" name="divProjectCreateNew" class="col-sm-6">
+    <div id="divProjectCreateNew" name="divProjectCreateNew" class="pull-left">
     <div class="text-left">
       <!-- create new project interface Link -->
       <a href="#" data-toggle="modal" id="linkCreateNewProject" class="text-success" data-target=".bs-example-modal-sm"><i class="glyphicon glyphicon-plus-sign"></i>Create New Project</a>
@@ -15,7 +26,7 @@
     </div>
     </div>
    
-    <div class="col-sm-6" id="divprojectRefresh" >
+    <div class="pull-right" id="divprojectRefresh" >
     <div class=" text-right">
       <!-- create new project interface Link -->
       <a href="#" id="refreshProject" class="text-success" data-ng-click="btnRefreshProject()"><i class="glyphicon glyphicon-refresh"></i>Refresh Projects</a>
@@ -34,7 +45,7 @@
         <form class="form-horizontal formCreateNewProject">
         <div class="form-group">
           <label for="inputEmail3" class="col-sm-3 control-label">Project Name</label>
-          <div class="col-sm-6" style="padding-left: 0px; padding-right: 0px;">
+          <div class="col-sm-6">
             <input type="text" autocomplete="off" class="form-control" data-ng-model="inputProjectName" id="inputProjectName" name="inputProjectName" placeholder="Project Name" autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? createNewProject() : null">
           </div>
           <div class="col-sm-3" style="padding-right: 0px;">
@@ -75,19 +86,21 @@
   <!-- msgToggle end here-->
 
   <accordion>
-    <accordion-group id="agProjects" data-ng-repeat="project in projectDataUpdate" is-open="openProject" data-ng-class="[setStatusBorderColor(project.display_status), 'projectPanel']">
+    <accordion-group id="agProjects" data-ng-repeat="project in projectDataUpdate" is-open="project.openProject" data-ng-class="[setStatusBorderColor(project.display_status), 'projectPanel']">
     <!--==============Project Heading Start Here==============-->
     <accordion-heading> 
-      <a class="col-md-8 col-sm-7 col-xs-5 projectsLinkHref" data-ng-click="OnProjectClick(project._id);" href="javascript:void(0)">
-        <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openProject, 'glyphicon-chevron-down': !openProject}"></span>
+      <a class="col-md-8 col-sm-7 col-xs-5 projectsLinkHref" data-ng-click="OnProjectClick(project._id, false);" href="javascript:void(0)">
+        <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': project.openProject, 'glyphicon-chevron-down': !project.openProject}"></span>
         <button  data-toggle="tooltip" data-placement="right" title="{{project.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(project.display_status)]"><img src="css/images/ProjectIcon.png" /></button>
         <!--<div class="pull-left gHeaderImageDiv"><img src="css/images/ProjectIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(project.display_status)}};" /></div>-->
         <div class="pull-left" style="padding-right:10px; line-height:24px;">{{project.name}}</div>
         <!--<input type="hidden" id="hdnProjectID" >{{project._id}}</input>-->
         
         <div class="checkbox divcheckbox" data-ng-if="project.is_managed" data-ng-click="$event.stopPropagation();">
-        <label ><input type="checkbox" id="checkboxProjectPublic" name="checkboxProjectPublic" data-ng-model="project.public" data-ng-true-value="true" data-ng-false-value="false"  data-ng-change="togglePublicProjectSync(project._id, project.public)">Public</label>        
-        </div>        
+        <!--<label ><input type="checkbox" id="checkboxProjectPublic" name="checkboxProjectPublic" data-ng-model="project.public" data-ng-true-value="true" data-ng-false-value="false"  data-ng-change="togglePublicProjectSync(project._id, project.public)">Public</label>        -->
+            <label ><input type="checkbox" id="checkboxProjectPublic" name="checkboxProjectPublic" data-ng-model="project.public"   data-ng-change="togglePublicProjectSync(project._id, project.public)">Public</label>       
+        </div>   
+            
         <div class="clr"></div>
       </a> 
       <div class="col-md-4 col-sm-5 col-xs-7 divAdminCtrlWraper" id="divProjectCreateNewCtrl" data-ng-click="$event.stopPropagation();" data-ng-if="project.is_managed">
@@ -122,7 +135,7 @@
                   </div><!--//dropdown ddProp -->
                 </div><!--//col-sm-6 col-xs-4  text-center-->
                 <div class="col-sm-4 col-xs-4  text-center">
-                  <button class="btn btn-success" data-ng-click="addPhase(project, selectPhaseNamesModel); OnProjectClick(project._id); $event.stopPropagation();" data-ng-disabled="project.status == 'ended'"><span class="glyphicon glyphicon-plus-sign"></span> Create</button>
+                  <button class="btn btn-success" data-ng-click="addPhase(selectPhaseNamesModel); OnProjectClick(project._id); $event.stopPropagation();" data-ng-disabled="project.status == 'ended'"><span class="glyphicon glyphicon-plus-sign"></span> Create</button>
                 </div><!--//col-sm-4 col-xs-4  text-center-->
                 <div class="clr"></div>
               </div><!--/administratorCtrlPartHr-->
@@ -356,10 +369,12 @@
                                             <div class="text-left text-danger" data-ng-if="action.outDocuments.length <= 0"  style="width:95%; margin:0px auto;">No Upload Required.</div>            
                                             <div class="actionContent" data-ng-repeat="document in action.outDocuments" onchange="" data-ng-if="action.outDocuments.length != 0">
                                               <span class="pull-left spanDocumentName">{{document.name}} </span> 
-                                                <input bw-upload data-ng-if="uploadDisabled(project, action, document)" type="file" project="project" document="document"
-                                                action="action" activity="activity" disabled style="width:100px; padding-left:5px;"  />
+<!--                                                <input bw-upload data-ng-if="uploadDisabled(project, action, document)" type="file" project="project" document="document"
+                                                action="action" activity="activity" disabled class="browseBtn" />-->
                                                 <input bw-upload data-ng-if="!uploadDisabled(project, action, document)" type="file" project="project" document="document"
-                                                action="action" activity="activity" callback-Function="callbackFunction" style="width:100px; padding-left:5px;" />                                          
+                                                action="action" activity="activity" callback-Function="callbackFunction" class="hidden"  id="fileAction" />
+                                                <label for="fileAction" class="btn btn-sm browseBtn"> Choose File</label>
+                                                <div class="clr"></div>
                                             </div>
                                           </div>
                                         </div>

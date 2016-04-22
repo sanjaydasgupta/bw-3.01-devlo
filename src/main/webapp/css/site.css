@@ -37,6 +37,24 @@ a.list-group-item
 {
     line-height: 29px;
 }
+
+.listHeaderLink
+{
+    list-style: none;
+    display: block;
+    width: 151px;
+    float: right;
+    padding: 0px;
+}
+
+    .listHeaderLink li
+    {
+        display: block;
+        float: left;
+        margin-left: 15px;
+    }
+
+
 /*======================================================Log In Form======================================================*/
 .logInFormWraper
 {
@@ -122,34 +140,6 @@ input[type="password"]
         font-size: 18px;
     }
 
-    .dashboardButtonWrapper
-    {
-        display: block;
-        height: 48px;
-        width: 128px;
-        margin-top: 16px;
-        margin-bottom: 16px;
-        margin-right: 12px;
-        margin-left: 12px;
-        font-size: 18px;
-        color: #337ab7;
-        text-align: center;
-    }
-
-    .dashboardSmallButtonWrapper
-    {
-        display: block;
-        height: 24px;
-        width: 64px;
-        margin-top: 2px;
-        margin-bottom: 2px;
-        margin-right: 5px;
-        margin-left: 5px;
-        font-size: 12px;
-        color: #337ab7;
-        text-align: center;
-    }
-
     .dashboardWraper img
     {
         border: 2px solid #f5f5f5;
@@ -161,8 +151,45 @@ input[type="password"]
             transition: all 0.3s;
         }
 
+/*======================================================sidebar======================================================*/
+
+.dashboardLeftPanel
+{
+}
+
+.dashboardRightPanel
+{
+    width: 155px;
+}
+
+.sidebar p.heading
+{
+    display: block;
+    text-align: left;
+    font-size: 16px;
+    color: gray;
+    font-weight: bold;
+    border-bottom: 1px solid gray;
+    padding: 12px 0px 8px 0px;
+    margin-bottom: 10px;
+}
+
+.sidebar button
+{
+    width: 125px;
+    text-align: left;
+}
 
 /*======================================================Common styles======================================================*/
+/*====alert box====*/
+.alert.alert-danger.msgToggle
+{
+    padding: 7px;
+    margin-bottom: 10px;
+    border: 0px solid transparent;
+    border-radius: 4px;
+}
+
 .label
 {
     display: block;
@@ -231,13 +258,16 @@ select option:empty
     display: block;
     float: left;
     margin-left: 0px;
-    margin-right:5px;
+    margin-right: 5px;
     border: 0px solid;
     margin-top: 0px;
-    padding:0px;
+    padding: 0px;
 }
-.btnStatusBox img{vertical-align:baseline;}
 
+    .btnStatusBox img
+    {
+        vertical-align: baseline;
+    }
 /*======================================================Projects======================================================*/
 .projectPanel > .panel-heading
 {
@@ -260,11 +290,11 @@ select option:empty
     min-height: 70px;
 }
 
-.projectPanel .gHeaderArrowIcon{
-    
+.projectPanel .gHeaderArrowIcon
+{
     padding-right: 5px;
     font-size: 18px;
-    line-height:24px;
+    line-height: 24px;
 }
 
 .divAdminCtrlWraper
@@ -285,7 +315,13 @@ select option:empty
     padding-top: 4px;
     padding-bottom: 3px;
 }
-.projectPanel .administratorCtrlPart{margin-top:3px; margin-bottom:3px;}
+
+.projectPanel .administratorCtrlPart
+{
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
 .projectPanel .panel-body
 {
     padding: 0px 10px;
@@ -297,20 +333,23 @@ select option:empty
 }
 
 
-#divProjectCreateNewCtrl .btn{width:70px; }
+#divProjectCreateNewCtrl .btn
+{
+    width: 70px;
+}
+
 .administratorCtrlPart .btn
 {
     font-size: 12px;
     padding: 3px 5px;
     border-radius: 0px;
-    margin-bottom:0px;
+    margin-bottom: 0px;
 }
 
-.administratorCtrlPart .btn:hover, .administratorCtrlPart .btn:focus, .administratorCtrlPart .btn:active, .administratorCtrlPart .btn:visited
+    .administratorCtrlPart .btn:hover, .administratorCtrlPart .btn:focus, .administratorCtrlPart .btn:active, .administratorCtrlPart .btn:visited
     {
         font-size: 12px;
         padding: 3px 5px;
-       
     }
 
 .administratorCtrlPart .label
@@ -319,6 +358,12 @@ select option:empty
     font-size: 13px;
     padding-top: 6px;
     color: #777;
+}
+
+#modalCreateNewProject .col-sm-6
+{
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 #modalCreateNewProject.modal-dialog
@@ -333,7 +378,7 @@ select option:empty
     transform: translateY(-50%);
 }
 
-#modalCreateNewProject .modal-content
+    #modalCreateNewProject .modal-content
     {
         position: relative;
         background-color: #fff;
@@ -387,22 +432,44 @@ select option:empty
     color: #3c763d;
     font-weight: bold;
     font-size: 18px;
-    clear:both;
+    clear: both;
 }
 
 .ulGuideList li
-{ float:left; display:block; 
+{
+    float: left;
+    display: block;
 }
+
 .spanGuideColorBox
-{ background:green; width:15px; height:15px; display:block; float:left;
+{
+    background: green;
+    width: 15px;
+    height: 15px;
+    display: block;
+    float: left;
 }
 
 /*====Red====*/
-.waitPhaseRed{color:#990000;}
-.waitPhaseRed .spanGuideColorBox{background:#990000;}
+.waitPhaseRed
+{
+    color: #990000;
+}
+
+    .waitPhaseRed .spanGuideColorBox
+    {
+        background: #990000;
+    }
 /*====Magenta====*/
-.waitingMagenta .spanGuideColorBox{background:#990099;}
-.waitingMagenta{color:#990099}
+.waitingMagenta .spanGuideColorBox
+{
+    background: #990099;
+}
+
+.waitingMagenta
+{
+    color: #990099;
+}
 
 /*====Brown====*/
 .waiting2Brown .spanGuideColorBox
@@ -418,19 +485,52 @@ select option:empty
 
 
 
-#linkCreateNewProject .glyphicon, #refreshProject .glyphicon{padding-right:5px; line-height:25px; font-size:16px;}
+#linkCreateNewProject .glyphicon, #refreshProject .glyphicon
+{
+    padding-right: 5px;
+    line-height: 25px;
+    font-size: 16px;
+}
 
 .ddProp
 {
     margin-top: 0px;
 }
-div.checkbox[disabled]{
-    cursor:not-allowed;
 
+div.checkbox[disabled]
+{
+    cursor: not-allowed;
 }
-.divcheckbox{width:55px; float:left; margin-left:0px; font-size:14px; margin-top:2px; margin-bottom:0px; line-height:22px;}
-.gHeaderImageDiv{width:24px; height:24px; margin-right:5px; line-height:0px; }
-.gHeaderImageDiv img{max-width:100%; max-height:100%; }
+
+.divcheckbox
+{
+    width: 55px;
+    float: left;
+    margin-left: 0px;
+    font-size: 14px;
+    margin-top: 2px;
+    margin-bottom: 0px;
+    line-height: 22px;
+}
+
+    .divcheckbox.checkbox input[type=checkbox], .divcheckbox.checkbox-inline input[type=checkbox]
+    {
+        /*outline: none;*/
+    }
+
+.gHeaderImageDiv
+{
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+    line-height: 0px;
+}
+
+    .gHeaderImageDiv img
+    {
+        max-width: 100%;
+        max-height: 100%;
+    }
 /*======================================================Phase======================================================*/
 .phasePanel > .panel-heading
 {
@@ -458,10 +558,11 @@ div.checkbox[disabled]{
 
 .phasePanel .gHeaderArrowIcon
 {
-     padding-right: 5px;
+    padding-right: 5px;
     font-size: 16px;
-    line-height:24px;
+    line-height: 24px;
 }
+
 .phasePanel .divAdminCtrlWraper
 {
     min-height: 25px;
@@ -487,7 +588,7 @@ div.checkbox[disabled]{
     padding: 0px 10px;
     background: #f5f5f5;
     border: 4px solid;
-    margin-top:-4px;
+    margin-top: -4px;
 }
 
 .phasePanel .form-inline.formTimersCtrl label
@@ -550,8 +651,8 @@ div.checkbox[disabled]{
 {
     padding: 0px 10px;
     background: #f1f1f1;
-    border: 4px solid ;
-    margin-top:-4px;
+    border: 4px solid;
+    margin-top: -4px;
 }
 
 .processPanel .divAdminCtrlWraper
@@ -562,11 +663,9 @@ div.checkbox[disabled]{
 
 .processPanel .gHeaderArrowIcon
 {
-
     padding-right: 5px;
     font-size: 14px;
-    line-height:24px;
-
+    line-height: 24px;
 }
 
 .processPanel .form-inline.formTimersCtrl label
@@ -577,8 +676,16 @@ div.checkbox[disabled]{
     color: #777;
     width: 100px;
 }
-.processPanel .form-inline.formTimersCtrl label.inputTimers, .processPanel .form-inline.formTimersCtrl label.inputvariables{width:150px;}
-.processPanel .form-inline.formTimersCtrl input{width:65px;}
+
+    .processPanel .form-inline.formTimersCtrl label.inputTimers, .processPanel .form-inline.formTimersCtrl label.inputvariables
+    {
+        width: 150px;
+    }
+
+.processPanel .form-inline.formTimersCtrl input
+{
+    width: 65px;
+}
 
 /*====btnDiagramLink====*/
 .btnDiagramLink
@@ -590,9 +697,11 @@ div.checkbox[disabled]{
     border: 0px !important;
     font-weight: bold;
 }
-button.btnDiagramLink[disabled]{
-    color:#999; cursor:not-allowed;
 
+button.btnDiagramLink[disabled]
+{
+    color: #999;
+    cursor: not-allowed;
 }
 
 /*====vertically center modal====*/
@@ -692,7 +801,7 @@ button.btnDiagramLink[disabled]{
     padding: 0px 10px;
     background: #f5f5f5;
     border: 4px solid;
-    margin-top:-4px;
+    margin-top: -4px;
 }
 
 .activityPanel .divAdminCtrlWraper
@@ -701,13 +810,15 @@ button.btnDiagramLink[disabled]{
     margin-top: 0px;
     /*padding-left: 51px;*/
     text-align: right;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
 
 .activityPanel .gHeaderArrowIcon
 {
-     padding-right: 5px;
+    padding-right: 5px;
     font-size: 14px;
-    line-height:24px;
+    line-height: 24px;
 }
 
 .activityPanel .form-inline.formTimersCtrl label
@@ -766,7 +877,7 @@ button.btnDiagramLink[disabled]{
 {
     padding: 0px 25px;
     background: #f1f1f1;
-    border: 4px solid ;
+    border: 4px solid;
     margin-top: -4px;
     -o-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -785,9 +896,9 @@ button.btnDiagramLink[disabled]{
 
 .actionPanel .gHeaderArrowIcon
 {
-      padding-right: 5px;
+    padding-right: 5px;
     font-size: 12px;
-    line-height:24px;
+    line-height: 24px;
 }
 
 .actionPanel .form-inline.formTimersCtrl label
@@ -809,12 +920,47 @@ button.btnDiagramLink[disabled]{
     color: #000;
 }
 
-/*========================tableActionDetails========================*/
-.tableActionDetails{margin-bottom:10px;}
-.tableActionDetails th
+
+.browseBtn
 {
-    background: rgba(0,0,0,0.1);
+/*display: block;
+width: 70px;
+padding: 0px;
+font-size: 12px;*/
+margin-left: 10px;
+/*height: 30px;
+padding-top: 0px;
+text-align: center;
+line-height: 30px;*/
+/*-o-border-radius: 6px;
+-moz-border-radius: 6px;
+-webkit-border-radius: 6px;
+border-radius: 6px;
+cursor:pointer;*/
+float: left;
+background: gray;
+border: 1px solid dimgray;
+color: white;
+font-weight: bold;
+
 }
+
+/*========================tableActionDetails========================*/
+.tableActionDetails
+{
+    margin-bottom: 10px;
+}
+
+    .tableActionDetails th
+    {
+        background: rgba(0,0,0,0.1);
+    }
+
+.table.tableActionDetails > tbody > tr > td, .table.tableActionDetails > tfoot > tr > td
+{
+    border-top: 1px solid #aaa;
+}
+
 
 .actionContentPart
 {
@@ -827,7 +973,7 @@ button.btnDiagramLink[disabled]{
     padding: 5px 5px;
     margin-bottom: 0px;
     background: rgba(0, 0, 0, .05);
-    width:48%;
+    width: 48%;
 }
 
 .thActionDescription
@@ -841,16 +987,26 @@ button.btnDiagramLink[disabled]{
 }
 
 
-.thActionContentFooter, .thActionDescription{-o-border-radius:8px; -moz-border-radius:8px; -webkit-border-radius:8px; -os-border-radius:8px;border-radius:8px;  border-top:0px !important;}
+.thActionContentFooter, .thActionDescription
+{
+    -o-border-radius: 8px;
+    -moz-border-radius: 8px;
+    -webkit-border-radius: 8px;
+    -os-border-radius: 8px;
+    border-radius: 8px;
+    border-top: 0px !important;
+}
+
 .actionContentPartHeading
 {
     font-weight: bold;
     text-align: left;
     padding: 0px 0px 5px 0px;
-    border-bottom:1px dashed #333;
-    display:block; margin:0px auto; width:95%;
+    border-bottom: 1px dashed #333;
+    display: block;
+    margin: 0px auto;
+    width: 95%;
     margin-bottom: 4px;
-   
 }
 
 .actionContentPart .spanDocumentName
@@ -867,7 +1023,14 @@ button.btnDiagramLink[disabled]{
 }
 
 
-.actionContent{width:95%; text-align:left; display:block; margin:0px auto; }
+.actionContent
+{
+    width: 95%;
+    text-align: left;
+    display: block;
+    margin: 2px auto;
+    clear: both;
+}
 
 
 /*======================================================Global======================================================*/
@@ -988,7 +1151,15 @@ img
         -os-border-radius: 10px;
         border-radius: 10px;
     }
-    input.form-control, select.form-control{-o-border-radius:0px; -moz-border-radius:0px; -webkit-border-radius:0px; -os-border-radius:0px; border-radius:0px;}
+
+input.form-control, select.form-control
+{
+    -o-border-radius: 0px;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -os-border-radius: 0px;
+    border-radius: 0px;
+}
 /*=====================================================@media screen (1200px)====================================*/
 @media only screen and (max-width:1200px)
 {
@@ -1012,7 +1183,10 @@ img
     }
 
     /*======================================================Process======================================================*/
-    .processPanel .form-inline.formTimersCtrl label.inputTimers, .processPanel .form-inline.formTimersCtrl label.inputvariables{width:140px;}
+    .processPanel .form-inline.formTimersCtrl label.inputTimers, .processPanel .form-inline.formTimersCtrl label.inputvariables
+    {
+        width: 140px;
+    }
 
 
 
@@ -1058,6 +1232,13 @@ img
 @media only screen and (max-width:768px)
 {
 
+    /*============================================modal================================*/
+    #modalCreateNewProject .col-sm-6
+    {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
     /*============================================create / refresh button================================*/
 
     #linkCreateNewProject, #linkCreateNewProject:hover, #linkCreateNewProject:active, #linkCreateNewProject:visited, #refreshProject, #refreshProject:hover, #refreshProject:active, #refreshProject:visited
@@ -1071,12 +1252,20 @@ img
         font-size: 18px;
         clear: both;
     }
-#divProjectCreateNew .text-left{text-align:center;}
-#divprojectRefresh .text-right{text-align:center;}
+
+    #divProjectCreateNew .text-left
+    {
+        text-align: center;
+    }
+
+    #divprojectRefresh .text-right
+    {
+        text-align: center;
+    }
 
 
-     label, input, button, select
-    {       
+    label, input, button, select
+    {
         margin-bottom: 2px !important;
     }
 
@@ -1084,7 +1273,7 @@ img
 
     /*======================================================Phase======================================================*/
 
-    
+
     .phasePanel .spanAdminWrap
     {
         display: inline-block;
@@ -1230,26 +1419,105 @@ img
 
 /*=====================================================@media screen (480px)====================================*/
 @media only screen and (max-width:480px)
-{   
-    /*======================================================Project======================================================*/
-    /*=====Project Heading and Admin Control 100%=====*/
-    .col-xs-5.projectsLinkHref{
-        width:100% !important;
+{
+
+
+
+
+    /*======================================================Header======================================================*/
+    .logo
+    {
+        height: auto;
+        margin: 0px auto;
+        display: block;
+        width: 64px;
+        text-align: center;
     }
-    #divProjectCreateNewCtrl{width:100%;}
-    .col-xs-5.projectsLinkHref .gHeaderArrowIcon,.col-xs-5.projectsLinkHref .button{float:left;}
+
+    #divWelcomeMsg
+    {
+        margin-top: 10px;
+    }
+
+        #divWelcomeMsg .text-right
+        {
+            text-align: center;
+        }
+
+    .listHeaderLink
+    {
+        width: 140px;
+        display: block;
+        margin: 0px auto;
+        padding-left: 0px;
+        float: none;
+    }
+
+        .listHeaderLink li
+        {
+            display: block;
+            width: 100%;
+            float: left;
+            text-align: center;
+            margin-left: 0px;
+        }
+
+
+
+    .activityPanel .divAdminCtrlWraper
+    {
+        padding-right: 0px;
+        /*min-height: 77px;*/
+    }
+
+
+    [class*="col-xs-"]
+    {
+        width: 100%;
+    }
+
+    /*======================================================Project======================================================*/
+    /*=====table panel=====*/
+    button.btn.nav-button
+    {
+        width: 25px !important;
+    }
+
+    /*=====Project Heading and Admin Control 100%=====*/
+    .col-xs-5.projectsLinkHref
+    {
+        width: 100% !important;
+    }
+
+    #divProjectCreateNewCtrl
+    {
+        width: 100%;
+    }
+
+    .col-xs-5.projectsLinkHref .gHeaderArrowIcon, .col-xs-5.projectsLinkHref .button
+    {
+        /*float: left;*/
+    }
     /*=============checkbox style========*/
     .divcheckbox.checkbox input[type=checkbox], .divcheckbox.checkbox-inline input[type=checkbox]
     {
         margin-right: -0px;
         margin-left: -41px;
-        outline:none;
-    } 
-    .divcheckbox{margin-left:0px; }
+        outline: none;
+    }
+
+    .divcheckbox
+    {
+        margin-left: 0px;
+    }
 
     /*======================================================Phase======================================================*/
-    
-    #divPhaseCreateNewCtrl{padding-left:15px;}
+
+    #divPhaseCreateNewCtrl
+    {
+        padding-left: 15px;
+    }
+
     .phasePanel .spanAdminWrap
     {
         display: block;
@@ -1280,7 +1548,10 @@ img
     }
 
     /*======================================================Action======================================================*/
-    .actionContentPart{width:100%;}
+    .actionContentPart
+    {
+        width: 100%;
+    }
 }
 
 
@@ -1289,7 +1560,7 @@ img
 
 
 
-/*=========================================================setStatus Color======================================*/
+/*======================================================setStatus Color======================================================*/
 
 /*====Yellow====*/
 .panel.panel-default.Yellow > .panel-heading, .panel.panel-default.Yellow > .panel-collapse.collapse > .panel-body
@@ -1331,13 +1602,13 @@ img
 
 
 
-/***********************status box******************/
+/*======================================================status box======================================================*/
 
 /*====Yellow====*/
 .Yellow.btnStatusBox
 {
     background-color: #ffffcc;
-    /*border-#337ab7: #e6b800;*/
+    /*border-color: #e6b800;*/
 }
 /*====Green====*/
 .Green.btnStatusBox
@@ -1369,3 +1640,149 @@ img
     background-color: #ffbf80;
     /*border-color: #86592d;*/
 }
+
+
+
+/*======================================================angular-ui-tab-scroll======================================================*/
+.ui-tabs-scrollable
+{
+    position: relative;
+}
+
+    .ui-tabs-scrollable .nav-tabs
+    {
+        white-space: nowrap;
+        overflow: hidden;
+        height: 30px!important;
+        border-bottom: 0!important;
+    }
+
+    .ui-tabs-scrollable .spacer:not(.hidden-buttons)
+    {
+        margin-left: 25px;
+        margin-right: 25px;
+    }
+
+        .ui-tabs-scrollable .spacer:not(.hidden-buttons) .tab-content
+        {
+            margin-left: -25px;
+            margin-right: -25px;
+        }
+
+
+    /*Normal state style*/
+    .ui-tabs-scrollable .nav > li
+    {
+        float: none;
+        display: inline-block;
+        height: 30px!important;
+        border-bottom: 1px solid #ddd;
+        background: gray;
+        margin-left: 1px;
+        -moz-border-radius: 4px 4px 0 0;
+        -o-border-radius: 4px 4px 0 0;
+        -webkit-border-radius: 4px 4px 0 0;
+        border-radius: 4px 4px 0 0;
+    }
+
+    .ui-tabs-scrollable li a
+    {
+        color: white;
+        font-weight: bold;
+        font-size: 13px;
+        padding: 0px 0px;
+    }
+
+#divDemoUserShow .nav > li > a
+{
+    position: relative;
+    display: block;
+    padding: 0px 0px;
+    margin-right: 0px;
+}
+
+    #divDemoUserShow .nav > li > a div
+    {
+        padding: 4px 15px;
+    }
+
+/*Hover state Style*/
+#divDemoUserShow .nav-tabs > li:hover > a, #divDemoUserShow .nav-tabs > li:hover > a:hover, #divDemoUserShow .nav-tabs > li:hover > a:focus
+{
+    background: gray;
+    color: yellow;
+    cursor: pointer;
+    border: 1px solid gray;
+    border-bottom-color: transparent;
+}
+/*Active state style*/
+#divDemoUserShow .nav-tabs > li.active > a, #divDemoUserShow .nav-tabs > li.active > a:hover, #divDemoUserShow .nav-tabs > li.active > a:focus
+{
+    color: #1240DF;
+    cursor: default;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+    border-bottom: 0px;
+    height: 31px;
+}
+
+#divDemoUserShow .tab-pane
+{
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #1240DF;
+}
+
+
+
+.ui-tabs-scrollable .spacer:not(.hidden-buttons) .nav > li:first-child.active a,
+.ui-tabs-scrollable .spacer:not(.hidden-buttons) .nav > li:first-child a:hover
+{
+    border-top-left-radius: 0!important;
+    border-left: 1px solid transparent;
+}
+
+.ui-tabs-scrollable .spacer:not(.hidden-buttons) .nav > li:last-child.active a,
+.ui-tabs-scrollable .spacer:not(.hidden-buttons) .nav > li:last-child a:hover
+{
+    border-top-right-radius: 0!important;
+    border-right: 1px solid transparent;
+    margin-right: -1px;
+}
+
+.ui-tabs-scrollable .nav-button
+{
+    position: absolute;
+    width: 25px;
+    height: 30px!important;
+    line-height: 30px;
+    top: 0;
+    color: #1240DF;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 0!important;
+    padding: 0!important;
+    background-color: #fff;
+    z-index: 10;
+}
+
+    .ui-tabs-scrollable .nav-button:hover
+    {
+        background-color: #eee;
+    }
+
+.ui-tabs-scrollable .left-nav-button
+{
+    left: 0;
+    border-top-left-radius: 4px!important;
+}
+
+.ui-tabs-scrollable .right-nav-button
+{
+    right: 0;
+    border-top-right-radius: 4px!important;
+}
+

@@ -1,6 +1,6 @@
 ﻿app.controller("BuildWhizNgAppLogInCtrl", function ($http, $scope, BuildWhizNgAppLogInService) {
     document.getElementById("inputEmail").focus();
-    $scope.email = "tester@buildwhiz.com";
+    //$scope.email = "sanjay.dasgupta@buildwhiz.com";
     //=====check validation====
     function CheckLogInForm() {
         var bValidate = true;
@@ -45,6 +45,7 @@
             var sFirstName = "";
             var sLastName = "";
             var sProjectManager = "n";
+            var sDemoManager = "n";
 
             var Data = BuildWhizNgAppLogInService.UserAuthenticate($scope.email, $scope.password);
             Data.then(function (response) {
@@ -78,9 +79,15 @@
                         var arrOmniClass = new Array();
                         arrOmniClass = value.split(",");
                         for (var idx = 0; idx < arrOmniClass.length; idx++) {                           
-                            if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {                                
+                            // if role is Project Manager.
+                            if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
                                 sProjectManager = "y";
-                            }                           
+                            }
+
+                            // if role is Demo Manager.
+                            if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
+                                sDemoManager = "y";
+                            }
                         }
                     }
                   
@@ -95,17 +102,15 @@
                     document.getElementById("hndLoggedInFName").value = sFirstName;
                     document.getElementById("hndLoggedInLName").value = sLastName;
 
+                    document.getElementById("lblWelcomePerson").innerHTML = "Welcome " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
+                    document.getElementById('ttlBuildWhizMain').innerHTML = "BW " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
+                    document.getElementById("hdnLoggedInDemoManager").value = sDemoManager;
+
                     document.getElementById("hndPersonID").value = sID;
                     document.getElementById("hndPersonFName").value = sFirstName;
                     document.getElementById("hndPersonLName").value = sLastName;
 
                     document.getElementById("hdnLoggedInProjectManager").value = sProjectManager;
-
-                    document.getElementById("lblWelcomePerson").innerHTML = "Welcome " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
-                    document.getElementById('ttlBuildWhizMain').innerHTML = "BW " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
-                  
-
-
                 }
                 else {
                  

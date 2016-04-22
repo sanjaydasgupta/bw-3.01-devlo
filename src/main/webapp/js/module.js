@@ -1,4 +1,18 @@
-﻿var app = angular.module('BuildWhizNgApp', ['ngRoute','ui.bootstrap']);
+﻿var app = angular.module('BuildWhizNgApp', ['ngRoute', 'ui.bootstrap', 'ui.tab.scroll']);
+
+
+
+app.config(function (scrollableTabsetConfigProvider) {
+
+    scrollableTabsetConfigProvider.setShowTooltips(true);
+    scrollableTabsetConfigProvider.setTooltipLeft('right');
+    scrollableTabsetConfigProvider.setTooltipRight('left');
+    scrollableTabsetConfigProvider.setScrollLeftIcon('glyphicon glyphicon-chevron-left');
+    scrollableTabsetConfigProvider.setScrollRightIcon('glyphicon glyphicon-chevron-right');
+
+});
+
+
 
 
 //app.controller('MainCtrl', function ($scope) { });
@@ -32,6 +46,9 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
             .otherwise({
                 redirectTo: '/login'
             });
+
+
+
     $locationProvider.html5Mode(false).hashPrefix('!'); // This is for Hashbang Mode
 
 }]);

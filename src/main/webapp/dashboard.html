@@ -1,44 +1,25 @@
 <div class="container" data-ng-controller="BuildWhizNgAppDashboardCtrl">
-      <!-- <a href="index.html"  class="btn btn-primary fl btn-mobile" data-ng-click="back()">
-                    <i class="fa fa-arrow-left"></i>
-                    Back
-                </a>-->
-    <!--div class="dashboardWraper"-->
-        <!--div class="col-sm-3 text-center"-->
-    <table>
-        <tr>
-            <td align="center">
-                <!--a href="#" data-ng-click="manageProject_Click()"-->
-                    <!--img src="css/images/project1.png" /><br/-->
-                    <button data-ng-click="manageProject_Click()" class="dashboardButtonWrapper">Projects</button>
-                <!--/a-->
-            </td>
-            <td align="center">
-                <!--a href="#" data-ng-click="manageProject_Click()"-->
-                <!--img src="css/images/project1.png" /><br/-->
-                <button data-ng-click="userProfile_Click()" class="dashboardButtonWrapper">User Profile</button>
-                <!--/a-->
-            </td>
-        </tr>
-    </table>
-    <div style="height: 300px;"></div>
-    <table>
-        <tr>
-            <td align="center">
-                <!--a href="#" data-ng-click="manageMongodb_Click()"-->
-                <!--img src="css/images/project1.png" /><br/-->
-                <button data-ng-click="manageMongodb_Click()" class="dashboardSmallButtonWrapper">MongoDB</button>
-                <!--/a-->
-            </td>
-            <td align="center">
-                <!--a href="#" data-ng-click="manageMongodb_Click()"-->
-                <!--img src="css/images/project1.png" /><br/-->
-                <button data-ng-click="manageNextGen_Click()" class="dashboardSmallButtonWrapper">NextGen</button>
-                <!--/a-->
-            </td>
-        </tr>
-    </table>
-        <!--/div-->
-    <!--/div-->
+
+    <div class="col-lg-10 col-md-10 col-xs-9 dashboardLeftPanel mb20">
+        <div>
+            <button data-ng-click="manageProject_Click()" class="btn btn-primary">
+                <span class="glyphicon glyphicon-tasks"></span> Projects
+            </button>
+            <button data-ng-click="userProfile_Click()" class="btn btn-primary">
+                <span class="glyphicon glyphicon-user"></span> Profile 
+            </button>
+        </div>
+    </div>
+
+    <div class="col-lg-2 col-md-2 col-xs-3 dashboardRightPanel" style="background: #f1f1f1;">
+        <div class="sidebar text-left">
+            <p class="heading">System Options</p>
+            <p>
+                <button data-ng-click="manageMongodb_Click()" class="btn btn-primary"><span class="glyphicon glyphicon-hdd"></span> MongoDB</button></p>
+            <p>
+                <button data-ng-click="manageNextGen_Click()" class="btn btn-primary"><span class="glyphicon glyphicon-share-alt"></span> NextGen</button></p>
+        </div>
+    </div>
+
 </div>
 <!--//===============================container============================-->

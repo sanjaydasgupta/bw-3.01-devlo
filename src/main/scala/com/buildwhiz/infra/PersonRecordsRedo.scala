@@ -1,7 +1,5 @@
 package com.buildwhiz.infra
 
-import java.security.MessageDigest
-
 import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
@@ -39,10 +37,10 @@ object PersonRecordsRedo extends App with Utils {
       |56f124dfd5d8ad25b1325b3d	Victor		Melean		victor@acies.net			(408) 522-5255 x165			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Mechanical Project Director	33-21 31 17 31 01
       |56f124dfd5d8ad25b1325b3e	Prabhas		Kejriwal		prabhas@buildwhiz.com	prabhas@stanfordalumni.com		(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Owner	33-21,34-55 14 19 XX,34-55 14 19 YY
       |56f124dfd5d8ad25b1325b3f	Tester		Tester		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	33-21
-      |56f124dfd5d8ad25b1325b41	No		One		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	33-21
+      |56f124dfd5d8ad25b1325b41	No		One		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-None
+      |56f124dfd5d8ad25b1325b3c	Demo		Demo		demo@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-Demo
       |56f124dfd5d8ad25b1325b40	Sanjay		Dasgupta		sanjay.dasgupta@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	WB	700068	Buildwhiz	Software Engineer	33-21,34-55 14 19 XX""".stripMargin
 
-  //, "", "", "56f124dfd5d8ad25b1325b3c"
   // 57074085d5d8ad1cf3f767d0, 57074085d5d8ad1cf3f767d1, 57074085d5d8ad1cf3f767d2, 57074085d5d8ad1cf3f767d3, 57074085d5d8ad1cf3f767d4, 57074085d5d8ad1cf3f767d5, 57074085d5d8ad1cf3f767d6, 57074085d5d8ad1cf3f767d7, 57074085d5d8ad1cf3f767d8, 57074085d5d8ad1cf3f767d9
 //  private val personIds = Seq(
 //    "", "", "", "",
@@ -99,8 +97,8 @@ object PersonRecordsRedo extends App with Utils {
       newBsonDoc("project_ids") = projectIds
       // passwords for testing
       val firstName = newBsonDoc("first_name").asInstanceOf[String]
-      val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
-      newBsonDoc("password") = md5(password)
+      //val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
+      newBsonDoc("password") = md5(firstName)
       val roles = new java.util.ArrayList[String]
       if (newBsonDoc.containsKey("role")) {
         roles.addAll(newBsonDoc("role").asInstanceOf[String].split(",").toSeq)

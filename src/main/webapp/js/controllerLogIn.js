@@ -85,7 +85,8 @@
                             }
 
                             // if role is Demo Manager.
-                            if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
+                            //if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
+                            if (arrOmniClass[idx].toString() == "BW-Demo") {
                                 sDemoManager = "y";
                             }
                         }

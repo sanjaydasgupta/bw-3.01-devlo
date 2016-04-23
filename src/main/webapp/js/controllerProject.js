@@ -37,7 +37,13 @@
         personsData.then(function (response) {
             $scope.personsDataUpdate = response.data;
             // alert(JSON.stringify(response.data));
-            
+            $scope.managerPersonsData = $scope.personsDataUpdate.filter(function(p) {
+                return ((p._id != "56f124dfd5d8ad25b1325b41") && (p._id != "56f124dfd5d8ad25b1325b3c"));
+            });
+            //alert(JSON.stringify($scope.managerPersonsData));
+            $scope.assignablePersonsData = $scope.personsDataUpdate.filter(function(p) {
+                return (p._id != "56f124dfd5d8ad25b1325b3c");
+            });
         }, function (responseError) {
             alert(serviceErrorMessege);
         }).finally(function () {
@@ -115,9 +121,10 @@
 
     //=================================================================preSelectTab()
     $scope.preSelectTab = function (sPersonID) {        
-        if (document.getElementById("hndPersonID").value == sPersonID) {
-            return true;
-        }
+        //if (document.getElementById("hndPersonID").value == sPersonID) {
+        //    return true;
+        //}
+        return document.getElementById("hndPersonID").value == sPersonID;
     }
 
     //=================================================================set togglePublicProjectSync()

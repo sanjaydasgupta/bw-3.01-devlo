@@ -171,7 +171,7 @@
                                 <span class="spanAdminWrap">
                                   <label for="ddlPersonsType" class=" text-left">Administrator </label>
                                   <select  class="form-control" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(phase.status == 'defined' && phase.is_managed)" id="ddlPersonsType" name="ddlPersonsType" data-ng-model="phase.admin_person_id">
-                                    <option data-ng-repeat="person in personsDataUpdate" data-ng-selected="person._id == phase.admin_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
+                                    <option data-ng-repeat="person in managerPersonsData" data-ng-selected="person._id == phase.admin_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
                                   </select>
                                   <button class="btn btn-success" data-ng-click="setPhaseAdministrator(project._id, phase._id, phase.admin_person_id); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && phase.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>                                  
                                 </span>

@@ -2,14 +2,14 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWLogger
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.ProcessDefinition
 
 import scala.collection.JavaConversions._
 
-class PhaseBpmnImage extends HttpServlet with Utils {
+class PhaseBpmnImage extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

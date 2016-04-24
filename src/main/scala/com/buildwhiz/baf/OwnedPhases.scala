@@ -4,12 +4,12 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class OwnedPhases extends HttpServlet with Utils {
+class OwnedPhases extends HttpServlet with HttpUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
     val activityOids = phase.activity_ids[ObjectIdList]

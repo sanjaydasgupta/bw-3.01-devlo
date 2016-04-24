@@ -2,7 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class ActionAdd extends HttpServlet with Utils {
+class ActionAdd extends HttpServlet with HttpUtils {
 
   private def getTempDoc(name: String): ObjectId = {
     BWMongoDB3.document_master.find(Map("name" -> name)).headOption match {

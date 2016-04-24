@@ -3,7 +3,7 @@ package com.buildwhiz.baf
 import java.util
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
@@ -18,7 +18,7 @@ import org.xml.sax.InputSource
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
-class PhaseAdd extends HttpServlet with Utils {
+class PhaseAdd extends HttpServlet with HttpUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 

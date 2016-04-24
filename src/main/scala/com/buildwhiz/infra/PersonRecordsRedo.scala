@@ -1,6 +1,6 @@
 package com.buildwhiz.infra
 
-import com.buildwhiz.Utils
+import com.buildwhiz.CryptoUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-object PersonRecordsRedo extends App with Utils {
+object PersonRecordsRedo extends App with CryptoUtils {
   BWLogger.log(getClass.getName, "main()", "ENTRY")
 
   private val data =

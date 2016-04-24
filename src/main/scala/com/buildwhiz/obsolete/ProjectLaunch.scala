@@ -2,13 +2,13 @@ package com.buildwhiz.obsolete
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
-class ProjectLaunch extends HttpServlet with Utils {
+class ProjectLaunch extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

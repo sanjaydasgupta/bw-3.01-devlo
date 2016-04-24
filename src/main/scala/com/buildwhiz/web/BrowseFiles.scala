@@ -3,9 +3,9 @@ package com.buildwhiz.web
 import java.io.{File, FileInputStream}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 
-class BrowseFiles extends HttpServlet with Utils {
+class BrowseFiles extends HttpServlet with HttpUtils {
 
   private def browseDirectory(directory: File, request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter

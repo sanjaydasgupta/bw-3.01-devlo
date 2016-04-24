@@ -2,10 +2,10 @@ package com.buildwhiz.tools
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWLogger
 
-class MainProgramLauncher extends HttpServlet with Utils {
+class MainProgramLauncher extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)

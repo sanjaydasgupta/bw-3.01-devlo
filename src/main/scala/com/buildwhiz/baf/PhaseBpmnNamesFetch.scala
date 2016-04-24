@@ -2,7 +2,6 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
 import com.buildwhiz.infra.BWLogger
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.Resource
@@ -10,7 +9,7 @@ import org.camunda.bpm.engine.repository.Resource
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class PhaseBpmnNamesFetch extends HttpServlet with Utils {
+class PhaseBpmnNamesFetch extends HttpServlet {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)

@@ -2,9 +2,7 @@ package com.buildwhiz.api
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
-
-class Organization extends HttpServlet with Utils {
+class Organization extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     handleRestGet(request, response, "Organization", "organizations")

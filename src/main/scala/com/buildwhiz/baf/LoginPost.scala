@@ -1,16 +1,15 @@
 package com.buildwhiz.baf
 
-import java.security.MessageDigest
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.{CryptoUtils, HttpUtils}
 
 import scala.collection.JavaConversions._
 
-class LoginPost extends HttpServlet with Utils {
+class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

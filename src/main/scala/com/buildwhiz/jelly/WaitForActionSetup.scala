@@ -2,7 +2,7 @@ package com.buildwhiz.jelly
 
 import java.text.SimpleDateFormat
 
-import com.buildwhiz.Utils
+import com.buildwhiz.MailUtils
 //import java.time.format.DateTimeFormatter
 import java.util.{Calendar, Date}
 
@@ -13,7 +13,7 @@ import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
 import scala.collection.JavaConversions._
 
-class WaitForActionSetup extends ExecutionListener with Utils {
+class WaitForActionSetup extends ExecutionListener with MailUtils {
 
   private def saveAndSendMail(action: DynDoc, projectOid: ObjectId): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")

@@ -4,13 +4,13 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
 import scala.collection.JavaConversions._
 
-class ActionComplete extends HttpServlet with Utils {
+class ActionComplete extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

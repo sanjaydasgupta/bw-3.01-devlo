@@ -2,7 +2,7 @@ package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
@@ -13,7 +13,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
-class BrowseOrphans extends HttpServlet with Utils {
+class BrowseOrphans extends HttpServlet with HttpUtils {
 
   private def orphanProcesses(): Unit = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService

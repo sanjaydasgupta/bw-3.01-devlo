@@ -2,13 +2,13 @@ package com.buildwhiz.jelly
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.MailUtils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
 import scala.collection.JavaConversions._
 
-class EvaluateReviewReports extends JavaDelegate with Utils {
+class EvaluateReviewReports extends JavaDelegate with MailUtils {
 
   private def saveAndSendMail(action: DynDoc, projectOid: ObjectId, failedReviewNames: Seq[String]): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")

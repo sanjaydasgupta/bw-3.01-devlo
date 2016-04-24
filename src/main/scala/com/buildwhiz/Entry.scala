@@ -6,7 +6,7 @@ import com.buildwhiz.infra.BWLogger
 
 import scala.util.{Failure, Success, Try}
 
-class Entry extends HttpServlet with Utils {
+class Entry extends HttpServlet {
 
 //  private def getClazz(className: String): Try[Class[_]] = {
 //    val classNames = Seq("baf", "api", "web").map(pkg => s"com.buildwhiz.$pkg.$className")
@@ -72,8 +72,8 @@ class Entry extends HttpServlet with Utils {
 object Entry {
   import scala.collection.mutable
 
-  type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse);
-    def doPost(req: HttpServletRequest, res: HttpServletResponse);
+  type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse)
+    def doPost(req: HttpServletRequest, res: HttpServletResponse)
     def doDelete(req: HttpServletRequest, res: HttpServletResponse)}
 
   val cache = mutable.Map.empty[String, BWServlet]

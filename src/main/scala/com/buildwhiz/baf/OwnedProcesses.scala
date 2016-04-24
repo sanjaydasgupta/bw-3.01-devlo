@@ -2,7 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
@@ -10,7 +10,7 @@ import org.bson.Document
 
 import scala.collection.mutable
 
-class OwnedProcesses extends HttpServlet with Utils {
+class OwnedProcesses extends HttpServlet with HttpUtils {
 
   private def createProcesses(activities: Seq[DynDoc], variables: Seq[DynDoc], timers: Seq[DynDoc],
         personOid: ObjectId): Seq[DynDoc] = {

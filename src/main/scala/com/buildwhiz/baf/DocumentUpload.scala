@@ -5,13 +5,13 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.{HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 
-class DocumentUpload extends HttpServlet with Utils {
+class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
 
   private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
   private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")

@@ -4,11 +4,11 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 
 import scala.collection.JavaConversions._
 
-class MongoDBView extends HttpServlet with Utils {
+class MongoDBView extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

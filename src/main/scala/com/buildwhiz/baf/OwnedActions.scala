@@ -2,7 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class OwnedActions extends HttpServlet with Utils {
+class OwnedActions extends HttpServlet with HttpUtils {
 
   private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
   private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")

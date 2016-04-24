@@ -3,7 +3,7 @@ package com.buildwhiz.web
 import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
-class BrowseMails extends HttpServlet with Utils {
+class BrowseMails extends HttpServlet with HttpUtils {
 
   private val calendar = Calendar.getInstance
 

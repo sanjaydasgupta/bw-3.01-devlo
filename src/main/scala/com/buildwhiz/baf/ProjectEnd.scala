@@ -4,13 +4,13 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
 import scala.collection.JavaConversions._
 
-class ProjectEnd extends HttpServlet with Utils {
+class ProjectEnd extends HttpServlet with HttpUtils {
 
   private def hasActiveProcesses(project_id: String): Boolean = {
     val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService

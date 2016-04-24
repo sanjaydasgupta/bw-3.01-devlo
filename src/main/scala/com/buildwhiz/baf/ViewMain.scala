@@ -2,7 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
@@ -12,7 +12,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.language.implicitConversions
 
-class ViewMain extends HttpServlet with Utils {
+class ViewMain extends HttpServlet with HttpUtils {
 
   private def addEmbeddedObjects(personId: ObjectId)(proj: Document): Document = {
 

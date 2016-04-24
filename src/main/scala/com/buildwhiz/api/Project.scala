@@ -3,7 +3,6 @@ package com.buildwhiz.api
 import java.net.URI
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
 import com.buildwhiz.baf.OwnedProjects
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
@@ -12,7 +11,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class Project extends HttpServlet with Utils {
+class Project extends HttpServlet with RestUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)

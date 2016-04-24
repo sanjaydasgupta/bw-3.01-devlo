@@ -2,14 +2,14 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.Utils
+import com.buildwhiz.{HttpUtils, MailUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class ActionContributorSet extends HttpServlet with Utils {
+class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
 
   private def saveAndSendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
         actionName: String): Unit = {

@@ -170,10 +170,10 @@
                                 <button class="btn btn-danger" style="margin-bottom:2px;" data-ng-click="deletePhase(project._id, phase._id); $event.stopPropagation();"  data-ng-if="phase.status != 'running' && phase.is_managed"><span class="glyphicon glyphicon-remove-circle"></span> Del</button>
                                 <span class="spanAdminWrap">
                                   <label for="ddlPersonsType" class=" text-left">Administrator </label>
-                                  <select  class="form-control" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(phase.status == 'defined' && phase.is_managed)" id="ddlPersonsType" name="ddlPersonsType" data-ng-model="phase.admin_person_id">
+                                  <select  class="form-control" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(phase.status == 'defined' && project.is_managed)" id="ddlPersonsType" name="ddlPersonsType" data-ng-model="phase.admin_person_id">
                                     <option data-ng-repeat="person in managerPersonsData" data-ng-selected="person._id == phase.admin_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
                                   </select>
-                                  <button class="btn btn-success" data-ng-click="setPhaseAdministrator(project._id, phase._id, phase.admin_person_id); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && phase.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>                                  
+                                  <button class="btn btn-success" data-ng-click="setPhaseAdministrator(project._id, phase._id, phase.admin_person_id); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && project.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>
                                 </span>
                               </div><!--//form-group-->
                             </div><!--//form-inline formTimersCtrl-->

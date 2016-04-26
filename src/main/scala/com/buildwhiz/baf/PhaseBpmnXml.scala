@@ -8,6 +8,7 @@ import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.ProcessDefinition
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 
 class PhaseBpmnXml extends HttpServlet with HttpUtils {
 
@@ -21,17 +22,23 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils {
         repositoryService.createProcessDefinitionQuery().latestVersion().list()
       val processDefinition = allProcessDefinitions.find(_.getKey == bpmnFileName).head
       val processModelStream = repositoryService.getProcessModel(processDefinition.getId)
-      val buffer = new Array[Byte](4096)
-      val printStream = response.getOutputStream
+      val blockBuffer = new Array[Byte](4096)
+      val byteBuffer = mutable.Buffer.empty[Byte]
+      //val printStream = response.getOutputStream
       def copyModelToOutput(): Unit = {
-        val len = processModelStream.read(buffer)
+        val len = processModelStream.read(blockBuffer)
         if (len > 0) {
-          printStream.write(buffer, 0, len)
+          byteBuffer.append(blockBuffer.take(len): _*)
+          //printStream.write(blockBuffer, 0, len)
           copyModelToOutput()
         }
       }
       copyModelToOutput()
-      response.setContentType("application/xml")
+      val xml = new String(byteBuffer.toArray).replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r").
+          replaceAll("\t", "\\\\t").replaceAll("\"", "\\\\\"").replaceAll("\'", "\\\\\'")
+      val json = s"""{"id": "${processDefinition.getId}", "bpmn20Xml": "$xml"}"""
+      response.getWriter.println(json)
+      response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {

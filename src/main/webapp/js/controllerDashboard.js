@@ -10,12 +10,16 @@
         location.hash = "#!/mongodb";
     }
 
-    $scope.manageNextGen_Click = function () {
-        location.hash = "#!/nextGen";
+    $scope.manageBpmnViewer_Click = function () {
+        location.hash = "#!/bpmnViewer";
     }
 
     $scope.userProfile_Click = function () {
         location.hash = "#!/userProfile";
+    }
+
+    $scope.manageDocuments_Click = function () {
+        location.hash = "#!/documents";
     }
 
 });

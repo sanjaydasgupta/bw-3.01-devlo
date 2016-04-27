@@ -35,13 +35,17 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
                 templateUrl: 'mongodb.html',
                 controller: 'BuildWhizNgAppMongodbCtrl'
                 })
-            .when('/nextGen', {
-                templateUrl: 'nextGen.html',
-                controller: 'BuildWhizNgAppNextGenCtrl'
+            .when('/bpmnViewer', {
+                templateUrl: 'bpmnViewer.html',
+                controller: 'BpmnViewerCtrl'
                 })
             .when('/userProfile', {
                 templateUrl: 'userProfile.html',
-                controller: 'BuildWhizNgAppUserProfileCtrl'
+                controller: 'UserProfileCtrl'
+                })
+            .when('/documents', {
+                templateUrl: 'documents.html',
+                controller: 'DocumentsCtrl'
                 })
             .otherwise({
                 redirectTo: '/login'

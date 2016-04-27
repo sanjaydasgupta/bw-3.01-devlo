@@ -1,4 +1,4 @@
-﻿app.controller("BuildWhizNgAppUserProfileCtrl", function ($scope, $log, $http) {
+﻿app.controller("UserProfileCtrl", function ($scope, $log, $http) {
 
     var self = this;
 

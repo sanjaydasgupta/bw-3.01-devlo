@@ -46,6 +46,7 @@
             var sLastName = "";
             var sProjectManager = "n";
             var sDemoManager = "n";
+            var sAdministrator = "n";
 
             var Data = BuildWhizNgAppLogInService.UserAuthenticate($scope.email, $scope.password);
             Data.then(function (response) {
@@ -85,9 +86,13 @@
                             }
 
                             // if role is Demo Manager.
-                            //if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
                             if (arrOmniClass[idx].toString() == "BW-Demo") {
                                 sDemoManager = "y";
+                            }
+
+                            // if role is Administrator.
+                            if (arrOmniClass[idx].toString() == "BW-Admin") {
+                                sAdministrator = "y";
                             }
                         }
                     }
@@ -95,7 +100,7 @@
                 }
               
                 if (sID != "") {                                    
-                     //alert(sID);
+//alert('sID: ' + sID);
                     $("#divWelcomeMsg").show();
                     location.hash = "#!/dashboard";
 
@@ -112,6 +117,7 @@
                     document.getElementById("hndPersonLName").value = sLastName;
 
                     document.getElementById("hdnLoggedInProjectManager").value = sProjectManager;
+                    document.getElementById("hndLoggedInAdministrator").value = sAdministrator;
                 }
                 else {
                  
@@ -124,6 +130,7 @@
                     document.getElementById("hndPersonLName").value = "";
 
                     document.getElementById("hdnLoggedInProjectManager").value = "n";
+                    document.getElementById("hndLoggedInAdministrator").value = "n";
 
                     document.getElementById("lblWelcomePerson").innerHTML = "";
 
@@ -136,6 +143,10 @@
 
                 if (document.getElementById('hdnLoggedInProjectManager').value == 'y') {
                     gProjectManager = true;
+                }
+
+                if (document.getElementById('hndLoggedInAdministrator').value == 'y') {
+                    gAdministrator = true;
                 }
 
             }, function (responseError) {

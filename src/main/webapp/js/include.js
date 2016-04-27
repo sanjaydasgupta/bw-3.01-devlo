@@ -9,6 +9,7 @@
 var baseURL = "";
 
 var gProjectManager = false;
+var gAdministrator = false;
 
 
 var serviceErrorMessege = "An unidentified error has occured. Please contact support";
@@ -44,8 +45,10 @@ function logIn_onLoad() {
     document.getElementById("hndPersonLName").value = "";
 
     document.getElementById("hdnLoggedInProjectManager").value = "n";
+    document.getElementById("hndLoggedInAdministrator").value = "n";
 
     gProjectManager = false;
+    gAdministrator = false;
 
 }
 

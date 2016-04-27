@@ -1,6 +1,11 @@
 ﻿app.controller("BuildWhizNgAppDashboardCtrl", function ($scope, BuildWhizNgAppDashboardService) {
     // alert("dashboard Load");
    // alert(gID);
+
+   $scope.isAdministrator = function () {
+       var isAdmin = document.getElementById('hndLoggedInAdministrator').value == 'y';
+       return isAdmin;
+   }
      
     $scope.manageProject_Click = function () {
         location.hash = "#!/projects";

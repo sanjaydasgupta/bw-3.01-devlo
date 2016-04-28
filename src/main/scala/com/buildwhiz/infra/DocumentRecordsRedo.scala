@@ -98,7 +98,8 @@ object DocumentRecordsRedo extends App {
         zip(drawing.replaceAll("\\s", " ").split("#")).toMap
       val drawingDoc: Document = Seq("_id" -> new ObjectId(fields("_id")),
         "name" -> s"${fields("name")} (${fields("sheet")})", "description" -> fields("description"),
-        "keywords" -> fields("keywords"), "author" -> fields.getOrElse("author", null)).
+        "keywords" -> fields("keywords"), "author" -> fields.getOrElse("author", null),
+        "document_type" -> "drawing", "file_extension" -> ".pdf").
         filterNot(p => p._1 == "author" && p._2 == null).toMap
       drawingDoc
     }

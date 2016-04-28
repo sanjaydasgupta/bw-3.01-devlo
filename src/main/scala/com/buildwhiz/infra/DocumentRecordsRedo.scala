@@ -93,13 +93,16 @@ object DocumentRecordsRedo extends App {
   )
 
   def processDrawings(): Seq[Document] = {
-    val fieldNames = Seq("_id", "sheet", "name", "description", "keywords", "author")
-    val maps: Seq[Map[String, AnyRef]] = drawings.map(_.replaceAll("\\s", " ")).
-      map(d => {val f = d.split("#"); new ObjectId(f.head) +: f.tail}).
-      map(a => fieldNames.zip(a).toMap)
-    val withType = maps.map(_ ++ Map("file_extension" -> ".pdf", "document_type" -> "drawing"))
-    val documents: Seq[Document] = withType.map(m => {val d: Document = m; d})
-    documents
+    def drawing2document(drawing: String): Document = {
+      val fields = Seq("_id", "sheet", "name", "description", "keywords", "author").
+        zip(drawing.replaceAll("\\s", " ").split("#")).toMap
+      val drawingDoc: Document = Seq("_id" -> new ObjectId(fields("_id")),
+        "name" -> s"${fields("name")} (${fields("sheet")})", "description" -> fields("description"),
+        "keywords" -> fields("keywords"), "author" -> fields.getOrElse("author", null)).
+        filterNot(p => p._1 == "author" && p._2 == null).toMap
+      drawingDoc
+    }
+    drawings.map(drawing2document)
   }
 
 /*

@@ -176,8 +176,10 @@ class PhaseAdd extends HttpServlet with HttpUtils {
       val namesRolesAndDescriptions = processNamesAndDocuments.flatMap(getActivityNamesRolesAndDescriptions)
       //BWLogger.log(getClass.getName, "doPost", s"""Activity-Names-n-Roles: ${namesAndRoles.mkString("[", ", ", "]")}""", request)
       for ((bpmn, activityName, activityRole, activityDescription) <- namesRolesAndDescriptions) {
-        val availableDocumentList = Seq("56f124dfd5d8ad25b1325b42", "56f124dfd5d8ad25b1325b3a",
-          "56f124dfd5d8ad25b1325b3b").map(id => new ObjectId(id))
+        //val availableDocumentList = Seq("56f124dfd5d8ad25b1325b42", "56f124dfd5d8ad25b1325b3a",
+        //  "56f124dfd5d8ad25b1325b3b").map(id => new ObjectId(id))
+        val availableDocumentList = Seq("57207549d5d8ad331d2ea699", "57207549d5d8ad331d2ea69a",
+          "57207549d5d8ad331d2ea69b").map(id => new ObjectId(id))
         val inbox = new java.util.ArrayList[ObjectId]
         inbox.addAll(availableDocumentList)
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",

@@ -1,4 +1,24 @@
 <div class="container" data-ng-controller="DocumentsCtrl">
+    <div class="alert alert-danger msgToggle" style="display: none;">
+        <div id="lblMsg" class="text-center text-danger"></div>
+    </div>
     <p style="text-align:center; font-size: large;">Document Management</p>
+
+    Select project <select data-ng-click="$event.stopPropagation();"
+            data-ng-model="selectedProjectId" data-ng-change="projectSelected()">
+        <option data-ng-repeat="project in projects" value="{{project._id}}">{{project.name}}</option>
+    </select><br /><br />
+    <table border="1">
+        <tr style="font-weight: bold;">
+            <td style="align: center;">Name</td><td style="align: center;">Upload</td><td style="align: center;">Download</td></tr>
+        <tr data-ng-repeat="drawing in drawings">
+            <td>{{drawing.name}}</td>
+            <td style="align: center;">
+                <input bw-upload2 type="file" projectid="selectedProjectId" documentid="drawing._id" />
+            </td>
+            <td style="align: center">
+                <a data-ng-if="drawing.available" href="{{getDownloadLink(drawing)}}" target="_blank">link</a></td>
+        </tr>
+    </table>
 </div>
 <!--//===============================container============================-->

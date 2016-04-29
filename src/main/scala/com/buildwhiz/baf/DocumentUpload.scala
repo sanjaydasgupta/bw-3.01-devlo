@@ -80,23 +80,25 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
         parameters("document_id"), documentTimestamp)
       val projectOid = new ObjectId(parameters("project_id"))
       val documentOid = new ObjectId(parameters("document_id"))
-      val activityOid = new ObjectId(parameters("activity_id"))
-      val actionName = parameters("action_name")
+      val activityOid = parameters.get("activity_id").map(new ObjectId(_))
+      val actionName = parameters.get("action_name")
       // Add document to project's "documents" list
       val projectsUpdateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
-        Map("$push" -> Map("documents" -> Map("document_id" -> documentOid, "activity_id" -> activityOid,
-          "action_name" -> actionName, "timestamp" -> documentTimestamp))))
+        Map("$push" -> Map("documents" -> Seq("document_id" -> documentOid, "activity_id" -> activityOid.orNull,
+          "action_name" -> actionName.orNull, "timestamp" -> documentTimestamp).filter(_._2 != null).toMap)))
       // Add document to action's inbox
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
-      val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
-      val actionIndex = actionNames.indexOf(actionName)
+      if (activityOid.isDefined && actionName.isDefined) {
+        val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid.get)).head
+        val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
+        val actionIndex = actionNames.indexOf(actionName.get)
+        BWMongoDB3.activities.updateOne(Map("_id" -> activityOid.get),
+          Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
+        if (documentOid == rfiRequestOid || documentOid == rfiResponseOid) {
+          saveAndSendMail(projectOid, activityOid.get, theActivity.actions[DocumentList].get(actionIndex), documentOid)
+        }
+      }
       if (projectsUpdateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $projectsUpdateResult")
-      BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-        Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
-      if (documentOid == rfiRequestOid || documentOid == rfiResponseOid) {
-        saveAndSendMail(projectOid, activityOid, theActivity.actions[DocumentList].get(actionIndex), documentOid)
-      }
       response.getWriter.print(s"""{"fileName": "${result._1}", "length": ${result._2}}""")
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

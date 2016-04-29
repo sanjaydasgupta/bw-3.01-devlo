@@ -59,18 +59,18 @@ class PhaseAdd extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
-      def getNameAndVariableName(timerNode: Node, prefix: String): (String, String, String) = {
+      def getNameAndVariableName(timerNode: Element, prefix: String): (String, String, String) = {
         // bpmn, name, process-variable
         val name = timerNode.getAttributes.getNamedItem("name").getTextContent
-        val processVariableName = timerNode.asInstanceOf[Element].getElementsByTagName(s"$prefix:timeDuration").
+        val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
           n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
         (processNameAndDocument._1, name, processVariableName)
       }
 
       val prefix = processNameAndDocument._2.getDocumentElement.getTagName.split(":")(0)
-      val phaseTimerNodes: Seq[Node] = processNameAndDocument._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
-        filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition"))
+      val phaseTimerNodes: Seq[Element] = processNameAndDocument._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
+        filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
       val timerNamesAndVariables = phaseTimerNodes.map(n => getNameAndVariableName(n, prefix))
       BWLogger.log(getClass.getName, "getTimerDefinitions", s"""EXIT-OK (${timerNamesAndVariables.mkString(", ")})""")
       timerNamesAndVariables
@@ -87,16 +87,19 @@ class PhaseAdd extends HttpServlet with HttpUtils {
     // bpmn, activity-name, role, description
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
-      def getNameRoleAndDescription(callActivity: Node): (String, String, String, String) = {
+      def sequence(callActivity: Element): Int = callActivity.getElementsByTagName("camunda:property").
+        find(_.getAttributes.getNamedItem("name").getTextContent == "bw-sequence").
+        map(_.getAttributes.getNamedItem("value").getTextContent).head.toInt
+      def getNameRoleAndDescription(callActivity: Element): (String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s]+", " ")
-        val role = callActivity.asInstanceOf[Element].getElementsByTagName("camunda:property").
+        val role = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
           find(_.getAttributes.getNamedItem("name").getTextContent == "bw-role").
           map(_.getAttributes.getNamedItem("value").getTextContent) match {
           case Some(r) => r
           case None => "phase-manager"
         }
-        val description = callActivity.asInstanceOf[Element].getElementsByTagName("camunda:property").
+        val description = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
           find(_.getAttributes.getNamedItem("name").getTextContent == "bw-description").
           map(_.getAttributes.getNamedItem("value").getTextContent) match {
           case Some(d) => d
@@ -105,10 +108,12 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         (processNameAndDocument._1, name, role, description)
       }
       val prefix = processNameAndDocument._2.getDocumentElement.getTagName.split(":")(0)
-      val callActivities: Seq[Node] = processNameAndDocument._2.getElementsByTagName(s"$prefix:callActivity")
-      val phaseActivityNodes = callActivities.filter(_.getAttributes.getNamedItem("calledElement").
+      val bpmnCallActivities: Seq[Element] = processNameAndDocument._2.getElementsByTagName(s"$prefix:callActivity").
+        map(_.asInstanceOf[Element])
+      val buildWhizActivities = bpmnCallActivities.filter(_.getAttributes.getNamedItem("calledElement").
         getTextContent == "Infra-Activity-Handler")
-      val activityNamesRolesAndDescriptions = phaseActivityNodes.map(getNameRoleAndDescription)
+      val activityNamesRolesAndDescriptions = buildWhizActivities.sortWith((a, b) => sequence(a) < sequence(b)).
+        map(getNameRoleAndDescription)
       BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesRolesAndDescriptions.mkString(", ")})""")
       activityNamesRolesAndDescriptions
     } catch {

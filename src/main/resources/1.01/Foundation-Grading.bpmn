@@ -12,6 +12,7 @@
           <camunda:property name="bw-skill" value="33-41 03 41" />
           <camunda:property name="bw-skill" value="33-25 16 00" />
           <camunda:property name="bw-description" value="Shoring (Test Description)" />
+          <camunda:property name="bw-sequence" value="3" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>Shoring-Needed-Yes</bpmn:incoming>
@@ -29,6 +30,7 @@
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-41 03 21" />
           <camunda:property name="bw-description" value="Rough Grading (Test Description)" />
+          <camunda:property name="bw-sequence" value="1" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0uctqex</bpmn:incoming>
@@ -44,6 +46,7 @@
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-23 11 00" />
           <camunda:property name="bw-description" value="Pad Layout (Test Description)" />
+          <camunda:property name="bw-sequence" value="2" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_03m26f7</bpmn:incoming>
@@ -77,6 +80,7 @@
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-41 01 16" />
           <camunda:property name="bw-description" value="Excavation (Test Description)" />
+          <camunda:property name="bw-sequence" value="5" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
@@ -94,6 +98,7 @@
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-25 16 00" />
           <camunda:property name="bw-description" value="Setup De-watering (optionally executed, depending on variable &#34;De Watering Needed&#34;)" />
+          <camunda:property name="bw-sequence" value="4" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>De-Watering-Needed-Yes</bpmn:incoming>
@@ -105,6 +110,7 @@
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-41 01 16" />
           <camunda:property name="bw-description" value="Pad Grading (Test Description)" />
+          <camunda:property name="bw-sequence" value="6" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0znvmey</bpmn:incoming>

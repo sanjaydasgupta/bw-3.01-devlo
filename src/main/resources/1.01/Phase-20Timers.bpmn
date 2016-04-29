@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="camunda modeler" exporterVersion="3.0.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="camunda modeler" exporterVersion="3.0.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Phase-20Timers" name="Phase 20Timers" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:outgoing>SequenceFlow_0eat0vc</bpmn:outgoing>
@@ -230,16 +230,31 @@
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0pxov4i" sourceRef="Bottom" targetRef="ExclusiveGateway_1bm2ggo" />
     <bpmn:callActivity id="Bottom" name="Bottom" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="3" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13tqqhu</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0pxov4i</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_13dyka1" sourceRef="Top" targetRef="ExclusiveGateway_1bm2ggo" />
     <bpmn:callActivity id="Top" name="Top" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1risdx9</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_13dyka1</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1r1imug" sourceRef="Middle" targetRef="ExclusiveGateway_1ehggbz" />
     <bpmn:callActivity id="Middle" name="Middle" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="2" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1tqo84k</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1r1imug</bpmn:outgoing>
     </bpmn:callActivity>

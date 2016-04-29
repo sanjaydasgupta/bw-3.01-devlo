@@ -1,185 +1,190 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="Definitions_1" exporter="camunda modeler" exporterVersion="3.0.0" targetNamespace="http://bpmn.io/schema/bpmn">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="camunda modeler" exporterVersion="3.0.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Phase-Concrete-Columns" name="Phase Concrete Columns" isExecutable="true">
     <bpmn:callActivity id="Install-Rebars" name="Install Rebars" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property value="33-41 31 00" name="bw-skill"/>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="1" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0fl7orw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-in-column-Electrical-Conduits"/>
+    <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-in-column-Electrical-Conduits" />
     <bpmn:endEvent id="End" name="End">
       <bpmn:incoming>SequenceFlow_1pk3h3v</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:serviceTask id="BPMN-Start" camunda:class="com.buildwhiz.jelly.BpmnStart" name="BPMN Start">
+    <bpmn:serviceTask id="BPMN-Start" name="BPMN Start" camunda:class="com.buildwhiz.jelly.BpmnStart">
       <bpmn:incoming>SequenceFlow_0ql1o9v</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0fl7orw</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0fl7orw" sourceRef="BPMN-Start" targetRef="Install-Rebars"/>
-    <bpmn:serviceTask id="BPMN-End" camunda:class="com.buildwhiz.jelly.BpmnEnd" name="BPMN End">
+    <bpmn:sequenceFlow id="SequenceFlow_0fl7orw" sourceRef="BPMN-Start" targetRef="Install-Rebars" />
+    <bpmn:serviceTask id="BPMN-End" name="BPMN End" camunda:class="com.buildwhiz.jelly.BpmnEnd">
       <bpmn:incoming>SequenceFlow_1uqepov</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1pk3h3v</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:sequenceFlow id="SequenceFlow_1pk3h3v" sourceRef="BPMN-End" targetRef="End"/>
+    <bpmn:sequenceFlow id="SequenceFlow_1pk3h3v" sourceRef="BPMN-End" targetRef="End" />
     <bpmn:callActivity id="Remove-Forms" name="Remove Forms" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property value="33-41 31 00" name="bw-skill"/>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="5" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1clltlt</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1uqepov</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_1uqepov" sourceRef="Remove-Forms" targetRef="BPMN-End"/>
-    <bpmn:intermediateCatchEvent id="Forms-Removal-Delay" name="Forms Removal&#xA;Delay">
+    <bpmn:sequenceFlow id="SequenceFlow_1uqepov" sourceRef="Remove-Forms" targetRef="BPMN-End" />
+    <bpmn:intermediateCatchEvent id="Forms-Removal-Delay" name="Forms Removal&#10;Delay">
       <bpmn:incoming>SequenceFlow_1r6xtmh</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1clltlt</bpmn:outgoing>
       <bpmn:timerEventDefinition>
         <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${forms_removal_delay}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_1clltlt" sourceRef="Forms-Removal-Delay" targetRef="Remove-Forms"/>
-    <bpmn:callActivity id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#xA;Concrete" calledElement="Infra-Activity-Handler">
+    <bpmn:sequenceFlow id="SequenceFlow_1clltlt" sourceRef="Forms-Removal-Delay" targetRef="Remove-Forms" />
+    <bpmn:callActivity id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property value="33-41 31 00" name="bw-skill"/>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="4" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_1r6xtmh" sourceRef="Pour-or-Shoot-Concrete" targetRef="Forms-Removal-Delay"/>
+    <bpmn:sequenceFlow id="SequenceFlow_1r6xtmh" sourceRef="Pour-or-Shoot-Concrete" targetRef="Forms-Removal-Delay" />
     <bpmn:callActivity id="Place-Forms" name="Place Forms" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property value="33-41 31 00" name="bw-skill"/>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="3" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Place-Forms" targetRef="Pour-or-Shoot-Concrete"/>
-    <bpmn:callActivity id="Install-in-column-Electrical-Conduits" name="Install in-column&#xA;Electrical&#xA;Conduits" calledElement="Infra-Activity-Handler">
+    <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Place-Forms" targetRef="Pour-or-Shoot-Concrete" />
+    <bpmn:callActivity id="Install-in-column-Electrical-Conduits" name="Install in-column&#10;Electrical&#10;Conduits" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property value="33-41 76 00" name="bw-skill"/>
+          <camunda:property name="bw-skill" value="33-41 76 00" />
+          <camunda:property name="bw-sequence" value="2" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-in-column-Electrical-Conduits" targetRef="Place-Forms"/>
+    <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-in-column-Electrical-Conduits" targetRef="Place-Forms" />
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:outgoing>SequenceFlow_0ql1o9v</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0ql1o9v" sourceRef="Start" targetRef="BPMN-Start"/>
+    <bpmn:sequenceFlow id="SequenceFlow_0ql1o9v" sourceRef="Start" targetRef="BPMN-Start" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Concrete-Columns">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds height="36.0" width="36.0" x="24.0" y="58.0"/>
+        <dc:Bounds x="24" y="58" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="22.0" width="34.0" x="25.0" y="94.0"/>
+          <dc:Bounds x="25" y="94" width="34" height="22" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0f22fsk_di" bpmnElement="Install-Rebars">
-        <dc:Bounds height="80.0" width="100.0" x="233.0" y="36.0"/>
+        <dc:Bounds x="233" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
-        <di:waypoint xsi:type="dc:Point" x="333.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="372.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="333" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="372" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="348.0" y="66.0"/>
+          <dc:Bounds x="348" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_05m0npm_di" bpmnElement="Install-in-column-Electrical-Conduits">
-        <dc:Bounds height="80.0" width="100.0" x="372.0" y="36.0"/>
+        <dc:Bounds x="372" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
-        <di:waypoint xsi:type="dc:Point" x="472.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="504.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="472" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="504" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="482.0" y="66.0"/>
+          <dc:Bounds x="482" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_0wjxat3_di" bpmnElement="Place-Forms">
-        <dc:Bounds height="80.0" width="100.0" x="504.0" y="36.0"/>
+        <dc:Bounds x="504" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xsjrrw_di" bpmnElement="SequenceFlow_0xsjrrw">
-        <di:waypoint xsi:type="dc:Point" x="604.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="648.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="604" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="648" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="614.0" y="66.0"/>
+          <dc:Bounds x="614" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_0sbyu9r_di" bpmnElement="Pour-or-Shoot-Concrete">
-        <dc:Bounds height="80.0" width="100.0" x="648.0" y="36.0"/>
+        <dc:Bounds x="648" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
-        <dc:Bounds height="36.0" width="36.0" x="1134.0" y="58.0"/>
+        <dc:Bounds x="1134" y="58" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="22.0" width="29.0" x="1138.0" y="94.0"/>
+          <dc:Bounds x="1138" y="94" width="29" height="22" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1r6xtmh_di" bpmnElement="SequenceFlow_1r6xtmh">
-        <di:waypoint xsi:type="dc:Point" x="748.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="787.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="748" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="787" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="763.0" y="66.0"/>
+          <dc:Bounds x="763" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0ql1o9v_di" bpmnElement="SequenceFlow_0ql1o9v">
-        <di:waypoint xsi:type="dc:Point" x="60.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="104.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="60" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="104" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="194.0" y="66.0"/>
+          <dc:Bounds x="194" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1clltlt_di" bpmnElement="SequenceFlow_1clltlt">
-        <di:waypoint xsi:type="dc:Point" x="823.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="864.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="823" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="864" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="841.0" y="76.0"/>
+          <dc:Bounds x="841" y="76" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1uqepov_di" bpmnElement="SequenceFlow_1uqepov">
-        <di:waypoint xsi:type="dc:Point" x="964.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="996.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="964" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="996" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="971.0" y="66.0"/>
+          <dc:Bounds x="971" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_0u6diuy_di" bpmnElement="Remove-Forms">
-        <dc:Bounds height="80.0" width="100.0" x="864.0" y="36.0"/>
+        <dc:Bounds x="864" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1d0j8a5_di" bpmnElement="Forms-Removal-Delay">
-        <dc:Bounds height="36.0" width="36.0" x="787.0" y="58.0"/>
+        <dc:Bounds x="787" y="58" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="38.0" width="99.0" x="756.0" y="94.0"/>
+          <dc:Bounds x="756" y="94" width="99" height="38" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0fl7orw_di" bpmnElement="SequenceFlow_0fl7orw">
-        <di:waypoint xsi:type="dc:Point" x="204.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="233.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="204" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="233" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="219.0" y="66.0"/>
+          <dc:Bounds x="219" y="66" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ServiceTask_0w9bamv_di" bpmnElement="BPMN-Start">
-        <dc:Bounds height="80.0" width="100.0" x="104.0" y="36.0"/>
+        <dc:Bounds x="104" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1pk3h3v_di" bpmnElement="SequenceFlow_1pk3h3v">
-        <di:waypoint xsi:type="dc:Point" x="1096.0" y="76.0"/>
-        <di:waypoint xsi:type="dc:Point" x="1134.0" y="76.0"/>
+        <di:waypoint xsi:type="dc:Point" x="1096" y="76" />
+        <di:waypoint xsi:type="dc:Point" x="1134" y="76" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds height="0.0" width="0.0" x="1115.0" y="76.0"/>
+          <dc:Bounds x="1115" y="76" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ServiceTask_0uppfvb_di" bpmnElement="BPMN-End">
-        <dc:Bounds height="80.0" width="100.0" x="996.0" y="36.0"/>
+        <dc:Bounds x="996" y="36" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

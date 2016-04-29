@@ -90,7 +90,7 @@ The activity names are significant, and must match up with activity names define
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_55" bpmnElement="TextAnnotation_1">
-        <dc:Bounds x="79" y="12" width="498" height="73" />
+        <dc:Bounds x="31" y="-70" width="498" height="73" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_28" bpmnElement="BPMN-End">
         <dc:Bounds x="672" y="95" width="100" height="80" />

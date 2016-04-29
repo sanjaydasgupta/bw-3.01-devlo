@@ -83,13 +83,13 @@ The activity names are significant, and must match up with activity names define
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
-        <dc:Bounds x="934" y="130" width="36" height="36" />
+        <dc:Bounds x="815" y="130" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="938" y="171" width="29" height="22" />
+          <dc:Bounds x="789" y="171" width="90" height="22" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="Alpha">
-        <dc:Bounds x="504" y="108" width="100" height="80" />
+        <dc:Bounds x="406" y="108" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ServiceTask_29">
         <di:waypoint xsi:type="dc:Point" x="50" y="148" />
@@ -99,23 +99,23 @@ The activity names are significant, and must match up with activity names define
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_55" bpmnElement="TextAnnotation_1">
-        <dc:Bounds x="25" y="12" width="498" height="73" />
+        <dc:Bounds x="46" y="-25" width="498" height="73" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_28" bpmnElement="BPMN-End">
-        <dc:Bounds x="773" y="108" width="100" height="80" />
+        <dc:Bounds x="655" y="108" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="SequenceFlow_4" sourceElement="_BPMNShape_ServiceTask_28" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint xsi:type="dc:Point" x="873" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="934" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="755" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="815" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="901" y="148" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint xsi:type="dc:Point" x="604" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="654" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="506" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="556" y="148" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="715" y="161" width="6" height="6" />
+          <dc:Bounds x="575" y="161" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_2" bpmnElement="ParallelGateway_1">
@@ -126,65 +126,65 @@ The activity names are significant, and must match up with activity names define
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_2">
         <di:waypoint xsi:type="dc:Point" x="298" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="369" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="333" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="330" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_3" bpmnElement="ParallelGateway_2">
-        <dc:Bounds x="654" y="123" width="50" height="50" />
+        <dc:Bounds x="556" y="123" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="679" y="178" width="0" height="0" />
+          <dc:Bounds x="536" y="178" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_ParallelGateway_3" targetElement="_BPMNShape_ServiceTask_28">
-        <di:waypoint xsi:type="dc:Point" x="704" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="773" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="606" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="655" y="148" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="736" y="148" width="6" height="6" />
+          <dc:Bounds x="596" y="148" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_7" bpmnElement="Beta">
-        <dc:Bounds x="507" y="223" width="100" height="80" />
+        <dc:Bounds x="409" y="223" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_3">
         <di:waypoint xsi:type="dc:Point" x="273" y="173" />
         <di:waypoint xsi:type="dc:Point" x="273" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="369" y="263" />
+        <di:waypoint xsi:type="dc:Point" x="333" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="273" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="_BPMNShape_CallActivity_7" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint xsi:type="dc:Point" x="607" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="679" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="679" y="173" />
+        <di:waypoint xsi:type="dc:Point" x="509" y="263" />
+        <di:waypoint xsi:type="dc:Point" x="581" y="263" />
+        <di:waypoint xsi:type="dc:Point" x="581" y="173" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="676" y="254" width="6" height="6" />
+          <dc:Bounds x="536" y="254" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_2" bpmnElement="Alpha-Timer">
-        <dc:Bounds x="369" y="130" width="36" height="36" />
+        <dc:Bounds x="333" y="130" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="349" y="171" width="76" height="22" />
+          <dc:Bounds x="306" y="171" width="90" height="22" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="_BPMNShape_IntermediateCatchEvent_2" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint xsi:type="dc:Point" x="405" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="504" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="369" y="148" />
+        <di:waypoint xsi:type="dc:Point" x="406" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="541" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_3" bpmnElement="Beta-Timer">
-        <dc:Bounds x="369" y="245" width="36" height="36" />
+        <dc:Bounds x="333" y="245" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="352" y="286" width="70" height="22" />
+          <dc:Bounds x="306" y="286" width="90" height="22" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_9" bpmnElement="SequenceFlow_9" sourceElement="_BPMNShape_IntermediateCatchEvent_3" targetElement="_BPMNShape_CallActivity_7">
-        <di:waypoint xsi:type="dc:Point" x="405" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="507" y="263" />
+        <di:waypoint xsi:type="dc:Point" x="369" y="263" />
+        <di:waypoint xsi:type="dc:Point" x="409" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="455" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>

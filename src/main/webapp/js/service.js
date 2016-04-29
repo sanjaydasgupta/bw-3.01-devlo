@@ -222,12 +222,6 @@ app.service("BuildWhizNgAppActionService", function ($http) {
 
 });
 
-//*****************************************Details Services*************************************** %%%%
-app.service("BuildWhizNgAppDetailsService", function ($http) {
-
-
-});
-
 //*****************************************Process Services*************************************** %%%%
 app.service("BuildWhizNgAppProcessService", function ($http) {
 

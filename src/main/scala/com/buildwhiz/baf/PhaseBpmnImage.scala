@@ -2,25 +2,17 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.BWLogger
-import org.camunda.bpm.engine.ProcessEngines
-import org.camunda.bpm.engine.repository.ProcessDefinition
 
-import scala.collection.JavaConversions._
-
-class PhaseBpmnImage extends HttpServlet with HttpUtils {
+class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
-      val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-      val allProcessDefinitions: Seq[ProcessDefinition] =
-        repositoryService.createProcessDefinitionQuery().latestVersion().list()
-      val processDefinition = allProcessDefinitions.find(_.getKey == bpmnFileName).head
-      val diagramStream = repositoryService.getProcessDiagram(processDefinition.getId)
+      val diagramStream = getProcessDiagram(bpmnFileName)
       val buffer = new Array[Byte](4096)
       val printStream = response.getOutputStream
       def copyDiagramToOutput(): Unit = {

@@ -2,21 +2,11 @@ package com.buildwhiz.jelly
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import com.buildwhiz.BpmnUtils
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.ProcessEngines
-import org.camunda.bpm.engine.repository.ProcessDefinition
 
-import scala.collection.JavaConversions._
-
-class BpmnEnd extends JavaDelegate {
-
-  private def getBpmnName(de: DelegateExecution): String = {
-    val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().latestVersion().list()
-    allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head.getKey
-  }
+class BpmnEnd extends JavaDelegate with BpmnUtils {
 
   def execute(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)

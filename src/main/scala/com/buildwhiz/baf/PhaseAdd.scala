@@ -3,14 +3,12 @@ package com.buildwhiz.baf
 import java.util
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.ProcessEngines
-import org.camunda.bpm.engine.repository.ProcessDefinition
 import org.w3c.dom
 import org.w3c.dom.{Element, Node, NodeList}
 import org.xml.sax.InputSource
@@ -18,7 +16,7 @@ import org.xml.sax.InputSource
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
-class PhaseAdd extends HttpServlet with HttpUtils {
+class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
@@ -128,11 +126,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
       Seq[(String, dom.Document)] = {
 
     def nameAndDocument(bpmnName: String): (String, dom.Document) = {
-      val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-      val allProcessDefinitions: Seq[ProcessDefinition] =
-        repositoryService.createProcessDefinitionQuery().latestVersion().list()
-      val processDefinition = allProcessDefinitions.find(_.getKey == bpmnName).head
-      val modelInputStream = repositoryService.getProcessModel(processDefinition.getId)
+      val modelInputStream = getProcessModel(bpmnName)
       val domParser = new DOMParser()
       domParser.parse(new InputSource(modelInputStream))
       (bpmnName, domParser.getDocument)

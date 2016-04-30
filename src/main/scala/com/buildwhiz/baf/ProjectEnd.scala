@@ -4,19 +4,10 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{BpmnUtils, HttpUtils}
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.ProcessEngines
 
-import scala.collection.JavaConversions._
-
-class ProjectEnd extends HttpServlet with HttpUtils {
-
-  private def hasActiveProcesses(project_id: String): Boolean = {
-    val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-    val children = rts.createProcessInstanceQuery().variableValueEquals("project_id", project_id).list()
-    children.nonEmpty
-  }
+class ProjectEnd extends HttpServlet with HttpUtils with BpmnUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)

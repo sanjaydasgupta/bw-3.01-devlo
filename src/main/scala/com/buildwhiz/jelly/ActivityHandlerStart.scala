@@ -2,16 +2,15 @@ package com.buildwhiz.jelly
 
 import java.util.{ArrayList => JArrayList}
 
+import com.buildwhiz.BpmnUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
-import org.camunda.bpm.engine.repository.ProcessDefinition
 
 import scala.collection.JavaConversions._
 
-class ActivityHandlerStart extends JavaDelegate {
+class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 
   private def setupEssentials(de: DelegateExecution): Unit = {
     def oneVariable(v: String): Unit = {
@@ -32,13 +31,6 @@ class ActivityHandlerStart extends JavaDelegate {
       }
     }
     Seq("project_id", "phase_id").foreach(oneVariable)
-  }
-
-  private def getBpmnName(de: DelegateExecution): String = {
-    val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().latestVersion().list()
-    allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head.getKey
   }
 
   def execute(de: DelegateExecution): Unit = {

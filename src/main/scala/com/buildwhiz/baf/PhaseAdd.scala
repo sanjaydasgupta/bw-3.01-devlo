@@ -100,7 +100,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val description = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
           find(_.getAttributes.getNamedItem("name").getTextContent == "bw-description").
           map(_.getAttributes.getNamedItem("value").getTextContent) match {
-          case Some(d) => d
+          case Some(d) => d.replaceAll("\"", "\'")
           case None => s"no description provided ($name)"
         }
         (processNameAndDocument._1, name, role, description)

@@ -99,7 +99,7 @@ object DocumentRecordsRedo extends App {
       val drawingDoc: Document = Seq("_id" -> new ObjectId(fields("_id")),
         "name" -> s"${fields("name")} (${fields("sheet")})", "description" -> fields("description"),
         "keywords" -> fields("keywords"), "author" -> fields.getOrElse("author", null),
-        "document_type" -> "drawing", "file_extension" -> ".pdf").
+        "document_type" -> "drawing", "file_extension" -> ".pdf", "preload" -> true).
         filterNot(p => p._1 == "author" && p._2 == null).toMap
       drawingDoc
     }
@@ -140,7 +140,7 @@ object DocumentRecordsRedo extends App {
         zip(document.replaceAll("\\s", " ").split("#")).toMap
       val bsonDocument: Document = Seq("_id" -> new ObjectId(fields("_id")),
         "name" -> fields("name"), "description" -> fields("name"), "document_type" -> fields("document_type"),
-        "file_extension" -> s".${fields("file_extension")}").toMap
+        "file_extension" -> s".${fields("file_extension")}", "preload" -> true).toMap
       bsonDocument
     }
     documents.map(document2bsonDocument)
@@ -153,47 +153,48 @@ object DocumentRecordsRedo extends App {
     "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
 
-  val docOwnersProjectReport: Document = Map("name" -> "Owners Project Report", "file_extension" -> ".txt",
+/*
+  private val docOwnersProjectReport: Document = Map("name" -> "Owners Project Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d2c"))
-  val docDemolitionPermit: Document = Map("name" -> "Demolition Permit", "file_extension" -> ".txt",
+  private val docDemolitionPermit: Document = Map("name" -> "Demolition Permit", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d2d"))
-  val docDemolitionComplete: Document = Map("name" -> "Demolition Complete Report", "file_extension" -> ".txt",
+  private val docDemolitionComplete: Document = Map("name" -> "Demolition Complete Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d2e"))
-  val docDemolitionManagersReview: Document = Map("name" -> "Demolition Managers Review Report",
+  private val docDemolitionManagersReview: Document = Map("name" -> "Demolition Managers Review Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d2f"))
-  val docDemolitionCityReview: Document = Map("name" -> "Demolition Citys Review Report", "file_extension" -> ".txt",
+  private val docDemolitionCityReview: Document = Map("name" -> "Demolition Citys Review Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d30"))
-  val docExcavationStakingComplete: Document = Map("name" -> "Excavation-Staking-Complete-Report",
+  private val docExcavationStakingComplete: Document = Map("name" -> "Excavation-Staking-Complete-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d31"))
-  val docExcavationComplete: Document = Map("name" -> "Excavation-Complete-Report", "file_extension" -> ".txt",
+  private val docExcavationComplete: Document = Map("name" -> "Excavation-Complete-Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d32"))
-  val docExcavationCityReview: Document = Map("name" -> "Excavation-Citys-Review-Report", "file_extension" -> ".txt",
+  private val docExcavationCityReview: Document = Map("name" -> "Excavation-Citys-Review-Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d33"))
-  val docExcavationRccContractorsReview: Document = Map("name" -> "Excavation-RCC-Contractors-Review-Report",
+  private val docExcavationRccContractorsReview: Document = Map("name" -> "Excavation-RCC-Contractors-Review-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d34"))
-  val docBasementConstructionComplete: Document = Map("name" -> "Basement-Construction-Complete-Report",
+  private val docBasementConstructionComplete: Document = Map("name" -> "Basement-Construction-Complete-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d35"))
-  val docBasementConstructionCityReview: Document = Map("name" -> "Basement-Construction-Citys-Review-Report",
+  private val docBasementConstructionCityReview: Document = Map("name" -> "Basement-Construction-Citys-Review-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d36"))
-  val docBasementConstructionManagersReview: Document = Map("name" -> "Basement-Construction-Managers-Review-Report",
+  private val docBasementConstructionManagersReview: Document = Map("name" -> "Basement-Construction-Managers-Review-Report",
     "file_extension" -> ".txt", "description" -> "", "content_type" -> "application/octet-stream",
     "document_type" -> "text", "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d37"))
+*/
 
-  val allDocuments = Seq(docOwnersProjectReport, docDemolitionPermit, docDemolitionComplete, docDemolitionManagersReview,
-    docDemolitionCityReview, docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
+  val allDocuments = Seq(/*docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
     docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
-    docBasementConstructionManagersReview, docRfiRequest, docRfiResponse)  ++ processDrawings() ++ processDocuments()
+    docBasementConstructionManagersReview,*/ docRfiRequest, docRfiResponse)  ++ processDrawings() ++ processDocuments()
   println(s"Original count: ${BWMongoDB3.document_master.count()}")
   BWMongoDB3.document_master.drop()
   println(s"After Drop count: ${BWMongoDB3.document_master.count()}")

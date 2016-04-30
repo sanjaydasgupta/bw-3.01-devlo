@@ -5,7 +5,6 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
@@ -43,9 +42,9 @@ class DrawingsList extends HttpServlet with HttpUtils {
       val uploadedDocuments: Seq[DynDoc] = if (project ? "documents") project.documents[DocumentList] else Nil
       val uploadedDocumentsById: Map[ObjectId, Seq[DynDoc]] = uploadedDocuments.groupBy(_.document_id[ObjectId])
       val documentMasters: Seq[DynDoc] = BWMongoDB3.document_master.find().toSeq
-      val drawings = documentMasters.filter(_.document_type[String] == "drawing")
-      drawings.foreach(d => d.asDoc.put("available", uploadedDocumentsById.contains(d._id[ObjectId])))
-      writer.print(drawings.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]"))
+      val preloadedDocuments = documentMasters.filter(_ ? "preload")
+      preloadedDocuments.foreach(d => d.asDoc.put("available", uploadedDocumentsById.contains(d._id[ObjectId])))
+      writer.print(preloadedDocuments.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

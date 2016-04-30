@@ -2,7 +2,7 @@
     <div class="alert alert-danger msgToggle" style="display: none;">
         <div id="lblMsg" class="text-center text-danger"></div>
     </div>
-    <p style="text-align:center; font-size: large;">Document Management</p>
+    <p style="text-align:center; font-size: large;">Preload Document Management</p>
 
     Select project <select data-ng-click="$event.stopPropagation();"
             data-ng-model="selectedProjectId" data-ng-change="projectSelected()">
@@ -10,9 +10,9 @@
     </select><br /><br />
     <table border="1">
         <tr style="font-weight: bold;">
-            <td style="align: center;">Name</td><td style="align: center;">Upload</td><td style="align: center;">Download</td></tr>
+            <td style="align: center;">Type</td><td style="align: center;">Name</td><td style="align: center;">Upload</td><td style="align: center;">Download</td></tr>
         <tr data-ng-repeat="drawing in drawings">
-            <td>{{drawing.name}}</td>
+            <td>{{drawing.document_type}}</td><td>{{drawing.name}}</td>
             <td style="align: center;">
                 <input bw-upload2 type="file" projectid="selectedProjectId" documentid="drawing._id" />
             </td>

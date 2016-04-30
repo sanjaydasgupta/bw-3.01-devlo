@@ -24,8 +24,8 @@ class MongoDBView extends HttpServlet with HttpUtils {
           writer.print(jsonStrings.mkString("[", ", ", "]"))
         case Some(collectionName) =>
           val docs: Seq[DynDoc] = BWMongoDB3(collectionName).find().limit(100).toSeq
-          val jsonStrings: Seq[String] = docs.map(d => bson2json(d.asDoc))
-          writer.print(jsonStrings.mkString("[", ", ", "]"))
+          val jsonStrings: Seq[String] = docs.map(_.asDoc.toJson.replaceAll("\"", "\\\\\""))
+          writer.print(jsonStrings.mkString("[\"", "\", \"", "\"]"))
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

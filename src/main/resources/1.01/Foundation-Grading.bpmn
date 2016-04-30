@@ -97,7 +97,7 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-25 16 00" />
-          <camunda:property name="bw-description" value="Setup De-watering (optionally executed, depending on variable &#34;De Watering Needed&#34;)" />
+          <camunda:property name="bw-description" value="Setup De-watering (optionally executed, depending on variable &apos;De Watering Needed&apos;)" />
           <camunda:property name="bw-sequence" value="4" />
         </camunda:properties>
       </bpmn:extensionElements>

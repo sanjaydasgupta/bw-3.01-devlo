@@ -93,7 +93,7 @@ object DocumentRecordsRedo extends App {
   )
 
   def processDrawings(): Seq[Document] = {
-    def drawing2document(drawing: String): Document = {
+    def drawing2bsonDocument(drawing: String): Document = {
       val fields = Seq("_id", "sheet", "name", "description", "keywords", "author").
         zip(drawing.replaceAll("\\s", " ").split("#")).toMap
       val drawingDoc: Document = Seq("_id" -> new ObjectId(fields("_id")),
@@ -103,16 +103,48 @@ object DocumentRecordsRedo extends App {
         filterNot(p => p._1 == "author" && p._2 == null).toMap
       drawingDoc
     }
-    drawings.map(drawing2document)
+    drawings.map(drawing2bsonDocument)
   }
 
-/*
-"", "", "", "5720a239d5d8ad41061c3a93", "5720a239d5d8ad41061c3a94", "5720a239d5d8ad41061c3a95",
-"5720a239d5d8ad41061c3a96", "5720a239d5d8ad41061c3a97", "5720a239d5d8ad41061c3a98", "5720a239d5d8ad41061c3a99",
-"5720a239d5d8ad41061c3a9a", "5720a239d5d8ad41061c3a9b", "5720a239d5d8ad41061c3a9c", "5720a239d5d8ad41061c3a9d",
-"5720a239d5d8ad41061c3a9e", "5720a239d5d8ad41061c3a9f", "5720a239d5d8ad41061c3aa0", "5720a239d5d8ad41061c3aa1",
-"5720a239d5d8ad41061c3aa2", "5720a239d5d8ad41061c3aa3"
-*/
+  //"", "572456d4d5d8ad25eb8943a2", "572456d4d5d8ad25eb8943a3", "572456d4d5d8ad25eb8943a4",
+  // "572456d4d5d8ad25eb8943a5", "572456d4d5d8ad25eb8943a6", "572456d4d5d8ad25eb8943a7", "572456d4d5d8ad25eb8943a8",
+  // "572456d4d5d8ad25eb8943a9", "572456d4d5d8ad25eb8943aa", "572456d4d5d8ad25eb8943ab", "572456d4d5d8ad25eb8943ac",
+  // "572456d4d5d8ad25eb8943ad", "572456d4d5d8ad25eb8943ae", "572456d4d5d8ad25eb8943af", "572456d4d5d8ad25eb8943b0",
+  // "572456d4d5d8ad25eb8943b1", "572456d4d5d8ad25eb8943b2", "572456d4d5d8ad25eb8943b3", "572456d4d5d8ad25eb8943b4"
+
+
+  val documents = Seq(
+    "572456d4d5d8ad25eb8943a1#Geotechnical Report#Geotechnical Report#pdf",
+    "5720a239d5d8ad41061c3a93#Energy Model - Front Building (PDF)#Energy Model (PDF)#pdf",
+    "5720a239d5d8ad41061c3aa2#Energy Model - Front Building (BLD)#Energy Model (BLD)#bld",
+    "5720a239d5d8ad41061c3a94#Energy Model - Back Building (PDF)#Energy Model (PDF)#pdf",
+    "5720a239d5d8ad41061c3aa3#Energy Model - Back Building (BLD)#Energy Model (BLD)#bld",
+    "5720a239d5d8ad41061c3a95#Structural Calculations - basement#Structural Calculations#pdf",
+    "5720a239d5d8ad41061c3a96#Structural Calculations - buildings#Structural Calculations#pdf",
+    "5720a239d5d8ad41061c3a97#Historcal Study#Historcal Study#pdf",
+    "5720a239d5d8ad41061c3a98#Traffic Study#Traffic Study#pdf",
+    "5720a239d5d8ad41061c3a99#Appraisal#Appraisal#pdf",
+    "5720a239d5d8ad41061c3a9a#Photometrics - exterior#Photometrics Report#vsl",
+    "5720a239d5d8ad41061c3a9b#Photometrics - Garage#Photometrics Report#vsl",
+    "5720a239d5d8ad41061c3a9c#Environmenral Study - Phase 1#Environmenral Study#pdf",
+    "5720a239d5d8ad41061c3a9d#Owner Project Requirements - OPR#Owner Project Requirements#pdf",
+    "5720a239d5d8ad41061c3a9e#Permits#Permits#pdf",
+    "5720a239d5d8ad41061c3a9f#Invoices#Invoices#pdf",
+    "5720a239d5d8ad41061c3aa0#Receipts#Receipts#pdf",
+    "5720a239d5d8ad41061c3aa1#Financial Reports#Financial Reports#pdf"
+  )
+
+  def processDocuments(): Seq[Document] = {
+    def document2bsonDocument(document: String): Document = {
+      val fields = Seq("_id", "name", "document_type", "file_extension").
+        zip(document.replaceAll("\\s", " ").split("#")).toMap
+      val bsonDocument: Document = Seq("_id" -> new ObjectId(fields("_id")),
+        "name" -> fields("name"), "description" -> fields("name"), "document_type" -> fields("document_type"),
+        "file_extension" -> s".${fields("file_extension")}").toMap
+      bsonDocument
+    }
+    documents.map(document2bsonDocument)
+  }
 
   val docRfiRequest: Document = Map("name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
     "content_type" -> "application/octet-stream", "document_type" -> "text",
@@ -121,14 +153,6 @@ object DocumentRecordsRedo extends App {
     "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
 
-//  val docCoverSheet: Document = Map("name" -> "Cover Sheet", "file_extension" -> ".txt", "description" -> "",
-//    "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b42"))
-//  val docSitePlan: Document = Map("name" -> "Site Plan", "file_extension" -> ".txt", "description" -> "",
-//    "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b3a"))
-//  val docBasementFloorPlan: Document = Map("name" -> "Basement Floor Plan", "file_extension" -> ".txt",
-//    "description" -> "", "content_type" -> "application/octet-stream", "_id" -> new ObjectId("56f124dfd5d8ad25b1325b3b"))
-//
-//
   val docOwnersProjectReport: Document = Map("name" -> "Owners Project Report", "file_extension" -> ".txt",
     "description" -> "", "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d2c"))
@@ -169,7 +193,7 @@ object DocumentRecordsRedo extends App {
   val allDocuments = Seq(docOwnersProjectReport, docDemolitionPermit, docDemolitionComplete, docDemolitionManagersReview,
     docDemolitionCityReview, docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
     docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
-    docBasementConstructionManagersReview, docRfiRequest, docRfiResponse)  ++ processDrawings()
+    docBasementConstructionManagersReview, docRfiRequest, docRfiResponse)  ++ processDrawings() ++ processDocuments()
   println(s"Original count: ${BWMongoDB3.document_master.count()}")
   BWMongoDB3.document_master.drop()
   println(s"After Drop count: ${BWMongoDB3.document_master.count()}")

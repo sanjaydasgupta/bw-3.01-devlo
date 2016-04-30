@@ -48,6 +48,10 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
                 templateUrl: 'documents.html',
                 controller: 'DocumentsCtrl'
                 })
+            .when('/rfi', {
+                templateUrl: 'rfi.html',
+                controller: 'RFICtrl'
+                })
             .otherwise({
                 redirectTo: '/login'
             });

@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConversions._
 
-class DrawingsList extends HttpServlet with HttpUtils {
+class PreloadedDocumentsList extends HttpServlet with HttpUtils {
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)

@@ -17,7 +17,7 @@
 
     $scope.projectSelected = function() {
         var param = '?project_id=' + $scope.selectedProjectId;
-        $http.get('baf/DrawingsList' + param).then(
+        $http.get('baf/PreloadedDocumentsList' + param).then(
             function(response) {
                 $scope.drawings = response.data;
             }

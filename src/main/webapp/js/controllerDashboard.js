@@ -27,4 +27,8 @@
         location.hash = "#!/documents";
     }
 
+    $scope.rfi_Click = function () {
+        location.hash = "#!/rfi";
+    }
+
 });

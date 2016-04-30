@@ -1,4 +1,5 @@
 ﻿var app = angular.module('BuildWhizNgApp', ['ngRoute', 'ui.bootstrap', 'ui.tab.scroll']);
+//var app = angular.module('BuildWhizNgApp', ['cam.commons', 'ngRoute', 'ui.bootstrap', 'ui.tab.scroll']);
 
 
 

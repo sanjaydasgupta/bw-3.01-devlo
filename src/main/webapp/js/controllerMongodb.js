@@ -1,4 +1,4 @@
-﻿app.controller("BuildWhizNgAppMongodbCtrl", function ($scope, $http, $log) {
+﻿app.controller("BuildWhizNgAppMongodbCtrl", function ($http, $log) {
     var self = this;
     self.collections = [];
     self.details = [];

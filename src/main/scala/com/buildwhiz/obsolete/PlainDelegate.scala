@@ -1,4 +1,4 @@
-package com.buildwhiz.jelly
+package com.buildwhiz.obsolete
 
 import com.buildwhiz.infra.BWLogger
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}

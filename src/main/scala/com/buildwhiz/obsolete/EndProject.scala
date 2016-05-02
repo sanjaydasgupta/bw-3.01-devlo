@@ -1,4 +1,4 @@
-package com.buildwhiz.jelly
+package com.buildwhiz.obsolete
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}

@@ -1,35 +1,36 @@
-﻿app.controller("DocumentsCtrl", function ($scope, $log, $http) {
+﻿app.controller("DocumentsCtrl", function ($log, $http) {
 
+    var self = this;
     var personId = document.getElementById("hndPersonID").value;
-    $scope.projects = [];
-    $scope.drawings = [];
+    self.projects = [];
+    self.documents = [];
 
-    $scope.getPersonId = function() {
+    self.getPersonId = function() {
         return personId;
     }
 
     var param = '?person_id=' + personId;
     $http.get('baf/OwnedProjects' + param).then(
         function(response) {
-            $scope.projects = response.data;
+            self.projects = response.data;
         }
     )
 
-    $scope.projectSelected = function() {
-        var param = '?project_id=' + $scope.selectedProjectId;
+    self.projectSelected = function() {
+        var param = '?project_id=' + self.selectedProjectId;
         $http.get('baf/PreloadedDocumentsList' + param).then(
             function(response) {
-                $scope.drawings = response.data;
+                self.documents = response.data;
             }
         )
     }
 
-    $scope.getSelectedProjectId = function() {
-        return $scope.selectedProjectId;
+    self.getSelectedProjectId = function() {
+        return self.selectedProjectId;
     }
 
-    $scope.getDownloadLink = function(drawing) {
-        return 'baf/DocumentDownload?document_id=' + drawing._id + '&project_id=' + $scope.selectedProjectId;
+    self.getDownloadLink = function(drawing) {
+        return 'baf/DocumentDownload?document_id=' + drawing._id + '&project_id=' + self.selectedProjectId;
     }
 
 });

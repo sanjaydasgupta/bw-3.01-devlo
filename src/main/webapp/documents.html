@@ -1,23 +1,26 @@
-<div class="container" data-ng-controller="DocumentsCtrl">
+<div class="container" data-ng-controller="DocumentsCtrl as docCtrl">
     <div class="alert alert-danger msgToggle" style="display: none;">
         <div id="lblMsg" class="text-center text-danger"></div>
     </div>
+
     <p style="text-align:center; font-size: large;">Preload Document Management</p>
 
-    Select project <select data-ng-click="$event.stopPropagation();"
-            data-ng-model="selectedProjectId" data-ng-change="projectSelected()">
-        <option data-ng-repeat="project in projects" value="{{project._id}}">{{project.name}}</option>
+    <span class="bg-primary">Select Project</span>
+    <select data-ng-click="$event.stopPropagation();" data-ng-model="docCtrl.selectedProjectId"
+            data-ng-change="docCtrl.projectSelected()">
+        <option data-ng-repeat="project in docCtrl.projects" value="{{project._id}}">{{project.name}}</option>
     </select><br /><br />
-    <table border="1">
-        <tr style="font-weight: bold;">
+
+    <table data-ng-if="docCtrl.documents.length != 0" class="table table-condensed table-bordered table-hover">
+        <tr class="bg-primary text-center">
             <td style="align: center;">Type</td><td style="align: center;">Name</td><td style="align: center;">Upload</td><td style="align: center;">Download</td></tr>
-        <tr data-ng-repeat="drawing in drawings">
-            <td>{{drawing.document_type}}</td><td>{{drawing.name}}</td>
-            <td style="align: center;">
-                <input bw-upload2 type="file" projectid="selectedProjectId" documentid="drawing._id" />
+        <tr data-ng-repeat="document in docCtrl.documents">
+            <td>{{document.document_type}}</td><td>{{document.name}}</td>
+            <td class="center-block">
+                <input bw-upload2 type="file" projectid="docCtrl.selectedProjectId" documentid="document._id" />
             </td>
-            <td style="align: center">
-                <a data-ng-if="drawing.available" href="{{getDownloadLink(drawing)}}" target="_blank">link</a></td>
+            <td class="text-center">
+                <a data-ng-if="document.available" href="{{docCtrl.getDownloadLink(document)}}" target="_blank">link</a></td>
         </tr>
     </table>
 </div>

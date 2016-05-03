@@ -11,10 +11,10 @@
         <option data-ng-repeat="project in docCtrl.projects" value="{{project._id}}">{{project.name}}</option>
     </select><br /><br />
 
-    <table data-ng-if="docCtrl.documents.length != 0" class="table table-condensed table-bordered table-hover">
+    <table data-ng-if="docCtrl.documents.length != 0" class="table table-condensed table-bordered">
         <tr class="bg-primary text-center">
             <td style="align: center;">Type</td><td style="align: center;">Name</td><td style="align: center;">Upload</td><td style="align: center;">Download</td></tr>
-        <tr data-ng-repeat="document in docCtrl.documents">
+        <tr data-ng-repeat="document in docCtrl.documents" class="table table-hover">
             <td>{{document.document_type}}</td><td>{{document.name}}</td>
             <td class="center-block">
                 <input bw-upload2 type="file" projectid="docCtrl.selectedProjectId" documentid="document._id" />

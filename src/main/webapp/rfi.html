@@ -1,4 +1,31 @@
-<div class="container" data-ng-controller="RFICtrl">
+<div class="container" data-ng-controller="RFICtrl as rfiCtrl">
     <p style="text-align:center; font-size: large;">RFI Management</p>
+
+    <table class="table table-bordered table-condensed">
+        <tr class="bg-primary text-center"><td>Name</td><td>Type</td><td>Project/Phase/Process</td><td>RFI</td></tr>
+        <tr data-ng-repeat="action in rfiCtrl.ownedActions">
+            <td><span class="glyphicon glyphicon-stop" style="color:{{rfiCtrl.statusColor(action)}};"></span> {{action.name}}</td>
+            <td>{{action.type}}</td>
+            <td>{{action.group_name}}</td>
+            <td><button class="btn btn-info btn-xs" data-ng-click="rfiCtrl.getRfiDocuments(action)">RFI</button></td>
+        </tr>
+    </table>
+
+    <div class="bg-danger text-center" data-ng-if="rfiCtrl.isWaiting">Busy. Please wait!</div>
+
+    <div data-ng-if="rfiCtrl.rfiDocuments.length > 0">
+        <div class="bg-primary text-center">{{rfiCtrl.theAction.name}}<br />
+            {{rfiCtrl.theAction.project_name}}/{{rfiCtrl.theAction.phase_name}}/{{rfiCtrl.theAction.bpmn_name}}</div>
+
+        <table class="table table-bordered table-condensed">
+            <tr class="bg-primary text-center"><td>Time</td><td>Type</td><td>Text</td></tr>
+            <tr data-ng-repeat="rfiDoc in rfiCtrl.rfiDocuments">
+                <td class="text-center">{{rfiDoc.time}}</td>
+                <td class="text-center">{{rfiDoc.type}}</td>
+                <td>{{rfiDoc.text}}</td>
+            </tr>
+        </table>
+    </div>
+
 </div>
 <!--//===============================container============================-->

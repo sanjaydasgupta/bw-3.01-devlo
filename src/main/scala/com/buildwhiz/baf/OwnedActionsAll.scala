@@ -69,6 +69,7 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
               val assigneeIsUser = action.assignee_person_id[ObjectId] == personOid
               val phaseManagerIsUser = phase.admin_person_id[ObjectId] == personOid
               action.assignee_is_user = assigneeIsUser
+              action.phase_manager_is_user = phaseManagerIsUser
               if (isWaiting) {
                 action.displayDetails = assigneeIsUser
                 if (!assigneeIsUser)

@@ -99,6 +99,7 @@ object PersonRecordsRedo extends App with CryptoUtils {
       val firstName = newBsonDoc("first_name").asInstanceOf[String]
       //val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
       newBsonDoc("password") = md5(firstName)
+      newBsonDoc("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
       val roles = new java.util.ArrayList[String]
       if (newBsonDoc.containsKey("role")) {
         roles.addAll(newBsonDoc("role").asInstanceOf[String].split(",").toSeq)

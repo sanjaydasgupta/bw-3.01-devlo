@@ -11,9 +11,8 @@
             <table class="table table-bordered table-sm">
                 <tr data-ng-repeat="action in rfiCtrl.ownedActions">
                     <td>
-                        <span class="glyphicon glyphicon-stop"
-                            style="color:{{rfiCtrl.statusColor(action)}}; border: 1px solid black">
-                        </span>
+                        <span style="background-color: {{rfiCtrl.statusColor(action)}};
+                            border:1px solid black;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
                         <a href="#" data-ng-click="rfiCtrl.actionSelected(action)" data-toggle="tooltip"
                            title="{{action.group_name}}">{{rfiCtrl.actionLabel(action)}}</a>
                     </td>

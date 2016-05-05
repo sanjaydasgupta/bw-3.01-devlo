@@ -1,6 +1,8 @@
 package com.buildwhiz.baf
 
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.{Date, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.HttpUtils
@@ -17,7 +19,7 @@ class RfiDocuments extends HttpServlet with HttpUtils {
   private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
   private val rfiDocOids = Set(rfiRequestOid, rfiResponseOid)
 
-  private def fillDocumentText(rfiDoc: DynDoc, projectOid: ObjectId): DynDoc = {
+  private def fillDocumentText(rfiDoc: DynDoc, projectOid: ObjectId, personOid: ObjectId): DynDoc = {
     val documentOid = rfiDoc.document_id[ObjectId]
     val timestamp = rfiDoc.timestamp[Long]
     val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
@@ -35,7 +37,13 @@ class RfiDocuments extends HttpServlet with HttpUtils {
     val text: String = new String(byteBuffer.toArray).replaceAll("\"", "\\\\\"")
     rfiDoc.asDoc.put("text", text)
     rfiDoc.asDoc.put("type", if (documentOid == rfiRequestOid) "request" else "response")
-    rfiDoc.asDoc.put("time", timestamp)
+    val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+    val timeZone = TimeZone.getTimeZone(person.tz[String])
+    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm z")
+    sdf.setTimeZone(timeZone)
+    val date = new Date(timestamp)
+    val displayTime = sdf.format(date)
+    rfiDoc.asDoc.put("time", displayTime)
     rfiDoc
   }
 
@@ -50,7 +58,8 @@ class RfiDocuments extends HttpServlet with HttpUtils {
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val rfiDocuments: Seq[DynDoc] = project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).
         filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))
-      val docsWithText = rfiDocuments.map(d => fillDocumentText(d, projectOid))
+      val personOid = new ObjectId(parameters("person_id"))
+      val docsWithText = rfiDocuments.map(d => fillDocumentText(d, projectOid, personOid))
       writer.print(docsWithText.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

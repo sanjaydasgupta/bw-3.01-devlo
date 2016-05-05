@@ -52,7 +52,7 @@
         self.selectedAction = action;
         self.isWaiting = true;
         var query = '?project_id=' + action.project_id + '&activity_id=' + action.activity_id +
-            '&action_name=' + action.name;
+            '&action_name=' + action.name + '&person_id=' + self.personId;
         $http.get('baf/RfiDocuments' + query).then(
             function (response) {
                 self.rfiDocuments = response.data;

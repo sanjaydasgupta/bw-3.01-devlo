@@ -4,7 +4,7 @@
         <img src="css/images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
     </div>
 
-    <p style="text-align:center; font-size: large;">RFI Management</p>
+    <p style="text-align:center; font-size: large;">RFIs and Responses</p>
 
     <table><tr>
         <td width="15%" style="vertical-align:top; padding-right:10px;">
@@ -22,19 +22,20 @@
         </td>
         <td width="85%" style="vertical-align:top;">
             <table data-ng-if="rfiCtrl.selectedAction" class="table table-bordered table-sm">
-                <tr class="bg-primary text-center"><td colspan="3">{{rfiCtrl.actionLabel(rfiCtrl.selectedAction)}}</td></tr>
-                <tr class="bg-primary text-center"><td>Time</td><td>Type</td><td>Text</td></tr>
+                <tr class="bg-primary text-center"><td colspan="2">{{rfiCtrl.actionLabel(rfiCtrl.selectedAction)}}</td></tr>
+                <!--tr class="bg-primary text-center"><td width="90%">Text</td><td>Time</td></tr-->
                 <tr data-ng-repeat="rfiDoc in rfiCtrl.rfiDocuments">
-                    <td class="text-center">{{rfiDoc.time}}</td>
-                    <td class="text-center">{{rfiDoc.type}}</td>
-                    <td>{{rfiDoc.text}}</td>
+                    <!--td class="text-center">{{rfiDoc.type}}</td-->
+                    <td width="90%">{{rfiDoc.text}}</td>
+                    <td class="text-center" style="vertical-align:middle;">{{rfiDoc.time}}</td>
                 </tr>
-            </table>
-            <table data-ng-if="rfiCtrl.selectedAction" class="table table-bordered table-sm">
-                <tr class="bg-primary text-left">
-                    <td>
-                        <button type="button" class="btn btn-danger btn-xs" data-ng-click="rfiCtrl.btnRfiClick()">
-                            <span class="glyphicon glyphicon-info-sign"></span> Send
+                <tr data-ng-if="rfiCtrl.selectedActionMayInput()">
+                    <td width="90%">
+                        <textarea data-ng-model="rfiCtrl.newRfiText" style="width:100%;"></textarea>
+                    </td>
+                    <td style="vertical-align:middle;" class="text-center">
+                        <button class="btn btn-warning btn-sm" data-ng-click="rfiCtrl.rfiButtonClick()">
+                            <span class="glyphicon glyphicon-info-sign"></span> {{rfiCtrl.rfiButtonText()}}
                         </button>
                     </td>
                 </tr>

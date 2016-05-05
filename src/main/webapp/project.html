@@ -44,7 +44,7 @@
       <div class="modal-body">
         <form class="form-horizontal formCreateNewProject">
         <div class="form-group">
-          <label for="inputEmail3" class="col-sm-3 control-label">Project Name</label>
+          <label class="col-sm-3 control-label">Project Name</label>
           <div class="col-sm-6">
             <input type="text" autocomplete="off" class="form-control" data-ng-model="inputProjectName" id="inputProjectName" name="inputProjectName" placeholder="Project Name" autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? createNewProject() : null">
           </div>
@@ -213,7 +213,7 @@
                               <div class="form-inline formTimersCtrl">
                                 <div data-ng-repeat="timer in process.timers" class="col-xs-6 col-md-4">
                                   <div class="form-group">
-                                    <label for="inputTimers" class="inputTimers text-left" data-ng-click="$event.stopPropagation();">{{timer.name}}  </label>
+                                    <label class="inputTimers text-left" data-ng-click="$event.stopPropagation();">{{timer.name}}  </label>
                                      <input type="text" class="form-control  text-left" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(process.status == 'defined')" id="Text1" data-ng-model="timer.duration" value="{{timer.duration}}" placeholder="00:00:00" size="10" pattern="(?:(?:\d{1,2}:)?\d{1,2}:)?\d{1,2}"  required="required" maxlength="8" />
                                     <span class=" text-center">
                                       <button data-ng-click="setProcessTimerDuration(phase._id, timer.name, timer.bpmn_name, timer.duration); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && phase.is_managed"  class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Set</button>
@@ -304,7 +304,7 @@
                               <div id="dvActionNoFound" class="text-center text-danger" data-ng-if="activityActionDataUpdate.length <= 0">No Action Found</div>
                               <accordion-group  is-open="openAction" data-ng-repeat="action in activityActionDataUpdate" data-ng-class="[setStatusBorderColor(action.display_status), 'actionPanel']">
                                 <!--==============Action Heading Start Here==============-->
-                                <accordion-heading> 
+                                <accordion-heading>
                                   <a class="col-xs-3 col-sm-5 col-md-7 col-lg-8 actionLinkHref" data-ng-click="OnActionClick(action._id);" href="javascript:void(0)"> 
                                      
                                     <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openAction, 'glyphicon-chevron-down': !openAction}" data-ng-if="action.is_relevant"></span>
@@ -326,7 +326,7 @@
                                                 <button class="btn btn-success" data-ng-click="setActionDuration(activity._id, action.name, action.duration)" data-ng-if="action.status == 'defined' && phase.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>
                                               </div>
                                               <div class="form-group">
-                                                <label for="inputTimers" class=" text-center">Assign to </label>
+                                                <label class=" text-center">Assign to </label>
                                                 <select  class="form-control" data-ng-click="$event.stopPropagation();" name="ddlPersonsType" data-ng-model="action.assign_person_id" data-ng-disabled="!(action.status == 'defined' && phase.is_managed)" >
                                                   <option data-ng-repeat="person in personsDataUpdate" data-ng-selected="person._id == action.assignee_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
                                                 </select>

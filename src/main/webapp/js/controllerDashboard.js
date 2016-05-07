@@ -31,4 +31,8 @@
         location.hash = "#!/rfi";
     }
 
+    $scope.manageAmazonS3_Click = function () {
+        location.hash = "#!/amazonS3";
+    }
+
 });

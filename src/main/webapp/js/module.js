@@ -52,6 +52,10 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
                 templateUrl: 'rfi.html',
                 controller: 'RFICtrl'
                 })
+            .when('/amazonS3', {
+                templateUrl: 'amazonS3.html',
+                controller: 'AmazonS3Ctrl'
+                })
             .otherwise({
                 redirectTo: '/login'
             });

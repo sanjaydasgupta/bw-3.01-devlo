@@ -1,10 +1,7 @@
 package com.buildwhiz.jelly
 
-import java.text.SimpleDateFormat
-
-import com.buildwhiz.MailUtils
-//import java.time.format.DateTimeFormatter
-import java.util.{Calendar, Date}
+import com.buildwhiz.{DateTimeUtils, MailUtils}
+import java.util.Calendar
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
@@ -13,7 +10,7 @@ import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
 import scala.collection.JavaConversions._
 
-class WaitForActionSetup extends ExecutionListener with MailUtils {
+class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeUtils {
 
   private def saveAndSendMail(action: DynDoc, projectOid: ObjectId): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
@@ -25,7 +22,8 @@ class WaitForActionSetup extends ExecutionListener with MailUtils {
       calendar.add(Calendar.DATE, days)
       calendar.add(Calendar.HOUR, hours)
       calendar.add(Calendar.MINUTE, minutes)
-      val targetTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(calendar.getTimeInMillis))
+      val recipient: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).head
+      val targetTime = dateTimeString(calendar.getTimeInMillis, Some(recipient.tz[String]))
       val message = s"The action '${action.name[String]}' can now be started, and must be completed by " +
         s"$targetTime"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,

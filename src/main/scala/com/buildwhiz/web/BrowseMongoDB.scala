@@ -1,6 +1,6 @@
 package com.buildwhiz.web
 
-import java.util.{Calendar, ArrayList => JArrayList}
+import java.util.{ArrayList => JArrayList}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
@@ -106,23 +106,5 @@ class BrowseMongoDB extends HttpServlet {
         throw t
     }
   }
-
-  private def prettyPrint(d: Document): String = {
-    val mm: mutable.Map[String, Object] = d
-    mm.map(p => s"${p._1}: ${p._2}").mkString(", ")
-  }
-
-  private def prettyPrint(ms: Long): String = {
-    calendar.setTimeInMillis(ms)
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH) + 1
-    val date = calendar.get(Calendar.DAY_OF_MONTH)
-    val hours = calendar.get(Calendar.HOUR_OF_DAY)
-    val minutes = calendar.get(Calendar.MINUTE)
-    val seconds = calendar.get(Calendar.SECOND)
-    "%d-%02d-%02d %02d:%02d:%02d".format(year, month, date, hours, minutes, seconds)
-  }
-
-  private val calendar = Calendar.getInstance
 
 }

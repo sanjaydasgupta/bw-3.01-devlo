@@ -3,7 +3,7 @@ package com.buildwhiz.web
 import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
@@ -11,33 +11,16 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
-class BrowseMails extends HttpServlet with HttpUtils {
+class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private val calendar = Calendar.getInstance
 
-  private def prettyPrint(ms: Long, tz: Option[String]): String = {
-    calendar.setTimeInMillis(ms)
-    tz match {
-      case Some("pst") =>
-        calendar.setTimeZone(TimeZone.getTimeZone("US/Pacific"))
-      case _ =>
-        calendar.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"))
-    }
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH) + 1
-    val date = calendar.get(Calendar.DAY_OF_MONTH)
-    val hours = calendar.get(Calendar.HOUR_OF_DAY)
-    val minutes = calendar.get(Calendar.MINUTE)
-    val seconds = calendar.get(Calendar.SECOND)
-    "%02d:%02d:%02d %d-%02d-%02d".format(hours, minutes, seconds, year, month, date)
-  }
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
     val writer = response.getWriter
     writer.println(s"<html><head><title>Mails Listing</title></head><body>")
     try {
-      val tz = parameters.get("tz")
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val name = s"${person.first_name[String]} ${person.last_name[String]}"
@@ -48,7 +31,7 @@ class BrowseMails extends HttpServlet with HttpUtils {
           s"""<table border="1" align="center"></tr><td align="center">Time-Stamp</td><td align="center">Subject</td>
               |<td align="center">Message</td></tr>""".stripMargin)
         for (mail <- mails.sortWith((a, b) => a.timestamp[Long] > b.timestamp[Long])) {
-          val timeStamp = prettyPrint(mail.timestamp[Long], tz)
+          val timeStamp = dateTimeString(mail.timestamp[Long], Some(person.tz[String]))
           //val timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(mail.timestamp[Long]))
           writer.println(
             s"""</tr><td align="center">$timeStamp</td><td align="center">${mail.subject[String]}</td>

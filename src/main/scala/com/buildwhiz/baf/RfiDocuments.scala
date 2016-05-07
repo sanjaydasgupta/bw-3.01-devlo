@@ -1,11 +1,9 @@
 package com.buildwhiz.baf
 
 import java.io.InputStream
-import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
@@ -13,7 +11,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class RfiDocuments extends HttpServlet with HttpUtils {
+class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
   private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
@@ -38,11 +36,7 @@ class RfiDocuments extends HttpServlet with HttpUtils {
     rfiDoc.asDoc.put("text", text)
     rfiDoc.asDoc.put("type", if (documentOid == rfiRequestOid) "request" else "response")
     val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-    val timeZone = TimeZone.getTimeZone(person.tz[String])
-    val sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm z")
-    sdf.setTimeZone(timeZone)
-    val date = new Date(timestamp)
-    val displayTime = sdf.format(date)
+    val displayTime = dateTimeString(timestamp, Some(person.tz[String]))
     rfiDoc.asDoc.put("time", displayTime)
     rfiDoc
   }

@@ -1,8 +1,8 @@
 package com.buildwhiz.web
 
-import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.DateTimeUtils
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
@@ -10,7 +10,7 @@ import org.bson.Document
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class TraceLog extends HttpServlet {
+class TraceLog extends HttpServlet with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter
@@ -37,7 +37,7 @@ class TraceLog extends HttpServlet {
       val traceLogDocs: Seq[Document] = traceLogCollection.find().sort(Map("milliseconds" -> -1)).limit(count).toSeq
       for (doc <- traceLogDocs) {
         val fields = labels.map(doc.get).toBuffer
-        fields(0) = prettyPrint(fields.head.asInstanceOf[Long])
+        fields(0) = dateTimeString(fields.head.asInstanceOf[Long])
         fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
         val htmlRowData = fields.zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").mkString
         if (htmlRowData.contains(clientIp))
@@ -59,19 +59,5 @@ class TraceLog extends HttpServlet {
     val mm: mutable.Map[String, Object] = d
     mm.map(p => s"${p._1}: ${p._2}").mkString(", ")
   }
-
-  private def prettyPrint(ms: Long): String = {
-    calendar.setTimeInMillis(ms)
-    calendar.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"))
-    val year = calendar.get(Calendar.YEAR)
-    val month = calendar.get(Calendar.MONTH) + 1
-    val date = calendar.get(Calendar.DAY_OF_MONTH)
-    val hours = calendar.get(Calendar.HOUR_OF_DAY)
-    val minutes = calendar.get(Calendar.MINUTE)
-    val seconds = calendar.get(Calendar.SECOND)
-    "%02d:%02d:%02d %d-%02d-%02d".format(hours, minutes, seconds, year, month, date)
-  }
-
-  private val calendar = Calendar.getInstance
 
 }

@@ -51,4 +51,25 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
+  override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, "doDelete()", s"ENTRY", request)
+    try {
+      val parameters = getParameterMap(request)
+      val projectId = parameters("project_id")
+      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectId).getObjectSummaries
+      for (summary <- objectSummaries) {
+        AmazonS3.deleteObject(summary.getKey)
+      }
+      response.getWriter.println(s"""{"count": ${objectSummaries.length}}""")
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, "doDelete()", s"EXIT-OK (${objectSummaries.length} objects)", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doDelete()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        t.printStackTrace()
+        throw t
+    }
+  }
+
 }

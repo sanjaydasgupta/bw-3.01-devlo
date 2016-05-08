@@ -13,4 +13,17 @@
         }
     );
 
+    self.deleteProjectDocs = function(project) {
+        var projectId = project.split(' ')[0];
+        var query = 'project_id=' + projectId;
+        self.isWaiting = true;
+        $http.delete('baf/AmazonS3Docs?' + query).then(
+            function (response) {
+                var deleteCount = response.data.count;
+                alert('Deleted ' + deleteCount + ' documents');
+                self.isWaiting = false;
+            }
+        );
+    }
+
 });

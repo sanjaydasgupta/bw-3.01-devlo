@@ -111,11 +111,11 @@
                   <button class="btn btn-success" data-ng-click="launchProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
                 </div>
                 <div class="col-sm-4 col-xs-4 text-center">
-                  <button class="btn btn-danger" data-ng-click="endProject(project._id); $event.stopPropagation();" data-ng-disabled="!project.can_end"><span class="glyphicon glyphicon-pause"></span> End</button>
+                  <button class="btn btn-danger" data-ng-click="endProject(project._id); $event.stopPropagation();" data-ng-disabled="!project.can_end || project.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
                 </div>
-                <div class="col-sm-4 col-xs-4 text-center">
+                <!--div class="col-sm-4 col-xs-4 text-center">
                   <button class="btn btn-danger" data-ng-click="deleteProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Del</button>
-                </div>
+                </div-->
                 <div class="clr"></div>
               </div>
               <div class="clr"></div>
@@ -167,9 +167,9 @@
                             <div class="form-inline formTimersCtrl">
                               <div class="form-group text-left">
                                 <button class="btn btn-success" style="margin-bottom:2px;" data-ng-click="launchPhase(project._id, phase._id, phase.bpmn_name); $event.stopPropagation();"  data-ng-if="phase.status == 'defined' && project.status == 'running' && phase.is_managed"><span class="glyphicon glyphicon-play"></span> Launch</button>
-                                <button class="btn btn-danger" style="margin-bottom:2px;" data-ng-click="deletePhase(project._id, phase._id); $event.stopPropagation();"  data-ng-if="phase.status != 'running' && phase.is_managed"><span class="glyphicon glyphicon-remove-circle"></span> Del</button>
+                                <button class="btn btn-danger" style="margin-bottom:2px;" data-ng-click="deletePhase(project._id, phase._id); $event.stopPropagation();"  data-ng-if="phase.status != 'running' && project.is_managed"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
                                 <span class="spanAdminWrap">
-                                  <label for="ddlPersonsType" class=" text-left">Administrator </label>
+                                  <label for="ddlPersonsType" class=" text-right">Administrator </label>
                                   <select  class="form-control" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(phase.status == 'defined' && project.is_managed)" id="ddlPersonsType" name="ddlPersonsType" data-ng-model="phase.admin_person_id">
                                     <option data-ng-repeat="person in managerPersonsData" data-ng-selected="person._id == phase.admin_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
                                   </select>
@@ -280,7 +280,7 @@
                                           <div class="form-group mb20">
                                             <select id="ddlAddActionType" name="ddlAddActionType" data-ng-model="ddlAddActionType" class="form-control">
                                               <option value="" selected="selected">Type</option>
-                                              <option value="prerequisite">Prereq.</option>
+                                              <option value="prerequisite">Prereq</option>
                                               <option value="review">Review</option>
                                             </select>
                                             <input type="text" class="form-control " id="inputActionName" data-ng-model="inputActionName" required="required" placeholder="Action Name"  />  
@@ -368,12 +368,12 @@
                                             <div class="text-center actionContentPartHeading">Uploads</div>
                                             <div class="text-left text-danger" data-ng-if="action.outDocuments.length <= 0"  style="width:95%; margin:0px auto;">No Upload Required.</div>            
                                             <div class="actionContent" data-ng-repeat="document in action.outDocuments" onchange="" data-ng-if="action.outDocuments.length != 0">
-                                              <span class="pull-left spanDocumentName">{{document.name}} </span> 
+                                              <span class="pull-left spanDocumentName">{{document.name}}</span>
 <!--                                                <input bw-upload data-ng-if="uploadDisabled(project, action, document)" type="file" project="project" document="document"
                                                 action="action" activity="activity" disabled class="browseBtn" />-->
                                                 <input bw-upload data-ng-if="!uploadDisabled(project, action, document)" type="file" project="project" document="document"
                                                 action="action" activity="activity" callback-Function="callbackFunction" class="hidden"  id="fileAction" />
-                                                <label for="fileAction" class="btn btn-sm browseBtn"> Choose File</label>
+                                                &nbsp;&nbsp;<label for="fileAction" class="btn btn-info btn-xs">Choose File</label>
                                                 <div class="clr"></div>
                                             </div>
                                           </div>

@@ -113,9 +113,9 @@
                 <div class="col-sm-4 col-xs-4 text-center">
                   <button class="btn btn-danger" data-ng-click="endProject(project._id); $event.stopPropagation();" data-ng-disabled="!project.can_end || project.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
                 </div>
-                <!--div class="col-sm-4 col-xs-4 text-center">
-                  <button class="btn btn-danger" data-ng-click="deleteProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Del</button>
-                </div-->
+                <div data-ng-if="isAdministrator()" class="col-sm-4 col-xs-4 text-center">
+                  <button class="btn btn-danger" data-ng-click="deleteProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                </div>
                 <div class="clr"></div>
               </div>
               <div class="clr"></div>

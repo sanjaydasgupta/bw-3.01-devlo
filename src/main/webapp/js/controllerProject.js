@@ -12,7 +12,10 @@
     }
     $("#divPreLoad").hide();
 
-
+   $scope.isAdministrator = function () {
+       var isAdmin = document.getElementById('hndLoggedInAdministrator').value == 'y';
+       return isAdmin;
+   }
 
     GetPersons();
     GetPhaseNames();

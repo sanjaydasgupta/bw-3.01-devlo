@@ -50,8 +50,11 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val rfiDocuments: Seq[DynDoc] = project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).
-        filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))
+      val rfiDocuments: Seq[DynDoc] = project ? "documents" match {
+        case false => Nil
+        case true => project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).
+          filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))
+      }
       val personOid = new ObjectId(parameters("person_id"))
       val docsWithText = rfiDocuments.map(d => fillDocumentText(d, projectOid, personOid))
       writer.print(docsWithText.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))

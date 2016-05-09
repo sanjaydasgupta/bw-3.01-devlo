@@ -4,6 +4,7 @@
     var personId = document.getElementById("hndPersonID").value;
     self.projects = [];
     self.documents = [];
+    self.isWaiting = true;
 
     self.getPersonId = function() {
         return personId;
@@ -13,14 +14,20 @@
     $http.get('baf/OwnedProjects' + param).then(
         function(response) {
             self.projects = response.data;
+            self.isWaiting = false;
         }
     )
 
     self.projectSelected = function() {
+        self.isWaiting = true;
         var param = '?project_id=' + self.selectedProjectId;
         $http.get('baf/PreloadedDocumentsList' + param).then(
             function(response) {
                 self.documents = response.data;
+                self.isWaiting = false;
+            },
+            function() {
+                self.isWaiting = false;
             }
         )
     }
@@ -35,20 +42,21 @@
 
 });
 
-app.directive("bwUpload2", ['$log', '$http',  function ($log, $http) {
+app.directive("bwUpload2", ['$log', '$http', function ($log, $http) {
+    $log.log('Entered bwUpload2 directive function');
     return {
 
-        scope: { projectid: "=", documentid: "="},
+        scope: { projectid: "=", documentid: "=", docctrl: "="},
 
         link: function (scope, element, attributes) {
             element.bind("change", function (changeEvent) {
                 var reader = new FileReader();
                 reader.onload = function (loadEvent) {
-                    //$log.log('onload.byteLength: ' + loadEvent.target.result.byteLength);
+                    $log.log('onload.byteLength: ' + loadEvent.target.result.byteLength);
                     scope.$apply(function () {
                         var params = 'project_id=' + scope.projectid + '&document_id=' + scope.documentid;
-                    //$log.log('SDG-params: ' + params);
-                    //$log.log('SDG-attributes: ' + JSON.stringify(attributes));
+                        $log.log('SDG-params: ' + params);
+                        $log.log('SDG-attributes: ' + JSON.stringify(attributes));
                         var config = {
                             url: 'baf/DocumentUpload?' + params,
                             method: 'POST',
@@ -56,16 +64,20 @@ app.directive("bwUpload2", ['$log', '$http',  function ($log, $http) {
                             data: new Uint8Array(loadEvent.target.result),
                             transformRequest: []
                         };
+                        $log.log('scope.docctrl.isWaiting = true;');
+                        scope.docctrl.isWaiting = true;
                         $http(config).then(
-                          function (resp) {
-                              var response = resp.data;
-                              //$log.log("DocumentUpload response (fileName, length): " + response.fileName + ", " + response.length);
-                              alert('Document Saved');
-                          },
-                          function (responseError) {
-                              $(".msgToggle").show();
-                              document.getElementById('lblMsg').innerHTML = serviceErrorMessege;
-                          }
+                            function (resp) {
+                                scope.docctrl.isWaiting = false;
+                                var response = resp.data;
+                                $log.log("DocumentUpload response (fileName, length): " + response.fileName + ", " + response.length);
+                                alert('Document Saved');
+                            },
+                            function (responseError) {
+                                scope.docctrl.isWaiting = false;
+                                $(".msgToggle").show();
+                                document.getElementById('lblMsg').innerHTML = serviceErrorMessege;
+                            }
                         );
                     });
 

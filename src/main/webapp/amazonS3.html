@@ -12,13 +12,13 @@
         <tr data-ng-repeat="doc in project.docs" class="text-center">
             <td width="40%">{{doc.doc_id}}</td><td width="40%">{{doc.ts}}</td><td width="20%">{{doc.size}}</td>
         </tr>
-        <tr data-ng-if="project.project.indexOf('???') != -1">
+        <!--tr data-ng-if="project.project.indexOf('???') != -1">
             <td colspan="3" class="text-center">
                 <button class="btn btn-danger btn-xs" data-ng-click="s3Ctrl.deleteProjectDocs(project.project)">
                     Delete
                 </button>
             </td>
-        </tr>
+        </tr-->
     </table>
 
 </div>

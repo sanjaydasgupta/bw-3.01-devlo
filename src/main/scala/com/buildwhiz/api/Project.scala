@@ -3,7 +3,9 @@ package com.buildwhiz.api
 import java.net.URI
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.baf.OwnedProjects
+import com.buildwhiz.infra.AmazonS3
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
@@ -67,6 +69,11 @@ class Project extends HttpServlet with RestUtils {
       BWMongoDB3.mails.deleteMany(Map("project_id" -> projectOid))
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
+      // Delete project's documents
+      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectOid.toString).getObjectSummaries
+      for (summary <- objectSummaries) {
+        AmazonS3.deleteObject(summary.getKey)
+      }
       BWLogger.log(getClass.getName, "doDelete()", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>

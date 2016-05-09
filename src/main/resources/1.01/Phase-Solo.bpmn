@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="camunda modeler" exporterVersion="2.7.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="Phase-Solo" name="Phase Solo" isExecutable="true">
+    <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="BPMN-Start" />
+    <bpmn2:serviceTask id="BPMN-Start" name="BPMN Start" camunda:class="com.buildwhiz.jelly.BpmnStart">
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="BPMN-Start" targetRef="The-Solo-Activity" />
+    <bpmn2:endEvent id="End" name="End">
+      <bpmn2:incoming>SequenceFlow_4</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:serviceTask id="BPMN-End" name="BPMN End" camunda:class="com.buildwhiz.jelly.BpmnEnd">
+      <bpmn2:incoming>SequenceFlow_05v4ax1</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_4</bpmn2:outgoing>
+    </bpmn2:serviceTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_4" name="" sourceRef="BPMN-End" targetRef="End" />
+    <bpmn2:callActivity id="The-Solo-Activity" name="The Solo Activity" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+      <bpmn2:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_05v4ax1</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:sequenceFlow id="SequenceFlow_05v4ax1" sourceRef="The-Solo-Activity" targetRef="BPMN-End" />
+    <bpmn2:textAnnotation id="TextAnnotation_1">    <bpmn2:text><![CDATA[This BPMN is a project phase, the blocks are ativities belonging to the phase.
+
+The activity names are significant, and must match up with activity names defined in the database]]></bpmn2:text>
+</bpmn2:textAnnotation>
+  </bpmn2:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Solo">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
+        <dc:Bounds x="36" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="37" y="158" width="34" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
+        <dc:Bounds x="643" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="617" y="158" width="90" height="22" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="The-Solo-Activity">
+        <dc:Bounds x="307" y="95" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ServiceTask_33">
+        <di:waypoint xsi:type="dc:Point" x="72" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="134" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="103" y="135" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_55" bpmnElement="TextAnnotation_1">
+        <dc:Bounds x="71" y="-16" width="498" height="73" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_28" bpmnElement="BPMN-End">
+        <dc:Bounds x="482" y="95" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="SequenceFlow_4" sourceElement="_BPMNShape_ServiceTask_28" targetElement="_BPMNShape_EndEvent_45">
+        <di:waypoint xsi:type="dc:Point" x="582" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="643" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="585" y="135" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_33" bpmnElement="BPMN-Start">
+        <dc:Bounds x="134" y="95" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ServiceTask_33" targetElement="_BPMNShape_CallActivity_6">
+        <di:waypoint xsi:type="dc:Point" x="234" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="307" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="252" y="135" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_05v4ax1_di" bpmnElement="SequenceFlow_05v4ax1">
+        <di:waypoint xsi:type="dc:Point" x="407" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="482" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="504" y="125" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

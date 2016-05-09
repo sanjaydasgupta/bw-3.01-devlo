@@ -9,11 +9,17 @@
         <img src="css/images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
     </div>
 
-    <span class="bg-primary">Select Project</span>
-    <select data-ng-click="$event.stopPropagation();" data-ng-model="docCtrl.selectedProjectId"
-            data-ng-change="docCtrl.projectSelected()">
-        <option data-ng-repeat="project in docCtrl.projects" value="{{project._id}}">{{project.name}}</option>
-    </select><br /><br />
+    <div style="height:30px;">
+        <span class="pull-left">
+            Select Project
+            <select data-ng-click="$event.stopPropagation();" data-ng-model="docCtrl.selectedProjectId"
+                data-ng-change="docCtrl.projectSelected()">
+                <option data-ng-repeat="project in docCtrl.projects" value="{{project._id}}">{{project.name}}</option>
+            </select>
+        </span>
+        <button data-ng-disabled="docCtrl.selectedProjectId == null" data-ng-click="docCtrl.projectSelected()"
+                class="btn btn-primary btn-xs pull-right">Refresh</button>
+    </div>
 
     <table data-ng-if="docCtrl.documents.length != 0" class="table table-condensed table-bordered">
         <tr class="bg-primary text-center">
@@ -22,7 +28,7 @@
             <td>{{document.document_type}}</td><td>{{document.name}}</td>
             <td class="center-block">
                 <input bw-upload2 type="file" projectid="docCtrl.selectedProjectId" documentid="document._id"
-                    docctrl="docCtrl" />
+                    ngcontroller="docCtrl" />
             </td>
             <td class="text-center">
                 <a data-ng-if="document.available" href="{{docCtrl.getDownloadLink(document)}}" target="_blank">link</a></td>

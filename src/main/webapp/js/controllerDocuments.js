@@ -46,7 +46,7 @@ app.directive("bwUpload2", ['$log', '$http', function ($log, $http) {
     $log.log('Entered bwUpload2 directive function');
     return {
 
-        scope: { projectid: "=", documentid: "=", docctrl: "="},
+        scope: { projectid: "=", documentid: "=", ngcontroller: "="},
 
         link: function (scope, element, attributes) {
             element.bind("change", function (changeEvent) {
@@ -64,17 +64,17 @@ app.directive("bwUpload2", ['$log', '$http', function ($log, $http) {
                             data: new Uint8Array(loadEvent.target.result),
                             transformRequest: []
                         };
-                        $log.log('scope.docctrl.isWaiting = true;');
-                        scope.docctrl.isWaiting = true;
+                        $log.log('scope.ngcontroller.isWaiting = true;');
+                        scope.ngcontroller.isWaiting = true;
                         $http(config).then(
                             function (resp) {
-                                scope.docctrl.isWaiting = false;
+                                scope.ngcontroller.isWaiting = false;
                                 var response = resp.data;
                                 $log.log("DocumentUpload response (fileName, length): " + response.fileName + ", " + response.length);
                                 alert('Document Saved');
                             },
                             function (responseError) {
-                                scope.docctrl.isWaiting = false;
+                                scope.ngcontroller.isWaiting = false;
                                 $(".msgToggle").show();
                                 document.getElementById('lblMsg').innerHTML = serviceErrorMessege;
                             }

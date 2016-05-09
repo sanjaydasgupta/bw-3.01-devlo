@@ -2,7 +2,7 @@ package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.DateTimeUtils
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
@@ -10,7 +10,7 @@ import org.bson.Document
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-class TraceLog extends HttpServlet with DateTimeUtils {
+class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter
@@ -37,7 +37,7 @@ class TraceLog extends HttpServlet with DateTimeUtils {
       val traceLogDocs: Seq[Document] = traceLogCollection.find().sort(Map("milliseconds" -> -1)).limit(count).toSeq
       for (doc <- traceLogDocs) {
         val fields = labels.map(doc.get).toBuffer
-        fields(0) = dateTimeString(fields.head.asInstanceOf[Long])
+        fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
         fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
         val htmlRowData = fields.zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").mkString
         if (htmlRowData.contains(clientIp))

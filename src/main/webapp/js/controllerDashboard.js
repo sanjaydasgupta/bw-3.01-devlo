@@ -15,6 +15,10 @@
         location.hash = "#!/mongodb";
     }
 
+    $scope.manageUserRoles_Click = function () {
+        location.hash = "#!/userRoles";
+    }
+
     $scope.manageBpmnViewer_Click = function () {
         location.hash = "#!/bpmnViewer";
     }

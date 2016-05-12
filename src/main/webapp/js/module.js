@@ -44,6 +44,10 @@ app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $lo
                 templateUrl: 'userProfile.html',
                 controller: 'UserProfileCtrl'
                 })
+            .when('/userRoles', {
+                templateUrl: 'userRoles.html',
+                controller: 'UserRolesCtrl'
+                })
             .when('/documents', {
                 templateUrl: 'documents.html',
                 controller: 'DocumentsCtrl'

@@ -8,11 +8,14 @@ import scala.util.{Failure, Success, Try}
 
 class Entry extends HttpServlet {
 
-//  private def getClazz(className: String): Try[Class[_]] = {
-//    val classNames = Seq("baf", "api", "web").map(pkg => s"com.buildwhiz.$pkg.$className")
-//    classNames.foldLeft(Failure(new ClassNotFoundException()).asInstanceOf[Try[Class[_]]])(
-//      (t, cn) => t match {case Success(_) => t case Failure(_) => Try(Class.forName(cn))})
-//  }
+  private def authenticate(request: HttpServletRequest): Unit = {
+    val session = request.getSession
+    if (session.isNew) {
+      val urlParts = request.getRequestURL.toString.split("/")
+    } else {
+      val bwToken = session.getAttribute("bw_token")
+    }
+  }
 
   private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
@@ -40,6 +43,17 @@ class Entry extends HttpServlet {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        t.printStackTrace()
+        throw t
+    }
+  }
+
+  override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    try {
+      handleRequest(request, servlet => servlet.doPut(request, response))
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doPut", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -74,6 +88,7 @@ object Entry {
 
   type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse)
     def doPost(req: HttpServletRequest, res: HttpServletResponse)
+    def doPut(req: HttpServletRequest, res: HttpServletResponse)
     def doDelete(req: HttpServletRequest, res: HttpServletResponse)}
 
   val cache = mutable.Map.empty[String, BWServlet]

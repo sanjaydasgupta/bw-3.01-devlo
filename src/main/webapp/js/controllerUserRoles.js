@@ -2,9 +2,9 @@
 
     var self = this;
     self.persons = [];
-    self.isWaiting = true;
 
     self.initPage = function() {
+        self.isWaiting = true;
         $log.log('HTTP GET baf/Person')
         $http.get('api/Person').then(
             function (response) {
@@ -31,16 +31,19 @@
     }
 
     self.savePerson = function(person) {
+        self.isWaiting = true;
         var query = '?person_id=' + person._id + '&BW-Demo=' + person.newRoleDemo +
                 '&BW-Admin=' + person.newRoleAdmin;
         $log.log('HTTP POST baf/UserSkillsSet/' + query)
         $http.post('baf/UserSkillsSet/' + query).then(
             function(response) {
                 //alert("Person record updated");
+                self.isWaiting = false;
                 self.initPage();
             },
             function(response) {
                 alert('ERROR: api/Person/');
+                self.isWaiting = false;
             }
         )
     }

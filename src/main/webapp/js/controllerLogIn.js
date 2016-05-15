@@ -1,4 +1,16 @@
-﻿app.controller("BuildWhizNgAppLogInCtrl", function ($http, $scope, BuildWhizNgAppLogInService) {
+﻿app.controller("BuildWhizNgAppLogInCtrl", function ($log, $http, $scope, BuildWhizNgAppLogInService) {
+
+    $log.log('HTTP GET api/Environment');
+    $http.get('api/Environment').then(
+        function(response) {
+            var env = response.data;
+            $log.log('api/Environment -> ' + JSON.stringify(env));
+            if (env.timezone_raw_offset != 0) {
+                // to facilitate testing on local machine
+                $scope.email = "sanjay.dasgupta@buildwhiz.com";
+            }
+        }
+    );
     document.getElementById("inputEmail").focus();
     //$scope.email = "sanjay.dasgupta@buildwhiz.com";
     //=====check validation====

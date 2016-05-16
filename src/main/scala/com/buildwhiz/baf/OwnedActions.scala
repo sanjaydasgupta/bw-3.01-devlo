@@ -14,6 +14,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
 
   private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
   private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
+  private val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
@@ -70,7 +71,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
           val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
           val outDocumentsOids: Seq[ObjectId] =
             if (assigneeIsUser) {
-              rfiRequestOid +: action.outbox[ObjectIdList]
+              rfiRequestOid +: submittalOid +: action.outbox[ObjectIdList]
             } else if (phaseManagerIsUser && action.inbox[ObjectIdList].contains(rfiRequestOid)) {
               Seq(rfiResponseOid)
             } else

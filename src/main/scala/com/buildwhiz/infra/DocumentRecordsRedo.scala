@@ -7,7 +7,7 @@ import scala.collection.JavaConversions._
 
 object DocumentRecordsRedo extends App {
 
-  val drawings: Seq[String] = Seq(
+  private val drawings: Seq[String] = Seq(
     "57207549d5d8ad331d2ea699#1A#COVER SHEET#Project parameters, vicinity, sheet index, design team, general information#Architecture#C",
     "57207549d5d8ad331d2ea69a#1B#SITE PLAN##Architecture#C",
     "57207549d5d8ad331d2ea69b#2A#BASEMENT FLOOR PLAN##Architecture#C",
@@ -92,7 +92,7 @@ object DocumentRecordsRedo extends App {
     "5720a239d5d8ad41061c3a92#Z3#LOGISTIC PLAN###P"
   )
 
-  def processDrawings(): Seq[Document] = {
+  private def processDrawings(): Seq[Document] = {
     def drawing2bsonDocument(drawing: String): Document = {
       val fields = Seq("_id", "sheet", "name", "description", "keywords", "author").
         zip(drawing.replaceAll("\\s", " ").split("#")).toMap
@@ -106,14 +106,14 @@ object DocumentRecordsRedo extends App {
     drawings.map(drawing2bsonDocument)
   }
 
-  //"", "572456d4d5d8ad25eb8943a2", "572456d4d5d8ad25eb8943a3", "572456d4d5d8ad25eb8943a4",
+  //"", "", "572456d4d5d8ad25eb8943a3", "572456d4d5d8ad25eb8943a4",
   // "572456d4d5d8ad25eb8943a5", "572456d4d5d8ad25eb8943a6", "572456d4d5d8ad25eb8943a7", "572456d4d5d8ad25eb8943a8",
   // "572456d4d5d8ad25eb8943a9", "572456d4d5d8ad25eb8943aa", "572456d4d5d8ad25eb8943ab", "572456d4d5d8ad25eb8943ac",
   // "572456d4d5d8ad25eb8943ad", "572456d4d5d8ad25eb8943ae", "572456d4d5d8ad25eb8943af", "572456d4d5d8ad25eb8943b0",
   // "572456d4d5d8ad25eb8943b1", "572456d4d5d8ad25eb8943b2", "572456d4d5d8ad25eb8943b3", "572456d4d5d8ad25eb8943b4"
 
 
-  val documents = Seq(
+  private val documents = Seq(
     "572456d4d5d8ad25eb8943a1#Geotechnical Report#Geotechnical Report#pdf",
     "5720a239d5d8ad41061c3a93#Energy Model - Front Building (PDF)#Energy Model (PDF)#pdf",
     "5720a239d5d8ad41061c3aa2#Energy Model - Front Building (BLD)#Energy Model (BLD)#bld",
@@ -134,7 +134,7 @@ object DocumentRecordsRedo extends App {
     "5720a239d5d8ad41061c3aa1#Financial Reports#Financial Reports#pdf"
   )
 
-  def processDocuments(): Seq[Document] = {
+  private def processDocuments(): Seq[Document] = {
     def document2bsonDocument(document: String): Document = {
       val fields = Seq("_id", "name", "document_type", "file_extension").
         zip(document.replaceAll("\\s", " ").split("#")).toMap
@@ -146,12 +146,15 @@ object DocumentRecordsRedo extends App {
     documents.map(document2bsonDocument)
   }
 
-  val docRfiRequest: Document = Map("name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
+  private val docRfiRequest: Document = Map("name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
     "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d38"))
-  val docRfiResponse: Document = Map("name" -> "RFI-Response", "file_extension" -> ".txt", "description" -> "",
+  private val docRfiResponse: Document = Map("name" -> "RFI-Response", "file_extension" -> ".txt", "description" -> "",
     "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
+  private val docSubmittals: Document = Map("name" -> "Submittals", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "document_type" -> "text",
+    "_id" -> new ObjectId("572456d4d5d8ad25eb8943a2"))
 
 /*
   private val docOwnersProjectReport: Document = Map("name" -> "Owners Project Report", "file_extension" -> ".txt",
@@ -194,7 +197,7 @@ object DocumentRecordsRedo extends App {
 
   val allDocuments = Seq(/*docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
     docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
-    docBasementConstructionManagersReview,*/ docRfiRequest, docRfiResponse)  ++ processDrawings() ++ processDocuments()
+    docBasementConstructionManagersReview,*/ docRfiRequest, docRfiResponse, docSubmittals)  ++ processDrawings() ++ processDocuments()
   println(s"Original count: ${BWMongoDB3.document_master.count()}")
   BWMongoDB3.document_master.drop()
   println(s"After Drop count: ${BWMongoDB3.document_master.count()}")

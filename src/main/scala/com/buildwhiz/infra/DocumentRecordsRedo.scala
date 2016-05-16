@@ -156,9 +156,7 @@ object DocumentRecordsRedo extends App {
     "content_type" -> "application/octet-stream", "document_type" -> "text",
     "_id" -> new ObjectId("572456d4d5d8ad25eb8943a2"))
 
-  val allDocuments = Seq(/*docExcavationStakingComplete, docExcavationComplete, docExcavationCityReview,
-    docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
-    docBasementConstructionManagersReview,*/ docRfiRequest, docRfiResponse, docSubmittal)  ++ processDrawings() ++ processDocuments()
+  val allDocuments = Seq(docRfiRequest, docRfiResponse, docSubmittal)  ++ processDrawings() ++ processDocuments()
   println(s"Original count: ${BWMongoDB3.document_master.count()}")
   BWMongoDB3.document_master.drop()
   println(s"After Drop count: ${BWMongoDB3.document_master.count()}")

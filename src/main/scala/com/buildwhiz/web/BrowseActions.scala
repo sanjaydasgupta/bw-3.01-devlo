@@ -222,10 +222,10 @@ class BrowseActions extends HttpServlet with HttpUtils {
         case None => ""
       }
       writer.println(
-        s"""<table width="100%"><tr><td width="15%"> </td><td width="45%"> </td><td width="40%"> </td></tr>
+        s"""<table width="100%"><tr><td width="15%"> </td><td width="25%"> </td><td width="60%"> </td></tr>
            |<tr><td style="vertical-align: top;" width="15%">${peopleNames(personOid)}</td>
-           |<td style="vertical-align: top;" width="45%">$statusTableText</td>
-           |<td style="vertical-align: top;" width="40%">$actionPanelText</td></tr>""".stripMargin)
+           |<td style="vertical-align: top;" width="25%">$statusTableText</td>
+           |<td style="vertical-align: top;" width="60%">$actionPanelText</td></tr>""".stripMargin)
       writer.println("</table></body></html>")
       response.setContentType("text/html")
       response.setStatus(HttpServletResponse.SC_OK)

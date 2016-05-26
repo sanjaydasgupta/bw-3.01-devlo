@@ -135,14 +135,18 @@ buildWhizApp.controller('BuildWhizCtrl', ['$http', '$log', 'bwGlobals', function
   self.personRecordsRedo = function() {
     $log.log('Calling POST tools/MainProgramLauncher?program=PersonRecordsRedo')
     $http.post('tools/MainProgramLauncher?program=PersonRecordsRedo').then(
-      function(resp) {},
+      function(resp) {
+        $log.log("SUCCESS: personRecordsRedo()")
+      },
       function(errResponse) {alert(errResponse);}
     );
   }
   self.documentRecordsRedo = function() {
     $log.log('Calling POST tools/MainProgramLauncher?program=DocumentRecordsRedo')
     $http.post('tools/MainProgramLauncher?program=DocumentRecordsRedo').then(
-      function(resp) {},
+      function(resp) {
+        $log.log("SUCCESS: documentRecordsRedo()")
+      },
       function(errResponse) {alert(errResponse);}
     );
   }

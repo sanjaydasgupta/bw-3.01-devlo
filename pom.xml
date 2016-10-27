@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.buildwhiz.wfe.camunda</groupId>
-	<artifactId>buildwhiz</artifactId>
+	<artifactId>bw-responsive</artifactId>
 	<!--version>0.1.0-SNAPSHOT</version-->
 	<version>1.01</version>
 	<packaging>war</packaging>
@@ -127,7 +127,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<scalaVersion>2.11.6</scalaVersion>
+					<scalaVersion>2.11.8</scalaVersion>
 				</configuration>
 			</plugin>
 		</plugins>

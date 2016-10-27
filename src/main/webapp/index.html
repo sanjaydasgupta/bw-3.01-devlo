@@ -1,175 +1,83 @@
-﻿<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" data-ng-app="BuildWhizNgApp">
-<head>
-    <title id='ttlBuildWhizMain'>BuildWhiz</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!--  <link rel="icon" href="../../favicon.ico" />-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>BuildWhiz (index2.html)</title>
 
-    <!--BPMN-VIEWER Library-->
-    <!--script src="https://github.com/camunda/camunda-commons-ui/blob/master/lib/index.js" type="text/javascript"></script-->
-    <!--script src="http://camunda.github.io/camunda-commons-ui/lib/widgets/bpmn-viewer/test/cam-widget-bpmn-viewer.build.js" type="text/javascript"></script-->
+    <!-- Bootstrap -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <link href="css/site.css" rel="stylesheet">
 
-    <!--Jquery Library-->
-    <script src="Scripts/jquery-2.1.4.js" type="text/javascript"></script>
-
-    <!--Bootstrap Script-->
-    <script src="Scripts/bootstrap.js"></script>
-
-    <!--Angular Library Install-->    
-    <script src="Scripts/angular-1.2.10/angular.js"></script>
-
-    <!--Bootstrap Tooltip Install-->
-    <script src="Scripts/ui-bootstrap-tpls-0.11.0.js"></script>
-    
-    <!--angular-ui-tab-scroll Install-->
-    <script src="Scripts/angular-ui-tab-scroll.js"></script>     
-
-    <!--Angular route Install-->   
-    <script src="Scripts/angular-1.2.10/angular-route.js"></script>
-
-    <!--include.js-->
-    <script src="js/include.js"></script>
-
-    <!--Routing-->
-    <script src="js/module.js"></script>
-
-    <!--ngService-->
-    <script src="js/service.js"></script>
-    
-    <!--controller-->
-    <script src="js/controllerLogIn.js"></script>
-    <script src="js/controllerDashboard.js"></script>
-    <script src="js/controllerProject.js"></script>
-    <script src="js/controllerPhase.js"></script>
-    <script src="js/controllerProcess.js"></script>
-    <script src="js/controllerActivity.js"></script>
-    <script src="js/controllerAction.js"></script>
-    <script src="js/controllerMongodb.js"></script>
-    <script src="js/controllerUserProfile.js"></script>
-    <script src="js/controllerUserRoles.js"></script>
-    <script src="js/controllerBpmnViewer.js"></script>
-    <script src="js/controllerDocuments.js"></script>
-    <script src="js/controllerRFI.js"></script>
-    <script src="js/controllerAmazonS3.js"></script>
-
-    <!--Bootstrap Css Framework-->
-    <link href="css/bootstrap.css" rel="stylesheet" />
-    <!--Fontaswam Framework-->
-    <link href="css/font-awesome.css" rel="stylesheet" />
-    <!--Site.css-->
-    <link href="css/site.css" rel="stylesheet" />
-    <!--Sticky Footer-->
-    <link href="css/sticky-footer.css" rel="stylesheet" />
-
-     
-    
-
- 
-</head>
-<body onload="setBrowserTitle()">
-    <!--==============================================HEADER AREA START HERE====================================-->
-    <div class="header">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body data-ng-app="BuildWhizApp" data-ng-controller="MainController as mainCtrl">
+    <div class="navbar navbar-inverse navbar-static-top">
         <div class="container">
-            <div class="col-sm-8">
-                <a href="#" class="logo">
-                    <img src="css/images/logo.png" alt="Logo" /></a>
+            <a href="#" class="navbar-brand">BuildWhiz</a>
+            <button class="navbar-toggle" data-ng-click="mainCtrl.isNavCollapsed = !mainCtrl.isNavCollapsed">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <div class="collapse navbar-collapse" data-uib-collapse="mainCtrl.isNavCollapsed">
+                <ul class="nav navbar-nav navbar-right" data-ng-if="mainCtrl.loggedIn">
+                    <li class="active"><a href="#/" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-home"></span> Home</a></li>
+                    <li><a href="#/projects" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-briefcase"></span> Projects</a></li>
+                    <li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li>
+                    <li><a href="#/profile" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-user"></span> Profile</a></li>
+                    <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body>
+                        <a href="#" id="btn-append-to" data-uib-dropdown-toggle class="dropdown-toggle">
+                            Dropdown on Body <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" data-uib-dropdown-menu aria-labelledby="btn-append-to">
+                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Action</a></li>
+                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Another action</a></li>
+                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Something else here</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Separated link</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" data-ng-click="mainCtrl.logout()">
+                        <span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                </ul>
             </div>
-            
-            <div class="col-sm-4 text-center " id="divWelcomeMsg">
-
-                <div class="text-right">
-                    <!--p-->
-                       <label id="lblWelcomePerson" name="lblWelcomePerson"></label>
-                    <!--/p-->
-                </div>
-                <div class="">
-                    <ul class="listHeaderLink">
-                        <li><a href="#" class="link" onclick="btnDashboard()">Dashboard</a></li>
-                        <li><a href="#" class="link" onclick="btnLogOut()">Log Out</a></li>
-                    </ul>                    
-                </div>
-            </div>
-
-            <input type="hidden" id="hndLoggedInID" name="hndLoggedInID"  />
-            <input type="hidden" id="hndLoggedInFName" name="hndLoggedInFName" />
-            <input type="hidden" id="hndLoggedInLName" name="hndLoggedInLName" />
-
-            <input type="hidden" id="hndPersonID" name="hndPersonID" />
-            <input type="hidden" id="hndPersonFName" name="hndPersonFName" />
-            <input type="hidden" id="hndPersonLName" name="hndPersonLName" />
-
-            <input type="hidden" id="hdnLoggedInProjectManager" name="hdnLoggedInProjectManager" />
-            <input type="hidden" id="hdnLoggedInDemoManager" name="hdnLoggedInDemoManager" />
-            <input type="hidden" id="hndLoggedInAdministrator" name="hndLoggedInAdministrator" />
-
         </div>
     </div>
 
-   <!--==============================================HEADER AREA END HERE====================================-->
-    <!--==============================================MIDAREA CONTENT // VIEW START HERE====================================-->
-    <div ng-view></div>
-    <!--==============================================MIDAREA CONTENT // VIEW END HERE====================================-->
-     
-    <!--==============================================FOOTER AREA START HERE====================================-->
-    <footer class="footer">
-        <div class="container">
-            <p class="text-muted text-center">Copyright &#169; 2016 BuildWhiz</p>
+    <div data-ng-if="!mainCtrl.loggedIn">
+        <div class="sign-in-wrapper container">
+            <div class="sign-in-form">
+                <h3 data-ng-if="mainCtrl.tryAgain" class="sign-in-heading-warning">Error, Sign In Again!</h3>
+                <h3 data-ng-if="!mainCtrl.tryAgain" class="sign-in-heading">Sign In</h3>
+                <!--div class="sign-in-colorgraph"></div-->
+                <input type="text" class="sign-in-username" data-ng-model="mainCtrl.username" placeholder="email"
+                       required="required" autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
+                <input type="password" class="sign-in-password" data-ng-model="mainCtrl.password"
+                       placeholder="password" required="required" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
+                <a class="btn btn-xs btn-primary btn-block sign-in-button" data-ng-click="mainCtrl.login()" href="#">Login</a>
+            </div>
         </div>
-    </footer>
-    <!--==============================================FOOTER AREA END HERE====================================-->
+    </div>
 
-    <script type="text/javascript">
-       
-        $("#divWelcomeMsg").hide();
-        
-        if (document.getElementById("hndLoggedInID").value != "") {
-        
-            $("#divWelcomeMsg").show();
-            document.getElementById("lblWelcomePerson").innerHTML = "Welcome " + document.getElementById("hndLoggedInFName").value + " " + document.getElementById("hndLoggedInLName").value;
-        };
-       
-        //=====================redirect login page when logedInID blank.
-        if (document.getElementById('hndLoggedInID').value == "" && window.location.hash != "#!/login" ) {
-            //  window.location.href = "index.html";
-            window.location.hash = "#!/login";
-        }
+    <div data-ng-view data-ng-if="mainCtrl.loggedIn"></div>
 
-
-
-        function btnLogOut() {         
-            window.location.href = "index.html";
-        }
-
-        function btnDashboard() {
-            location.hash = "#!/dashboard";
-        }
-
-    </script>
-    <!--//for bootstrap tooltip call function-->
-    <script>
-        $(document).ready(function () {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-    </script>
-
-    <script>
-        
-        app.controller('tabs', ['$scope', '$timeout', function($scope, $timeout) {
-            $scope.tabs = [];
-            for(var i=0; i<25; i++) {
-                $scope.tabs.push({
-                    heading: 'Tab '+i,
-                    content: 'This is the content for tab '+(i+2)
-                });
-            }
-
-        }]);
-
-
-    </script>
-
-
-
-</body>
+    <script src="js/lib/angular.min.js"></script>
+    <script src="js/lib/angular-route.min.js"></script>
+    <script src="js/lib/ui-bootstrap-2.2.0.min.js"></script>
+    <script src="js/module.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/services.js"></script>
+  </body>
 </html>

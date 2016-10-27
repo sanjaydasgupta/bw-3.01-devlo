@@ -1,97 +1,13 @@
-﻿var app = angular.module('BuildWhizNgApp', ['ngRoute', 'ui.bootstrap', 'ui.tab.scroll']);
-//var app = angular.module('BuildWhizNgApp', ['cam.commons', 'ngRoute', 'ui.bootstrap', 'ui.tab.scroll']);
+angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
 
-
-
-app.config(function (scrollableTabsetConfigProvider) {
-
-    scrollableTabsetConfigProvider.setShowTooltips(true);
-    scrollableTabsetConfigProvider.setTooltipLeft('right');
-    scrollableTabsetConfigProvider.setTooltipRight('left');
-    scrollableTabsetConfigProvider.setScrollLeftIcon('glyphicon glyphicon-chevron-left');
-    scrollableTabsetConfigProvider.setScrollRightIcon('glyphicon glyphicon-chevron-right');
-
-});
-
-
-
-
-//app.controller('MainCtrl', function ($scope) { });
-app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
-    
-    $routeProvider 
-            .when('/login', {
-                templateUrl: 'logIn.html',
-                controller: 'BuildWhizNgAppLogInCtrl'
-            })
-            .when('/dashboard', {
-                templateUrl: 'dashboard.html',
-                controller: 'BuildWhizNgAppDashboardCtrl'
-            })
-            .when('/projects', {
-                templateUrl: 'project.html',
-                controller: 'BuildWhizNgAppProjectCtrl'
-                })
-            .when('/mongodb', {
-                templateUrl: 'mongodb.html',
-                controller: 'BuildWhizNgAppMongodbCtrl'
-                })
-            .when('/bpmnViewer', {
-                templateUrl: 'bpmnViewer.html',
-                controller: 'BpmnViewerCtrl'
-                })
-            .when('/userProfile', {
-                templateUrl: 'userProfile.html',
-                controller: 'UserProfileCtrl'
-                })
-            .when('/userRoles', {
-                templateUrl: 'userRoles.html',
-                controller: 'UserRolesCtrl'
-                })
-            .when('/documents', {
-                templateUrl: 'documents.html',
-                controller: 'DocumentsCtrl'
-                })
-            .when('/rfi', {
-                templateUrl: 'rfi.html',
-                controller: 'RFICtrl'
-                })
-            .when('/amazonS3', {
-                templateUrl: 'amazonS3.html',
-                controller: 'AmazonS3Ctrl'
-                })
-            .otherwise({
-                redirectTo: '/login'
-            });
-
-
-
-    $locationProvider.html5Mode(false).hashPrefix('!'); // This is for Hashbang Mode
-
-}]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.config(['$routeProvider', function($routeProvider) {
+    $routeProvider.when('/', {
+        template: '<h2>Home Route</h2>'
+    }).when('/projects', {
+        template: '<h2>Projects Route</h2>'
+    }).when('/rfi', {
+        template: '<h2>RFI Route</h2>'
+    }).when('/profile', {
+        template: '<h2>Profile Route</h2>'
+    }).otherwise({redirectTo: '/'})
+}])

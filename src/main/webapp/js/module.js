@@ -7,7 +7,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
         template: '<h2>Projects Route</h2>'
     }).when('/rfi', {
         template: '<h2>RFI Route</h2>'
-    }).when('/profile', {
-        template: '<h2>Profile Route</h2>'
+    }).when('/userProfile', {
+        templateUrl: 'html/userProfile.html',
+        controller: 'UserProfileCtrl as profileCtrl'
     }).otherwise({redirectTo: '/'})
 }])

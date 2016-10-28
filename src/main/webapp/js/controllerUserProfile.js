@@ -1,4 +1,6 @@
-﻿app.controller("UserProfileCtrl", function ($scope, $log, $http) {
+﻿angular.module('BuildWhizApp')
+
+.controller("UserProfileCtrl", ['$log', '$http', 'AuthenticationService', function ($log, $http, AuthService) {
 
     var self = this;
 
@@ -7,7 +9,7 @@
     }
 
     self.userPasswordSet = function() {
-        var sPersonID = document.getElementById("hndPersonID").value;
+        var sPersonID = AuthService.data._id;
         var query = '?old_password=' + self.oldPassword + '&new_password=' + self.newPassword + '&person_id=' + sPersonID;
         $log.log('Calling /baf/UserPasswordSet' + query);
         $http.post('baf/UserPasswordSet' + query).then(
@@ -25,4 +27,4 @@
         )
     }
 
-});
+}]);

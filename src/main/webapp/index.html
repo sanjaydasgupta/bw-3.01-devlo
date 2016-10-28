@@ -21,7 +21,7 @@
   <body data-ng-app="BuildWhizApp" data-ng-controller="MainController as mainCtrl">
     <div class="navbar navbar-inverse navbar-static-top">
         <div class="container">
-            <a href="#" class="navbar-brand">BuildWhiz</a>
+            <a href="#" class="navbar-brand">BuildWhiz {{mainCtrl.fullName}}</a>
             <button class="navbar-toggle" data-ng-click="mainCtrl.isNavCollapsed = !mainCtrl.isNavCollapsed">
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -35,7 +35,7 @@
                         <span class="glyphicon glyphicon-briefcase"></span> Projects</a></li>
                     <li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li>
-                    <li><a href="#/profile" data-ng-click="mainCtrl.clickCommon()">
+                    <li><a href="#/userProfile" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-user"></span> Profile</a></li>
                     <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body>
                         <a href="#" id="btn-append-to" data-uib-dropdown-toggle class="dropdown-toggle">
@@ -77,7 +77,8 @@
     <script src="js/lib/angular-route.min.js"></script>
     <script src="js/lib/ui-bootstrap-2.2.0.min.js"></script>
     <script src="js/module.js"></script>
-    <script src="js/controllers.js"></script>
-    <script src="js/services.js"></script>
+    <script src="js/controllerMain.js"></script>
+    <script src="js/controllerUserProfile.js"></script>
+    <script src="js/serviceAuthentication.js"></script>
   </body>
 </html>

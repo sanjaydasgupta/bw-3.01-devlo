@@ -10,5 +10,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/userProfile', {
         templateUrl: 'html/userProfile.html',
         controller: 'UserProfileCtrl as profileCtrl'
+    }).when('/mongodb', {
+        templateUrl: 'html/mongodb.html',
+        controller: 'MongodbCtrl as mongoCtrl'
     }).otherwise({redirectTo: '/'})
 }])

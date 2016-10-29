@@ -39,10 +39,11 @@
                         <span class="glyphicon glyphicon-user"></span> Profile</a></li>
                     <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body>
                         <a href="#" id="btn-append-to" data-uib-dropdown-toggle class="dropdown-toggle">
-                            Dropdown on Body <span class="caret"></span>
+                            Admin <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" data-uib-dropdown-menu aria-labelledby="btn-append-to">
-                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Action</a></li>
+                            <li><a href="#/mongodb" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-cd"></span> MongoDB</a></li>
                             <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Another action</a></li>
                             <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Something else here</a></li>
                             <li class="divider"></li>
@@ -79,6 +80,7 @@
     <script src="js/module.js"></script>
     <script src="js/controllerMain.js"></script>
     <script src="js/controllerUserProfile.js"></script>
+    <script src="js/controllerMongodb.js"></script>
     <script src="js/serviceAuthentication.js"></script>
   </body>
 </html>

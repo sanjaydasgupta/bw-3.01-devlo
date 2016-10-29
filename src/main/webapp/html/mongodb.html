@@ -1,0 +1,25 @@
+<div class="container">
+    <h3 style="text-align:center; font-size: large; margin-top: 0px">User Profile</h3>
+    <table>
+        <tr>
+            <td style="vertical-align: top; padding-right: 5px;" width="15%">
+                <table class="table table-condensed table-bordered table-hover">
+                    <tr><th class="bg-primary text-center">Collections</th></tr>
+                    <tr data-ng-repeat="collection in mongoCtrl.collections">
+                        <td data-ng-click="mongoCtrl.displayCollection(collection.name)" class="cursor: pointer;">
+                            <a href="javascript:void(0);">{{collection.name}}</a> <span class="badge">{{collection.count}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="vertical-align: top;" width="85%">
+                <table class="table table-condensed table-bordered" data-ng-if="mongoCtrl.details.length > 0">
+                    <tr><th class="bg-primary text-center">{{mongoCtrl.name}}</th></tr>
+                    <tr data-ng-repeat="detail in mongoCtrl.details">
+                        <td>{{detail}}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--//===============================container============================-->

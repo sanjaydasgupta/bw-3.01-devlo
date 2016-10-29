@@ -22,4 +22,8 @@ angular.module('BuildWhizApp')
   self.clickCommon = function() {
     self.isNavCollapsed = !self.isNavCollapsed;
   }
+
+  self.isAdmin = function() {
+    return self.data.omniclass34roles.join(',').indexOf('BW-Admin') != -1;
+  }
 }]);

@@ -44,6 +44,7 @@ angular.module('BuildWhizApp')
       this.data = null;
       client.loggedIn = false;
       client.fullName = '';
+      client.password = '';
       //$log.log('AuthService.loggedIn: ' + this.loggedIn)
     }
   };

@@ -31,6 +31,8 @@
                 <ul class="nav navbar-nav navbar-right" data-ng-if="mainCtrl.loggedIn">
                     <li class="active"><a href="#/" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-home"></span> Home</a></li>
+                    <li><a href="#/tasks" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-cog"></span> Tasks</a></li>
                     <li><a href="#/projects" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-briefcase"></span> Projects</a></li>
                     <li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
@@ -81,6 +83,8 @@
     <script src="js/controllerMain.js"></script>
     <script src="js/controllerUserProfile.js"></script>
     <script src="js/controllerMongodb.js"></script>
+    <script src="js/controllerTasks.js"></script>
+    <script src="js/controllerProjects.js"></script>
     <script src="js/serviceAuthentication.js"></script>
   </body>
 </html>

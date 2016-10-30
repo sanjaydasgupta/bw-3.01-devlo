@@ -1,0 +1,12 @@
+<div class="container">
+    <h3 style="text-align:center; font-size: large; margin-top: 0px">Tasks</h3>
+
+    <div data-ng-repeat="tasks in tasksCtrl.taskList">
+
+    </div>
+
+    <div data-ng-if="tasksCtrl.taskList.length == 0" style="text-align:center; font-size: large; color: red">
+        No Tasks Found
+    </div>
+
+</div>

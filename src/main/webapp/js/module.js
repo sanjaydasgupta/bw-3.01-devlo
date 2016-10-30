@@ -4,7 +4,11 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     $routeProvider.when('/', {
         template: '<h2>Home Route</h2>'
     }).when('/projects', {
-        template: '<h2>Projects Route</h2>'
+        templateUrl: 'html/projects.html',
+        controller: 'ProjectsCtrl as projectsCtrl'
+    }).when('/tasks', {
+        templateUrl: 'html/tasks.html',
+        controller: 'TasksCtrl as tasksCtrl'
     }).when('/rfi', {
         template: '<h2>RFI Route</h2>'
     }).when('/userProfile', {

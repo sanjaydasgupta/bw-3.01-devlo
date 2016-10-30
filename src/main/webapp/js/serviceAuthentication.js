@@ -18,7 +18,7 @@ angular.module('BuildWhizApp')
             client.data = response.data;
             client.loggedIn = true;
             client.tryAgain = false;
-            client.fullName = '(' + self.data.first_name + ' ' + self.data.last_name + ')';
+            client.navbarTitle = self.data.first_name + ' ' + self.data.last_name;
           } else {
             $log.log('AuthenticationService: FAILURE');
             self.loggedIn = false;
@@ -43,7 +43,7 @@ angular.module('BuildWhizApp')
       this.loggedIn = false;
       this.data = null;
       client.loggedIn = false;
-      client.fullName = '';
+      client.navbarTitle = 'BuildWhiz';
       client.password = '';
       //$log.log('AuthService.loggedIn: ' + this.loggedIn)
     }

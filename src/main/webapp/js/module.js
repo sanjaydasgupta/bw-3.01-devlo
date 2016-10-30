@@ -2,7 +2,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
 
 .config(['$routeProvider', function($routeProvider) {
     $routeProvider.when('/', {
-        template: '<h2>Home Route</h2>'
+        templateUrl: 'html/home.html',
+        controller: 'HomeCtrl as homeCtrl'
     }).when('/projects', {
         templateUrl: 'html/projects.html',
         controller: 'ProjectsCtrl as projectsCtrl'

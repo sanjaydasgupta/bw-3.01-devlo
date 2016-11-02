@@ -55,6 +55,10 @@
                     <li><a href="#" data-ng-click="mainCtrl.logout()">
                         <span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
                 </ul>
+                <ul class="nav navbar-nav navbar-right" data-ng-if="!mainCtrl.loggedIn">
+                    <li><a href="old" target="_blank">
+                        <span class="glyphicon glyphicon-share-alt"></span> Legacy</a></li>
+                </ul>
             </div>
         </div>
     </div>
@@ -62,8 +66,9 @@
     <div data-ng-if="!mainCtrl.loggedIn">
         <div class="sign-in-wrapper container">
             <div class="sign-in-form">
-                <h3 data-ng-if="mainCtrl.tryAgain" class="sign-in-heading-warning">Error, Sign In Again!</h3>
-                <h3 data-ng-if="!mainCtrl.tryAgain" class="sign-in-heading">Sign In</h3>
+                <h3 data-ng-if="mainCtrl.tryAgain" class="sign-in-message"
+                    style="color: white; background-color: red;">Sign-in error. Try again!</h3>
+                <h3 data-ng-if="!mainCtrl.tryAgain" class="sign-in-message">Sign-In</h3>
                 <!--div class="sign-in-colorgraph"></div-->
                 <input type="text" class="sign-in-username" data-ng-model="mainCtrl.username" placeholder="email"
                        required="required" autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />

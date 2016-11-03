@@ -22,9 +22,9 @@
   }
 
   self.fetchActions = function() {
-    query = 'person_id=' + AuthService.data._id;
-    $log.log('HomeCtrl: GET baf/OwnedActionsAll?' + query);
-    $http.get('baf/OwnedActionsAll?' + query).then(
+    query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id;
+    $log.log('HomeCtrl: GET ' + query);
+    $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
         $log.log('OK-HomeCtrl: got ' + self.taskList.length + ' objects');

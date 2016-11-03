@@ -1,17 +1,40 @@
 <div class="panel panel-primary">
-  <div class="panel-heading">Tasks</div>
+  <div class="panel-heading">
+    Tasks
+    <span data-ng-if="tasksCtrl.taskSelected">
+      <span style="font-weight:bold;">{{tasksCtrl.selectedTask.name}}</span>
+      [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()" style="color:white;">Back</a>]
+    </span>
+
+    <div class="pull-right" data-ng-if="!tasksCtrl.taskSelected">
+      <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+        <button id="btn-append-to" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+          Select <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-append-to"
+            style="min-width:50px">
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Active</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Week</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Month</a></li>
+          <li class="divider"></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">All</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <div data-ng-switch="tasksCtrl.taskSelected" class="panel-body fixed-panel scroll-panel">
     <div data-ng-switch-when="false" data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid skyblue; margin-bottom:5px;">
       <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
-        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">{{task.name}}</a>
+        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">{{task.name}} ({{task.status}})</a>
       </h4>
-      <p>{{task.description}}</p>
+      <p style="margin-bottom:0px">{{task.activity_description}}</p>
     </div>
 
     <div data-ng-switch-when="true">
-      <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
+      <!--h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
         {{tasksCtrl.selectedTask.name}} [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()">Back</a>]
-      </h4>
+      </h4-->
 
     </div>
 

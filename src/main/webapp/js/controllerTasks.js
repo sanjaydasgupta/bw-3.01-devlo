@@ -5,6 +5,21 @@
   var self = this;
 
   self.taskList = [];
+  self.selectedTask = null;
+  self.taskSelected = false;
+
+  self.select = function(task) {
+    if (task) {
+      self.selectedTask = task;
+      self.taskSelected = true;
+      var message = 'Task ' + task.name + ' (activity: ' + task.activity_id + ') selected'
+      $log.log(message)
+    } else {
+      self.selectedTask = null;
+      self.taskSelected = false;
+    }
+    //return void(0);
+  }
 
   self.fetchActions = function() {
     query = 'person_id=' + AuthService.data._id;

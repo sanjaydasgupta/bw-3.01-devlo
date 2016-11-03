@@ -1,16 +1,18 @@
 <div class="panel panel-primary">
   <div class="panel-heading">Tasks</div>
-  <div class="panel-body fixed-panel scroll-panel">
-    <!--div data-ng-repeat="task in tasksCtrl.taskList" class="jumbotron" style="padding: 5px"-->
-    <div data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid skyblue; margin-bottom:5px;">
+  <div data-ng-switch="tasksCtrl.taskSelected" class="panel-body fixed-panel scroll-panel">
+    <div data-ng-switch-when="false" data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid skyblue; margin-bottom:5px;">
       <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
-        <a href="javascript:void(0)" data-ng-click="alert('{{task.name}}')">{{task.name}}</a>
+        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">{{task.name}}</a>
       </h4>
-      <p>Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid.
-        3 wolf moon officia aute, non cupidatat skateboard dolor brunch.
-        Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor,
-        sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et.
-      </p>
+      <p>{{task.description}}</p>
+    </div>
+
+    <div data-ng-switch-when="true">
+      <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
+        {{tasksCtrl.selectedTask.name}} [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()">Back</a>]
+      </h4>
+
     </div>
 
     <div data-ng-if="tasksCtrl.taskList.length == 0" style="text-align:center; font-size: large; color: blue">

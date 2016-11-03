@@ -5,6 +5,7 @@ angular.module('BuildWhizApp')
     loggedIn: false,
     tryAgain: false,
     data: null,
+    loginClient: null,
     login: function(email, password, client) {
       var self = this;
       var url = 'baf/LoginPost?email=' + email + '&password=' + password;
@@ -18,7 +19,8 @@ angular.module('BuildWhizApp')
             client.data = response.data;
             client.loggedIn = true;
             client.tryAgain = false;
-            client.navbarTitle = self.data.first_name + ' ' + self.data.last_name;
+            client.password = '';
+            loginClient = client;
           } else {
             $log.log('AuthenticationService: FAILURE');
             self.loggedIn = false;
@@ -37,15 +39,12 @@ angular.module('BuildWhizApp')
       )
     },
 
-    logout: function(client) {
-      $log.log('Calling logout()')
-      //$log.log('AuthService.loggedIn: ' + this.loggedIn)
+    logout: function() {
+      $log.log('AuthService logout()')
       this.loggedIn = false;
       this.data = null;
-      client.loggedIn = false;
-      client.navbarTitle = 'BuildWhiz';
-      client.password = '';
-      //$log.log('AuthService.loggedIn: ' + this.loggedIn)
+      loginClient.loggedIn = false;
+      loginClient.data = null;
     }
   };
 }]);

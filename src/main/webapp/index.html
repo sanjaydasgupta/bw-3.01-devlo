@@ -19,9 +19,9 @@
     <!--[endif]-->
   </head>
   <body data-ng-app="BuildWhizApp" data-ng-controller="MainController as mainCtrl">
-  <div class="navbar navbar-inverse navbar-static-top" style="font-size: 14px;">
+  <div class="navbar navbar-inverse navbar-static-top" style="font-size:14px; margin-bottom:3px;">
         <div class="container">
-            <a href="#" class="navbar-brand" style="font-size: 14px;">{{mainCtrl.navbarTitle}}</a>
+            <a href="#" class="navbar-brand" style="font-size: 14px;">BuildWhiz</a>
             <button class="navbar-toggle" data-ng-click="mainCtrl.isNavCollapsed = !mainCtrl.isNavCollapsed">
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -35,8 +35,8 @@
                         <span class="glyphicon glyphicon-cog"></span> Tasks</a></li>
                     <li><a href="#/projects" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-briefcase"></span> Projects</a></li>
-                    <li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li>
+                    <!--li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li-->
                     <li><a href="#/userProfile" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-user"></span> Profile</a></li>
                     <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body data-ng-if="mainCtrl.isAdmin()">

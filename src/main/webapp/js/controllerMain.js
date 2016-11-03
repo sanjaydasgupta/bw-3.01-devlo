@@ -6,7 +6,6 @@ angular.module('BuildWhizApp')
   self.isNavCollapsed = true;
   self.loggedIn = false;
   self.tryAgain = false;
-  self.navbarTitle = 'BuildWhiz';
 
   self.login = function() {
     AuthService.login(self.username, self.password, self);

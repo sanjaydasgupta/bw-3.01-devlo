@@ -1,12 +1,43 @@
-<div class="container">
-  <h2 style="text-align:center; font-size: large; margin-top: 0px">Projects</h2>
+<div class="panel panel-primary">
+  <div class="panel-heading">
+    Projects
+    <span data-ng-if="projectsCtrl.projectSelected">
+      <span style="font-weight:bold;">{{projectsCtrl.selectedProject.name}}</span>
+      [<a href="javascript:void(0);" data-ng-click="projectsCtrl.select()" style="color:white;">Back</a>]
+    </span>
 
-  <div data-ng-repeat="project in projectsCtrl.projectList" class="jumbotron">
-    {{project.name}}
+    <div class="pull-right" data-ng-if="!projectsCtrl.projectSelected">
+      <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+        <button id="btn-append-to" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+          Select <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-append-to"
+            style="min-width:50px">
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Active</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Week</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Month</a></li>
+          <li class="divider"></li>
+          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">All</a></li>
+        </ul>
+      </div>
+    </div>
   </div>
 
-  <div data-ng-if="projectsCtrl.projectList.length == 0" style="text-align:center; font-size: large; color: blue">
-      No projects at this time
-  </div>
+  <div data-ng-switch="projectsCtrl.projectSelected" class="panel-body fixed-panel scroll-panel">
+    <div data-ng-switch-when="false" data-ng-repeat="project in projectsCtrl.projectList" style="padding: 5px; border: 2px solid skyblue; margin-bottom:5px;">
+      <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
+        <a href="javascript:void(0);" data-ng-click="projectsCtrl.select(project)">{{project.name}} ({{project.status}})</a>
+      </h4>
+      <p style="margin-bottom:0px">{{project.description}}</p>
+    </div>
 
+    <div data-ng-switch-when="true">
+
+    </div>
+
+    <div data-ng-if="projectsCtrl.projectList.length == 0" style="text-align:center; font-size: large; color: blue">
+      There are no projects at this time
+    </div>
+  </div>
 </div>
+

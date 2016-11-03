@@ -8,12 +8,12 @@
   self.projectList = [];
 
   self.fetchActions = function() {
-    query = 'person_id=' + AuthService.data._id;
-    $log.log('HomeCtrl: GET baf/OwnedActionsAll?' + query);
-    $http.get('baf/OwnedActionsAll?' + query).then(
+    query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id;
+    $log.log('HomeCtrl: GET ' + query);
+    $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
-        $log.log('OK-HomeCtrl-fetchActions: got ' + self.taskList.length + ' objects');
+        $log.log('OK-HomeCtrl: got ' + self.taskList.length + ' objects');
       },
       function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
     );
@@ -21,7 +21,7 @@
 
   self.fetchProjects = function() {
     query = 'person_id=' + AuthService.data._id;
-    $log.log('ProjectsCtrl: GET baf/OwnedProjects?' + query);
+    $log.log('HomeCtrl: GET baf/OwnedProjects?' + query);
     $http.get('baf/OwnedProjects?' + query).then(
       function(resp) {
         self.projectList = resp.data;
@@ -30,6 +30,12 @@
       function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
     );
   }
+
+  self.logout = function() {
+    AuthService.logout();
+  }
+
+  self.fullName = AuthService.data.first_name + ' ' + AuthService.data.last_name;
 
   self.fetchProjects();
   self.fetchActions();

@@ -12,24 +12,23 @@
     if (task) {
       self.selectedTask = task;
       self.taskSelected = true;
-      var message = 'Task ' + task.name + ' (activity: ' + task.activity_id + ') selected'
+      var message = 'TasksCtrl: selected ' + task.name + ' (activity: ' + task.activity_id + ') selected';
       $log.log(message)
     } else {
       self.selectedTask = null;
       self.taskSelected = false;
     }
-    //return void(0);
   }
 
   self.fetchActions = function() {
     query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id;
-    $log.log('HomeCtrl: GET ' + query);
+    $log.log('TasksCtrl: GET ' + query);
     $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
-        $log.log('OK-HomeCtrl: got ' + self.taskList.length + ' objects');
+        $log.log('OK-TasksCtrl: got ' + self.taskList.length + ' objects');
       },
-      function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
+      function(errResponse) {alert("TasksCtrl: ERROR(collection-details): " + errResponse);}
     );
   }
 

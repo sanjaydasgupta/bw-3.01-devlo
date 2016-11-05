@@ -1,8 +1,9 @@
-.scroll-panel {
+/*.scroll-panel {
   min-height: 490px;
   max-height: 490px;
-  overflow-y: scroll;
-}
+  height: 490px;
+  //overflow-y: scroll;
+}*/
 
 .sign-in-message
 {

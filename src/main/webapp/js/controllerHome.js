@@ -7,8 +7,9 @@
   self.taskList = [];
   self.projectList = [];
 
-  self.fetchActions = function() {
-    query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id;
+  self.fetchActions = function(filter) {
+    var filterKey = filter ? filter : 'all';
+    var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filter;
     $log.log('HomeCtrl: GET ' + query);
     $http.get(query).then(
       function(resp) {

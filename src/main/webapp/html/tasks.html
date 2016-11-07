@@ -14,11 +14,15 @@
         </button>
         <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-append-to"
             style="min-width:50px">
-          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Active</a></li>
-          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Week</a></li>
-          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">Month</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)"
+              data-ng-click="tasksCtrl.fetchActions('active')" style="padding:3px;">Active</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)"
+              data-ng-click="tasksCtrl.fetchActions('week')" style="padding:3px;">Week</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)"
+              data-ng-click="tasksCtrl.fetchActions('month')" style="padding:3px;">Month</a></li>
           <li class="divider" style="margin:1px;"></li>
-          <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;">All</a></li>
+          <li class="dropdown-item"><a href="javascript:void(0)"
+              data-ng-click="tasksCtrl.fetchActions('all')" style="padding:3px;">All</a></li>
         </ul>
       </div>
     </div>

@@ -34,6 +34,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
+      val filterKey = parameters("filter_key")
       val projectOids: ObjectIdList = BWMongoDB3.persons.find(Map("_id" -> personOid)).head.y.project_ids[ObjectIdList]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).toSeq
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
@@ -47,7 +48,12 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
           for (activity <- activities) {
             val actions: Seq[DynDoc] = activity.actions[DocumentList]
             val relevantActions = actions.filter(action => action.assignee_person_id[ObjectId] == personOid)
-            allActions ++= relevantActions.map(a => copyParentReferences(a, project, phase, activity))
+            val filteredActions = relevantActions.filter(action => filterKey match {
+              case "active" => action.status[String] == "waiting"
+              case "all" => true
+              case _ => true // placeholder, to be changed later
+            })
+            allActions ++= filteredActions.map(a => copyParentReferences(a, project, phase, activity))
           }
         }
       }

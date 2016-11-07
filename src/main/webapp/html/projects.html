@@ -24,7 +24,7 @@
   </div>
 
   <div data-ng-switch="projectsCtrl.projectSelected" class="panel-body fixed-panel" style="padding:5px">
-    <div data-ng-switch-when="false" data-ng-repeat="project in projectsCtrl.projectList" style="padding: 5px; border: 2px solid skyblue; margin-bottom:5px;">
+    <div data-ng-switch-when="false" data-ng-repeat="project in projectsCtrl.projectList" style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px;">
       <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
         <a href="javascript:void(0);" data-ng-click="projectsCtrl.select(project)">{{project.name}} ({{project.status}})</a>
       </h4>

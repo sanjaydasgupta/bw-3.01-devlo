@@ -1,9 +1,10 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    Tasks
+    Tasks (Ver-2)
     <span data-ng-if="tasksCtrl.taskSelected">
       <span style="font-weight:bold;">{{tasksCtrl.selectedTask.name}}</span>
-      [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()" style="color:white;">Back</a>]
+      [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()"
+          style="color:white;"><span class="glyphicon glyphicon-backward"></span> Back</a>]
     </span>
 
     <div class="pull-right" data-ng-if="!tasksCtrl.taskSelected">
@@ -31,14 +32,14 @@
       <p style="margin-bottom:0px">{{task.activity_description}}</p>
     </div>
 
-    <div data-ng-switch-when="true" style="width:100%;">
+    <div data-ng-switch-when="true">
+      <uib-accordion style="width:100%;">
 
-      <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
-        <tr><td style="width:100%; text-align:center; background-color:#337ab7; color:white; height:10px">
-          Reference documents
-        </td></tr>
-        <tr><td style="width:100%;">
-          <div style="height:60px; max-height:60px; min-height:60px; overflow:auto; vertical-align:top; background-color:#ddddff;">
+        <div uib-accordion-group>
+          <uib-accordion-heading>
+            <button class="button btn-default btn-xs" style="width:100%;">Reference documents</button>
+          </uib-accordion-heading>
+          <div style="border:3px solid #337ab7; height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
             file-1<br/>
             file-2<br/>
             file-3<br/>
@@ -47,64 +48,74 @@
             file-6<br/>
             file-n
           </div>
-        </td></tr>
-      </table>
+        </div>
 
-      <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
-        <tr><td style="width:100%; text-align:center; background-color:#337ab7; height:10px; color:white;">
-          Uploaded documents
-        </td></tr>
-        <tr><td style="width:100%;">
-          <div style="height:50px; max-height:50px; min-height:50px; overflow:auto; vertical-align:top; background-color:#ddddff;">
-            file-10<br/>
-            file-20<br/>
-            file-30<br/>
-            file-40<br/>
-            file-50<br/>
-            file-60<br/>
-            file-n
-          </div>
-        </td></tr>
-        <tr><td style="width:100%;">
-          <button class="button btn-warning btn-xs center-block" style="margin-top:3px; margin-bottom:3px;">Upload file</button>
-        </td></tr>
-      </table>
+        <div uib-accordion-group>
+          <uib-accordion-heading>
+            <button class="button btn-default btn-xs" style="width:100%;">Uploaded documents</button>
+          </uib-accordion-heading>
+          <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
+            <tr><td style="width:100%;">
+              <div style="height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
+                file-10<br/>
+                file-20<br/>
+                file-30<br/>
+                file-40<br/>
+                file-50<br/>
+                file-60<br/>
+                file-n
+              </div>
+            </td></tr>
+            <tr><td style="width:100%;">
+              <hr style="background-color:#337ab7; height:2px; margin-top:0px; margin-bottom:3px;"/>
+              <button class="button btn-warning btn-xs center-block" style="margin-top:3px; margin-bottom:3px;">Upload file</button>
+            </td></tr>
+          </table>
+        </div>
 
-      <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
-        <tr><td colspan="2" style="width:100%; text-align:center; background-color:#337ab7; height:10px; color:white;">
-          RFI
-        </td></tr>
-        <tr><td colspan="2" style="width:100%">
-          <div style="width:100%; height:50px; max-height:50px; min-height:50px; overflow:auto; vertical-align:top; background-color:#ddddff;">
-            bla bla 1<hr/>
-            bla bla 2<hr/>
-            bla bla 3<hr/>
-            bla bla 4<hr/>
-            bla bla 5
-          </div>
-        </td></tr>
-        <tr style="width:100%;">
-          <td style="width:80%;">
-            <textarea style="width:100%; margin:3px;"></textarea>
-          </td>
-          <td style="width:20%;">
-            <button class="button btn-warning btn-xs center-block">Send</button>
-          </td>
-        </tr>
-      </table>
+        <div uib-accordion-group>
+          <uib-accordion-heading>
+            <button class="button btn-default btn-xs" style="width:100%;">RFI</button>
+          </uib-accordion-heading>
+          <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
+            <tr><td colspan="2" style="width:100%">
+              <div style="width:100%; height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
+                bla bla 1<hr/>
+                bla bla 2<hr/>
+                bla bla 3<hr/>
+                bla bla 4<hr/>
+                bla bla 5
+              </div>
+            </td></tr>
+            <tr><td colspan="2">
+              <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
+            </td></tr>
+            <tr style="width:100%;">
+              <td style="width:80%;">
+                <textarea style="width:100%; margin:3px;"></textarea>
+              </td>
+              <td style="width:20%;">
+                <button class="button btn-warning btn-xs center-block">Send</button>
+              </td>
+            </tr>
+          </table>
+        </div>
 
-      <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
-        <tr><td style="width:100%; text-align:center; background-color:#337ab7; height:10px; color:white;">
-          Task-completion & remarks
-        </td></tr>
-        <tr><td style="width:100%; vertical-align:top;">
-          <textarea style="width:98%; height:50px; margin-top:3px;"></textarea>
-        </td></tr>
-        <tr><td style="width:100%;">
-          <button class="button btn-danger btn-xs center-block" style="margin-bottom:3px;">Task Complete</button>
-        </td></tr>
-      </table>
+        <div uib-accordion-group>
+          <uib-accordion-heading>
+            <button class="button btn-default btn-xs" style="width:100%;">Task-completion & remarks</button>
+          </uib-accordion-heading>
+          <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
+            <tr><td style="width:100%; vertical-align:top;">
+              <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;"></textarea>
+            </td></tr>
+            <tr><td style="width:100%;">
+              <button class="button btn-danger btn-xs center-block" style="margin-bottom:3px; margin-top:3px;">Task Complete</button>
+            </td></tr>
+          </table>
+        </div>
 
+      </uib-accordion>
     </div>
 
   </div>

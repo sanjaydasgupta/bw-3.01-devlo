@@ -1,6 +1,6 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    Tasks (Ver-2)
+    Tasks
     <span data-ng-if="tasksCtrl.taskSelected">
       <span style="font-weight:bold;">{{tasksCtrl.selectedTask.name}}</span>
       [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()"
@@ -70,7 +70,7 @@
                 file-n
               </div>
             </td></tr>
-            <tr><td style="width:100%;">
+            <tr data-ng-if="tasksCtrl.selectedTask.status == 'waiting'"><td style="width:100%;">
               <hr style="background-color:#337ab7; height:2px; margin-top:0px; margin-bottom:3px;"/>
               <button class="button btn-warning btn-xs center-block" style="margin-top:3px; margin-bottom:3px;">Upload file</button>
             </td></tr>
@@ -91,10 +91,10 @@
                 bla bla 5
               </div>
             </td></tr>
-            <tr><td colspan="2">
+            <tr data-ng-if="tasksCtrl.selectedTask.status == 'waiting'"><td colspan="2">
               <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
             </td></tr>
-            <tr style="width:100%;">
+            <tr style="width:100%;" data-ng-if="tasksCtrl.selectedTask.status == 'waiting'">
               <td style="width:80%;">
                 <textarea style="width:100%; margin:3px;"></textarea>
               </td>
@@ -105,7 +105,7 @@
           </table>
         </div>
 
-        <div uib-accordion-group>
+        <div uib-accordion-group data-ng-if="tasksCtrl.selectedTask.status == 'waiting'">
           <uib-accordion-heading>
             <button class="button btn-default btn-xs" style="width:100%;">Progress Report</button>
           </uib-accordion-heading>
@@ -147,10 +147,18 @@
           </uib-accordion-heading>
           <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
             <tr><td style="width:100%; vertical-align:top;">
-              <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;"></textarea>
+              <textarea class="center-block" style="width:98%; height:100px; margin:3px;"></textarea>
             </td></tr>
-            <tr><td style="width:100%;">
-              <button class="button btn-danger btn-xs center-block" style="margin-bottom:3px; margin-top:3px;">Task Complete</button>
+            <tr data-ng-if="tasksCtrl.selectedTask.status == 'waiting'"><td style="width:100%;">
+              <button data-ng-if="!tasksCtrl.confirmingCompletion" class="button btn-warning btn-xs center-block"
+                  style="margin-bottom:3px;" data-ng-click="tasksCtrl.confirmingCompletion = true;">
+                Complete Task</button>
+              <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-danger btn-xs pull-right"
+                  style="margin-bottom:3px; margin-right:3px;" data-ng-click="tasksCtrl.confirmingCompletion = false;">
+                Confirm</button>
+              <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-success btn-xs pull-left"
+                      style="margin-bottom:3px; margin-left:3px;" data-ng-click="tasksCtrl.confirmingCompletion = false;">
+                Reset</button>
             </td></tr>
           </table>
         </div>

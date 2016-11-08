@@ -7,6 +7,7 @@
   self.taskList = [];
   self.selectedTask = null;
   self.taskSelected = false;
+  self.confirmingCompletion = false;
 
   self.select = function(task) {
     if (task) {

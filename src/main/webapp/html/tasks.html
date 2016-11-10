@@ -134,10 +134,16 @@
               <td colspan="2" style="width:100%;">
                 <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
                 <button class="button btn-info btn-xs pull-left" style="margin:3px;">Attach</button>
-                <button class="button btn-info btn-xs pull-left" style="margin:3px;">Click</button>
+                <button class="button btn-info btn-xs pull-left" style="margin:3px;"
+                    data-ng-click="tasksCtrl.takePhoto()">Snap</button>
+                <input id="camera-button" type="file" accept="image/*;capture=camera" style="display:none;" />
                 <button class="button btn-warning btn-xs pull-right" style="margin:3px;">Submit</button>
               </td>
             </tr>
+            <tr><td colspan="2" style="width:100%;">
+              <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
+              {{tasksCtrl.photoDescription}}
+            </td></tr>
           </table>
         </div>
 
@@ -158,7 +164,7 @@
                 Confirm</button>
               <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-success btn-xs pull-left"
                       style="margin-bottom:3px; margin-left:3px;" data-ng-click="tasksCtrl.confirmingCompletion = false;">
-                Reset</button>
+                Cancel</button>
             </td></tr>
           </table>
         </div>

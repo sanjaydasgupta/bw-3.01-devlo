@@ -10,6 +10,8 @@
   self.taskSelected = false;
   self.confirmingCompletion = false;
   self.photoDescription = '';
+  self.progressReportAttachments = [];
+  self.progressReportAttachmentNames = "";
 
   self.select = function(task) {
     if (task) {
@@ -42,12 +44,9 @@
       var photo = files[0];
       self.photoDescription = 'name: ' + photo.name + ', type: ' + photo.type + ', size: ' + photo.size;
       $log.log('Photo ' + self.photoDescription);
-      //var output = [];
-      //for (var i = 0, f; f = files[i]; i++) {
-      //  output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ', f.size,
-      //      ' bytes, last modified: ', f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a', '</li>');
-      //}
-      //document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+      self.progressReportAttachments.push(photo);
+      self.progressReportAttachmentNames =
+          self.progressReportAttachments.map(function(f) {return f.name;}).join('<br/>');
     }
   }
 

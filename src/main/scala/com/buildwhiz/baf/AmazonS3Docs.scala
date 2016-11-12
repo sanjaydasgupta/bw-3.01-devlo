@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import BWMongoDB3._
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
 
@@ -16,7 +16,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     dateTimeString(java.lang.Long.parseLong(hexMs, 16), Some(tz))
 
   private def projectId2IdAndName(projectId: String): String = {
-    val name = BWMongoDB3.projects.find(Map("_id" -> new ObjectId(projectId))).headOption match {
+    val name = BWMongoDB3.projects.find(Map("_id" -> new ObjectId(projectId))).asScala.headOption match {
       case None => "???"
       case Some(projectDocument) => val project: DynDoc = projectDocument
         project.name[String]
@@ -29,8 +29,8 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     val writer = response.getWriter
     try {
       val parameters = getParameterMap(request)
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).head
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects.getObjectSummaries
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).asScala.head
+      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects.getObjectSummaries.asScala
       val namesAndSizes: Seq[(String, Long)] = objectSummaries.map(obj => (obj.getKey, obj.getSize))
       val projectDocumentTimestampSize: Seq[(String, String, String, Long)] =
         namesAndSizes.map(t => {val f = t._1.split("-"); (f(0), f(1), f(2), t._2)})
@@ -56,7 +56,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val parameters = getParameterMap(request)
       val projectId = parameters("project_id")
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectId).getObjectSummaries
+      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectId).getObjectSummaries.asScala
       for (summary <- objectSummaries) {
         AmazonS3.deleteObject(summary.getKey)
       }

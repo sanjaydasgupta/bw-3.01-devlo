@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class OwnedActions extends HttpServlet with HttpUtils {
 
@@ -17,7 +17,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
   private val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
-    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
+    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
       val isReady = if (project ? "documents") {
         project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
@@ -28,12 +28,12 @@ class OwnedActions extends HttpServlet with HttpUtils {
       doc.is_ready = isReady
     }
     docs.map(_.asDoc)
-  }
+  }.asJava
 
   private def activityOidToPhaseAndProject(activityOid: ObjectId): (DynDoc, DynDoc) = {
-    val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
     val phaseOid = phase._id[ObjectId]
-    val project = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+    val project = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).asScala.head
     (phase, project)
   }
 
@@ -44,7 +44,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
-      val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
       val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val sortedActions: Seq[DynDoc] = activity.actions[DocumentList].
         sortWith((a, b) => actionOrder(a.`type`[String]) < actionOrder(b.`type`[String]))
@@ -67,11 +67,11 @@ class OwnedActions extends HttpServlet with HttpUtils {
         action.is_relevant = isRelevant
         if (isRelevant) {
           val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-          action.inDocuments = docList(project, action.inbox[ObjectIdList], p0)
+          action.inDocuments = docList(project, action.inbox[ObjectIdList].asScala, p0)
           val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
           val outDocumentsOids: Seq[ObjectId] =
             if (assigneeIsUser) {
-              rfiRequestOid +: submittalOid +: action.outbox[ObjectIdList]
+              rfiRequestOid +: submittalOid +: action.outbox[ObjectIdList].asScala
             } else if (phaseManagerIsUser && action.inbox[ObjectIdList].contains(rfiRequestOid)) {
               Seq(rfiResponseOid)
             } else

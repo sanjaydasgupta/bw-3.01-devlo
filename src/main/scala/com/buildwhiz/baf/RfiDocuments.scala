@@ -8,7 +8,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
@@ -21,7 +21,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     val documentOid = rfiDoc.document_id[ObjectId]
     val timestamp = rfiDoc.timestamp[Long]
     val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
-    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
+    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent()
     val byteBuffer = mutable.Buffer.empty[Byte]
     val blockBuffer = new Array[Byte](1024)
     def copyBuffer(): Unit = {
@@ -35,7 +35,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     val text: String = new String(byteBuffer.toArray).replaceAll("\"", "\\\\\"")
     rfiDoc.asDoc.put("text", text)
     rfiDoc.asDoc.put("type", if (documentOid == rfiRequestOid) "request" else "response")
-    val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+    val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
     val displayTime = dateTimeString(timestamp, Some(person.tz[String]))
     rfiDoc.asDoc.put("time", displayTime)
     rfiDoc
@@ -49,7 +49,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
       val rfiDocuments: Seq[DynDoc] = project ? "documents" match {
         case false => Nil
         case true => project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).

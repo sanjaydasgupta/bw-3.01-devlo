@@ -7,7 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class OwnedProjects extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -16,9 +16,9 @@ class OwnedProjects extends HttpServlet with HttpUtils {
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val projectOids: Seq[ObjectId] = person.project_ids[ObjectIdList]
-      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).toSeq
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
+      val projectOids: Seq[ObjectId] = person.project_ids[ObjectIdList].asScala
+      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
       writer.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")
@@ -37,16 +37,16 @@ object OwnedProjects {
 
   def processProject(project: DynDoc, personOid: ObjectId): DynDoc = {
     def canEnd(project: DynDoc): Boolean = {
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[ObjectIdList]))).toSeq
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[ObjectIdList]))).asScala.toSeq
       !phases.exists(_.status[String] == "running")
     }
 
     project.is_managed = project.admin_person_id[ObjectId] == personOid
     project.can_end = canEnd(project)
     val phaseOids = project.phase_ids[ObjectIdList]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
-    val activityIds: ObjectIdList = phases.flatMap(_.activity_ids[ObjectIdList])
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).toSeq
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+    val activityIds: ObjectIdList = phases.flatMap(_.activity_ids[ObjectIdList].asScala).asJava
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
       project.display_status = "waiting"

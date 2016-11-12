@@ -7,7 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class TimerDurationSet extends HttpServlet with HttpUtils {
 
@@ -27,7 +27,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
       if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
         throw new IllegalArgumentException("Bad duration format")
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       val timerNamesAndBpmnNames: Seq[(String, String)] = thePhase.timers[DocumentList].
         map(t => (t.name[String], t.bpmn_name[String]))
       val timerName = parameters("timer_name")

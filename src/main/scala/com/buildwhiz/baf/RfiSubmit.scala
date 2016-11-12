@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import com.buildwhiz.{HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
 
@@ -23,7 +23,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
       val recipientPersonOid: ObjectId = isRequest match {
         case true =>
-          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
           phase.admin_person_id[ObjectId]
         case false => action.assignee_person_id[ObjectId]
       }
@@ -68,7 +68,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       val isRequest = parameters("is_request").toBoolean
       val rfiText = parameters("rfi_text")
       val documentOid = if (isRequest) rfiRequestOid else rfiResponseOid
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
       val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
       val actionIndex = actionNames.indexOf(actionName)
       storeDocumentAmazonS3(rfiText, projectOid.toString, documentOid.toString, documentTimestamp)

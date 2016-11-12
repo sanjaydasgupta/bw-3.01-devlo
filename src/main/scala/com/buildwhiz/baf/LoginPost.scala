@@ -7,7 +7,7 @@ import org.bson.Document
 import BWMongoDB3._
 import com.buildwhiz.{CryptoUtils, HttpUtils}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
@@ -21,14 +21,14 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
       //val query = Map("email_work" -> userEmail, "password" -> password)
       //val passwordHash = "%x".format(password.hashCode)
       val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password))
-      val person: Option[Document] = BWMongoDB3.persons.find(query).headOption
+      val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
       val result = person match {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""
         case Some(p) =>
           val permittedFields = Set("_id", "first_name", "last_name", "omniclass34roles",
             "organization_id", "project_ids")
           val resultPerson = new Document()
-          p.keySet.foreach(key => if (permittedFields.contains(key)) resultPerson(key) = p(key))
+          p.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = p.asScala(key))
           bson2json(resultPerson)
       }
       response.getWriter.print(result)

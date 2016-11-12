@@ -7,7 +7,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class ActionDurationSet extends HttpServlet with HttpUtils {
 
@@ -27,7 +27,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
       if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
         throw new IllegalArgumentException("Bad duration format")
       val activityOid = new ObjectId(parameters("activity_id"))
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
       val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
       val actionName = parameters("action_name")
       val actionIdx = actionNames.indexOf(actionName)

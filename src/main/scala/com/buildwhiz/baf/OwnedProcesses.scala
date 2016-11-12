@@ -72,12 +72,12 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
     val writer = response.getWriter
     try {
-      import scala.collection.JavaConversions._
+      import scala.collection.JavaConverters._
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       val activityOids = phase.activity_ids[ObjectIdList]
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.
         toSeq.map(a => OwnedProcesses.processActivity(a, personOid))
       val processes = createProcesses(activities, phase.variables[DocumentList], phase.timers[DocumentList], personOid)
       writer.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))

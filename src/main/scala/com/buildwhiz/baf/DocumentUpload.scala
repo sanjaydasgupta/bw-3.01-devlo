@@ -9,7 +9,7 @@ import com.buildwhiz.{HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
 
@@ -56,7 +56,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
       val recipientPersonOid: ObjectId = documentOid == rfiRequestOid match {
         case true =>
-          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
           phase.admin_person_id[ObjectId]
         case false => action.assignee_person_id[ObjectId]
       }
@@ -76,7 +76,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val documentTimestamp = System.currentTimeMillis
-      val result = storeDocumentAmazonS3(request.getInputStream, parameters("project_id"),
+      val result = storeDocumentAmazonS3(request.getInputStream(), parameters("project_id"),
         parameters("document_id"), documentTimestamp)
       val projectOid = new ObjectId(parameters("project_id"))
       val documentOid = new ObjectId(parameters("document_id"))
@@ -88,7 +88,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
           "action_name" -> actionName.orNull, "timestamp" -> documentTimestamp).filter(_._2 != null).toMap)))
       // Add document to action's inbox
       if (activityOid.isDefined && actionName.isDefined) {
-        val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid.get)).head
+        val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid.get)).asScala.head
         val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
         val actionIndex = actionNames.indexOf(actionName.get)
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid.get),

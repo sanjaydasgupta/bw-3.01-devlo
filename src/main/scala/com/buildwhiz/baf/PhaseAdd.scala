@@ -13,7 +13,7 @@ import org.w3c.dom
 import org.w3c.dom.{Element, Node, NodeList}
 import org.xml.sax.InputSource
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
@@ -159,9 +159,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val adminPersonOid = new ObjectId(parameters("admin_person_id"))
       val processNamesAndDocuments = getProcessesByName(s"Phase-$phaseName")
       val variables: DocumentList = processNamesAndDocuments.flatMap(getVariableDefinitions).map(kv =>
-      {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc})
+      {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: DocumentList = processNamesAndDocuments.flatMap(getTimerDefinitions).map(kv =>
-        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "duration" -> "00:00:00"); doc})
+        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "duration" -> "00:00:00"); doc}).asJava
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$phaseName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables)
@@ -179,12 +179,12 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val availableDocumentList = Seq("57207549d5d8ad331d2ea699", "57207549d5d8ad331d2ea69a",
           "57207549d5d8ad331d2ea69b").map(id => new ObjectId(id))
         val inbox = new java.util.ArrayList[ObjectId]
-        inbox.addAll(availableDocumentList)
+        inbox.addAll(availableDocumentList.asJava)
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
           "inbox" -> inbox, "outbox" -> new java.util.ArrayList[ObjectId],
           "assignee_person_id" -> adminPersonOid, "duration" -> "00:00:00")
         val actions = new java.util.ArrayList[Document]
-        actions.append(action)
+        actions.asScala.append(action)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions, "status" -> "defined",
           "role" -> activityRole, "description" -> activityDescription)
         BWMongoDB3.activities.insertOne(activity)

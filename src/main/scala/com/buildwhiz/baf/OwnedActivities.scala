@@ -7,7 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class OwnedActivities extends HttpServlet with HttpUtils {
 
@@ -18,9 +18,9 @@ class OwnedActivities extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       val activityOids = phase.activity_ids[ObjectIdList]
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).toSeq
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
       val bpmnName = parameters("bpmn_name")
       writer.print(activities.map(a => OwnedActivities.processActivity(a, personOid)).
         filter(_.bpmn_name[String] == bpmnName).map(activity => bson2json(activity.asDoc)).

@@ -8,12 +8,12 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class ActionAdd extends HttpServlet with HttpUtils {
 
   private def getTempDoc(name: String): ObjectId = {
-    BWMongoDB3.document_master.find(Map("name" -> name)).headOption match {
+    BWMongoDB3.document_master.find(Map("name" -> name)).asScala.headOption match {
       case Some(doc) => doc.getObjectId("_id")
       case None => val doc = new Document("name", name)
         BWMongoDB3.document_master.insertOne(doc)
@@ -22,7 +22,7 @@ class ActionAdd extends HttpServlet with HttpUtils {
   }
 
   private def mainInbox(activityOid: ObjectId, actionName: String): ObjectIdList = {
-    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
     val mainAction: DynDoc = activity.actions[DocumentList].find(_.`type`[String] == "main").head
     mainAction.inbox[ObjectIdList]
   }
@@ -40,7 +40,7 @@ class ActionAdd extends HttpServlet with HttpUtils {
       val assigneeOid = new ObjectId(parameters("assignee_id"))
       val outbox = new java.util.ArrayList[ObjectId]
       if (typ == "review")
-        outbox.append(getTempDoc(s"$actionName-review-report"))
+        outbox.asScala.append(getTempDoc(s"$actionName-review-report"))
       val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
         "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> "00:00:00",
         "assignee_person_id" -> assigneeOid, "bpmn_name" -> bpmnName)

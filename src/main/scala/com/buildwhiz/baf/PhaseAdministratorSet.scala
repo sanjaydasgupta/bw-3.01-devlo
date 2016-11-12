@@ -7,7 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
 
@@ -34,12 +34,12 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
   }
 
   private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().toSeq
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
     for (project <- projects) {
-      val phaseIds: Seq[ObjectId] = project.phase_ids[ObjectIdList]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).toSeq
-      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList])
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).toSeq
+      val phaseIds: Seq[ObjectId] = project.phase_ids[ObjectIdList].asScala
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
+      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
       val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
       val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||
         phases.exists(_.admin_person_id[ObjectId] == personOid) ||
@@ -66,7 +66,7 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
     try {
       val assignedPersonOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       val deAssignedPersonOid = thePhase.admin_person_id[ObjectId]
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"admin_person_id" -> assignedPersonOid)))

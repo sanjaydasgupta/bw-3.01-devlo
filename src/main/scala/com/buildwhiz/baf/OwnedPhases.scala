@@ -7,13 +7,13 @@ import BWMongoDB3._
 import com.buildwhiz.HttpUtils
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class OwnedPhases extends HttpServlet with HttpUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
     val activityOids = phase.activity_ids[ObjectIdList]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).toSeq
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
     activities.flatMap(_.actions[DocumentList])
   }
 
@@ -24,10 +24,10 @@ class OwnedPhases extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val projectOid = new ObjectId(parameters("project_id"))
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
       val projectIsPublic = (project ? "public") && project.public[Boolean]
       val phaseOids = project.phase_ids[ObjectIdList]
-      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
+      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
       val phases = if (projectIsPublic || project.admin_person_id[ObjectId] == personOid) allPhases else
         allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
           phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
@@ -49,7 +49,7 @@ object OwnedPhases {
 
   def processPhase(phase: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> phase.activity_ids[ObjectIdList]))).toSeq
+      find(Map("_id" -> Map("$in" -> phase.activity_ids[ObjectIdList]))).asScala.toSeq
     val isRelevant = activities.flatMap(_.actions[DocumentList]).
       exists(_.assignee_person_id[ObjectId] == personOid)
     phase.is_managed = phase.admin_person_id[ObjectId] == personOid

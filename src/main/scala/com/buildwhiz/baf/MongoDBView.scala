@@ -6,7 +6,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.HttpUtils
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class MongoDBView extends HttpServlet with HttpUtils {
 
@@ -23,7 +23,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
           val jsonStrings = nameAndCounts.map(nc => s"""{"name": "${nc._1}", "count": ${nc._2}}""")
           writer.print(jsonStrings.mkString("[", ", ", "]"))
         case Some(collectionName) =>
-          val docs: Seq[DynDoc] = BWMongoDB3(collectionName).find().limit(100).toSeq
+          val docs: Seq[DynDoc] = BWMongoDB3(collectionName).find().limit(100).asScala.toSeq
           val jsonStrings: Seq[String] = docs.map(_.asDoc.toJson.replaceAll("\"", "\\\\\""))
           writer.print(jsonStrings.mkString("[\"", "\", \"", "\"]"))
       }

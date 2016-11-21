@@ -7,7 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
@@ -16,7 +16,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
     val writer = response.getWriter
     try {
       val urlName = request.getRequestURL.toString.split("/").last
-      val parameters: mutable.Map[String, String] = request.getParameterMap.map(p => (p._1, p._2.mkString))
+      val parameters: mutable.Map[String, String] = request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))
       val count = parameters.get("count") match {
         case None => 50
         case Some(c) => c.toInt
@@ -34,7 +34,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
       val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
       val traceLogCollection = BWMongoDB3.trace_log
-      val traceLogDocs: Seq[Document] = traceLogCollection.find().sort(Map("milliseconds" -> -1)).limit(count).toSeq
+      val traceLogDocs: Seq[Document] = traceLogCollection.find().sort(Map("milliseconds" -> -1)).limit(count).asScala.toSeq
       for (doc <- traceLogDocs) {
         val fields = labels.map(doc.get).toBuffer
         fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
@@ -56,7 +56,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def prettyPrint(d: Document): String = {
-    val mm: mutable.Map[String, Object] = d
+    val mm: mutable.Map[String, Object] = d.asScala
     mm.map(p => s"${p._1}: ${p._2}").mkString(", ")
   }
 

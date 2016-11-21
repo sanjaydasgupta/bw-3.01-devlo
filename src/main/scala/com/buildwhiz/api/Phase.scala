@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class Phase extends HttpServlet with RestUtils {
 
@@ -22,8 +22,8 @@ class Phase extends HttpServlet with RestUtils {
         throw new IllegalArgumentException("No 'parent_project_id' found")
       if (!phaseDocument.get("parent_project_id").isInstanceOf[ObjectId])
         throw new IllegalArgumentException("Type of 'parent_project_id' not ObjectId")
-      phaseDocument("status") = "defined" // Initial status on creation
-      phaseDocument("timestamps") = new Document("created", System.currentTimeMillis)
+      phaseDocument.asScala("status") = "defined" // Initial status on creation
+      phaseDocument.asScala("timestamps") = new Document("created", System.currentTimeMillis)
       //val parentProjectSelector = Map("_id", phaseDocument.get("parent_project_id"))
       BWMongoDB3.phases.insertOne(phaseDocument)
       //val newPhaseId = phaseDocument.getObjectId("_id")
@@ -48,10 +48,10 @@ class Phase extends HttpServlet with RestUtils {
 
   private def projectParticipantOids(theProject: DynDoc): Seq[ObjectId] = {
     val phaseOids = theProject.phase_ids[ObjectIdList]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
     val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
-    val activityOids = phases.flatMap(_.activity_ids[ObjectIdList])
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).toSeq
+    val activityOids = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
     val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
     (theProject.admin_person_id[ObjectId] +: (phaseAdminPersonOids ++ actionAssigneeOids)).distinct
@@ -65,10 +65,10 @@ class Phase extends HttpServlet with RestUtils {
         case idString +: "Phase" +: _ => new ObjectId(idString)
         case _ => throw new IllegalArgumentException("Id not found")
       }
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).asScala.head
       val preDeleteParticipantOids = projectParticipantOids(theProject)
-      val activityOids: Seq[ObjectId] = thePhase.activity_ids[ObjectIdList]
+      val activityOids: Seq[ObjectId] = thePhase.activity_ids[ObjectIdList].asScala
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),

@@ -1,7 +1,7 @@
 package com.buildwhiz.infra
 
 import BWMongoDB3._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import org.bson.Document
 
@@ -12,7 +12,7 @@ object UsersForAlfresco extends App {
     "Post Code", "Telephone", "Fax", "Email")
 
   println(fields.mkString(", "))
-  val persons: Seq[DynDoc] = BWMongoDB3.persons.find().toSeq
+  val persons: Seq[DynDoc] = BWMongoDB3.persons.find().asScala.toSeq
   for (person <- persons) {
     val buffer = mutable.Buffer.empty[String]
     val emails: Seq[DynDoc] = person.emails[DocumentList]

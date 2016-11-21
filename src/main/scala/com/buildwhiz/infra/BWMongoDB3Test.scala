@@ -11,8 +11,8 @@ object BWMongoDB3Test extends App {
   val d = new Document("key", "keyValue").append("name", "sanjay").append("age", 99).
     append("addr", new Document("l1", "flat28c").append("line2", "tower-1").append("line3", "southcity"))
   //val m: mutable.Map[String, AnyRef] = d
-  import scala.collection.convert.wrapAsScala._
-  val m: MapType = d
+  import scala.collection.JavaConverters._
+  val m: MapType = d.asScala
   println(s"whole map: $m")
   println(s"addr: ${m("addr")}")
   val addr: MapType = m("addr").asInstanceOf[MapType]

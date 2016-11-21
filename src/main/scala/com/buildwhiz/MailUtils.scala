@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 import scala.concurrent.Future
 import scala.util.Failure
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 trait MailUtils {
 
@@ -39,7 +39,7 @@ trait MailUtils {
         }
       )
 
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).head
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).asScala.head
       val email = person.emails[DocumentList].find(_.`type`[String] == "work").head.email[String]
       val (firstName, lastName) = (person.first_name[String], person.last_name[String])
       val message = new MimeMessage(session)

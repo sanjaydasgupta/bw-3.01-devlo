@@ -4,7 +4,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object SampleProjectSetup extends App {
   BWLogger.log(getClass.getName, "main()", "ENTRY")
@@ -41,7 +41,7 @@ object SampleProjectSetup extends App {
     docExcavationRccContractorsReview, docBasementConstructionComplete, docBasementConstructionCityReview,
     docBasementConstructionManagersReview)
   BWMongoDB3.document_master.drop()
-  BWMongoDB3.document_master.insertMany(allDocuments)
+  BWMongoDB3.document_master.insertMany(allDocuments.asJava)
 
   val orgPrabhas: Document = Map("name" -> "Prabhas Kejriwal Co",
     "timestamps" -> Map("created" -> System.currentTimeMillis))
@@ -61,118 +61,117 @@ object SampleProjectSetup extends App {
   val allOrganizations = Seq(orgDavid, orgPrabhas, orgDemolitions,
     orgConcrete, orgExcavations, orgSurveys, orgBuildwhiz)
   BWMongoDB3.organizations.drop()
-  BWMongoDB3.organizations.insertMany(allOrganizations)
+  BWMongoDB3.organizations.insertMany(allOrganizations.asJava)
 
-  val personCaroline: Document = BWMongoDB3.persons.find(Map("first_name" -> "Caroline", "last_name" -> "Chen")).head
+  val personCaroline: Document = BWMongoDB3.persons.find(Map("first_name" -> "Caroline", "last_name" -> "Chen")).asScala.head
 
-  val personDavid: Document = BWMongoDB3.persons.find(Map("first_name" -> "David", "last_name" -> "Solnick")).head
+  val personDavid: Document = BWMongoDB3.persons.find(Map("first_name" -> "David", "last_name" -> "Solnick")).asScala.head
 
-  val personPrabhas: Document = BWMongoDB3.persons.find(Map("first_name" -> "Prabhas", "last_name" -> "Kejriwal")).head
+  val personPrabhas: Document = BWMongoDB3.persons.find(Map("first_name" -> "Prabhas", "last_name" -> "Kejriwal")).asScala.head
 
-  val personSanjay: Document = BWMongoDB3.persons.find(Map("first_name" -> "Sanjay", "last_name" -> "Dasgupta")).head
+  val personSanjay: Document = BWMongoDB3.persons.find(Map("first_name" -> "Sanjay", "last_name" -> "Dasgupta")).asScala.head
 
-  val personSurveys: Document = BWMongoDB3.persons.find(Map("first_name" -> "Vergel", "last_name" -> "Galura")).head
+  val personSurveys: Document = BWMongoDB3.persons.find(Map("first_name" -> "Vergel", "last_name" -> "Galura")).asScala.head
 
-  val personExcavations: Document = BWMongoDB3.persons.find(Map("first_name" -> "Fred", "last_name" -> "Reynolds")).head
+  val personExcavations: Document = BWMongoDB3.persons.find(Map("first_name" -> "Fred", "last_name" -> "Reynolds")).asScala.head
 
-  val personConcrete: Document = BWMongoDB3.persons.find(Map("first_name" -> "Des", "last_name" -> "Nolan")).head
+  val personConcrete: Document = BWMongoDB3.persons.find(Map("first_name" -> "Des", "last_name" -> "Nolan")).asScala.head
 
-  val personDemolitions: Document = BWMongoDB3.persons.find(Map("first_name" -> "Scott", "last_name" -> "Rehn")).head
+  val personDemolitions: Document = BWMongoDB3.persons.find(Map("first_name" -> "Scott", "last_name" -> "Rehn")).asScala.head
 
   BWMongoDB3.organizations.updateOne(orgDemolitions,
-    Map("$set" -> Map("principal_person_id" -> personDemolitions("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personDemolitions.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgConcrete,
-    Map("$set" -> Map("principal_person_id" -> personConcrete("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personConcrete.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgExcavations,
-    Map("$set" -> Map("principal_person_id" -> personExcavations("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personExcavations.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgDavid,
-    Map("$set" -> Map("principal_person_id" -> personDavid("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personDavid.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgPrabhas,
-    Map("$set" -> Map("principal_person_id" -> personPrabhas("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personPrabhas.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgBuildwhiz,
-    Map("$set" -> Map("principal_person_id" -> personPrabhas("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personPrabhas.asScala("_id"))))
   BWMongoDB3.organizations.updateOne(orgSurveys,
-    Map("$set" -> Map("principal_person_id" -> personSurveys("_id"))))
+    Map("$set" -> Map("principal_person_id" -> personSurveys.asScala("_id"))))
 
   //BWMongoDB3.projects.drop()
-  val projectOne: Document = Map("name" -> "Project-One", "admin_person_id" -> personPrabhas("_id"),
+  val projectOne: Document = Map("name" -> "Project-One", "admin_person_id" -> personPrabhas.asScala("_id"),
     "status" -> "defined", "phase_ids" -> Seq.empty[ObjectId])
   BWMongoDB3.projects.insertOne(projectOne)
 
   //BWMongoDB3.phases.drop()
   val phaseConstruction: Document = Map("name" -> "Construction", "bpmn_name" -> "Phase-Construction",
-    "admin_person_id" -> personPrabhas("_id"), "status" -> "defined", "activity_ids" -> Seq.empty[ObjectId],
+    "admin_person_id" -> personPrabhas.asScala("_id"), "status" -> "defined", "activity_ids" -> Seq.empty[ObjectId],
     "timers" -> Seq.empty[Document], "variables" -> Seq.empty[Document])
   val phaseSimple: Document = Map("name" -> "Simple", "bpmn_name" -> "Phase-Simple",
-    "admin_person_id" -> personPrabhas("_id"), "status" -> "defined", "activity_ids" -> Seq.empty[ObjectId],
+    "admin_person_id" -> personPrabhas.asScala("_id"), "status" -> "defined", "activity_ids" -> Seq.empty[ObjectId],
     "timers" -> Seq.empty[Document], "variables" -> Seq.empty[Document])
   val phases = Seq(phaseConstruction, phaseSimple)
-  BWMongoDB3.phases.insertMany(phases)
+  BWMongoDB3.phases.insertMany(phases.asJava)
   phases.map(_.getObjectId("_id")).foreach(id => {
     //println(id)
-    BWMongoDB3.projects.updateOne(Map("_id" -> projectOne("_id")),
+    BWMongoDB3.projects.updateOne(Map("_id" -> projectOne.asScala("_id")),
     Map("$addToSet" -> Map("phase_ids" -> id)))})
 
   //BWMongoDB3.activities.drop()
   val activityDemolition: Document = Map("name" -> "Demolition", "status" -> "defined",
     "actions" -> Seq(
-      Map("name" -> "Demolition-Permit", "type" -> "prerequisite", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq(docDemolitionPermit("_id")),
+      Map("name" -> "Demolition-Permit", "type" -> "prerequisite", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq(docDemolitionPermit.asScala("_id")),
         "duration" -> "1:12:00"),
-      Map("name" -> "Demolition", "type" -> "main", "assignee_person_id" -> personDemolitions("_id"),
-        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docDemolitionComplete("_id")),
+      Map("name" -> "Demolition", "type" -> "main", "assignee_person_id" -> personDemolitions.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docDemolitionComplete.asScala("_id")),
         "duration" -> "1:12:00"),
-      Map("name" -> "Managers-Review", "type" -> "review", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq(docDemolitionComplete("_id")),
-        "outbox" -> Seq(docDemolitionManagersReview("_id")), "duration" -> "1:12:00"),
-      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq(docDemolitionComplete("_id")),
-        "outbox" -> Seq(docDemolitionCityReview("_id")), "duration" -> "1:12:00")))
+      Map("name" -> "Managers-Review", "type" -> "review", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docDemolitionComplete.asScala("_id")),
+        "outbox" -> Seq(docDemolitionManagersReview.asScala("_id")), "duration" -> "1:12:00"),
+      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docDemolitionComplete.asScala("_id")),
+        "outbox" -> Seq(docDemolitionCityReview.asScala("_id")), "duration" -> "1:12:00")))
   val activityExcavation: Document = Map("name" -> "Excavation", "status" -> "defined",
     "actions" -> Seq(
-      Map("name" -> "Staking", "type" -> "prerequisite", "assignee_person_id" -> personSurveys("_id"),
-        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docExcavationStakingComplete("_id")),
+      Map("name" -> "Staking", "type" -> "prerequisite", "assignee_person_id" -> personSurveys.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docExcavationStakingComplete.asScala("_id")),
         "duration" -> "1:12:00"),
-      Map("name" -> "Excavation", "type" -> "main", "assignee_person_id" -> personExcavations("_id"),
-        "status" -> "defined", "inbox" -> Seq(docExcavationStakingComplete("_id")),
-        "outbox" -> Seq(docExcavationComplete("_id")), "duration" -> "1:12:00"),
-      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq(docExcavationComplete("_id")),
-        "outbox" -> Seq(docExcavationCityReview("_id")), "duration" -> "1:12:00"),
-      Map("name" -> "RCC-Contractors-Review", "type" -> "review", "assignee_person_id" -> personConcrete("_id"),
-        "status" -> "defined", "inbox" -> Seq(docExcavationComplete("_id")),
-        "outbox" -> Seq(docExcavationRccContractorsReview("_id")), "duration" -> "1:12:00")))
+      Map("name" -> "Excavation", "type" -> "main", "assignee_person_id" -> personExcavations.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docExcavationStakingComplete.asScala("_id")),
+        "outbox" -> Seq(docExcavationComplete.asScala("_id")), "duration" -> "1:12:00"),
+      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docExcavationComplete.asScala("_id")),
+        "outbox" -> Seq(docExcavationCityReview.asScala("_id")), "duration" -> "1:12:00"),
+      Map("name" -> "RCC-Contractors-Review", "type" -> "review", "assignee_person_id" -> personConcrete.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docExcavationComplete.asScala("_id")),
+        "outbox" -> Seq(docExcavationRccContractorsReview.asScala("_id")), "duration" -> "1:12:00")))
   val activityBasementConstruction: Document = Map("name" -> "BasementConstruction", "status" -> "defined",
     "actions" -> Seq(
-      Map("name" -> "Basement-Construction", "type" -> "main", "assignee_person_id" -> personConcrete("_id"),
-        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docBasementConstructionComplete("_id")),
+      Map("name" -> "Basement-Construction", "type" -> "main", "assignee_person_id" -> personConcrete.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq.empty[Document], "outbox" -> Seq(docBasementConstructionComplete.asScala("_id")),
         "duration" -> "1:12:00"),
-      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq(docBasementConstructionComplete("_id")),
-        "outbox" -> Seq(docBasementConstructionCityReview("_id")), "duration" -> "1:12:00"),
-      Map("name" -> "Phase-Managers-Review", "type" -> "review", "assignee_person_id" -> personPrabhas("_id"),
-        "status" -> "defined", "inbox" -> Seq(docBasementConstructionComplete("_id")),
-        "outbox" -> Seq(docBasementConstructionManagersReview("_id")), "duration" -> "1:12:00")))
+      Map("name" -> "Citys-Review", "type" -> "review", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docBasementConstructionComplete.asScala("_id")),
+        "outbox" -> Seq(docBasementConstructionCityReview.asScala("_id")), "duration" -> "1:12:00"),
+      Map("name" -> "Phase-Managers-Review", "type" -> "review", "assignee_person_id" -> personPrabhas.asScala("_id"),
+        "status" -> "defined", "inbox" -> Seq(docBasementConstructionComplete.asScala("_id")),
+        "outbox" -> Seq(docBasementConstructionManagersReview.asScala("_id")), "duration" -> "1:12:00")))
   val activitySole: Document = Map("name" -> "AnActivity", "status" -> "defined",
     "actions" -> Seq(
-      Map("name" -> "Sole-Action", "type" -> "main", "assignee_person_id" -> personPrabhas("_id"),
+      Map("name" -> "Sole-Action", "type" -> "main", "assignee_person_id" -> personPrabhas.asScala("_id"),
         "status" -> "defined", "inbox" -> Seq.empty[Document],
-        "outbox" -> Seq(docBasementConstructionComplete("_id")), "duration" -> "1:12:00")))
+        "outbox" -> Seq(docBasementConstructionComplete.asScala("_id")), "duration" -> "1:12:00")))
   val theActivities = Seq(activityDemolition, activityExcavation, activityBasementConstruction,
     activitySole)
-  BWMongoDB3.activities.insertMany(theActivities)
+  BWMongoDB3.activities.insertMany(theActivities.asJava)
 
   val constructionActivities = Seq(activityDemolition, activityExcavation, activityBasementConstruction)
-  constructionActivities.foreach(activity => {BWMongoDB3.phases.updateOne(Map("_id" -> phaseConstruction("_id")),
-    Map("$addToSet" -> Map("activity_ids" -> activity("_id"))))})
-  BWMongoDB3.phases.updateOne(Map("_id" -> phaseSimple("_id")),
-    Map("$addToSet" -> Map("activity_ids" -> activitySole("_id"))))
+  constructionActivities.foreach(activity => {BWMongoDB3.phases.updateOne(Map("_id" -> phaseConstruction.asScala("_id")),
+    Map("$addToSet" -> Map("activity_ids" -> activity.asScala("_id"))))})
+  BWMongoDB3.phases.updateOne(Map("_id" -> phaseSimple.asScala("_id")),
+    Map("$addToSet" -> Map("activity_ids" -> activitySole.asScala("_id"))))
 
-  val allActions: Seq[DynDoc] = theActivities.
-    flatMap(a => a("actions").asInstanceOf[DocumentList])
+  val allActions: Seq[DynDoc] = theActivities.flatMap(a => a.asScala("actions").asInstanceOf[DocumentList])
   for (action <- allActions) {
     BWMongoDB3.persons.updateOne(Map("_id" -> action.assignee_person_id),
-      Map("$addToSet" -> Map("project_ids" -> projectOne("_id"))))
+      Map("$addToSet" -> Map("project_ids" -> projectOne.asScala("_id"))))
   }
 
   BWLogger.log(getClass.getName, "main()", "EXIT")

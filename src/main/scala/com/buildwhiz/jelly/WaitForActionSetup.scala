@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeUtils {
 
@@ -22,7 +22,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
       calendar.add(Calendar.DATE, days)
       calendar.add(Calendar.HOUR, hours)
       calendar.add(Calendar.MINUTE, minutes)
-      val recipient: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).head
+      val recipient: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).asScala.head
       val targetTime = dateTimeString(calendar.getTimeInMillis, Some(recipient.tz[String]))
       val message = s"The action '${action.name[String]}' can now be started, and must be completed by " +
         s"$targetTime"
@@ -41,7 +41,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       val activityQuery = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
+      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
       val actions: Seq[DynDoc] = activity.actions[DocumentList]
       val actionNames: Seq[String] = actions.map(_.name[String])
       val actionName = de.getVariable("action_name").asInstanceOf[String]

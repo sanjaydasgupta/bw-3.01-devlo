@@ -5,7 +5,7 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.script.ScriptEngineManager
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class LinkedCallback extends HttpServlet {
@@ -14,7 +14,7 @@ class LinkedCallback extends HttpServlet {
     val writer = response.getWriter
     writer.println(s"<!DOCTYPE html>")
     writer.println(s"<html><head><title>LinkedCallback</title></head>")
-    val parameters = request.getParameterMap.map(e => (e._1, e._2.mkString))
+    val parameters = request.getParameterMap.asScala.map(e => (e._1, e._2.mkString))
     if (parameters.contains("code")) {
       writer.println( s"""<body><h2 align="center">OAuth Code Received</h2>""")
       val code = parameters("code")
@@ -70,7 +70,7 @@ class LinkedCallback extends HttpServlet {
     def convertInnerJavaMapsToScalaMaps(obj: mutable.Map[String, AnyRef]): mutable.Map[String, AnyRef] = {
       obj.map {
         case (key, javaMap: java.util.Map[String, AnyRef] @unchecked) =>
-          val scalaMap: mutable.Map[String, AnyRef] = javaMap
+          val scalaMap: mutable.Map[String, AnyRef] = javaMap.asScala
           convertInnerJavaMapsToScalaMaps(scalaMap)
           (key, scalaMap)
         case other => other
@@ -84,7 +84,7 @@ class LinkedCallback extends HttpServlet {
 //      }
     }
     val result = jsEngine.eval(s"var x = $json; x")
-    val resultMap: mutable.Map[String, AnyRef] = result.asInstanceOf[java.util.Map[String, AnyRef]]
+    val resultMap: mutable.Map[String, AnyRef] = result.asInstanceOf[java.util.Map[String, AnyRef]].asScala
     convertInnerJavaMapsToScalaMaps(resultMap)
     resultMap
   }

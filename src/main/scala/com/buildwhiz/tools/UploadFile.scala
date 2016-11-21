@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWLogger
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.sys.process._
 
 @MultipartConfig()
@@ -40,7 +40,7 @@ class UploadFile extends HttpServlet with HttpUtils {
         val parts = request.getParts
         if (parts.isEmpty)
           throw new IllegalArgumentException("No file uploaded")
-        val inputStream = request.getParts.head.getInputStream
+        val inputStream = request.getParts.asScala.head.getInputStream
         val length = copyStream(inputStream, fileOutputStream)
         fileOutputStream.flush()
         fileOutputStream.close()

@@ -15,7 +15,7 @@ object AmazonS3 {
   def listObjects: ObjectListing = s3Client.listObjects(bucketName)
   def listObjects(prefix: String): ObjectListing = s3Client.listObjects(bucketName, prefix)
 
-  def deleteObject(key: String) = s3Client.deleteObject(bucketName, key)
+  def deleteObject(key: String): Unit = s3Client.deleteObject(bucketName, key)
 
   def putObject(key: String, file: File): PutObjectResult = s3Client.putObject(bucketName, key, file)
 

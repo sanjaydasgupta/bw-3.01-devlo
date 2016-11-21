@@ -5,7 +5,7 @@ import BWMongoDB3._
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class PrerequisiteTest extends JavaDelegate {
 
@@ -13,7 +13,7 @@ class PrerequisiteTest extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(query).head
+      val activity: DynDoc = BWMongoDB3.activities.find(query).asScala.head
       val actions: Seq[DynDoc] = activity.actions[DocumentList]
       val actionsWithIndex = actions.zipWithIndex
       val actionName = de.getVariable("action_name")

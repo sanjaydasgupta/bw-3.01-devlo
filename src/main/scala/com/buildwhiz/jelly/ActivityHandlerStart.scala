@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 
@@ -38,13 +38,13 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
     try {
       setupEssentials(de)
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val activityOids: Seq[ObjectId] = phase.activity_ids[ObjectIdList]
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val activityOids: Seq[ObjectId] = phase.activity_ids[ObjectIdList].asScala
       //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
       val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de.getSuperExecution)
       val activity: DynDoc = BWMongoDB3.activities.
-        find(Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)).head
+        find(Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)).asScala.head
 
       de.setVariable("activity_id", activity._id[ObjectId].toString)
 
@@ -52,12 +52,12 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 
       val prerequisiteNames: Seq[String] = actions.filter(_.`type`[String] == "prerequisite").map(_.name[String])
       val prerequisiteNamesList = new JArrayList[String]()
-      prerequisiteNamesList.addAll(prerequisiteNames)
+      prerequisiteNamesList.addAll(prerequisiteNames.asJava)
       de.setVariable("prerequisite_action_names", prerequisiteNamesList)
 
       val reviewNames: Seq[String] = actions.filter(_.`type`[String] == "review").map(_.name[String])
       val reviewNamesList = new JArrayList[String]()
-      reviewNamesList.addAll(reviewNames)
+      reviewNamesList.addAll(reviewNames.asJava)
       de.setVariable("review_action_names", reviewNamesList)
 
       val mainActionName: String = actions.filter(_.`type`[String] == "main").map(_.name[String]).head

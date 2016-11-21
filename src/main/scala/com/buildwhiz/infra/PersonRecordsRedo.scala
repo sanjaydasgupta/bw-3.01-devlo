@@ -5,7 +5,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object PersonRecordsRedo extends App with CryptoUtils {
@@ -55,15 +55,15 @@ object PersonRecordsRedo extends App with CryptoUtils {
   //private val personOids: ObjectIdList = personIds.map(id => new ObjectId(id))
 
   private def reStructureEmailsAndPhones(document: Document): Unit = {
-    val phones = document("phones").asInstanceOf[Document]
-    val newPhones: Seq[Map[String, AnyRef]] = phones.keys.toSeq.map(key => Map("type" -> key, "phone" -> phones(key)))
-    val newPhoneDocs: DocumentList = newPhones.map(v => {val d: Document = v; d})
-    document("phones") = newPhoneDocs
+    val phones = document.asScala("phones").asInstanceOf[Document]
+    val newPhones: Seq[Map[String, AnyRef]] = phones.asScala.keys.toSeq.map(key => Map("type" -> key, "phone" -> phones.asScala(key)))
+    val newPhoneDocs: DocumentList = newPhones.map(v => {val d: Document = v; d}).asJava
+    document.asScala("phones") = newPhoneDocs
 
-    val emails = document("emails").asInstanceOf[Document]
-    val newEmails: Seq[Map[String, AnyRef]] = emails.keys.toSeq.map(key => Map("type" -> key, "email" -> emails(key)))
-    val newEmailDocs: DocumentList = newEmails.map(v => {val d: Document = v; d})
-    document("emails") = newEmailDocs
+    val emails = document.asScala("emails").asInstanceOf[Document]
+    val newEmails: Seq[Map[String, AnyRef]] = emails.asScala.keys.toSeq.map(key => Map("type" -> key, "email" -> emails.asScala(key)))
+    val newEmailDocs: DocumentList = newEmails.map(v => {val d: Document = v; d}).asJava
+    document.asScala("emails") = newEmailDocs
   }
 
   private def processData(): Unit = {
@@ -90,21 +90,21 @@ object PersonRecordsRedo extends App with CryptoUtils {
         mmap
       }).toMap
       // retain previously defined projects if any
-      val projectIds = BWMongoDB3.persons.find(Map("_id" -> personOid)).headOption match {
+      val projectIds = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.headOption match {
         case None => new java.util.ArrayList[ObjectId]
-        case Some(d) => d("project_ids").asInstanceOf[ObjectIdList]
+        case Some(d) => d.asScala("project_ids").asInstanceOf[ObjectIdList]
       }
-      newBsonDoc("project_ids") = projectIds
+      newBsonDoc.asScala("project_ids") = projectIds
       // passwords for testing
-      val firstName = newBsonDoc("first_name").asInstanceOf[String]
+      val firstName = newBsonDoc.asScala("first_name").asInstanceOf[String]
       //val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
-      newBsonDoc("password") = md5(firstName)
-      newBsonDoc("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
+      newBsonDoc.asScala("password") = md5(firstName)
+      newBsonDoc.asScala("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
       val roles = new java.util.ArrayList[String]
       if (newBsonDoc.containsKey("role")) {
-        roles.addAll(newBsonDoc("role").asInstanceOf[String].split(",").toSeq)
+        roles.addAll(newBsonDoc.asScala("role").asInstanceOf[String].split(",").toSeq.asJava)
       }
-      newBsonDoc("omniclass34roles") = roles
+      newBsonDoc.asScala("omniclass34roles") = roles
       reStructureEmailsAndPhones(newBsonDoc)
       val result = BWMongoDB3.persons.replaceOne(Map("_id" -> personOid), newBsonDoc)
       if (result.getMatchedCount == 0) {
@@ -116,7 +116,7 @@ object PersonRecordsRedo extends App with CryptoUtils {
   }
 
   private def replaceProjectsInPersons(): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().toSeq
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
     for (project <- projects) {
       val adminPersonOId = project.admin_person_id[ObjectId]
       BWMongoDB3.persons.updateOne(Map("_id" -> adminPersonOId),

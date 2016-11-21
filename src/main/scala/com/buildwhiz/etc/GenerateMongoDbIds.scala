@@ -4,7 +4,7 @@ import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import org.bson.types.ObjectId
 import org.bson.Document
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object GenerateMongoDbIds extends App {
   println(s"Count=${BWMongoDB3.id_generation.count()}")
@@ -13,7 +13,7 @@ object GenerateMongoDbIds extends App {
     BWMongoDB3.id_generation.insertOne(tempObject)
     val tempDynObj: DynDoc = tempObject
   }
-  val ids: Seq[DynDoc] = BWMongoDB3.id_generation.find().toList
+  val ids: Seq[DynDoc] = BWMongoDB3.id_generation.find().asScala.toList
   println(ids.map(obj => s""""${obj._id[ObjectId]}"""").mkString(", "))
   println(s"Count=${BWMongoDB3.id_generation.count()}")
   BWMongoDB3.id_generation.deleteMany(new Document)

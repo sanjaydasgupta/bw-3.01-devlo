@@ -11,7 +11,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class Project extends HttpServlet with RestUtils {
 
@@ -60,17 +60,17 @@ class Project extends HttpServlet with RestUtils {
         case idString +: "Project" +: _ => new ObjectId(idString)
         case _ => throw new IllegalArgumentException("Id not found")
       }
-      val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val phaseOids: Seq[ObjectId] = theProject.phase_ids[ObjectIdList]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).toSeq
-      val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList])
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
+      val phaseOids: Seq[ObjectId] = theProject.phase_ids[ObjectIdList].asScala
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+      val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteMany(Map("_id" -> Map("$in" -> phaseOids)))
       BWMongoDB3.mails.deleteMany(Map("project_id" -> projectOid))
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
       // Delete project's documents
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectOid.toString).getObjectSummaries
+      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectOid.toString).getObjectSummaries.asScala
       for (summary <- objectSummaries) {
         AmazonS3.deleteObject(summary.getKey)
       }

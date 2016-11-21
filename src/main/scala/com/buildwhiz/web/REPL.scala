@@ -37,5 +37,5 @@ class REPL extends HttpServlet {
 }
 
 object REPL {
-  val jsEngine = new ScriptEngineManager().getEngineByName("javascript")
+  val jsEngine: ScriptEngine = new ScriptEngineManager().getEngineByName("javascript")
 }

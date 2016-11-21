@@ -3,19 +3,19 @@ package com.buildwhiz.infra
 import java.util.{ArrayList => JArrayList}
 
 import com.mongodb.MongoClient
-import com.mongodb.client.MongoCollection
+import com.mongodb.client.{MongoCollection, MongoDatabase}
 import com.mongodb.client.result.UpdateResult
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.language.dynamics
 import scala.util.{Success, Try}
 
 object BWMongoDB2 extends Dynamic {
 
   lazy val mongoClient = new MongoClient()
-  lazy val mongoDb = mongoClient.getDatabase("BuildWhiz")
+  lazy val mongoDb: MongoDatabase = mongoClient.getDatabase("BuildWhiz")
 
 //  val projectsCollection = mongoDb.getCollection("projects")
 //  val phasesCollection = mongoDb.getCollection("phases")
@@ -40,7 +40,7 @@ object BWMongoDB2 extends Dynamic {
     case oid: ObjectId => new Document("_id", oid)
     case oidString: String => new Document("_id", new ObjectId(oidString))
     case key: (String @ unchecked, AnyRef @ unchecked) => new Document(key._1, key._2)
-    case keys: Map[String @ unchecked, AnyRef @ unchecked] => new Document(keys)
+    case keys: Map[String @ unchecked, AnyRef @ unchecked] => new Document(keys.asJava)
   }
 
   def applyDynamic(collectionName: String)(filter: AnyRef): BWAccessor = {
@@ -62,14 +62,14 @@ object BWMongoDB2 extends Dynamic {
     def ?[T]: T = {
       val theDocuments = mongoCollection.find(makeFilter(filter))
       val documents: Many[Document] = new JArrayList[Document]()
-      for (doc <- theDocuments) {
+      for (doc <- theDocuments.asScala) {
         //documents.add(new Document(doc))
         documents.add(doc)
       }
       var currentValue: AnyRef = documents
       for (pe <- path) (pe, currentValue) match {
         case (key: String, cv: Document) =>
-          if (cv.contains(key)) currentValue = cv.get(key) else throw new Exception(s"No name '$key'")
+          if (cv.containsKey(key)) currentValue = cv.get(key) else throw new Exception(s"No name '$key'")
         case (index: Integer, cv: JArrayList[AnyRef @ unchecked]) =>
           if (index >= cv.size || index < 0) throw new Exception(s"No index '$index'") else currentValue = cv.get(index)
         case _ => throw new Exception(s"Bad path element '$pe'")

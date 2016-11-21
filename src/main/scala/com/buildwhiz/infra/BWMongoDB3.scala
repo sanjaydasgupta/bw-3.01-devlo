@@ -5,7 +5,7 @@ import com.mongodb.client.MongoCollection
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import scala.language.dynamics
 //noinspection LanguageFeature
@@ -27,7 +27,7 @@ object BWMongoDB3 extends Dynamic {
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
   implicit def javaDocList2DynDocSeq(ds: DocumentList): Seq[DynDoc] = {
-    val sd: Seq[Document] = ds
+    val sd: Seq[Document] = ds.asScala
     sd.map(new DynDoc(_))
   }
 
@@ -38,7 +38,7 @@ object BWMongoDB3 extends Dynamic {
       case m: Map[String, Any] @unchecked => mapToDocument(m)
       case s: Seq[_] => seq2javaList(s)
       case other => other
-    })
+    }).asJava
 
     def pairs2document(seq: Seq[(String, Any)], document: Document = new Document()): Document = seq match {
       case Nil => document
@@ -61,5 +61,5 @@ object BWMongoDB3 extends Dynamic {
 
   def apply(collectionName: String): MongoCollection[Document] = db.getCollection(collectionName)
 
-  def collectionNames = db.listCollectionNames().toSeq
+  def collectionNames: Seq[String] = db.listCollectionNames().asScala.toSeq
 }

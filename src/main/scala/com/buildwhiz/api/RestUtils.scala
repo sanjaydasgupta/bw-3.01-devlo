@@ -8,7 +8,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 trait RestUtils extends HttpUtils {
@@ -23,9 +23,9 @@ trait RestUtils extends HttpUtils {
       val documents: Seq[Document] = uriParts match {
         case `apiName` +: _ =>
           val parameters = getParameterMap(request)
-          collection.find(parametersToQuery(parameters)).toSeq
+          collection.find(parametersToQuery(parameters)).asScala.toSeq
         case id +: `apiName` +: _ =>
-          collection.find(idToQuery(id)).toSeq
+          collection.find(idToQuery(id)).asScala.toSeq
       }
       documents.foreach(d => secretFields.foreach(k => d.remove(k)))
       val sb = new StringBuilder("[")
@@ -102,7 +102,7 @@ trait RestUtils extends HttpUtils {
     try {
       val data = getStreamData(request)
       val document = Document.parse(data)
-      document("timestamps") = new Document("created", System.currentTimeMillis)
+      document.asScala("timestamps") = new Document("created", System.currentTimeMillis)
       BWMongoDB3(collectionName).insertOne(document)
       response.setContentType("text/plain")
       response.getWriter.print(s"""${request.getRequestURI}/${document.getObjectId("_id")}\n""")

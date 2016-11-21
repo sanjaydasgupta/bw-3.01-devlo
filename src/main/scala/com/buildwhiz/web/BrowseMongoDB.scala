@@ -8,7 +8,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.mongodb.client.FindIterable
 import org.bson.Document
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class BrowseMongoDB extends HttpServlet {
@@ -16,9 +16,9 @@ class BrowseMongoDB extends HttpServlet {
   private def collectionSchema(request: HttpServletRequest, response: HttpServletResponse, collectionName: String) = {
     def generateSchema(baseName: String, obj: Any, acc: mutable.Map[String, (Int, Set[String])]): Unit = obj match {
       case dd: DynDoc => generateSchema(baseName, dd.asDoc, acc)
-      case fi: FindIterable[Document] @unchecked => fi.foreach(d => generateSchema(baseName, d, acc))
-      case list: JArrayList[_] => list.foreach(d => generateSchema(baseName + "[]", d, acc))
-      case document: Document => for ((k, v) <- document) {
+      case fi: FindIterable[Document] @unchecked => fi.asScala.foreach(d => generateSchema(baseName, d, acc))
+      case list: JArrayList[_] => list.asScala.foreach(d => generateSchema(baseName + "[]", d, acc))
+      case document: Document => for ((k, v) <- document.asScala) {
           val typ = v.getClass.getSimpleName
           val newKey = if (baseName.isEmpty) k else s"$baseName.$k"
           if (acc.contains(newKey)) {
@@ -61,7 +61,7 @@ class BrowseMongoDB extends HttpServlet {
     writer.println(s"""<body><h3 align="center"><a href="../${getClass.getSimpleName}" style="font-weight: normal;">Back to Collections</a></h3>""")
     val sb = new StringBuilder
     sb.append("<table border=\"1\" align=\"center\">")
-    for (doc <- BWMongoDB3(collectionName).find) {
+    for (doc <- BWMongoDB3(collectionName).find.asScala) {
       sb.append(s"<tr><td>${doc.toJson}</td></tr>")
     }
     sb.append("</table></html>")

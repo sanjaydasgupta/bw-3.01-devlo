@@ -3,7 +3,7 @@ package com.buildwhiz.infra
 import org.bson.Document
 import org.bson.types.ObjectId
 import BWMongoDB3._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 object DocumentRecordsRedo extends App {
 
@@ -160,6 +160,6 @@ object DocumentRecordsRedo extends App {
   println(s"Original count: ${BWMongoDB3.document_master.count()}")
   BWMongoDB3.document_master.drop()
   println(s"After Drop count: ${BWMongoDB3.document_master.count()}")
-  BWMongoDB3.document_master.insertMany(allDocuments)
+  BWMongoDB3.document_master.insertMany(allDocuments.asJava)
   println(s"Final count: ${BWMongoDB3.document_master.count()}")
 }

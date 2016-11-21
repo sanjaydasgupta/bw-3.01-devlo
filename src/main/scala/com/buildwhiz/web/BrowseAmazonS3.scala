@@ -5,7 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.infra.{AmazonS3 => AS3}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class BrowseAmazonS3 extends HttpServlet {
 
@@ -22,7 +22,7 @@ class BrowseAmazonS3 extends HttpServlet {
     sb.append(List("Date", "Size", "Key").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     val objectListing = AS3.listObjects
-    val objectSummaries: Seq[S3ObjectSummary] = objectListing.getObjectSummaries
+    val objectSummaries: Seq[S3ObjectSummary] = objectListing.getObjectSummaries.asScala
     val s3ObjectRows = objectSummaries.map(p =>
       s"""<tr><td>${p.getLastModified}</td><td align="center">${p.getSize}</td><td>${p.getKey}</td></tr>""").mkString
     sb.append(s"$s3ObjectRows</table></html>")

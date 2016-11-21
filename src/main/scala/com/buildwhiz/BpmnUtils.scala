@@ -6,21 +6,21 @@ import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.repository.{ProcessDefinition, Resource}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 trait BpmnUtils {
 
   def getProcessDefinition(de: DelegateExecution): ProcessDefinition = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery()/*.latestVersion()*/.list()
+      repositoryService.createProcessDefinitionQuery()/*.latestVersion()*/.list().asScala
     allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head
   }
 
   def getProcessDefinition(bpmnName: String): ProcessDefinition = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery()/*.latestVersion()*/.list()
+      repositoryService.createProcessDefinitionQuery()/*.latestVersion()*/.list().asScala
     allProcessDefinitions.find(_.getKey == bpmnName).head
   }
 
@@ -41,13 +41,13 @@ trait BpmnUtils {
     val managementService = processEngine.getManagementService
     val deployments = managementService.getRegisteredDeployments
     val repositoryService = processEngine.getRepositoryService
-    deployments.toIndexedSeq.flatMap(repositoryService.getDeploymentResources)
+    deployments.asScala.toIndexedSeq.flatMap(d => repositoryService.getDeploymentResources(d).asScala)
   }
 
   def hasActiveProcesses(projectId: String): Boolean = {
     val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
     val children = rts.createProcessInstanceQuery().variableValueEquals("project_id", projectId).list()
-    children.nonEmpty
+    !children.isEmpty
   }
 
 }

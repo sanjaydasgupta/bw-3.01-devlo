@@ -6,7 +6,7 @@ import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class BpmnStart extends JavaDelegate with BpmnUtils {
 
@@ -56,7 +56,7 @@ class BpmnStart extends JavaDelegate with BpmnUtils {
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       if (thePhase ? "timers") {
         val timers: Seq[DynDoc] = thePhase.timers[DocumentList].filter(_.bpmn_name[String] == bpmnName)
         timers.foreach(t => de.setVariable(t.variable[String], duration2iso(t.duration[String])))

@@ -6,7 +6,7 @@ import com.buildwhiz.MailUtils
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class EvaluateReviewReports extends JavaDelegate with MailUtils {
 
@@ -35,13 +35,13 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val activityOid = new ObjectId(de.getVariable("activity_id").asInstanceOf[String])
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
       val actions: Seq[DynDoc] = theActivity.actions[DocumentList]
       val reviewActions: Seq[DynDoc] = actions.filter(_.`type`[String] == "review")
       // Copy review documents to main action's inbox
-      val reviewDocOids: ObjectIdList = reviewActions.flatMap(_.outbox[ObjectIdList])
+      val reviewDocOids: ObjectIdList = reviewActions.flatMap(_.outbox[ObjectIdList].asScala).asJava
       val mainActionIdx: Int = actions.map(_.`type`[String]).indexOf("main")
-      for (oid <- reviewDocOids) {
+      for (oid <- reviewDocOids.asScala) {
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
           Map("$addToSet" -> Map(s"actions.$mainActionIdx.inbox" -> oid)))
         //if (updateResult.getModifiedCount == 0)
@@ -55,7 +55,7 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
       val failedReviewNames = reviewActions.filterNot(_.review_ok[Boolean]).map(_.name[String])
       saveAndSendMail(mainAction, new ObjectId(de.getVariable("project_id").asInstanceOf[String]), failedReviewNames)
 
-      BWLogger.log(getClass.getName, s"execute(): ${reviewActions.length} reviews, ${reviewDocOids.length} documents",
+      BWLogger.log(getClass.getName, s"execute(): ${reviewActions.length} reviews, ${reviewDocOids.asScala.length} documents",
         "EXIT-OK", de)
     } catch {
       case t: Throwable =>

@@ -8,7 +8,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
 class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
@@ -22,10 +22,10 @@ class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
     writer.println(s"<html><head><title>Mails Listing</title></head><body>")
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
       val name = s"${person.first_name[String]} ${person.last_name[String]}"
       writer.println(s"""<h1 align="center">Mails for $name</h1>""")
-      val mails: Seq[DynDoc] = BWMongoDB3.mails.find(Map("recipient_person_id" -> personOid)).toSeq
+      val mails: Seq[DynDoc] = BWMongoDB3.mails.find(Map("recipient_person_id" -> personOid)).asScala.toSeq
       if (mails.nonEmpty) {
         writer.println(
           s"""<table border="1" align="center"></tr><td align="center">Time-Stamp</td><td align="center">Subject</td>

@@ -10,6 +10,7 @@
   self.taskSelected = false;
   self.confirmingCompletion = false;
   self.progressReportAttachments = [];
+  self.fetchKey = 'All';
 
   self.select = function(task) {
     if (task) {
@@ -24,12 +25,13 @@
   }
 
   self.fetchActions = function(filter) {
-    var filterKey = filter ? filter : 'all';
-    var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filterKey;
+    var filterKey = filter ? filter : 'All';
+    var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filterKey.toLowerCase();
     $log.log('TasksCtrl: GET ' + query);
     $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
+        self.fetchKey = filterKey;
         $log.log('OK-TasksCtrl: got ' + self.taskList.length + ' objects');
       },
       function(errResponse) {alert("TasksCtrl: ERROR(collection-details): " + errResponse);}

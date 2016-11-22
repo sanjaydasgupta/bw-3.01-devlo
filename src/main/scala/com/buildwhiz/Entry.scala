@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWLogger
 
 import scala.util.{Failure, Success, Try}
+import scala.language.reflectiveCalls
 
 class Entry extends HttpServlet {
 
@@ -91,5 +92,5 @@ object Entry {
     def doPut(req: HttpServletRequest, res: HttpServletResponse)
     def doDelete(req: HttpServletRequest, res: HttpServletResponse)}
 
-  val cache = mutable.Map.empty[String, BWServlet]
+  val cache: mutable.Map[String, BWServlet] = mutable.Map.empty[String, BWServlet]
 }

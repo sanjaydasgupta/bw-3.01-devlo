@@ -8,7 +8,8 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConverters._
 
 import scala.language.dynamics
-//noinspection LanguageFeature
+import scala.language.implicitConversions
+
 object BWMongoDB3 extends Dynamic {
 
   type DocumentList = java.util.List[Document]
@@ -16,12 +17,12 @@ object BWMongoDB3 extends Dynamic {
   type ManyThings = java.util.List[_]
 
   class DynDoc(d: Document) extends Dynamic {
-    def y = this
+    def y: DynDoc = this
     def selectDynamic[T](fieldName: String): T = d.get(fieldName).asInstanceOf[T]
-    def updateDynamic[T](fieldName: String)(value: T) = d.put(fieldName, value.asInstanceOf[AnyRef])
-    def asDoc = d
-    def ?(key: String) = d.containsKey(key)
-    def remove(fieldName: String) = d.remove(fieldName)
+    def updateDynamic[T](fieldName: String)(value: T): AnyRef = d.put(fieldName, value.asInstanceOf[AnyRef])
+    def asDoc: Document = d
+    def ?(key: String): Boolean = d.containsKey(key)
+    def remove(fieldName: String): Unit = d.remove(fieldName)
   }
 
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)

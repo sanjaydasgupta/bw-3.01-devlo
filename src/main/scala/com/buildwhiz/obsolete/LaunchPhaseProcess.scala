@@ -6,7 +6,7 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class LaunchPhaseProcess extends JavaDelegate {
 
@@ -20,7 +20,7 @@ class LaunchPhaseProcess extends JavaDelegate {
     try {
       val projectId = de.getVariable("project_id").asInstanceOf[String]
       val phaseId = de.getVariable("phase_id").asInstanceOf[String]
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> new ObjectId(phaseId))).head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> new ObjectId(phaseId))).asScala.head
       val bpmnName = thePhase.bpmn_name[String]
       val processVariables = Map("project_id" -> projectId, "phase_id" -> phaseId) //++
       val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService

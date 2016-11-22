@@ -6,7 +6,7 @@ import com.buildwhiz.infra.BWMongoDB2
 import com.buildwhiz.infra.BWMongoDB2._
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 class Resources extends HttpServlet {
@@ -67,7 +67,7 @@ class Resources extends HttpServlet {
       //response.setContentType("text/html;charset=UTF-8");
       val sb = new StringBuilder()
       val returnUri = request.getRequestURI
-      for (i <- 0 until outbox.size) {
+      for (i <- outbox.indices) {
         val entry = outbox(i)
         val documentId = entry.document_master_id.?[ObjectId]
         val forReview = entry.for_review.?[Boolean]
@@ -112,7 +112,7 @@ class Resources extends HttpServlet {
       val header = List(("Project", 25), ("Phase", 12), ("Role", 13), ("Inbox", 25), ("Outbox", 25)).
         map(s => s"""<td width="${s._2}%" align="center">${s._1}</td>""").mkString
       sb.append(s"""<table border="1" style="width: 100%; background-color: white;"><tr style="font-weight: bold;">$header</tr>""")
-      for (projectId <- projectIds) {
+      for (projectId <- projectIds.asScala) {
         val project: BWAccessor = BWMongoDB2.projects(projectId).*.head
         val projectName = project.name.?[String]
         val phases: Seq[BWAccessor] = project.phases.*

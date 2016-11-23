@@ -1,5 +1,6 @@
 package com.buildwhiz
 
+import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWLogger
@@ -7,6 +8,7 @@ import com.buildwhiz.infra.BWLogger
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
 
+@MultipartConfig()
 class Entry extends HttpServlet {
 
   private def authenticate(request: HttpServletRequest): Unit = {

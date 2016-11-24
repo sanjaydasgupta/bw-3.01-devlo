@@ -1,6 +1,6 @@
 package com.buildwhiz.baf
 
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
@@ -10,6 +10,13 @@ import com.buildwhiz.{CryptoUtils, HttpUtils}
 import scala.collection.JavaConverters._
 
 class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
+
+  private def storeCookie(userNameEmail: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val cookie = new Cookie("UserNameEmail", userNameEmail)
+    cookie.setMaxAge(30 * 24 * 60 * 60)
+    response.addCookie(cookie)
+    BWLogger.log(getClass.getName, "storeCookie", "Stored UserName Cookie", request)
+  }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
@@ -25,6 +32,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
       val result = person match {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""
         case Some(p) =>
+          storeCookie(email, request, response)
           val permittedFields = Set("_id", "first_name", "last_name", "omniclass34roles",
             "organization_id", "project_ids")
           val resultPerson = new Document()

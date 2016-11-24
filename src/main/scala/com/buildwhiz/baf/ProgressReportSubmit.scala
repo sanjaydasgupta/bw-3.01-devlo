@@ -12,23 +12,19 @@ import org.bson.types.ObjectId
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
-@MultipartConfig()
+//@MultipartConfig() Not needed -- already exists upstream (Entry)
 class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils {
 
-  private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
-  private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
-
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, "doPost", s"""ENTRY""", request)
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
-    BWLogger.log(getClass.getName, "doPost", s"request.getContentType: ${request.getContentType}", request)
-    BWLogger.log(getClass.getName, "doPost", s"request.getContentLengthLong: ${request.getContentLengthLong}", request)
     val parts: Seq[Part] = request.getParts.asScala.toSeq
-    BWLogger.log(getClass.getName, "doPost", s"parts.length: ${parts.length}", request)
-    parts.foreach(part => {
-      BWLogger.log(getClass.getName, "doPost",
-        s"name: ${part.getName}, type: ${part.getContentType}, size: ${part.getSize}", request)
-    })
+    BWLogger.log(getClass.getName, "doPost:request-info", s"Content-Long-Length: ${request.getContentLengthLong}, " +
+     s"Content-Type: ${request.getContentType} Parts-Length: ${parts.length}", request)
+    if (parts.nonEmpty) {
+      val partDescriptions = parts.map(p => s"""[name: ${p.getName}, type: ${p.getContentType}, size: ${p.getSize}]""")
+      BWLogger.log(getClass.getName, "doPost:parts", partDescriptions.mkString(", "), request)
+    }
     BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 }

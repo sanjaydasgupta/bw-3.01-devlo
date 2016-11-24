@@ -12,10 +12,6 @@ import scala.collection.JavaConverters._
 
 class OwnedActions extends HttpServlet with HttpUtils {
 
-  private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
-  private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
-  private val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
-
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {

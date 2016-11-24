@@ -12,6 +12,10 @@ import scala.language.implicitConversions
 
 object BWMongoDB3 extends Dynamic {
 
+  val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
+  val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
+  val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
+
   type DocumentList = java.util.List[Document]
   type ObjectIdList = java.util.List[ObjectId]
   type ManyThings = java.util.List[_]
@@ -31,7 +35,6 @@ object BWMongoDB3 extends Dynamic {
     val sd: Seq[Document] = ds.asScala
     sd.map(new DynDoc(_))
   }
-
 
   implicit def mapToDocument(map: Map[String, Any]): Document = {
 

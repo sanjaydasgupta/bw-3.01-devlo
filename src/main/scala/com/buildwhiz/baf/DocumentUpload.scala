@@ -13,8 +13,6 @@ import scala.collection.JavaConverters._
 
 class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
 
-  private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
-  private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
 
   private def storeDocumentAmazonS3(is: InputStream, projectId: String, documentId: String, timestamp: Long):
       (String, Long) = {
@@ -54,11 +52,11 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
       val reqOrResp = if (documentOid == rfiRequestOid) "request" else "response"
       val subject = s"RFI $reqOrResp received"
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
-      val recipientPersonOid: ObjectId = documentOid == rfiRequestOid match {
-        case true =>
-          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
-          phase.admin_person_id[ObjectId]
-        case false => action.assignee_person_id[ObjectId]
+      val recipientPersonOid: ObjectId = if (documentOid == rfiRequestOid) {
+        val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
+        phase.admin_person_id[ObjectId]
+      } else {
+        action.assignee_person_id[ObjectId]
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))
@@ -76,7 +74,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val documentTimestamp = System.currentTimeMillis
-      val result = storeDocumentAmazonS3(request.getInputStream(), parameters("project_id"),
+      val result = storeDocumentAmazonS3(request.getInputStream, parameters("project_id"),
         parameters("document_id"), documentTimestamp)
       val projectOid = new ObjectId(parameters("project_id"))
       val documentOid = new ObjectId(parameters("document_id"))

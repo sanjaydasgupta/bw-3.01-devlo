@@ -12,20 +12,17 @@ import scala.collection.JavaConverters._
 
 class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
 
-  private val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
-  private val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
-
   private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, isRequest: Boolean): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val reqOrResp = if (isRequest) "request" else "response"
       val subject = s"RFI $reqOrResp received"
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
-      val recipientPersonOid: ObjectId = isRequest match {
-        case true =>
-          val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
-          phase.admin_person_id[ObjectId]
-        case false => action.assignee_person_id[ObjectId]
+      val recipientPersonOid: ObjectId = if (isRequest) {
+        val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
+        phase.admin_person_id[ObjectId]
+      } else {
+        action.assignee_person_id[ObjectId]
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))

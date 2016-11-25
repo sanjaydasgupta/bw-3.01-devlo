@@ -23,7 +23,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
       val actionName = parameters("action_name")
       actionsWithIndex.find(_._1.name[String] == actionName) match {
         case Some((action, idx)) =>
-          val hasId = action ? "camunda_execution_id"
+          val hasId = action has "camunda_execution_id"
           if (hasId) {
             val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
             BWLogger.log(getClass.getName, "doPost", "calling messageEventReceived()", request)

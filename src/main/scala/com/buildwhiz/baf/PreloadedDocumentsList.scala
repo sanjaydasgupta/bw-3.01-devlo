@@ -14,7 +14,7 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
-      val isReady = if (project ? "documents") {
+      val isReady = if (project has "documents") {
         project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > createdAfter)
       } else {
@@ -39,10 +39,10 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
-      val uploadedDocuments: Seq[DynDoc] = if (project ? "documents") project.documents[DocumentList] else Nil
+      val uploadedDocuments: Seq[DynDoc] = if (project has "documents") project.documents[DocumentList] else Nil
       val uploadedDocumentsById: Map[ObjectId, Seq[DynDoc]] = uploadedDocuments.groupBy(_.document_id[ObjectId])
       val documentMasters: Seq[DynDoc] = BWMongoDB3.document_master.find().asScala.toSeq
-      val preloadedDocuments = documentMasters.filter(_ ? "preload")
+      val preloadedDocuments = documentMasters.filter(_ has "preload")
       preloadedDocuments.foreach(d => d.asDoc.put("available", uploadedDocumentsById.contains(d._id[ObjectId])))
       writer.print(preloadedDocuments.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")

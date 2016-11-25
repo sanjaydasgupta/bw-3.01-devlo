@@ -19,7 +19,7 @@ class ViewMain extends HttpServlet with HttpUtils {
     def docId2Document(project: DynDoc, docIds: ObjectIdList, createdAfter: Long): DocumentList = {
       val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
       for (doc <- docs) {
-        val isReady = if (project ? "documents") {
+        val isReady = if (project has "documents") {
         //val isReady = if (action ? "uploaded_documents") {
           project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
             //d.timestamp[Long] > createdAfter)
@@ -65,10 +65,10 @@ class ViewMain extends HttpServlet with HttpUtils {
           } else {
             action.displayDetails = false
           }
-          val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+          val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
           action.inDocuments = docId2Document(project, action.inbox[ObjectIdList], p0)
           //action.inDocuments = docId2Document(action, action.inbox[ObjectIdList], p0)
-          val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+          val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
           action.outDocuments = docId2Document(project, action.outbox[ObjectIdList], t0)
           //action.outDocuments = docId2Document(action, action.outbox[ObjectIdList], t0)
           val outDocs: Seq[DynDoc] = action.outDocuments[DocumentList]

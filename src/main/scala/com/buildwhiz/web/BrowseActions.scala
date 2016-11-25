@@ -42,10 +42,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find().asScala.toSeq
     text += "<table width=\"100%\">"
     for (person <- persons) {
-      val fontWeight = personOid == person._id[ObjectId] match {
-        case false => "normal"
-        case true => "bold"
-      }
+      val fontWeight = if (personOid == person._id[ObjectId]) "bold" else "normal"
       val name = s"${person.first_name[String]}&nbsp;${person.last_name[String]}"
       text += s"""<tr><td style="font-weight: $fontWeight;">
            |<span style="background-color: ${personStatusColor(person)}; border: 1px solid black;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -133,7 +130,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
     def docId2Document(project: DynDoc, docIds: ObjectIdList, createdAfter: Long): DocumentList = {
       val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
       for (doc <- docs) {
-        val isReady = if (project ? "documents") {
+        val isReady = if (project has "documents") {
           project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
             d.timestamp[Long] > createdAfter)
         } else {
@@ -155,7 +152,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
       val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phase._id[ObjectId])).asScala.head
       val isRelevant = action.assignee_person_id[ObjectId] == personOid
       if (isRelevant) {
-        val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+        val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
         val inDocuments = docId2Document(project, action.inbox[ObjectIdList], p0)
         text +=
           s"""<tr><td style="text-align: center; color: white; background-color: blue;">
@@ -172,7 +169,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
             }
           }
         }
-        val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+        val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
         val outDocuments = docId2Document(project, action.outbox[ObjectIdList], t0)
         text +=
           s"""<tr><td style="text-align: center; color: white; background-color: blue;">

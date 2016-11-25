@@ -16,7 +16,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
   private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
-      val isReady = if (project ? "documents") {
+      val isReady = if (project has "documents") {
         project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > startTime)
       } else {
@@ -30,7 +30,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
   private def getViewObjects(request: HttpServletRequest, action: DynDoc, project: DynDoc, phase: DynDoc, activity: DynDoc): Document = {
     val viewAction = new Document().y
     viewAction.name = action.name[String]
-    viewAction.reviewOk = if (action ? "review_ok") action.review_ok[Boolean] else false
+    viewAction.reviewOk = if (action has "review_ok") action.review_ok[Boolean] else false
     viewAction.`type` = action.`type`[String]
     viewAction.status = action.status[String]
     viewAction.project_name = project.name[String]
@@ -41,9 +41,9 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
     viewAction.activity_id = activity._id[ObjectId]
     viewAction.activity_description = activity.description[String]
     viewAction.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
-    val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+    val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
     viewAction.in_documents = docList(project, action.inbox[ObjectIdList].asScala, p0)
-    val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+    val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
     val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[ObjectIdList].asScala
     val outDocs = docList(project, outDocumentsOids, t0)
     viewAction.out_documents = outDocs

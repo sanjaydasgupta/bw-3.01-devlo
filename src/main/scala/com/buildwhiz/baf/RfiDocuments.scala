@@ -48,7 +48,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
-      val rfiDocuments: Seq[DynDoc] = if (project ? "documents") {
+      val rfiDocuments: Seq[DynDoc] = if (project has "documents") {
         project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).
           filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))
       } else {

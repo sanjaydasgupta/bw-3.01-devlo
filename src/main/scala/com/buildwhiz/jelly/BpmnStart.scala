@@ -23,13 +23,13 @@ class BpmnStart extends JavaDelegate with BpmnUtils {
             val msg = s"ERROR: Failed to find SuperExecution. Searching value of '$v'"
             BWLogger.log(getClass.getName, "setupVariables()", msg, de)
             throw new IllegalArgumentException(msg)
-          case superExec => superExec.hasVariable(v) match {
-            case false =>
+          case superExec => if (superExec.hasVariable(v)) {
+              de.setVariable(v, superExec.getVariable(v))
+            } else {
               val msg = s"ERROR: Failed to find value of '$v' in SuperExecution"
               BWLogger.log(getClass.getName, "setupVariables()", msg, de)
               throw new IllegalArgumentException(msg)
-            case true => de.setVariable(v, superExec.getVariable(v))
-          }
+            }
         }
       }
     }
@@ -57,11 +57,11 @@ class BpmnStart extends JavaDelegate with BpmnUtils {
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
-      if (thePhase ? "timers") {
+      if (thePhase has "timers") {
         val timers: Seq[DynDoc] = thePhase.timers[DocumentList].filter(_.bpmn_name[String] == bpmnName)
         timers.foreach(t => de.setVariable(t.variable[String], duration2iso(t.duration[String])))
       }
-      if (thePhase ? "variables") {
+      if (thePhase has "variables") {
         val variables: Seq[DynDoc] = thePhase.variables[DocumentList].filter(_.bpmn_name[String] == bpmnName)
         variables.foreach(t => de.setVariable(t.name[String], t.value[Any]))
       }

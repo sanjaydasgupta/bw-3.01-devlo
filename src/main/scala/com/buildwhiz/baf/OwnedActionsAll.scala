@@ -16,7 +16,7 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
-      val isReady = if (project ? "documents") {
+      val isReady = if (project has "documents") {
         project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > createdAfter)
       } else {
@@ -77,9 +77,9 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
               val isRelevant = assigneeIsUser | phaseManagerIsUser
               action.is_relevant = isRelevant
               if (isRelevant) {
-                val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+                val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
                 action.inDocuments = docList(project, action.inbox[ObjectIdList].asScala, p0)
-                val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+                val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
                 val outDocumentsOids: Seq[ObjectId] =
                   if (assigneeIsUser) {
                     rfiRequestOid +: action.outbox[ObjectIdList].asScala

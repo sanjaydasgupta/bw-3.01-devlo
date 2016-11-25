@@ -25,7 +25,7 @@ object BWMongoDB3 extends Dynamic {
     def selectDynamic[T](fieldName: String): T = d.get(fieldName).asInstanceOf[T]
     def updateDynamic[T](fieldName: String)(value: T): AnyRef = d.put(fieldName, value.asInstanceOf[AnyRef])
     def asDoc: Document = d
-    def ?(key: String): Boolean = d.containsKey(key)
+    def has(key: String): Boolean = d.containsKey(key)
     def remove(fieldName: String): Unit = d.remove(fieldName)
   }
 

@@ -13,19 +13,44 @@ import scala.collection.mutable
 
 class OwnedActionsSummary extends HttpServlet with HttpUtils {
 
-  private def copyParentReferences(action: DynDoc, project: DynDoc, phase: DynDoc, activity: DynDoc): Document = {
-    val newDocument = new Document().y
-    newDocument.name = action.name
-    newDocument.status = action.status
-    newDocument.project_name = project.name[String]
-    newDocument.project_id = project._id[ObjectId]
-    newDocument.phase_name = phase.name[String]
-    newDocument.phase_id = phase._id[ObjectId]
-    newDocument.activity_name = activity.name[String]
-    newDocument.activity_id = activity._id[ObjectId]
-    newDocument.activity_description = activity.description[String]
-    newDocument.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
-    newDocument.asDoc
+  private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): DocumentList = {
+    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
+    for (doc <- docs) {
+      val isReady = if (project ? "documents") {
+        project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+          d.timestamp[Long] > startTime)
+      } else {
+        false
+      }
+      doc.is_ready = isReady
+    }
+    docs.map(_.asDoc)
+  }.asJava
+
+  private def getViewObjects(request: HttpServletRequest, action: DynDoc, project: DynDoc, phase: DynDoc, activity: DynDoc): Document = {
+    val viewAction = new Document().y
+    viewAction.name = action.name[String]
+    viewAction.reviewOk = if (action ? "review_ok") action.review_ok[Boolean] else false
+    viewAction.`type` = action.`type`[String]
+    viewAction.status = action.status[String]
+    viewAction.project_name = project.name[String]
+    viewAction.project_id = project._id[ObjectId]
+    viewAction.phase_name = phase.name[String]
+    viewAction.phase_id = phase._id[ObjectId]
+    viewAction.activity_name = activity.name[String]
+    viewAction.activity_id = activity._id[ObjectId]
+    viewAction.activity_description = activity.description[String]
+    viewAction.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
+    val p0 = if (project ? "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+    viewAction.in_documents = docList(project, action.inbox[ObjectIdList].asScala, p0)
+    val t0 = if (action ? "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+    val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[ObjectIdList].asScala
+    val outDocs = docList(project, outDocumentsOids, t0)
+    viewAction.out_documents = outDocs
+    viewAction.is_ready = (action.`type`[String] == "review") ||
+      outDocs.forall(doc => doc.is_ready[Boolean] || doc._id[ObjectId] == rfiRequestOid)
+    //BWLogger.log(getClass.getName, "getViewObjects()", bson2json(viewAction.asDoc), request)
+    viewAction.asDoc
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -53,7 +78,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
               case "all" => true
               case _ => true // placeholder, to be changed later
             })
-            allActions ++= filteredActions.map(a => copyParentReferences(a, project, phase, activity))
+            allActions ++= filteredActions.map(a => getViewObjects(request, a, project, phase, activity))
           }
         }
       }

@@ -10,7 +10,9 @@
   self.taskSelected = false;
   self.confirmingCompletion = false;
   self.progressReportAttachments = [];
-  self.fetchKey = 'All';
+  self.currentFilterKey = 'All';
+  self.userNameEmail = 'abc@buildwhiz.com';
+  self.actionCompletionText = '';
 
   self.select = function(task) {
     if (task) {
@@ -31,8 +33,9 @@
     $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
-        self.fetchKey = filterKey;
+        self.currentFilterKey = filterKey;
         $log.log('OK-TasksCtrl: got ' + self.taskList.length + ' objects');
+        self.select(); // select none
       },
       function(errResponse) {alert("TasksCtrl: ERROR(collection-details): " + errResponse);}
     );
@@ -42,8 +45,9 @@
     var formData = new FormData();
     angular.forEach(self.progressReportAttachments, function(file, index) {
       formData.append(file.name, file, file.name);
-      $log.log('formData.append(' + file.name + ', ' + JSON.stringify(file) + ', file)');
+      $log.log('formData.append(name: ' + file.name + ', stringified: ' + JSON.stringify(file) + ')');
     });
+    formData.append('end-marker', 'end-marker-content');
     var query = 'baf/ProgressReportSubmit?person_id=' + AuthService.data._id;
     $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
       function() {
@@ -66,11 +70,11 @@
   }
 
   self.captureFile = function() {
-      var fileButton = $window.document.getElementById('file-button');
-      $log.log('BEFORE File-Button addEventListener: ' + fileButton);
-      fileButton.addEventListener('change', self.handleFile, false);
-      fileButton.click();
-      $log.log('AFTER File-Button click: ' + fileButton);
+    var fileButton = $window.document.getElementById('file-button');
+    $log.log('BEFORE File-Button addEventListener: ' + fileButton);
+    fileButton.addEventListener('change', self.handleFile, false);
+    fileButton.click();
+    $log.log('AFTER File-Button click: ' + fileButton);
   }
 
   self.handlePhoto = function(evt) {
@@ -91,6 +95,35 @@
       $log.log('AFTER Camera-Button click: ' + cameraButton);
   }
 
+  self.userNameEmailFromCookie = function() {
+    $log.log('TasksCtrl: userNameEmailFromCookie() Called');
+    $http.get('baf/UserNameEmailFromCookie').then(
+      function(resp) {
+        self.userNameEmail = resp.data;
+        $log.log('TasksCtrl: userNameEmailFromCookie(): ' + self.userNameEmail);
+      },
+      function(errResponse) {alert("TasksCtrl: ERROR(userNameEmailFromCookie()): " + errResponse);}
+    );
+  }
+
+  self.actionComplete = function() {
+    $log.log('TasksCtrl: taskComplete() Called');
+    var query = 'baf/ActionComplete?activity_id=' + self.selectedTask.activity_id +
+        '&action_name=' + self.selectedTask.name + '&completion_message=' + self.actionCompletionText +
+        '&review_ok=' + (self.selectedTask.reviewOk ? 'OK' : 'Not-Ok');
+    $log.log('TasksCtrl: taskComplete() POST ' + query);
+    $http.post(query).then(
+      function(resp) {
+        self.confirmingCompletion = false;
+        self.actionCompletionText = '';
+        self.fetchActions(self.currentFilterKey);
+        $log.log('TasksCtrl: taskComplete(): OK');
+      },
+      function(errResponse) {alert("TasksCtrl: ERROR(taskComplete()): " + errResponse);}
+    );
+  }
+
   self.fetchActions();
+  self.userNameEmailFromCookie();
 
 }]);

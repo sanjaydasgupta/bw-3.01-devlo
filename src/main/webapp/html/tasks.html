@@ -2,7 +2,7 @@
   <div class="panel-heading">
     Tasks
     <span data-ng-if="tasksCtrl.taskSelected">
-      <span style="font-weight:bold;">{{tasksCtrl.selectedTask.name}}</span>
+      <span style="font-weight:bold;">{{tasksCtrl.displayName(tasksCtrl.selectedTask)}}</span>
       [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()"
           style="color:white;"><span class="glyphicon glyphicon-backward"></span> Back</a>]
     </span>
@@ -32,7 +32,8 @@
   <div data-ng-switch="tasksCtrl.taskSelected" class="panel-body fixed-panel" style="padding:5px">
     <div data-ng-switch-when="false" data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px;">
       <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
-        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">{{task.name}} ({{task.status}})</a>
+        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">
+            {{tasksCtrl.displayName(task)}} ({{task.status}})</a>
       </h4>
       <p style="margin-bottom:0px">{{task.activity_description}}</p>
     </div>
@@ -145,18 +146,19 @@
           </data-uib-accordion-heading>
           <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
             <tr><td style="width:100%; vertical-align:top;">
-              <textarea class="center-block" style="width:98%; height:100px; margin:3px;"
-                  data-ng-model="tasksCtrl.actionCompletionText"></textarea>
+              <textarea class="center-block" data-ng-disabled="tasksCtrl.selectedTask.status != 'waiting'"
+                  style="width:98%; height:100px; margin:3px;"
+                  data-ng-model="tasksCtrl.selectedTask.completion_message"></textarea>
             </td></tr>
             <tr data-ng-if="tasksCtrl.selectedTask.status == 'waiting'"><td style="width:100%; horizontal-align:center;">
-              <span data-ng-if="!tasksCtrl.confirmingCompletion" class="center-block">
-                &nbsp;&nbsp;&nbsp;
-                <label style="color:#337ab7;"> Review OK?</label>&nbsp;&nbsp;&nbsp;
+              <span data-ng-if="!tasksCtrl.confirmingCompletion" class="pull-left">
+                &nbsp;&nbsp;&nbsp;<label style="color:#337ab7;"> Review OK?</label>
                 <input type="checkbox" data-ng-disabled="{{tasksCtrl.selectedTask.type != 'review'}}"
-                    data-ng-model="tasksCtrl.selectedTask.reviewOk">
-                <button class="button btn-warning btn-xs" data-ng-click="tasksCtrl.confirmingCompletion = true;"
-                    style="margin-bottom:3px;">Complete Task</button>
+                    data-ng-model="tasksCtrl.selectedTask.reviewOk">&nbsp;&nbsp;&nbsp;
               </span>
+              <button class="button btn-warning btn-xs pull-right" data-ng-if="!tasksCtrl.confirmingCompletion"
+                  data-ng-click="tasksCtrl.confirmingCompletion = true;"
+                  style="margin-bottom:3px;">Complete Task</button>
               <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-danger btn-xs pull-right"
                   style="margin-bottom:3px; margin-right:3px;" data-ng-click="tasksCtrl.actionComplete()">
                 Confirm</button>

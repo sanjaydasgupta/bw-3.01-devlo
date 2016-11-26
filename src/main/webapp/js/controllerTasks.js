@@ -12,7 +12,6 @@
   self.progressReportAttachments = [];
   self.currentFilterKey = 'All';
   self.userNameEmail = 'abc@buildwhiz.com';
-  self.actionCompletionText = '';
 
   self.select = function(task) {
     if (task) {
@@ -109,18 +108,26 @@
   self.actionComplete = function() {
     $log.log('TasksCtrl: taskComplete() Called');
     var query = 'baf/ActionComplete?activity_id=' + self.selectedTask.activity_id +
-        '&action_name=' + self.selectedTask.name + '&completion_message=' + self.actionCompletionText +
+        '&action_name=' + self.selectedTask.name +
+        '&completion_message=' + self.selectedTask.completion_message +
         '&review_ok=' + (self.selectedTask.reviewOk ? 'OK' : 'Not-Ok');
     $log.log('TasksCtrl: taskComplete() POST ' + query);
     $http.post(query).then(
       function(resp) {
         self.confirmingCompletion = false;
-        self.actionCompletionText = '';
         self.fetchActions(self.currentFilterKey);
         $log.log('TasksCtrl: taskComplete(): OK');
       },
       function(errResponse) {alert("TasksCtrl: ERROR(taskComplete()): " + errResponse);}
     );
+  }
+
+  self.displayName = function(task) {
+    if (task.type == 'main') {
+      return task.name;
+    } else {
+      return task.name + ':' + task.activity_name;
+    }
   }
 
   self.fetchActions();

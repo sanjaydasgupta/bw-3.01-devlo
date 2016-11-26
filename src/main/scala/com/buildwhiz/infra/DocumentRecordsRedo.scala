@@ -112,7 +112,6 @@ object DocumentRecordsRedo extends App {
   // "572456d4d5d8ad25eb8943ad", "572456d4d5d8ad25eb8943ae", "572456d4d5d8ad25eb8943af", "572456d4d5d8ad25eb8943b0",
   // "572456d4d5d8ad25eb8943b1", "572456d4d5d8ad25eb8943b2", "572456d4d5d8ad25eb8943b3", "572456d4d5d8ad25eb8943b4"
 
-
   private val documents = Seq(
     "572456d4d5d8ad25eb8943a1#Geotechnical Report#Geotechnical Report#pdf",
     "5720a239d5d8ad41061c3a93#Energy Model - Front Building (PDF)#Energy Model (PDF)#pdf",
@@ -146,15 +145,12 @@ object DocumentRecordsRedo extends App {
     documents.map(document2bsonDocument)
   }
 
-  private val docRfiRequest: Document = Map("name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
-    "content_type" -> "application/octet-stream", "document_type" -> "text",
-    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d38"))
-  private val docRfiResponse: Document = Map("name" -> "RFI-Response", "file_extension" -> ".txt", "description" -> "",
-    "content_type" -> "application/octet-stream", "document_type" -> "text",
-    "_id" -> new ObjectId("56fe4e6bd5d8ad3da60d5d39"))
-  private val docSubmittal: Document = Map("name" -> "Submittal", "file_extension" -> ".txt", "description" -> "",
-    "content_type" -> "application/octet-stream", "document_type" -> "text",
-    "_id" -> new ObjectId("572456d4d5d8ad25eb8943a2"))
+  private val docRfiRequest: Document = Map("_id" -> rfiRequestOid, "name" -> "RFI-Request", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "document_type" -> "text")
+  private val docRfiResponse: Document = Map("_id" -> rfiResponseOid, "name" -> "RFI-Response", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "document_type" -> "text")
+  private val docSubmittal: Document = Map("_id" -> submittalOid, "name" -> "Submittal", "file_extension" -> ".txt", "description" -> "",
+    "content_type" -> "application/octet-stream", "document_type" -> "text")
 
   val allDocuments = Seq(docRfiRequest, docRfiResponse, docSubmittal)  ++ processDrawings() ++ processDocuments()
   println(s"Original count: ${BWMongoDB3.document_master.count()}")

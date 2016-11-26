@@ -30,6 +30,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
   private def getViewObjects(request: HttpServletRequest, action: DynDoc, project: DynDoc, phase: DynDoc, activity: DynDoc): Document = {
     val viewAction = new Document().y
     viewAction.name = action.name[String]
+    viewAction.completion_message = if (action has "completion_message") action.completion_message[String] else ""
     viewAction.reviewOk = if (action has "review_ok") action.review_ok[Boolean] else false
     viewAction.`type` = action.`type`[String]
     viewAction.status = action.status[String]

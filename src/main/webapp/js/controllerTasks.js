@@ -12,6 +12,7 @@
   self.progressReportAttachments = [];
   self.currentFilterKey = 'All';
   self.userNameEmail = 'abc@buildwhiz.com';
+  self.submissionType = 'Progress';
 
   self.select = function(task) {
     if (task) {

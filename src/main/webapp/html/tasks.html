@@ -120,14 +120,14 @@
                 </div>
               </td>
               <td style="width:70%;">
-                <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;"></textarea>
+                <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;" data-ng-model="tasksCtrl.submissionMessage"></textarea>
               </td>
             </tr>
             <tr>
               <td colspan="2" style="width:100%;">
                 <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
                 <label class="pull-left" style="margin-top:5px;">&nbsp;Title&nbsp;</label>
-                <input type="text" style="margin-top:2px;"/>
+                <input type="text" style="margin-top:2px;" data-ng-model="tasksCtrl.submissionTitle"/>
               </td>
             </tr>
             <tr>
@@ -149,12 +149,12 @@
                   </button>&nbsp;
                   <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="submission-type"
                       style="min-width:30px">
-                    <li class="dropdown-item"><a href="javascript:void(0)"
-                                                 data-ng-click="tasksCtrl.submissionType = 'Submittals'" style="padding:3px;">Submittals</a></li>
-                    <li class="dropdown-item"><a href="javascript:void(0)"
-                                                 data-ng-click="tasksCtrl.submissionType = 'RFI'" style="padding:3px;">RFI</a></li>
-                    <li class="dropdown-item"><a href="javascript:void(0)"
-                                                 data-ng-click="tasksCtrl.submissionType = 'Progress'" style="padding:3px;">Progress</a></li>
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                        data-ng-click="tasksCtrl.submissionType = 'Submittals'">Submittals</a></li>
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                        data-ng-click="tasksCtrl.submissionType = 'RFI'">RFI</a></li>
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                        data-ng-click="tasksCtrl.submissionType = 'Progress'">Progress</a></li>
                   </ul>
                 </div>
               </td>

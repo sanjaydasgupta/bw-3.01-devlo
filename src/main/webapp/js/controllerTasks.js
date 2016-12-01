@@ -13,6 +13,8 @@
   self.currentFilterKey = 'All';
   self.userNameEmail = 'abc@buildwhiz.com';
   self.submissionType = 'Progress';
+  self.submissionTitle = '';
+  self.submissionMessage = '';
 
   self.select = function(task) {
     if (task) {
@@ -48,9 +50,16 @@
       $log.log('formData.append(name: ' + file.name + ', stringified: ' + JSON.stringify(file) + ')');
     });
     formData.append('end-marker', 'end-marker-content');
-    var query = 'baf/ProgressReportSubmit?person_id=' + AuthService.data._id;
+    var query = 'baf/ProgressReportSubmit?person_id=' + AuthService.data._id +
+    '&activity_id=' + self.selectedTask.activity_id + '&action_name=' + self.selectedTask.name +
+    '&submission_title=' + self.submissionTitle + '&submission_type=' + self.submissionType +
+    '&submission_message=' + self.submissionMessage;
     $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
       function() {
+        self.progressReportAttachments = [];
+        self.submissionType = 'Progress';
+        self.submissionTitle = '';
+        self.submissionMessage = '';
         $log.log('OK submitProgressReport')
       },
       function() {

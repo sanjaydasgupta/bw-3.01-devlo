@@ -29,40 +29,47 @@ trait MailUtils {
     props.put("mail.smtp.port", "465")
     props.put("mail.smtp.socketFactory.fallback", "false")
 
-    try {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    Future {
       val session = Session.getInstance(props,
         new javax.mail.Authenticator() {
-          override def getPasswordAuthentication = {
+          override def getPasswordAuthentication: PasswordAuthentication = {
             new PasswordAuthentication(username,
               s"${username.substring(16, 21)}${password.length/2}${username.substring(21, 25)}")
           }
         }
       )
 
+      val message = new MimeMessage(session)
+      message.setFrom(new InternetAddress(username))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).asScala.head
       val email = person.emails[DocumentList].find(_.`type`[String] == "work").head.email[String]
       val (firstName, lastName) = (person.first_name[String], person.last_name[String])
-      val message = new MimeMessage(session)
-      message.setFrom(new InternetAddress(username))
-      val emailParts = username.split('@')
+      //val emailParts = username.split('@')
       val recipients: Array[Address] = InternetAddress.parse(s"sanjay.dasgupta+$firstName.$lastName@buildwhiz.com").
         map(_.asInstanceOf[Address])
       message.setRecipients(Message.RecipientType.TO, recipients)
       message.setSubject(s"$subject for $email")
       message.setText(body)
-      import scala.concurrent.ExecutionContext.Implicits.global
+      Transport.send(message)
+      /*import scala.concurrent.ExecutionContext.Implicits.global
       Future(Transport.send(message)).onComplete {
         case Failure(t: Throwable) =>
           BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
           t.printStackTrace()
         case _ =>
-      }
+      }*/
       BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK")
-    } catch {
+    } /*catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
         t.printStackTrace()
         throw t
+    }*/ .onComplete {
+      case Failure(t: Throwable) =>
+        BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
+        t.printStackTrace()
+      case _ =>
     }
   }
 

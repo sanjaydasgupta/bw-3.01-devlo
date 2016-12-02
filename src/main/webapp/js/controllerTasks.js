@@ -9,7 +9,7 @@
   self.selectedTask = null;
   self.taskSelected = false;
   self.confirmingCompletion = false;
-  self.progressReportAttachments = [];
+  self.submissionAttachments = [];
   self.currentFilterKey = 'All';
   self.userNameEmail = 'abc@buildwhiz.com';
   self.submissionType = 'Progress';
@@ -45,7 +45,7 @@
 
   self.submitProgressReport = function() {
     var formData = new FormData();
-    angular.forEach(self.progressReportAttachments, function(file, index) {
+    angular.forEach(self.submissionAttachments, function(file, index) {
       formData.append(file.name, file, file.name);
       $log.log('formData.append(name: ' + file.name + ', stringified: ' + JSON.stringify(file) + ')');
     });
@@ -56,7 +56,7 @@
     '&submission_message=' + self.submissionMessage;
     $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
       function() {
-        self.progressReportAttachments = [];
+        self.submissionAttachments = [];
         self.submissionType = 'Progress';
         self.submissionTitle = '';
         self.submissionMessage = '';
@@ -74,7 +74,9 @@
       var file = files[0];
       var fileDescription = 'name: ' + file.name + ', type: ' + file.type + ', size: ' + file.size;
       $log.log('File: ' + fileDescription);
-      self.progressReportAttachments.push(file);
+      var temp = self.submissionAttachments.slice();
+      temp.push(file);
+      self.submissionAttachments = temp;
     }
   }
 
@@ -92,16 +94,18 @@
       var photo = files[0];
       var photoDescription = 'name: ' + photo.name + ', type: ' + photo.type + ', size: ' + photo.size;
       $log.log('Photo: ' + photoDescription);
-      self.progressReportAttachments.push(photo);
+      var temp = self.submissionAttachments.slice();
+      temp.push(photo);
+      self.submissionAttachments = temp;
     }
   }
 
   self.takePhoto = function() {
-      var cameraButton = $window.document.getElementById('camera-button');
-      $log.log('BEFORE Camera-Button addEventListener: ' + cameraButton);
-      cameraButton.addEventListener('change', self.handlePhoto, false);
-      cameraButton.click();
-      $log.log('AFTER Camera-Button click: ' + cameraButton);
+    var cameraButton = $window.document.getElementById('camera-button');
+    $log.log('BEFORE Camera-Button addEventListener: ' + cameraButton);
+    cameraButton.addEventListener('change', self.handlePhoto, false);
+    cameraButton.click();
+    $log.log('AFTER Camera-Button click: ' + cameraButton);
   }
 
   self.userNameEmailFromCookie = function() {

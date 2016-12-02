@@ -76,7 +76,67 @@
 
         <div data-uib-accordion-group>
           <data-uib-accordion-heading>
-            <button class="button btn-default btn-xs" style="width:100%;">RFI</button>
+            <button class="button btn-default btn-xs" style="width:100%;">Optional Submission</button>
+          </data-uib-accordion-heading>
+          <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
+            <tr>
+              <td><div class="label label-default center-block" style="margin:0px">Attachments</div></td>
+              <td><div class="label label-default center-block" style="margin:0px">Comments</div></td>
+            </tr>
+            <tr>
+              <td style="width:30%;">
+                <div style="height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
+                  <div data-ng-repeat="attachment in tasksCtrl.submissionAttachments">
+                    {{attachment.name}}
+                  </div>
+                </div>
+              </td>
+              <td style="width:70%;">
+                <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;" data-ng-model="tasksCtrl.submissionMessage"></textarea>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="width:100%;">
+                <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
+                <label class="pull-left" style="margin-top:5px;">Add</label>
+                <button class="button btn-info btn-xs pull-left" style="margin:3px;"
+                        data-ng-click="tasksCtrl.captureFile()">File</button>
+                <button class="button btn-info btn-xs pull-left" style="margin:3px;"
+                        data-ng-click="tasksCtrl.takePhoto()">Photo</button>
+                <input id="camera-button" type="file" accept="image/*;capture=camera" style="display:none;" />
+                <input id="file-button" type="file" style="display:none;" />
+                <div class="btn-group pull-right" data-uib-dropdown data-dropdown-append-to="appendToEl"
+                     style="margin-top:3px;">
+                  <button id="submission-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+                    {{tasksCtrl.submissionType}}<span class="caret"></span>
+                  </button>&nbsp;
+                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="submission-type"
+                      style="min-width:30px">
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                                                 data-ng-click="tasksCtrl.submissionType = 'Submittals'">Submittals</a></li>
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                                                 data-ng-click="tasksCtrl.submissionType = 'RFI'">RFI</a></li>
+                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
+                                                 data-ng-click="tasksCtrl.submissionType = 'Progress'">Progress</a></li>
+                  </ul>
+                </div>
+                <label class="pull-right" style="margin-top:5px;">Type&nbsp;</label>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2" style="width:100%;">
+                <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
+                &nbsp;<input type="text" style="margin-top:2px;" placeholder="Title" data-ng-model="tasksCtrl.submissionTitle"/>
+                <button class="button btn-warning btn-xs pull-right" style="margin:3px;"
+                        data-ng-click="tasksCtrl.submitProgressReport()">Send</button>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div data-uib-accordion-group>
+          <data-uib-accordion-heading>
+            <button class="button btn-default btn-xs" style="width:100%;">Previous Submissions</button>
           </data-uib-accordion-heading>
           <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
             <tr><td colspan="2" style="width:100%">
@@ -97,66 +157,6 @@
               </td>
               <td style="width:20%;">
                 <button class="button btn-warning btn-xs center-block">Send</button>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <div data-uib-accordion-group>
-          <data-uib-accordion-heading>
-            <button class="button btn-default btn-xs" style="width:100%;">Other Submissions</button>
-          </data-uib-accordion-heading>
-          <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
-            <tr>
-              <td><div class="label label-default center-block" style="margin:0px">Attachments</div></td>
-              <td><div class="label label-default center-block" style="margin:0px">Comments</div></td>
-            </tr>
-            <tr>
-              <td style="width:30%;">
-                <div style="height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
-                  <div data-ng-repeat="attachment in tasksCtrl.progressReportAttachments">
-                    {{attachment.name}}
-                  </div>
-                </div>
-              </td>
-              <td style="width:70%;">
-                <textarea class="center-block" style="width:98%; height:100px; margin-top:3px;" data-ng-model="tasksCtrl.submissionMessage"></textarea>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" style="width:100%;">
-                <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
-                <label class="pull-left" style="margin-top:5px;">&nbsp;Title&nbsp;</label>
-                <input type="text" style="margin-top:2px;" data-ng-model="tasksCtrl.submissionTitle"/>
-              </td>
-            </tr>
-            <tr>
-              <td colspan="2" style="width:100%;">
-                <hr style="background-color:#337ab7; height:2px; margin:0px;"/>
-                <label class="pull-left" style="margin-top:5px;">Attach</label>
-                <button class="button btn-info btn-xs pull-left" style="margin:3px;"
-                    data-ng-click="tasksCtrl.captureFile()">File</button>
-                <button class="button btn-info btn-xs pull-left" style="margin:3px;"
-                    data-ng-click="tasksCtrl.takePhoto()">Photo</button>
-                <input id="camera-button" type="file" accept="image/*;capture=camera" style="display:none;" />
-                <input id="file-button" type="file" style="display:none;" />
-                <button class="button btn-warning btn-xs pull-right" style="margin:3px;"
-                        data-ng-click="tasksCtrl.submitProgressReport()">Submit</button>
-                <div class="btn-group pull-right" data-uib-dropdown data-dropdown-append-to="appendToEl"
-                     style="margin-top:3px;">
-                  <button id="submission-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
-                    {{tasksCtrl.submissionType}}<span class="caret"></span>
-                  </button>&nbsp;
-                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="submission-type"
-                      style="min-width:30px">
-                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                        data-ng-click="tasksCtrl.submissionType = 'Submittals'">Submittals</a></li>
-                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                        data-ng-click="tasksCtrl.submissionType = 'RFI'">RFI</a></li>
-                    <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                        data-ng-click="tasksCtrl.submissionType = 'Progress'">Progress</a></li>
-                  </ul>
-                </div>
               </td>
             </tr>
           </table>

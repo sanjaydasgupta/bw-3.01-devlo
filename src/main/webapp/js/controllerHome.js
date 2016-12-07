@@ -6,6 +6,7 @@
 
   self.taskList = [];
   self.projectList = [];
+  self.documentList = [];
 
   self.fetchActions = function(filter) {
     var filterKey = filter ? filter : 'all';

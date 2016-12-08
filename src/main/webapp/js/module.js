@@ -21,5 +21,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/mongodb', {
         templateUrl: 'html/mongodb.html',
         controller: 'MongodbCtrl as mongoCtrl'
+    }).when('/manageDocuments', {
+        templateUrl: 'html/manage-documents.html',
+        controller: 'ManageDocumentsCtrl as mdocsCtrl'
     }).otherwise({redirectTo: '/'})
 }])

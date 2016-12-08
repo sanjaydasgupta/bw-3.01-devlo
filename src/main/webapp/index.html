@@ -31,10 +31,12 @@
                 <ul class="nav navbar-nav navbar-right" data-ng-if="mainCtrl.loggedIn">
                     <li class="sdg-active"><a href="#/" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-home"></span> Home</a></li>
+                    <li><a href="#/documents" data-ng-click="mainCtrl.clickCommon()">
+                        <span class="glyphicon glyphicon-inbox"></span> Documents</a></li>
                     <li><a href="#/tasks" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-cog"></span> Tasks</a></li>
+                        <span class="glyphicon glyphicon-tasks"></span> Tasks</a></li>
                     <li><a href="#/projects" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-briefcase"></span> Projects</a></li>
+                        <span class="glyphicon glyphicon-cog"></span> Projects</a></li>
                     <!--li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
                         <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li-->
                     <li><a href="#/userProfile" data-ng-click="mainCtrl.clickCommon()">
@@ -46,7 +48,8 @@
                         <ul class="dropdown-menu" data-uib-dropdown-menu aria-labelledby="btn-append-to">
                             <li><a href="#/mongodb" data-ng-click="mainCtrl.clickCommon()">
                                 <span class="glyphicon glyphicon-cd"></span> MongoDB</a></li>
-                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Another action</a></li>
+                            <li><a href="#/manageDocuments" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-inbox"></span> Documents</a></li>
                             <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Something else here</a></li>
                             <li class="divider"></li>
                             <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Separated link</a></li>
@@ -95,6 +98,7 @@
     <script src="js/controllerTasks.js"></script>
     <script src="js/controllerProjects.js"></script>
     <script src="js/controllerDocuments.js"></script>
+    <script src="js/controllerManageDocuments.js"></script>
     <script src="js/controllerHome.js"></script>
     <script src="js/serviceAuthentication.js"></script>
   </body>

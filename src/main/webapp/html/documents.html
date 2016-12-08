@@ -24,6 +24,80 @@
   </div>
 
   <div class="panel-body fixed-panel" style="padding:5px">
+    <div class="row" style="padding:5px 5px; border:2px solid #337ab7;">
+      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
+        Type:&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{documentsCtrl.currentTypeKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-type"
+              style="min-width:50px">
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Appraisal')" style="padding:3px;">Appraisal</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Drawing')" style="padding:3px;">Drawing</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Energy Model (PDF)')" style="padding:3px;">Energy Model (BLD)</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Energy Model (PDF)')" style="padding:3px;">Energy Model (PDF)</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Environmental Study')" style="padding:3px;">Environmental Study</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Geotechnical Report')" style="padding:3px;">Geotechnical Report</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Historical Study')" style="padding:3px;">Historical Study</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Owner Project Requirements')" style="padding:3px;">Owner Project Requirements</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Permit')" style="padding:3px;">Permit</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Photometrics Report')" style="padding:3px;">Photometrics Report</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Structural Calculations')" style="padding:3px;">Structural Calculations</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Traffic Study')" style="padding:3px;">Traffic Study</a></li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByType('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
+        Keyword:&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-keyword" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{documentsCtrl.currentKeywordKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-keyword"
+              style="min-width:50px">
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Arborist')" style="padding:3px;">Arborist</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Architecture')" style="padding:3px;">Architecture</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Civil')" style="padding:3px;">Civil</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Electrical')" style="padding:3px;">Electrical</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Energy')" style="padding:3px;">Energy</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Landscaping')" style="padding:3px;">Landscaping</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Mechanical')" style="padding:3px;">Mechanical</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Plumbing')" style="padding:3px;">Plumbing</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Structural')" style="padding:3px;">Structural</a></li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="documentsCtrl.fetchDocumentsByKeyword('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">.col-xs-3</div>
+      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">.col-xs-3</div>
+    </div>
     {{documentsCtrl.documentList.length}} documents available
   </div>
 </div>

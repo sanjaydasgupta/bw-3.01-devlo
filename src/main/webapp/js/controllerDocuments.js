@@ -6,6 +6,16 @@
 
   self.documentList = [];
   self.currentFilterKey = 'All';
+  self.currentTypeKey = 'Any';
+  self.currentKeywordKey = 'Any';
+
+  self.fetchDocumentsByType = function(typeKey) {
+    self.currentTypeKey = typeKey;
+  }
+
+  self.fetchDocumentsByKeyword = function(kwdKey) {
+    self.currentKeywordKey = kwdKey;
+  }
 
   self.fetchDocuments = function(filter) {
     self.currentFilterKey = filter ? filter : 'All';

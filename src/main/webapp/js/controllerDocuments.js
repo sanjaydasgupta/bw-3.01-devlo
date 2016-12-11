@@ -7,14 +7,30 @@
   self.documentList = [];
   self.currentFilterKey = 'All';
   self.currentTypeKey = 'Any';
-  self.currentKeywordKey = 'Any';
+  self.currentSkillKey = 'Any';
+  self.currentContentKey = 'Any';
+  self.currentAuthorKey = 'Any';
 
   self.fetchDocumentsByType = function(typeKey) {
     self.currentTypeKey = typeKey;
+    self.currentSkillKey = 'Any';
+    self.currentContentKey = 'Any';
+    self.currentAuthorKey = 'Any';
   }
 
-  self.fetchDocumentsByKeyword = function(kwdKey) {
-    self.currentKeywordKey = kwdKey;
+  self.fetchDocumentsBySkill = function(skillKey) {
+    self.currentSkillKey = skillKey;
+    self.currentContentKey = 'Any';
+    self.currentAuthorKey = 'Any';
+  }
+
+  self.fetchDocumentsByContent = function(contentKey) {
+    self.currentContentKey = contentKey;
+    self.currentAuthorKey = 'Any';
+  }
+
+  self.fetchDocumentsByAuthor = function(authorKey) {
+    self.currentAuthorKey = authorKey;
   }
 
   self.fetchDocuments = function(filter) {

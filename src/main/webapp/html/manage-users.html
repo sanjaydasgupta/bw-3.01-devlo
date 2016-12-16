@@ -1,7 +1,23 @@
 <div class="panel panel-primary">
-    <div class="panel-heading">User Management</div>
+  <div class="panel-heading">User Management</div>
 
-    <div class="panel-body fixed-panel">
-        No entries yet!
+  <div class="panel-body fixed-panel">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-3 col-md-3 col-lg-2">
+          <label>Name:</label>
+          <input type="text" data-ng-model="manageUsersCtrl.nameFilter" size="7"/>
+          <button class="btn btn-xs btn-info" data-ng-click="manageUsersCtrl.findUsers()">Find</button>
+          <hr style="background-color:#337ab7; height:2px; margin-top:0px; margin-bottom:3px;"/>
+          <span data-ng-repeat="user in manageUsersCtrl.users" data-ng-click="manageUsersCtrl.selectUser(user)">
+            <a href="javascript:void(0);">{{user.first_name}} {{user.last_name}}</a><br/>
+          </span>
+        </div>
+        <div class="col-xs-12 col-sm-3 col-md-3 col-lg-2">
+          <span class="bg-primary text-center" style="width:100%;">Selected User</span>
+        </div>
+      </div>
     </div>
+  </div>
+
 </div>

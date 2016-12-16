@@ -1,59 +1,28 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ManageUsersCtrl", ['$log', '$http', 'AuthenticationService', function ($log, $http) {
+.controller("ManageUsersCtrl", ['$log', '$http', 'AuthenticationService',
+      function ($log, $http, AuthenticationService) {
 
   var self = this;
-  self.persons = [];
+  self.nameFilter = "";
+  self.users = [];
 
-  self.initPage = function() {
-    self.isWaiting = true;
-    $log.log('HTTP GET baf/Person')
-    $http.get('api/Person').then(
-      function (response) {
-        self.persons = response.data;
-        self.isWaiting = false;
-        for (var i = 0; i < self.persons.length; ++i) {
-          var person = self.persons[i];
-          if (person.first_name == "No" && person.last_name == "One") {
-            self.persons.splice(i, 1);
-            break;
-          }
-        }
-        self.persons.forEach(function(person) {self.initPerson(person);});
+  self.findUsers = function() {
+    var query = 'api/Person/{$or: [{first_name: {$regex: "' + self.nameFilter + '", $options: "i"}},' +
+        '{last_name: {$regex: "' + self.nameFilter + '", $options: "i"}}]}';
+    $log.log('GET ' + query);
+    $http.get(query).then(
+      function(res) {
+        self.users = res.data;
       },
-      function() {
-        alert('ERROR: HTTP GET api/Person');
-      }
-    );
-  }
+      function(res) {
 
-  self.initPerson = function(person) {
-    person.roleDemo = person.newRoleDemo = person.omniclass34roles.indexOf('BW-Demo') != -1;
-    person.roleAdmin = person.newRoleAdmin = person.omniclass34roles.indexOf('BW-Admin') != -1;
-  }
-
-  self.savePerson = function(person) {
-    self.isWaiting = true;
-    var query = '?person_id=' + person._id + '&BW-Demo=' + person.newRoleDemo +
-        '&BW-Admin=' + person.newRoleAdmin;
-    $log.log('HTTP POST baf/UserSkillsSet/' + query)
-    $http.post('baf/UserSkillsSet/' + query).then(
-      function(response) {
-        //alert("Person record updated");
-        self.isWaiting = false;
-        self.initPage();
-      },
-      function(response) {
-        alert('ERROR: api/Person/');
-        self.isWaiting = false;
       }
     )
   }
 
-  self.dataModified = function(person) {
-    return (person.roleDemo != person.newRoleDemo) || (person.roleAdmin != person.newRoleAdmin);
+  self.selectUser = function(user) {
+    $log.log('selectUser(' + user.first_name + ')')
   }
-
-  self.initPage();
 
 }]);

@@ -23,9 +23,9 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
         controller: 'MongodbCtrl as mongoCtrl'
     }).when('/manageDocuments', {
         templateUrl: 'html/manage-documents.html',
-        controller: 'ManageDocumentsCtrl as mdocsCtrl'
+        controller: 'ManageDocumentsCtrl as manageDocsCtrl'
     }).when('/manageUsers', {
         templateUrl: 'html/manage-users.html',
-        controller: 'ManageUsersCtrl as mdocsCtrl'
+        controller: 'ManageUsersCtrl as manageUsersCtrl'
     }).otherwise({redirectTo: '/'})
 }])

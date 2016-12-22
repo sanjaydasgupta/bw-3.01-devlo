@@ -22,9 +22,9 @@ object RolesAndSkillsRecordsRedo extends App {
     Seq("585a699592982d1085de5f55", "Design", "Building Scientist"),
     Seq("585a699592982d1085de5f54", "Design", "Civil Engineer"),
     Seq("585a699592982d1085de5f53", "Design", "Electrical Engineer"),
-    Seq("585a699592982d1085de5f52", "Design", "Energy Conservation"),
+    Seq("585a699592982d1085de5f52", "Design", "Energy Conservationist"),
     Seq("585a699592982d1085de5f51", "Design", "Geotechnical Engineer"),
-    Seq("585a699592982d1085de5f50", "Design", "Interiors Designer"),
+    Seq("585a699592982d1085de5f50", "Design", "Interior Designer"),
     Seq("585a699592982d1085de5f4f", "Design", "Landscape Designer"),
     Seq("585a699592982d1085de5f4e", "Design", "Mechanical Engineer"),
     Seq("585a699592982d1085de5f4d", "Design", "Plumbing Engineer"),
@@ -51,8 +51,8 @@ object RolesAndSkillsRecordsRedo extends App {
   BWMongoDB3.roles_master.insertMany(roles.asJava)
   println(s"Final roles count: ${BWMongoDB3.roles_master.count()}")
 
-  println(s"Original skills count: ${BWMongoDB3.skills_master.count()}")
-  BWMongoDB3.skills_master.insertMany(skills.asJava)
-  println(s"Final skills count: ${BWMongoDB3.skills_master.count()}")
+  //println(s"Original skills count: ${BWMongoDB3.skills_master.count()}")
+  //BWMongoDB3.skills_master.insertMany(skills.asJava)
+  //println(s"Final skills count: ${BWMongoDB3.skills_master.count()}")
 
 }

@@ -14,6 +14,9 @@ object RolesAndSkillsRecordsRedo extends App {
   ).map(skill => new Document("_id", skill))
 
   private val roles = Seq(
+    Seq("585b3c3c92982d14ba5a229c", "Admin", "Business"),
+    Seq("585b3c3c92982d14ba5a229d", "Admin", "Database"),
+    Seq("585b3c3c92982d14ba5a229e", "Admin", "Admin"),
     Seq("585a699592982d1085de5f57", "Design", "Arborist"),
     Seq("585a699592982d1085de5f56", "Design", "Architect"),
     Seq("585a699592982d1085de5f55", "Design", "Building Scientist"),

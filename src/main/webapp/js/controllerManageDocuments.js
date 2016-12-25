@@ -8,6 +8,7 @@
   self.documentCategories = ['Architecture', 'Civil', 'Electrical Design', 'Interior Design', 'Landscape Design',
       'Mechanical Design', 'Plumbing Design', 'Structure'];
   self.documentSubcategories = [];
+  self.authorKeys = ['Owner', 'Manager', 'Collaborator'];
 
   self.documentList = [];
   self.documentCount = 0;
@@ -16,6 +17,19 @@
   self.currentContentKey = "Any";
   self.currentSubcategoryKey = "Any";
   self.currentCategoryKey = "Any";
+  self.selectedDate = new Date();
+
+  self.today = function() {
+    return new Date().toLocaleDateString();
+  }
+
+  self.dateOptions = {
+    dateDisabled: false,
+    formatYear: 'yy',
+    maxDate: new Date(2018, 11, 31),
+    minDate: new Date(2010, 0, 1),
+    startingDay: 1
+  };
 
   self.fetchDocuments = function(filter) {
     self.currentFilterKey = filter ? filter : 'All';

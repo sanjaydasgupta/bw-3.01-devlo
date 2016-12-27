@@ -8,7 +8,7 @@
   self.documentCategories = ['Architecture', 'Civil', 'Electrical Design', 'Interior Design', 'Landscape Design',
       'Mechanical Design', 'Plumbing Design', 'Structure'];
   self.documentSubcategories = [];
-  self.authorKeys = ['Owner', 'Manager', 'Collaborator'];
+  self.authorKeys = ['Owner', 'Manager', 'Supervisor', 'Collaborator'];
 
   self.documentList = [];
   self.documentCount = 0;
@@ -79,28 +79,31 @@
     uploadButton.removeEventListener('change', self.uploadOk, false);
     var files = evt.target.files; // FileList of File objects
     if (files.length > 0) {
+      var year = self.selectedDate.getUTCFullYear();
+      var month = self.selectedDate.getUTCMonth();
+      var date = self.selectedDate.getUTCDate();
+      var hours = self.selectedDate.getUTCHours();
+      var minutes = self.selectedDate.getUTCMinutes();
+      var seconds = self.selectedDate.getUTCSeconds();
       var formData = new FormData();
       angular.forEach(files, function(file, index) {
         formData.append(file.name, file, file.name);
         $log.log('formData.append(name: ' + file.name);
       });
-      /*formData.append('end-marker', 'end-marker-content');
-      var query = 'baf/ProgressReportSubmit?person_id=' + AuthService.data._id +
-          '&activity_id=' + self.selectedTask.activity_id + '&action_name=' + self.selectedTask.name +
-          '&submission_title=' + self.submissionTitle + '&submission_type=' + self.submissionType +
-          '&submission_message=' + self.submissionMessage;
+      formData.append('end-marker', 'end-marker-content');
+      var query = 'baf/DocumentUpload?person_id=' + AuthService.data._id +
+          '&year=' + year + '&month=' + month + '&date=' + date +
+          '&hours=' + hours + '&minutes=' + minutes + '&seconds=' + seconds +
+          '&category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey;
+      $log.log("POST: " + query);
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
         function() {
-          self.submissionAttachments = [];
-          self.submissionType = 'Progress';
-          self.submissionTitle = '';
-          self.submissionMessage = '';
-          $log.log('OK submitProgressReport')
+          $log.log('OK submit FilesPreload');
         },
         function() {
-          $log.log('ERROR submitProgressReport')
+          $log.log('ERROR submit FilesPreload');
         }
-      )*/
+      )
     }
     $log.log('Exiting uploadOk()');
   }

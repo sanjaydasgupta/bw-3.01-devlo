@@ -106,7 +106,7 @@
         document.getElementById("hndPersonLName").value = person.last_name;
                
         var arrOmniClass = new Array();
-        arrOmniClass = person.omniclass34roles;
+        arrOmniClass = person.roles;
         
         for (var idx = 0; idx < arrOmniClass.length; idx++) {
             // if role is Project Manager.

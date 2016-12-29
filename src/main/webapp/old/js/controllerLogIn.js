@@ -87,11 +87,12 @@
                         sLastName = value;
                     }
 
-                    else if (key == "omniclass34roles") {                       
+                    else if (key == "roles") {
 
-                        var arrOmniClass = new Array();
+                        //var arrOmniClass = new Array();
                         arrOmniClass = value.split(",");
-                        for (var idx = 0; idx < arrOmniClass.length; idx++) {                           
+                        $log.log('arrOmniClass: ' + arrOmniClass);
+                        for (var idx = 0; idx < arrOmniClass.length; idx++) {
                             // if role is Project Manager.
                             if (arrOmniClass[idx].toString() == "34-55 14 19 XX") {
                                 sProjectManager = "y";

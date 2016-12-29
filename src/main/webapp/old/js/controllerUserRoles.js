@@ -1,4 +1,4 @@
-﻿app.controller("UserRolesCtrl", function ($log, $http) {
+app.controller("UserRolesCtrl", function ($log, $http) {
 
     var self = this;
     self.persons = [];

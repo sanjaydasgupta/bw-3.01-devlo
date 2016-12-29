@@ -21,7 +21,7 @@ object PersonRecordsRedo extends App with CryptoUtils {
       |56f1241ed5d8ad2539b1e075	Dan		MacLeod		dmacleod@macleodassociates.net			650-593-8580  Ext. 101	650-593-8675		965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	???	33-23 11 00
       |56f1241ed5d8ad2539b1e076	David		Solnick		david@solnick.net					1 (650) 328-8065	350 W 42 Street #31C  New York, NY 10036 ::: 212 high street  pato alto ca 94301	350 W 42 Street #31C ::: 212 high street  pato alto	New York :::	NY ::: ca	10036 ::: 94301	David Solnick Architect	owner	33-21 11 10
       |56f1241ed5d8ad2539b1e077	Des		Nolan		des@hardrockconcrete1.com			408-481-4990	408-481-4993	408-390-2724	241 Commercial Street, Sunnyvale CA. 94085	241 Commercial Street	Sunnyvale	CA	94085	Hardrock Concrete	???	33-41 31 00
-      |56f1241ed5d8ad2539b1e078	Dipak		Roy		dipak.Roy@fremontbank.com	dipakroy@sbcglobal.net		1-510-505-5239		1-510-928-2061	39150 Fremont Blvd.,  Fremont, CA 94538	39150 Fremont Blvd.	Fremont	CA	94538	Fremont Bank	Vice-President, Commercial Banking
+      |56f1241ed5d8ad2539b1e078	Dipak		Roy		dipak.Roy@fremontbank.com	dipakroy@sbcglobal.net		1-510-505-5239		1-510-928-2061	39150 Fremont Blvd.,  Fremont, CA 94538	39150 Fremont Blvd.	Fremont	CA	94538	Fremont Bank	Vice-President, Commercial Banking	BW-None
       |56f1241ed5d8ad2539b1e079	Dusan		Sindjic		dusan@acies.net			(408) 522-5255 x143			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	PROJECT DESIGNER	33-21 31 17 31
       |56f12485d5d8ad257a7a8291	Fred		Reynolds		fred.brady.reynolds@gmail.com		8316620833			4153856239	215 Wixon ave. Aptos CA 95003	215 Wixon ave.	Aptos	CA	95003	Reynolds Construction	???	33-25 16 00
       |56f12485d5d8ad257a7a8292	Gary		Hsu		hhhsu@sbcglobal.net			510-668-1815	510-490-8690		PO Box 14198, Fremont, CA 94538 United States of America	PO Box 14198,	Fremont	CA	94538	Capex Engineering Inc.	???	33-25 51 11
@@ -99,6 +99,10 @@ object PersonRecordsRedo extends App with CryptoUtils {
       val projectIds = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.headOption match {
         case None => new java.util.ArrayList[ObjectId]
         case Some(d) => d.asScala("project_ids").asInstanceOf[ObjectIdList]
+      }
+      if (!newBsonDoc.containsKey("role")) {
+        println(newBsonDoc.asScala)
+        newBsonDoc.put("roles", Seq())
       }
       newBsonDoc.asScala("project_ids") = projectIds
       // passwords for testing

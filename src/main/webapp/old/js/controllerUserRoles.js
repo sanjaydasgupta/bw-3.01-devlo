@@ -26,8 +26,8 @@ app.controller("UserRolesCtrl", function ($log, $http) {
     }
 
     self.initPerson = function(person) {
-        person.roleDemo = person.newRoleDemo = person.omniclass34roles.indexOf('BW-Demo') != -1;
-        person.roleAdmin = person.newRoleAdmin = person.omniclass34roles.indexOf('BW-Admin') != -1;
+        person.roleDemo = person.newRoleDemo = person.roles.join(',').indexOf('BW-Demo') != -1;
+        person.roleAdmin = person.newRoleAdmin = person.roles.join(',').indexOf('BW-Admin') != -1;
     }
 
     self.savePerson = function(person) {

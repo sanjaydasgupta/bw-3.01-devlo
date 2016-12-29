@@ -23,6 +23,6 @@ angular.module('BuildWhizApp')
   }
 
   self.isAdmin = function() {
-    return self.data.omniclass34roles.join(',').indexOf('BW-Admin') != -1;
+    return self.data.roles.join(',').indexOf('BW-Admin') != -1;
   }
 }]);

@@ -33,7 +33,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""
         case Some(p) =>
           storeCookie(email, request, response)
-          val permittedFields = Set("_id", "first_name", "last_name", "omniclass34roles",
+          val permittedFields = Set("_id", "first_name", "last_name", "roles",
             "organization_id", "project_ids")
           val resultPerson = new Document()
           p.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = p.asScala(key))

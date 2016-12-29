@@ -74,8 +74,8 @@ object PersonRecordsRedo extends App with CryptoUtils {
       val fieldValues = recordFields.tail
       //println(fieldValues.length)
       val personOid = new ObjectId(recordFields.head)
-      val pairs = ("_id" -> personOid) +:  fieldNames.filterNot(_.startsWith("business")).zip(fieldValues)
-      val newBsonDoc: Document = pairs.foldLeft(mutable.Map.empty[String, AnyRef])((mmap, p) => {
+      val pairs: Seq[(String, String)] = fieldNames.filterNot(_.startsWith("business")).zip(fieldValues)
+      val newBsonDoc: Document = pairs.foldLeft(mutable.Map[String, AnyRef]("_id" -> personOid))((mmap, p) => {
         if (p._1.contains('.')) {
           val names = p._1.split('.')
           if (mmap.contains(names(0))) {
@@ -85,7 +85,13 @@ object PersonRecordsRedo extends App with CryptoUtils {
             mmap(names(0)) = Map(names(1) -> p._2)
           }
         } else {
-          mmap(p._1) = p._2
+          if (p._1 == "role") {
+            val roles = p._2.split(",").map(_.trim).toSeq
+            mmap(p._1) = roles
+            mmap("roles") = roles
+          } else {
+            mmap(p._1) = p._2
+          }
         }
         mmap
       }).toMap
@@ -100,11 +106,6 @@ object PersonRecordsRedo extends App with CryptoUtils {
       //val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
       newBsonDoc.asScala("password") = md5(firstName)
       newBsonDoc.asScala("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
-      val roles = new java.util.ArrayList[String]
-      if (newBsonDoc.containsKey("role")) {
-        roles.addAll(newBsonDoc.asScala("role").asInstanceOf[String].split(",").toSeq.asJava)
-      }
-      newBsonDoc.asScala("omniclass34roles") = roles
       reStructureEmailsAndPhones(newBsonDoc)
       val result = BWMongoDB3.persons.replaceOne(Map("_id" -> personOid), newBsonDoc)
       if (result.getMatchedCount == 0) {

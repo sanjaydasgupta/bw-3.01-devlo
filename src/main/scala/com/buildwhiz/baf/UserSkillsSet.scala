@@ -15,12 +15,12 @@ class UserSkillsSet extends HttpServlet with HttpUtils with CryptoUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val setAdmin = parameters("BW-Admin").toBoolean match {
-        case false => "$pull" -> Map("omniclass34roles" -> "BW-Admin")
-        case true => "$addToSet" -> Map("omniclass34roles" -> "BW-Admin")
+        case false => "$pull" -> Map("roles" -> "BW-Admin")
+        case true => "$addToSet" -> Map("roles" -> "BW-Admin")
       }
       val setDemo = parameters("BW-Demo").toBoolean match {
-        case false => "$pull" -> Map("omniclass34roles" -> "BW-Demo")
-        case true => "$addToSet" -> Map("omniclass34roles" -> "BW-Demo")
+        case false => "$pull" -> Map("roles" -> "BW-Demo")
+        case true => "$addToSet" -> Map("roles" -> "BW-Demo")
       }
       val updateResult1 = BWMongoDB3.persons.updateOne(Map("_id" -> personOid), Map(setDemo))
       if (updateResult1.getMatchedCount == 0)

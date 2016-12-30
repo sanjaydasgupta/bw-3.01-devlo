@@ -27,7 +27,8 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
       val password = parameters("password")
       //val query = Map("email_work" -> userEmail, "password" -> password)
       //val passwordHash = "%x".format(password.hashCode)
-      val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password))
+      val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password),
+        "enabled" -> true)
       val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
       val result = person match {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""

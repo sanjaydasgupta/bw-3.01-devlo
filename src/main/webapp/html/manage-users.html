@@ -4,32 +4,43 @@
   <div class="panel-body fixed-panel">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-xs-12 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
           <label>Name:</label>
           <input type="text" data-ng-model="usersCtrl.nameFilter" size="7"/>
           <button class="btn btn-xs btn-info" data-ng-click="usersCtrl.findUsers()">
             <span class="glyphicon glyphicon-search"></span> Find
           </button>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
-            <span data-ng-repeat="user in usersCtrl.users" data-ng-click="usersCtrl.selectUser(user)">
+            <span data-ng-repeat="user in usersCtrl.users" data-ng-click="usersCtrl.selectUser(user)" style="margin-left:5px;">
               <a href="javascript:void(0);">{{user.first_name}} {{user.last_name}}</a><br/>
             </span>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
           <label data-ng-if="!usersCtrl.userSelected">No User Selected</label>
-          <label data-ng-if="usersCtrl.userSelected">Name: {{usersCtrl.selectedUser.first_name}} {{usersCtrl.selectedUser.last_name}}</label>
-          <div data-ng-if="usersCtrl.userSelected" style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
-            <div data-ng-repeat="email in usersCtrl.selectedUser.emails">
-              Email ({{email.type}}): {{email.email}}
-            </div>
-            <hr style="margin:3px;" />
-            <div data-ng-repeat="phone in usersCtrl.selectedUser.phones">
-              Phone ({{phone.type}}): {{phone.phone}}
-            </div>
-            <hr style="margin:3px;" />
-            <span>Enabled: <input type="checkbox" data-ng-click="usersCtrl.enableDisable()"
+          <label data-ng-if="usersCtrl.userSelected">{{usersCtrl.selectedUser.first_name}} {{usersCtrl.selectedUser.last_name}}</label>
+          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+            <div data-ng-if="usersCtrl.userSelected" style="margin-left:5px;">
+              <div data-ng-repeat="email in usersCtrl.selectedUser.emails">
+                Email ({{email.type}}): {{email.email}}
+              </div>
+              <hr style="margin:3px;" />
+              <div data-ng-repeat="phone in usersCtrl.selectedUser.phones">
+                Phone ({{phone.type}}): {{phone.phone}}
+              </div>
+              <hr style="margin:3px;" />
+              <span>Enabled: <input type="checkbox" data-ng-click="usersCtrl.enableDisable()"
                   data-ng-model="usersCtrl.selectedUser.enabled"/></span><br/>
+            </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
+          <label>Roles</label>
+          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+            <div data-ng-if="usersCtrl.userSelected" data-ng-repeat="role in usersCtrl.userRoles" style="margin-left:5px;">
+              <input type="checkbox" data-ng-model="role.ok" data-ng-click="usersCtrl.roleToggle(role)"/>
+              {{role.key}}
+            </div>
           </div>
         </div>
       </div>

@@ -75,14 +75,13 @@
                 <h3 data-ng-if="!mainCtrl.tryAgain" class="sign-in-message">Sign-In</h3>
                 <!--div class="sign-in-colorgraph"></div-->
                 <input type="text" class="sign-in-username" data-ng-model="mainCtrl.username"
-                    autofocus="autofocus" value="{{mainCtrl.userNameEmail}}"
-                       data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
+                    autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
 
                 <input type="password" class="sign-in-password" data-ng-model="mainCtrl.password" placeholder="password"
                        required="required" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
                 <a class="btn btn-xs btn-primary btn-block sign-in-button" data-ng-click="mainCtrl.login()" href="#">Login</a>
-                <a class="btn btn-xs btn-info btn-block sign-in-button"
-                   data-ng-click="mainCtrl.userNameEmailFromCookie()" href="#">Last-User?</a>
+                <!--a class="btn btn-xs btn-info btn-block sign-in-button"
+                   data-ng-click="mainCtrl.userNameEmailFromCookie()" href="#">Last-User?</a-->
             </div>
         </div>
     </div>

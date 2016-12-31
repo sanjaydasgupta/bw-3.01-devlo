@@ -13,35 +13,36 @@ object PersonRecordsRedo extends App with CryptoUtils {
 
   private val data =
     """id	first_name	middle_name	last_name	notes	emails.work	emails.other	phones.home	phones.work	phones.fax	phones.mobile	address.formatted	address.street	address.city	address.state	address.zip	company	title	role
-      |56f1241ed5d8ad2539b1e070	Brian		von Allworden		brianv@wrightengineers.com			+14804836111		+1 602-505-1218	7400 W. Detroit Street, Suite 170  Chandler, AZ 85226	7400 W. Detroit Street, Suite 170	Chandler	AZ	85226	Wright Engineers	Structural Engineer	33-21 31 14 (Structural Engineering)
+      |56f1241ed5d8ad2539b1e070	Brian		von Allworden		brianv@wrightengineers.com			+14804836111		+1 602-505-1218	7400 W. Detroit Street, Suite 170  Chandler, AZ 85226	7400 W. Detroit Street, Suite 170	Chandler	AZ	85226	Wright Engineers	Structural Engineer	33-21 31 14 (Structural Engineering),Design:Structural Engineer
       |56f1241ed5d8ad2539b1e071	Caroline		Chen		chiiluh@yahoo.com					(650) 996-0622	212 high street  pato alto ca 9430	212 high street  pato alto ca 9430				David Solnick Architect	Architect	33-21 31 14 01 (Structural Engineering)
-      |56f1241ed5d8ad2539b1e072	Charles	M.	Salter		charles.salter@cmsalter.com			415.470.5422	415.397.0454		130 Sutter Street, Floor 5, San Francisco, CA, 94104	130 Sutter Street, Floor 5	San Francisco	CA	94104	Charles M. Salter Associates, Inc.	President	33-21 31 99 11 (Acoustical/Emanations Shielding Engineering)
-      |56f1241ed5d8ad2539b1e073	Colin		Shane		cshane@rdh.com			510 788 8916		415 793 7780	360 22nd Street, #710,  Oakland, CA 94612	360 22nd Street, #710	Oakland	CA	94612	RDH Building Science Inc.	Associate, Senior Project Manager	33-21 99 10 (Building Envelope Design)
-      |56f1241ed5d8ad2539b1e074	Dan		Dyckman		dan.geoforensics@yahoo.com			650-349-3369		415-370-8355	561 Pilgrim Dr, Foster City, CA 94404	561 Pilgrim Dr	Foster City	CA	94404	Geoforensics	???	33-21 31 11 11 (Geotechnical Engineering)
-      |56f1241ed5d8ad2539b1e075	Dan		MacLeod		dmacleod@macleodassociates.net			650-593-8580  Ext. 101	650-593-8675		965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	???	33-23 11 00 (Surveying)
-      |56f1241ed5d8ad2539b1e076	David		Solnick		david@solnick.net					1 (650) 328-8065	350 W 42 Street #31C  New York, NY 10036 ::: 212 high street  pato alto ca 94301	350 W 42 Street #31C ::: 212 high street  pato alto	New York :::	NY ::: ca	10036 ::: 94301	David Solnick Architect	owner	33-21 11 10 (Residential Architecture)
-      |56f1241ed5d8ad2539b1e077	Des		Nolan		des@hardrockconcrete1.com			408-481-4990	408-481-4993	408-390-2724	241 Commercial Street, Sunnyvale CA. 94085	241 Commercial Street	Sunnyvale	CA	94085	Hardrock Concrete	???	33-41 31 00 (Concrete Contracting)
+      |56f1241ed5d8ad2539b1e072	Charles	M.	Salter		charles.salter@cmsalter.com			415.470.5422	415.397.0454		130 Sutter Street, Floor 5, San Francisco, CA, 94104	130 Sutter Street, Floor 5	San Francisco	CA	94104	Charles M. Salter Associates, Inc.	President	33-21 31 99 11 (Acoustical/Emanations Shielding Engineering),Design:Accoustics Engineer
+      |56f1241ed5d8ad2539b1e073	Colin		Shane		cshane@rdh.com			510 788 8916		415 793 7780	360 22nd Street, #710,  Oakland, CA 94612	360 22nd Street, #710	Oakland	CA	94612	RDH Building Science Inc.	Associate, Senior Project Manager	33-21 99 10 (Building Envelope Design),Design:Building Scientist
+      |56f1241ed5d8ad2539b1e074	Dan		Dyckman		dan.geoforensics@yahoo.com			650-349-3369		415-370-8355	561 Pilgrim Dr, Foster City, CA 94404	561 Pilgrim Dr	Foster City	CA	94404	Geoforensics	???	33-21 31 11 11 (Geotechnical Engineering),Design:Geotechnical Engineer
+      |56f1241ed5d8ad2539b1e075	Dan		MacLeod		dmacleod@macleodassociates.net			650-593-8580  Ext. 101	650-593-8675		965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	???	33-23 11 00 (Surveying),Design:Civil Engineer
+      |56f1241ed5d8ad2539b1e076	David		Solnick		david@solnick.net					1 (650) 328-8065	350 W 42 Street #31C  New York, NY 10036 ::: 212 high street  pato alto ca 94301	350 W 42 Street #31C ::: 212 high street  pato alto	New York :::	NY ::: ca	10036 ::: 94301	David Solnick Architect	owner	33-21 11 10 (Residential Architecture),Design:Architect
+      |56f1241ed5d8ad2539b1e077	Des		Nolan		des@hardrockconcrete1.com			408-481-4990	408-481-4993	408-390-2724	241 Commercial Street, Sunnyvale CA. 94085	241 Commercial Street	Sunnyvale	CA	94085	Hardrock Concrete	???	33-41 31 00 (Concrete Contracting),Construction:Concrete
       |56f1241ed5d8ad2539b1e078	Dipak		Roy		dipak.Roy@fremontbank.com	dipakroy@sbcglobal.net		1-510-505-5239		1-510-928-2061	39150 Fremont Blvd.,  Fremont, CA 94538	39150 Fremont Blvd.	Fremont	CA	94538	Fremont Bank	Vice-President, Commercial Banking	BW-None
-      |56f1241ed5d8ad2539b1e079	Dusan		Sindjic		dusan@acies.net			(408) 522-5255 x143			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	PROJECT DESIGNER	33-21 31 17 31 (Heating, Ventilation, and Air-Conditioning Engineering)
+      |56f1241ed5d8ad2539b1e079	Dusan		Sindjic		dusan@acies.net			(408) 522-5255 x143			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	PROJECT DESIGNER	33-21 31 17 31 (Heating, Ventilation, and Air-Conditioning Engineering),Design:Mechanical Engineer
       |56f12485d5d8ad257a7a8291	Fred		Reynolds		fred.brady.reynolds@gmail.com		8316620833			4153856239	215 Wixon ave. Aptos CA 95003	215 Wixon ave.	Aptos	CA	95003	Reynolds Construction	???	33-25 16 00 (Construction Management)
-      |56f12485d5d8ad257a7a8292	Gary		Hsu		hhhsu@sbcglobal.net			510-668-1815	510-490-8690		PO Box 14198, Fremont, CA 94538 United States of America	PO Box 14198,	Fremont	CA	94538	Capex Engineering Inc.	???	33-25 51 11 (Construction Inspection)
+      |56f12485d5d8ad257a7a8292	Gary		Hsu		hhhsu@sbcglobal.net			510-668-1815	510-490-8690		PO Box 14198, Fremont, CA 94538 United States of America	PO Box 14198,	Fremont	CA	94538	Capex Engineering Inc.	???	33-25 51 11 (Construction Inspection),Construction:Special Inspector
       |56f12485d5d8ad257a7a8293	Joey		Trott		joeyt@touchatt.com			(650) 322-1256		(650) 537-2471	2535 Pulgas Ave. East Palo Alto, CA 94303	2535 Pulgas Ave.	East Palo Alto	CA	94303	Toubar Equipment company Inc.	???	33-41 01 16 (Dredge, Excavating, and Loading Machine Operations)
-      |56f12485d5d8ad257a7a8294	John		Cinti		john@jcintidesigns.com			203-307-0737		+16507409364	304 HOMELAND ST. FAIRFIELD, CT 06825	304 HOMELAND ST.	FAIRFIELD	CT	6825	JOHN CINTI DESIGNS, LLC	???	33-21 23 00 (Interior Design)
-      |56f12485d5d8ad257a7a8295	Linn		Winterbotham	CLA #1743	winterbotham@jps.net			650.325.3137		650.823.0291	727 Paradise Way, Emerald Hills, CA 94062	727 Paradise Way	Emerald Hills	CA	94062	???	???	33-21 21 00 (Landscape Architecture)
-      |56f12485d5d8ad257a7a8296	Nazar		Mishchuk		nazar@acies.net			(408) 522-5255 x 108	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Plumbing Project Manager	33-21 31 17 11 (Plumbing Engineering)
-      |56f12485d5d8ad257a7a8297	Ray		Williams	Lic. # 705169	rawilliamsent@gmail.com			408-998-2245	408-298-1985		1584 BRANHAM LANE #201 SAN JOSE, CA 95118	1584 BRANHAM LANE #201	SAN JOSE	CA	95118	United Fire Safety	???	33-41 83 00 (Fire Protection Contracting)
+      |56f12485d5d8ad257a7a8294	John		Cinti		john@jcintidesigns.com			203-307-0737		+16507409364	304 HOMELAND ST. FAIRFIELD, CT 06825	304 HOMELAND ST.	FAIRFIELD	CT	6825	JOHN CINTI DESIGNS, LLC	???	33-21 23 00 (Interior Design),Design:Interior Designer
+      |56f12485d5d8ad257a7a8295	Linn		Winterbotham	CLA #1743	winterbotham@jps.net			650.325.3137		650.823.0291	727 Paradise Way, Emerald Hills, CA 94062	727 Paradise Way	Emerald Hills	CA	94062	???	???	33-21 21 00 (Landscape Architecture),Design:Landscape Designer
+      |56f12485d5d8ad257a7a8296	Nazar		Mishchuk		nazar@acies.net			(408) 522-5255 x 108	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Plumbing Project Manager	33-21 31 17 11 (Plumbing Engineering),Design:Plumbing Engineer
+      |56f12485d5d8ad257a7a8297	Ray		Williams	Lic. # 705169	rawilliamsent@gmail.com			408-998-2245	408-298-1985		1584 BRANHAM LANE #201 SAN JOSE, CA 95118	1584 BRANHAM LANE #201	SAN JOSE	CA	95118	United Fire Safety	???	33-41 83 00 (Fire Protection Contracting),Construction:Fire Sprinkler
       |56f12485d5d8ad257a7a8298	Sal	P.	Italiano		sal@spi-consulting.com			925 299 1341		510 697 7109	971 Dewing Avenue, Suite 201 Lafayette, CA 94549	971 Dewing Avenue, Suite 201	Lafayette	CA	94549	SPI Consulting Engineers, Inc	???	33-21 31 14 (Structural Engineering)
       |56f12485d5d8ad257a7a8299	Scott		Rehn		scottdemo@aol.com			(650)593-7799	(650)369-4315		P.O. Box 6309 San Mateo, Ca 94403	P.O. Box 6309	San Mateo	Ca	94403	Scott's Demolition	???	33-41 03 21 (Demolition Services)
-      |56f12485d5d8ad257a7a829a	Tomislav		Gajic		tomislav@acies.net			(408) 522-5255 x104	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Principal	33-21 31 21 (Electrical Engineering)
-      |56f124dfd5d8ad25b1325b39	Vergel		Galura		vgalura@macleodassociates.net			(650) 593-8580 ext. 102			965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	Civil Engineer	33-21 31 11 (Civil Engineering)
-      |56f124dfd5d8ad25b1325b3d	Victor		Melean		victor@acies.net			(408) 522-5255 x165			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Mechanical Project Director	33-21 31 17 31 01 (Heating, Ventilation, and Air-Conditioning Engineering)
+      |56f12485d5d8ad257a7a829a	Tomislav		Gajic		tomislav@acies.net			(408) 522-5255 x104	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Principal	33-21 31 21 (Electrical Engineering),Design:Electrical Engineer
+      |56f124dfd5d8ad25b1325b39	Vergel		Galura		vgalura@macleodassociates.net			(650) 593-8580 ext. 102			965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	Civil Engineer	33-21 31 11 (Civil Engineering),Design:Civil Engineer
+      |56f124dfd5d8ad25b1325b3d	Victor		Melean		victor@acies.net			(408) 522-5255 x165			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Mechanical Project Director	33-21 31 17 31 01 (Heating, Ventilation, and Air-Conditioning Engineering),Design:Mechanical Engineer
+      |57074085d5d8ad1cf3f767d0	Steve		Yang		sy@none.net			(000) 000-0000 x165			???? Street Santa Clara, CA ????	3371 Syang Street	Santa Clara	CA	95054	???? ENGINEERING	Struct Architect	33-21 11 10 (Residential Architecture),Design:Architect
       |56f124dfd5d8ad25b1325b3e	Prabhas		Kejriwal		prabhas@buildwhiz.com	prabhas@stanfordalumni.com		(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Owner	33-21 00 00 (Design Disciplines),34-55 14 19 XX,34-55 14 19 YY,BW-Admin
       |56f124dfd5d8ad25b1325b3f	Tester		Tester		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-Test
       |56f124dfd5d8ad25b1325b41	No		One		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-None
       |56f124dfd5d8ad25b1325b3c	Demo		Demo		demo@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-Demo
       |56f124dfd5d8ad25b1325b40	Sanjay		Dasgupta		sanjay.dasgupta@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	WB	700068	Buildwhiz	Software Engineer	34-55 14 19 XX,BW-Admin""".stripMargin
 
-  // 57074085d5d8ad1cf3f767d0, 57074085d5d8ad1cf3f767d1, 57074085d5d8ad1cf3f767d2, 57074085d5d8ad1cf3f767d3, 57074085d5d8ad1cf3f767d4, 57074085d5d8ad1cf3f767d5, 57074085d5d8ad1cf3f767d6, 57074085d5d8ad1cf3f767d7, 57074085d5d8ad1cf3f767d8, 57074085d5d8ad1cf3f767d9
+  // , 57074085d5d8ad1cf3f767d1, 57074085d5d8ad1cf3f767d2, 57074085d5d8ad1cf3f767d3, 57074085d5d8ad1cf3f767d4, 57074085d5d8ad1cf3f767d5, 57074085d5d8ad1cf3f767d6, 57074085d5d8ad1cf3f767d7, 57074085d5d8ad1cf3f767d8, 57074085d5d8ad1cf3f767d9
 //  private val personIds = Seq(
 //    "", "", "", "",
 //    "", "", "", "",
@@ -105,9 +106,10 @@ object PersonRecordsRedo extends App with CryptoUtils {
         newBsonDoc.put("roles", Seq())
       }
       newBsonDoc.asScala("project_ids") = projectIds
-      // passwords for testing
       val firstName = newBsonDoc.asScala("first_name").asInstanceOf[String]
-      //val password = if (firstName.matches("Prabhas|Sanjay|Tester")) "abc" else firstName
+      if (firstName.matches("Prabhas|Sanjay|Tester|Demo")) {
+        newBsonDoc.put("enabled", true)
+      }
       newBsonDoc.asScala("password") = md5(firstName)
       newBsonDoc.asScala("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
       reStructureEmailsAndPhones(newBsonDoc)

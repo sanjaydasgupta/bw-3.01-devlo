@@ -105,6 +105,10 @@ object PersonRecordsRedo extends App with CryptoUtils {
         println(newBsonDoc.asScala)
         newBsonDoc.put("roles", Seq())
       }
+      val id430Forest = new ObjectId("586336f692982d17cfd04bf8")
+      if (!projectIds.contains(id430Forest)) {
+        projectIds.add(id430Forest)
+      }
       newBsonDoc.asScala("project_ids") = projectIds
       val firstName = newBsonDoc.asScala("first_name").asInstanceOf[String]
       if (firstName.matches("Prabhas|Sanjay|Tester|Demo")) {

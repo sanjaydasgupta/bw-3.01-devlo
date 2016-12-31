@@ -15,8 +15,9 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val parameters = getParameterMap(request)
+      val args: Array[String] = if (parameters.contains("args")) parameters("args").split("\\s+") else Array.empty
       val clazz = Class.forName(s"""com.buildwhiz.infra.${parameters("program")}""")
-      clazz.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
+      clazz.getMethod("main", classOf[Array[String]]).invoke(null, args)
       BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>

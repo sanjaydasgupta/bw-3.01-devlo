@@ -89,4 +89,8 @@
     )
   }
 
+  self.isSelf = function() {
+    return self.selectedUser._id == AuthService.data._id;
+  }
+
 }]);

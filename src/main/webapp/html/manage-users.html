@@ -30,7 +30,7 @@
               </div>
               <hr style="margin:3px;" />
               <span>Enabled: <input type="checkbox" data-ng-click="usersCtrl.enableDisable()"
-                  data-ng-model="usersCtrl.selectedUser.enabled"/></span><br/>
+                  data-ng-model="usersCtrl.selectedUser.enabled" data-ng-disabled="usersCtrl.isSelf()"/></span><br/>
             </div>
           </div>
         </div>

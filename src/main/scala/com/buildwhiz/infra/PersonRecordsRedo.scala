@@ -6,125 +6,42 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 
 object PersonRecordsRedo extends App with CryptoUtils {
   BWLogger.log(getClass.getName, "main()", "ENTRY")
 
-  private val data =
-    """id	first_name	middle_name	last_name	notes	emails.work	emails.other	phones.home	phones.work	phones.fax	phones.mobile	address.formatted	address.street	address.city	address.state	address.zip	company	title	role
-      |56f1241ed5d8ad2539b1e070	Brian		von Allworden		brianv@wrightengineers.com			+14804836111		+1 602-505-1218	7400 W. Detroit Street, Suite 170  Chandler, AZ 85226	7400 W. Detroit Street, Suite 170	Chandler	AZ	85226	Wright Engineers	Structural Engineer	33-21 31 14 (Structural Engineering),Design:Structural Engineer
-      |56f1241ed5d8ad2539b1e071	Caroline		Chen		chiiluh@yahoo.com					(650) 996-0622	212 high street  pato alto ca 9430	212 high street  pato alto ca 9430				David Solnick Architect	Architect	33-21 31 14 01 (Structural Engineering)
-      |56f1241ed5d8ad2539b1e072	Charles	M.	Salter		charles.salter@cmsalter.com			415.470.5422	415.397.0454		130 Sutter Street, Floor 5, San Francisco, CA, 94104	130 Sutter Street, Floor 5	San Francisco	CA	94104	Charles M. Salter Associates, Inc.	President	33-21 31 99 11 (Acoustical/Emanations Shielding Engineering),Design:Accoustics Engineer
-      |56f1241ed5d8ad2539b1e073	Colin		Shane		cshane@rdh.com			510 788 8916		415 793 7780	360 22nd Street, #710,  Oakland, CA 94612	360 22nd Street, #710	Oakland	CA	94612	RDH Building Science Inc.	Associate, Senior Project Manager	33-21 99 10 (Building Envelope Design),Design:Building Scientist
-      |56f1241ed5d8ad2539b1e074	Dan		Dyckman		dan.geoforensics@yahoo.com			650-349-3369		415-370-8355	561 Pilgrim Dr, Foster City, CA 94404	561 Pilgrim Dr	Foster City	CA	94404	Geoforensics	???	33-21 31 11 11 (Geotechnical Engineering),Design:Geotechnical Engineer
-      |56f1241ed5d8ad2539b1e075	Dan		MacLeod		dmacleod@macleodassociates.net			650-593-8580  Ext. 101	650-593-8675		965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	???	33-23 11 00 (Surveying),Design:Civil Engineer
-      |56f1241ed5d8ad2539b1e076	David		Solnick		david@solnick.net					1 (650) 328-8065	350 W 42 Street #31C  New York, NY 10036 ::: 212 high street  pato alto ca 94301	350 W 42 Street #31C ::: 212 high street  pato alto	New York :::	NY ::: ca	10036 ::: 94301	David Solnick Architect	owner	33-21 11 10 (Residential Architecture),Design:Architect
-      |56f1241ed5d8ad2539b1e077	Des		Nolan		des@hardrockconcrete1.com			408-481-4990	408-481-4993	408-390-2724	241 Commercial Street, Sunnyvale CA. 94085	241 Commercial Street	Sunnyvale	CA	94085	Hardrock Concrete	???	33-41 31 00 (Concrete Contracting),Construction:Concrete
-      |56f1241ed5d8ad2539b1e078	Dipak		Roy		dipak.Roy@fremontbank.com	dipakroy@sbcglobal.net		1-510-505-5239		1-510-928-2061	39150 Fremont Blvd.,  Fremont, CA 94538	39150 Fremont Blvd.	Fremont	CA	94538	Fremont Bank	Vice-President, Commercial Banking	BW-None
-      |56f1241ed5d8ad2539b1e079	Dusan		Sindjic		dusan@acies.net			(408) 522-5255 x143			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	PROJECT DESIGNER	33-21 31 17 31 (Heating, Ventilation, and Air-Conditioning Engineering),Design:Mechanical Engineer
-      |56f12485d5d8ad257a7a8291	Fred		Reynolds		fred.brady.reynolds@gmail.com		8316620833			4153856239	215 Wixon ave. Aptos CA 95003	215 Wixon ave.	Aptos	CA	95003	Reynolds Construction	???	33-25 16 00 (Construction Management)
-      |56f12485d5d8ad257a7a8292	Gary		Hsu		hhhsu@sbcglobal.net			510-668-1815	510-490-8690		PO Box 14198, Fremont, CA 94538 United States of America	PO Box 14198,	Fremont	CA	94538	Capex Engineering Inc.	???	33-25 51 11 (Construction Inspection),Construction:Special Inspector
-      |56f12485d5d8ad257a7a8293	Joey		Trott		joeyt@touchatt.com			(650) 322-1256		(650) 537-2471	2535 Pulgas Ave. East Palo Alto, CA 94303	2535 Pulgas Ave.	East Palo Alto	CA	94303	Toubar Equipment company Inc.	???	33-41 01 16 (Dredge, Excavating, and Loading Machine Operations)
-      |56f12485d5d8ad257a7a8294	John		Cinti		john@jcintidesigns.com			203-307-0737		+16507409364	304 HOMELAND ST. FAIRFIELD, CT 06825	304 HOMELAND ST.	FAIRFIELD	CT	6825	JOHN CINTI DESIGNS, LLC	???	33-21 23 00 (Interior Design),Design:Interior Designer
-      |56f12485d5d8ad257a7a8295	Linn		Winterbotham	CLA #1743	winterbotham@jps.net			650.325.3137		650.823.0291	727 Paradise Way, Emerald Hills, CA 94062	727 Paradise Way	Emerald Hills	CA	94062	???	???	33-21 21 00 (Landscape Architecture),Design:Landscape Designer
-      |56f12485d5d8ad257a7a8296	Nazar		Mishchuk		nazar@acies.net			(408) 522-5255 x 108	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Plumbing Project Manager	33-21 31 17 11 (Plumbing Engineering),Design:Plumbing Engineer
-      |56f12485d5d8ad257a7a8297	Ray		Williams	Lic. # 705169	rawilliamsent@gmail.com			408-998-2245	408-298-1985		1584 BRANHAM LANE #201 SAN JOSE, CA 95118	1584 BRANHAM LANE #201	SAN JOSE	CA	95118	United Fire Safety	???	33-41 83 00 (Fire Protection Contracting),Construction:Fire Sprinkler
-      |56f12485d5d8ad257a7a8298	Sal	P.	Italiano		sal@spi-consulting.com			925 299 1341		510 697 7109	971 Dewing Avenue, Suite 201 Lafayette, CA 94549	971 Dewing Avenue, Suite 201	Lafayette	CA	94549	SPI Consulting Engineers, Inc	???	33-21 31 14 (Structural Engineering)
-      |56f12485d5d8ad257a7a8299	Scott		Rehn		scottdemo@aol.com			(650)593-7799	(650)369-4315		P.O. Box 6309 San Mateo, Ca 94403	P.O. Box 6309	San Mateo	Ca	94403	Scott's Demolition	???	33-41 03 21 (Demolition Services)
-      |56f12485d5d8ad257a7a829a	Tomislav		Gajic		tomislav@acies.net			(408) 522-5255 x104	(408) 522-5260		3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Principal	33-21 31 21 (Electrical Engineering),Design:Electrical Engineer
-      |56f124dfd5d8ad25b1325b39	Vergel		Galura		vgalura@macleodassociates.net			(650) 593-8580 ext. 102			965 Center Street San Carlos, CA 94070	965 Center Street	San Carlos	CA	94070	MacLeod & Associates, Inc.	Civil Engineer	33-21 31 11 (Civil Engineering),Design:Civil Engineer
-      |56f124dfd5d8ad25b1325b3d	Victor		Melean		victor@acies.net			(408) 522-5255 x165			3371 Olcott Street Santa Clara, CA 95054	3371 Olcott Street	Santa Clara	CA	95054	ACIES ENGINEERING	Mechanical Project Director	33-21 31 17 31 01 (Heating, Ventilation, and Air-Conditioning Engineering),Design:Mechanical Engineer
-      |57074085d5d8ad1cf3f767d0	Steve		Yang		sy@none.net			(000) 000-0000 x165			???? Street Santa Clara, CA ????	3371 Syang Street	Santa Clara	CA	95054	???? ENGINEERING	Struct Architect	33-21 11 10 (Residential Architecture),Design:Architect
-      |56f124dfd5d8ad25b1325b3e	Prabhas		Kejriwal		prabhas@buildwhiz.com	prabhas@stanfordalumni.com		(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Owner	33-21 00 00 (Design Disciplines),34-55 14 19 XX,34-55 14 19 YY,BW-Admin
-      |56f124dfd5d8ad25b1325b3f	Tester		Tester		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-Test
-      |56f124dfd5d8ad25b1325b41	No		One		tester@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-None
-      |56f124dfd5d8ad25b1325b3c	Demo		Demo		demo@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	CA	Address-ZIP	Buildwhiz	Tester	BW-Demo
-      |56f124dfd5d8ad25b1325b40	Sanjay		Dasgupta		sanjay.dasgupta@buildwhiz.com			(000) 000-0000			Address-Full	Address-Street	Address-City	WB	700068	Buildwhiz	Software Engineer	34-55 14 19 XX,BW-Admin""".stripMargin
-
-  // , 57074085d5d8ad1cf3f767d1, 57074085d5d8ad1cf3f767d2, 57074085d5d8ad1cf3f767d3, 57074085d5d8ad1cf3f767d4, 57074085d5d8ad1cf3f767d5, 57074085d5d8ad1cf3f767d6, 57074085d5d8ad1cf3f767d7, 57074085d5d8ad1cf3f767d8, 57074085d5d8ad1cf3f767d9
-//  private val personIds = Seq(
-//    "", "", "", "",
-//    "", "", "", "",
-//    "", "", "", "",
-//    "", "", "", "",
-//    "", "", "", "",
-//    "", "", "", "",
-//    "", ""
-//  )
-
-  //private val personOids: ObjectIdList = personIds.map(id => new ObjectId(id))
-
-  private def reStructureEmailsAndPhones(document: Document): Unit = {
-    val phones = document.asScala("phones").asInstanceOf[Document]
-    val newPhones: Seq[Map[String, AnyRef]] = phones.asScala.keys.toSeq.map(key => Map("type" -> key, "phone" -> phones.asScala(key)))
-    val newPhoneDocs: DocumentList = newPhones.map(v => {val d: Document = v; d}).asJava
-    document.asScala("phones") = newPhoneDocs
-
-    val emails = document.asScala("emails").asInstanceOf[Document]
-    val newEmails: Seq[Map[String, AnyRef]] = emails.asScala.keys.toSeq.map(key => Map("type" -> key, "email" -> emails.asScala(key)))
-    val newEmailDocs: DocumentList = newEmails.map(v => {val d: Document = v; d}).asJava
-    document.asScala("emails") = newEmailDocs
-  }
-
-  private def processData(): Unit = {
-    val fileLines = data.split("\n")
-    val fieldNames = fileLines.head.split("\t").tail
-    for (personData <- fileLines.tail/*.zip(personOids)*/) {
-      val recordFields = personData.split("\t")
-      val fieldValues = recordFields.tail
-      //println(fieldValues.length)
-      val personOid = new ObjectId(recordFields.head)
-      val pairs: Seq[(String, String)] = fieldNames.filterNot(_.startsWith("business")).zip(fieldValues)
-      val newBsonDoc: Document = pairs.foldLeft(mutable.Map[String, AnyRef]("_id" -> personOid))((mmap, p) => {
-        if (p._1.contains('.')) {
-          val names = p._1.split('.')
-          if (mmap.contains(names(0))) {
-            val oldValue = mmap(names(0)).asInstanceOf[Map[String, AnyRef]]
-            mmap(names(0)) = oldValue ++ Map(names(1) -> p._2)
-          } else {
-            mmap(names(0)) = Map(names(1) -> p._2)
-          }
-        } else {
-          if (p._1 == "role") {
-            val roles = p._2.split(",").map(_.trim).toSeq
-            mmap(p._1) = roles
-            mmap("roles") = roles
-          } else {
-            mmap(p._1) = p._2
-          }
-        }
-        mmap
-      }).toMap
-      // retain previously defined projects if any
-      val projectIds = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.headOption match {
-        case None => new java.util.ArrayList[ObjectId]
-        case Some(d) => d.asScala("project_ids").asInstanceOf[ObjectIdList]
-      }
-      if (!newBsonDoc.containsKey("role")) {
-        println(newBsonDoc.asScala)
-        newBsonDoc.put("roles", Seq())
-      }
-      val id430Forest = new ObjectId("586336f692982d17cfd04bf8")
-      if (!projectIds.contains(id430Forest)) {
-        projectIds.add(id430Forest)
-      }
-      newBsonDoc.asScala("project_ids") = projectIds
-      val firstName = newBsonDoc.asScala("first_name").asInstanceOf[String]
-      if (firstName.matches("Prabhas|Sanjay|Tester|Demo")) {
-        newBsonDoc.put("enabled", true)
-      }
-      newBsonDoc.asScala("password") = md5(firstName)
-      newBsonDoc.asScala("tz") = if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific"
-      reStructureEmailsAndPhones(newBsonDoc)
-      val result = BWMongoDB3.persons.replaceOne(Map("_id" -> personOid), newBsonDoc)
-      if (result.getMatchedCount == 0) {
-        BWMongoDB3.persons.insertOne(newBsonDoc)
-      } /*else if (result.getModifiedCount == 0) {
-        throw new IllegalArgumentException(s"MongoDB error: $result")
-      }*/
-    }
-  }
+  private val data: Seq[Document] = Seq(
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e070" }, "first_name" : "Brian", "company" : "Wright Engineers", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "+14804836111" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "+1 602-505-1218" }], "last_name" : "von Allworden", "roles" : ["33-21 31 14 (Structural Engineering)", "Design:Structural Engineer"], "middle_name" : "", "address" : { "city" : "Chandler", "zip" : "85226", "state" : "AZ", "formatted" : "7400 W. Detroit Street, Suite 170  Chandler, AZ 85226", "street" : "7400 W. Detroit Street, Suite 170" }, "title" : "Structural Engineer", "emails" : [{ "type" : "work", "email" : "brianv@wrightengineers.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e071" }, "first_name" : "Caroline", "company" : "David Solnick Architect", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "(650) 996-0622" }], "last_name" : "Chen", "roles" : ["33-21 31 14 01 (Structural Engineering)"], "middle_name" : "", "address" : { "city" : "", "zip" : "", "state" : "", "formatted" : "212 high street  pato alto ca 9430", "street" : "212 high street  pato alto ca 9430" }, "title" : "Architect", "emails" : [{ "type" : "work", "email" : "chiiluh@yahoo.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e072" }, "first_name" : "Charles", "company" : "Charles M. Salter Associates, Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "415.470.5422" }, { "type" : "fax", "phone" : "415.397.0454" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Salter", "roles" : ["33-21 31 99 11 (Acoustical/Emanations Shielding Engineering)", "Design:Accoustics Engineer"], "middle_name" : "M.", "address" : { "city" : "San Francisco", "zip" : "94104", "state" : "CA", "formatted" : "130 Sutter Street, Floor 5, San Francisco, CA, 94104", "street" : "130 Sutter Street, Floor 5" }, "title" : "President", "emails" : [{ "type" : "work", "email" : "charles.salter@cmsalter.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e073" }, "first_name" : "Colin", "company" : "RDH Building Science Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "510 788 8916" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "415 793 7780" }], "last_name" : "Shane", "roles" : ["33-21 99 10 (Building Envelope Design)", "Design:Building Scientist"], "middle_name" : "", "address" : { "city" : "Oakland", "zip" : "94612", "state" : "CA", "formatted" : "360 22nd Street, #710,  Oakland, CA 94612", "street" : "360 22nd Street, #710" }, "title" : "Associate, Senior Project Manager", "emails" : [{ "type" : "work", "email" : "cshane@rdh.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e074" }, "first_name" : "Dan", "company" : "Geoforensics", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "650-349-3369" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "415-370-8355" }], "last_name" : "Dyckman", "roles" : ["33-21 31 11 11 (Geotechnical Engineering)", "Design:Geotechnical Engineer"], "middle_name" : "", "address" : { "city" : "Foster City", "zip" : "94404", "state" : "CA", "formatted" : "561 Pilgrim Dr, Foster City, CA 94404", "street" : "561 Pilgrim Dr" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "dan.geoforensics@yahoo.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e075" }, "first_name" : "Dan", "company" : "MacLeod & Associates, Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "650-593-8580  Ext. 101" }, { "type" : "fax", "phone" : "650-593-8675" }, { "type" : "mobile", "phone" : "" }], "last_name" : "MacLeod", "roles" : ["33-23 11 00 (Surveying)", "Design:Civil Engineer"], "middle_name" : "", "address" : { "city" : "San Carlos", "zip" : "94070", "state" : "CA", "formatted" : "965 Center Street San Carlos, CA 94070", "street" : "965 Center Street" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "dmacleod@macleodassociates.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e076" }, "first_name" : "David", "company" : "David Solnick Architect", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "1 (650) 328-8065" }], "last_name" : "Solnick", "roles" : ["33-21 11 10 (Residential Architecture)", "Design:Architect"], "middle_name" : "", "address" : { "city" : "New York :::", "zip" : "10036 ::: 94301", "state" : "NY ::: ca", "formatted" : "350 W 42 Street #31C  New York, NY 10036 ::: 212 high street  pato alto ca 94301", "street" : "350 W 42 Street #31C ::: 212 high street  pato alto" }, "title" : "owner", "emails" : [{ "type" : "work", "email" : "david@solnick.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e077" }, "first_name" : "Des", "company" : "Hardrock Concrete", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "408-481-4990" }, { "type" : "fax", "phone" : "408-481-4993" }, { "type" : "mobile", "phone" : "408-390-2724" }], "last_name" : "Nolan", "roles" : ["33-41 31 00 (Concrete Contracting)", "Construction:Concrete"], "middle_name" : "", "address" : { "city" : "Sunnyvale", "zip" : "94085", "state" : "CA", "formatted" : "241 Commercial Street, Sunnyvale CA. 94085", "street" : "241 Commercial Street" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "des@hardrockconcrete1.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e078" }, "first_name" : "Dipak", "company" : "Fremont Bank", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "1-510-505-5239" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "1-510-928-2061" }], "last_name" : "Roy", "roles" : ["BW-None"], "middle_name" : "", "address" : { "city" : "Fremont", "zip" : "94538", "state" : "CA", "formatted" : "39150 Fremont Blvd.,  Fremont, CA 94538", "street" : "39150 Fremont Blvd." }, "title" : "Vice-President, Commercial Banking", "emails" : [{ "type" : "work", "email" : "dipak.Roy@fremontbank.com" }, { "type" : "other", "email" : "dipakroy@sbcglobal.net" }] }""",
+    """{ "_id" : { "$oid" : "56f1241ed5d8ad2539b1e079" }, "first_name" : "Dusan", "company" : "ACIES ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(408) 522-5255 x143" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Sindjic", "roles" : ["33-21 31 17 31 (Heating", "Ventilation", "and Air-Conditioning Engineering)", "Design:Mechanical Engineer"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "3371 Olcott Street Santa Clara, CA 95054", "street" : "3371 Olcott Street" }, "title" : "PROJECT DESIGNER", "emails" : [{ "type" : "work", "email" : "dusan@acies.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8291" }, "first_name" : "Fred", "company" : "Reynolds Construction", "phones" : [{ "type" : "home", "phone" : "8316620833" }, { "type" : "work", "phone" : "" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "4153856239" }], "last_name" : "Reynolds", "roles" : ["33-25 16 00 (Construction Management)"], "middle_name" : "", "address" : { "city" : "Aptos", "zip" : "95003", "state" : "CA", "formatted" : "215 Wixon ave. Aptos CA 95003", "street" : "215 Wixon ave." }, "title" : "???", "emails" : [{ "type" : "work", "email" : "fred.brady.reynolds@gmail.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8292" }, "first_name" : "Gary", "company" : "Capex Engineering Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "510-668-1815" }, { "type" : "fax", "phone" : "510-490-8690" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Hsu", "roles" : ["33-25 51 11 (Construction Inspection)", "Construction:Special Inspector"], "middle_name" : "", "address" : { "city" : "Fremont", "zip" : "94538", "state" : "CA", "formatted" : "PO Box 14198, Fremont, CA 94538 United States of America", "street" : "PO Box 14198," }, "title" : "???", "emails" : [{ "type" : "work", "email" : "hhhsu@sbcglobal.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8293" }, "first_name" : "Joey", "company" : "Toubar Equipment company Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(650) 322-1256" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "(650) 537-2471" }], "last_name" : "Trott", "roles" : ["33-41 01 16 (Dredge", "Excavating", "and Loading Machine Operations)"], "middle_name" : "", "address" : { "city" : "East Palo Alto", "zip" : "94303", "state" : "CA", "formatted" : "2535 Pulgas Ave. East Palo Alto, CA 94303", "street" : "2535 Pulgas Ave." }, "title" : "???", "emails" : [{ "type" : "work", "email" : "joeyt@touchatt.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8294" }, "first_name" : "John", "company" : "JOHN CINTI DESIGNS, LLC", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "203-307-0737" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "+16507409364" }], "last_name" : "Cinti", "roles" : ["33-21 23 00 (Interior Design)", "Design:Interior Designer"], "middle_name" : "", "address" : { "city" : "FAIRFIELD", "zip" : "6825", "state" : "CT", "formatted" : "304 HOMELAND ST. FAIRFIELD, CT 06825", "street" : "304 HOMELAND ST." }, "title" : "???", "emails" : [{ "type" : "work", "email" : "john@jcintidesigns.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8295" }, "first_name" : "Linn", "company" : "???", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "650.325.3137" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "650.823.0291" }], "last_name" : "Winterbotham", "roles" : ["33-21 21 00 (Landscape Architecture)", "Design:Landscape Designer"], "middle_name" : "", "address" : { "city" : "Emerald Hills", "zip" : "94062", "state" : "CA", "formatted" : "727 Paradise Way, Emerald Hills, CA 94062", "street" : "727 Paradise Way" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "winterbotham@jps.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8296" }, "first_name" : "Nazar", "company" : "ACIES ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(408) 522-5255 x 108" }, { "type" : "fax", "phone" : "(408) 522-5260" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Mishchuk", "roles" : ["33-21 31 17 11 (Plumbing Engineering)", "Design:Plumbing Engineer"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "3371 Olcott Street Santa Clara, CA 95054", "street" : "3371 Olcott Street" }, "title" : "Plumbing Project Manager", "emails" : [{ "type" : "work", "email" : "nazar@acies.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8297" }, "first_name" : "Ray", "company" : "United Fire Safety", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "408-998-2245" }, { "type" : "fax", "phone" : "408-298-1985" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Williams", "roles" : ["33-41 83 00 (Fire Protection Contracting)", "Construction:Fire Sprinkler"], "middle_name" : "", "address" : { "city" : "SAN JOSE", "zip" : "95118", "state" : "CA", "formatted" : "1584 BRANHAM LANE #201 SAN JOSE, CA 95118", "street" : "1584 BRANHAM LANE #201" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "rawilliamsent@gmail.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8298" }, "first_name" : "Sal", "company" : "SPI Consulting Engineers, Inc", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "925 299 1341" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "510 697 7109" }], "last_name" : "Italiano", "roles" : ["33-21 31 14 (Structural Engineering)"], "middle_name" : "P.", "address" : { "city" : "Lafayette", "zip" : "94549", "state" : "CA", "formatted" : "971 Dewing Avenue, Suite 201 Lafayette, CA 94549", "street" : "971 Dewing Avenue, Suite 201" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "sal@spi-consulting.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a8299" }, "first_name" : "Scott", "company" : "Scott's Demolition", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(650)593-7799" }, { "type" : "fax", "phone" : "(650)369-4315" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Rehn", "roles" : ["33-41 03 21 (Demolition Services)"], "middle_name" : "", "address" : { "city" : "San Mateo", "zip" : "94403", "state" : "Ca", "formatted" : "P.O. Box 6309 San Mateo, Ca 94403", "street" : "P.O. Box 6309" }, "title" : "???", "emails" : [{ "type" : "work", "email" : "scottdemo@aol.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f12485d5d8ad257a7a829a" }, "first_name" : "Tomislav", "company" : "ACIES ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(408) 522-5255 x104" }, { "type" : "fax", "phone" : "(408) 522-5260" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Gajic", "roles" : ["33-21 31 21 (Electrical Engineering)", "Design:Electrical Engineer"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "3371 Olcott Street Santa Clara, CA 95054", "street" : "3371 Olcott Street" }, "title" : "Principal", "emails" : [{ "type" : "work", "email" : "tomislav@acies.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b39" }, "first_name" : "Vergel", "company" : "MacLeod & Associates, Inc.", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(650) 593-8580 ext. 102" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Galura", "roles" : ["33-21 31 11 (Civil Engineering)", "Design:Civil Engineer"], "middle_name" : "", "address" : { "city" : "San Carlos", "zip" : "94070", "state" : "CA", "formatted" : "965 Center Street San Carlos, CA 94070", "street" : "965 Center Street" }, "title" : "Civil Engineer", "emails" : [{ "type" : "work", "email" : "vgalura@macleodassociates.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b3d" }, "first_name" : "Victor", "company" : "ACIES ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(408) 522-5255 x165" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Melean", "roles" : ["33-21 31 17 31 01 (Heating", "Ventilation", "and Air-Conditioning Engineering)", "Design:Mechanical Engineer"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "3371 Olcott Street Santa Clara, CA 95054", "street" : "3371 Olcott Street" }, "title" : "Mechanical Project Director", "emails" : [{ "type" : "work", "email" : "victor@acies.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b3e" }, "first_name" : "Prabhas", "company" : "Buildwhiz", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(000) 000-0000" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Kejriwal", "roles" : ["33-21 00 00 (Design Disciplines)", "34-55 14 19 XX", "34-55 14 19 YY", "BW-Admin"], "middle_name" : "", "address" : { "city" : "Address-City", "zip" : "Address-ZIP", "state" : "CA", "formatted" : "Address-Full", "street" : "Address-Street" }, "title" : "Owner", "emails" : [{ "type" : "work", "email" : "prabhas@buildwhiz.com" }, { "type" : "other", "email" : "prabhas@stanfordalumni.com" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b3f" }, "first_name" : "Tester", "company" : "Buildwhiz", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(000) 000-0000" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Tester", "roles" : ["BW-Test"], "middle_name" : "", "address" : { "city" : "Address-City", "zip" : "Address-ZIP", "state" : "CA", "formatted" : "Address-Full", "street" : "Address-Street" }, "title" : "Tester", "emails" : [{ "type" : "work", "email" : "tester@buildwhiz.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b41" }, "first_name" : "No", "company" : "Buildwhiz", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(000) 000-0000" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "One", "roles" : ["BW-None"], "middle_name" : "", "address" : { "city" : "Address-City", "zip" : "Address-ZIP", "state" : "CA", "formatted" : "Address-Full", "street" : "Address-Street" }, "title" : "Tester", "emails" : [{ "type" : "work", "email" : "tester@buildwhiz.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b3c" }, "first_name" : "Demo", "company" : "Buildwhiz", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(000) 000-0000" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Demo", "roles" : ["BW-Demo"], "middle_name" : "", "address" : { "city" : "Address-City", "zip" : "Address-ZIP", "state" : "CA", "formatted" : "Address-Full", "street" : "Address-Street" }, "title" : "Tester", "emails" : [{ "type" : "work", "email" : "demo@buildwhiz.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "56f124dfd5d8ad25b1325b40" }, "first_name" : "Sanjay", "company" : "Buildwhiz", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(000) 000-0000" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Dasgupta", "roles" : ["34-55 14 19 XX", "BW-Admin"], "middle_name" : "", "address" : { "city" : "Address-City", "zip" : "700068", "state" : "WB", "formatted" : "Address-Full", "street" : "Address-Street" }, "title" : "Software Engineer", "emails" : [{ "type" : "work", "email" : "sanjay.dasgupta@buildwhiz.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "57074085d5d8ad1cf3f767d0" }, "first_name" : "Steve", "company" : "???? ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "(408) 694-1618" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Yang", "roles" : ["33-21 11 10 (Residential Architecture)", "Design:Architect"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "???? Street Santa Clara, CA ????", "street" : "3371 Syang Street" }, "title" : "Struct Architect", "emails" : [{ "type" : "work", "email" : "sya1618@sbcglobal.net" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "57074085d5d8ad1cf3f767d1" }, "first_name" : "Steve", "company" : "???? ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "928-710-0774" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Childers", "roles" : ["Construction:Framer"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "???? Street Santa Clara, CA ????", "street" : "3371 Syang Street" }, "title" : "????", "emails" : [{ "type" : "work", "email" : "smcsips@gmail.com" }, { "type" : "other", "email" : "" }] }""",
+    """{ "_id" : { "$oid" : "57074085d5d8ad1cf3f767d2" }, "first_name" : "Jatin", "company" : "???? ENGINEERING", "phones" : [{ "type" : "home", "phone" : "" }, { "type" : "work", "phone" : "408-219-8984" }, { "type" : "fax", "phone" : "" }, { "type" : "mobile", "phone" : "" }], "last_name" : "Parikh", "roles" : ["Management:Project Manager"], "middle_name" : "", "address" : { "city" : "Santa Clara", "zip" : "95054", "state" : "CA", "formatted" : "???? Street Santa Clara, CA ????", "street" : "3371 Syang Street" }, "title" : "????", "emails" : [{ "type" : "work", "email" : "jppparikh@gmail.com" }, { "type" : "other", "email" : "" }] }"""
+  ).map(p => Document.parse(p))
 
   private def replaceProjectsInPersons(): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
@@ -135,10 +52,33 @@ object PersonRecordsRedo extends App with CryptoUtils {
     }
   }
 
-//  val initialCount = BWMongoDB3.persons.count()
-//  val result = BWMongoDB3.persons.deleteMany(Map("_id" -> Map("$in" -> personOids)))
+  for (p <- data) {
+    val personOid = p.get("_id").asInstanceOf[ObjectId]
+
+    val (projectIds, oldPassword, isEnabled) = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.headOption match {
+      case None => (new java.util.ArrayList[ObjectId], null, false)
+      case Some(d) => (d.get("project_ids").asInstanceOf[ObjectIdList], d.get("password").asInstanceOf[String],
+        d.get("enabled").asInstanceOf[Boolean])
+    }
+    if (!projectIds.contains(project430ForestOid)) {
+      projectIds.add(project430ForestOid)
+    }
+    p.put("project_ids", projectIds)
+
+    val firstName = p.get("first_name").asInstanceOf[String]
+    p.put("enabled", isEnabled || firstName.matches("Prabhas|Sanjay|Tester|Demo"))
+    p.put("password", if (oldPassword != null) oldPassword else md5(firstName))
+    p.put("tz", if (firstName.matches("Sanjay|Tester")) "Asia/Kolkata" else "US/Pacific")
+
+    p.put("ver", "1.02")
+
+    val result = BWMongoDB3.persons.replaceOne(Map("_id" -> personOid), p)
+    if (result.getMatchedCount == 0) {
+      BWMongoDB3.persons.insertOne(p)
+    }
+  }
+
   val initialCount = BWMongoDB3.persons.count()
-  processData()
   val finalCount = BWMongoDB3.persons.count()
   replaceProjectsInPersons()
   BWLogger.log(getClass.getName, s"person-counts: $initialCount, $finalCount", "EXIT")

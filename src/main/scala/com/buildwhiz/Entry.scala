@@ -20,6 +20,10 @@ class Entry extends HttpServlet {
     }
   }
 
+  private def log(httpOperation: String, event: String, request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getSimpleName, httpOperation, event, request)
+  }
+
   private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("baf|api|web|tools")).head._2
@@ -45,7 +49,7 @@ class Entry extends HttpServlet {
       handleRequest(request, servlet => servlet.doPost(request, response))
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log("doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -56,7 +60,7 @@ class Entry extends HttpServlet {
       handleRequest(request, servlet => servlet.doPut(request, response))
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPut", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log("doPut", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -67,7 +71,7 @@ class Entry extends HttpServlet {
       handleRequest(request, servlet => servlet.doGet(request, response))
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log("doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -78,7 +82,7 @@ class Entry extends HttpServlet {
       handleRequest(request, servlet => servlet.doDelete(request, response))
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log("doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }

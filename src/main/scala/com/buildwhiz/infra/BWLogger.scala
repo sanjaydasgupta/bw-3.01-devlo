@@ -19,7 +19,7 @@ object BWLogger {
 
   def log(className: String, methodName: String, eventName: String, variables: (String, String)*): Unit = {
     val javaMap = new JHashMap[String, String]()
-    variables.foreach(kv => javaMap.put(kv._1, kv._2))
+    variables.map(t => (t._1, if (t._1.matches("(?i).*password.*")) "****" else t._2)).foreach(kv => javaMap.put(kv._1, kv._2))
     val classNamePrefix = "com.buildwhiz."
     val shortClassName = if (className.startsWith(classNamePrefix))
       className.substring(classNamePrefix.length)

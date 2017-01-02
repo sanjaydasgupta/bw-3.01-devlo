@@ -23,6 +23,7 @@
   self.currentSubcategoryKey = "Any";
   self.currentCategoryKey = "Any";
   self.selectedDate = new Date();
+  self.versionComments = '';
 
   $http.get('api/Person').then(
     function(resp) {
@@ -40,6 +41,14 @@
 
   self.today = function() {
     return new Date().toLocaleDateString();
+  }
+
+  self.setMidnight = function() {
+    var d = new Date(self.selectedDate.getTime());
+    d.setHours(0);
+    d.setMinutes(0);
+    d.setSeconds(0);
+    self.selectedDate = d;
   }
 
   self.dateOptions = {
@@ -129,6 +138,10 @@
 
   self.listFiles = function() {
     $log.log('Called listFiles()');
+  }
+
+  self.createRecord = function() {
+    $log.log('Called createRecord()');
   }
 
 }]);

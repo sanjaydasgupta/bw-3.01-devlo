@@ -24,6 +24,9 @@
   self.currentCategoryKey = "Any";
   self.selectedDate = new Date();
   self.versionComments = '';
+  self.documentName = '';
+  self.documentDescription = '';
+  self.records = [];
 
   $http.get('api/Person').then(
     function(resp) {
@@ -136,12 +139,44 @@
     $log.log('Exiting uploadOk()');
   }
 
+  self.createRecordDisabled = function() {
+    return self.currentCategoryKey == 'Any' || self.documentName == '' || self.currentContentKey == 'Any';
+  }
+
   self.listFiles = function() {
-    $log.log('Called listFiles()');
+    var q = 'baf/DocumentRecordFind?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey +
+        '&content=' + self.currentContentKey + '&name=' + self.documentName;
+    $log.log('GET ' + q);
+    $http.get(q).then(
+      function(resp) {
+        self.records = resp.data;
+        $log.log('OK GET ' + q + ' (' + self.records.length + ')')
+        self.records.forEach(function(r) {$log.log(JSON.stringify(r));})
+      },
+      function(resp) {
+        $log.log('ERROR GET ' + q)
+      }
+    )
+  }
+
+  self.formattedRecord = function(record) {
+    var line = record.category + ' -> ' + record.subcategory + ' -> ' + record.content + ' -> ' + record.name +
+        ' -> ' + record.timestamp + ' -> ' + record.versions;
+    return line;
   }
 
   self.createRecord = function() {
-    $log.log('Called createRecord()');
+    var q = 'baf/DocumentRecordCreate?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey +
+        '&content=' + self.currentContentKey + '&name=' + self.documentName;
+    $log.log('POST ' + q);
+    $http.post(q).then(
+      function(resp) {
+        $log.log('OK POST' + q)
+      },
+      function(resp) {
+        $log.log('ERROR POST' + q)
+      }
+    )
   }
 
 }]);

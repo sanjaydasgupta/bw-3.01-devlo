@@ -3,10 +3,10 @@
     Manage Documents
   </div>
 
-  <div class="panel-body fixed-panel container" style="padding:5px">
+  <div class="panel-body fixed-panel container-fluid" style="padding:5px">
     <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
-      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
-        &nbsp;&nbsp;Category:&nbsp;
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Category&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
           <button id="btn-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
             {{manageDocsCtrl.currentCategoryKey}} <span class="caret"></span>
@@ -19,12 +19,12 @@
             </li>
             <li class="divider" style="margin:1px;"></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
-                                         data-ng-click="manageDocsCtrl.fetchDocumentsByType('Any')" style="padding:3px;">Any</a></li>
+                data-ng-click="manageDocsCtrl.fetchDocumentsByType('Any')" style="padding:3px;">Any</a></li>
           </ul>
         </div>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
-        &nbsp;&nbsp;Subcategory:&nbsp;
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Subcategory&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
           <button id="btn-keyword" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
             {{manageDocsCtrl.currentSubcategoryKey}} <span class="caret"></span>
@@ -41,8 +41,31 @@
           </ul>
         </div>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
-        &nbsp;&nbsp;Content:&nbsp;
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Author filter&nbsp;
+        <input type="text" data-ng-model="manageDocsCtrl.authorsMask" size="5" style="height:20px" />
+        <button class="btn btn-xs btn-info" data-ng-click="manageDocsCtrl.filterAuthorNames()">Filter</button>
+      </div>
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Author&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-author" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{manageDocsCtrl.currentAuthor.name}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-author"
+              style="min-width:50px">
+            <li class="dropdown-item" data-ng-repeat="author in manageDocsCtrl.filteredAuthors">
+              <a href="javascript:void(0)" style="padding:3px;"
+                 data-ng-click="manageDocsCtrl.fetchDocumentsByAuthor(author)">{{author.name}}</a>
+            </li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="manageDocsCtrl.fetchDocumentsByAuthor({_id: '', name: 'Any'})" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Content&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
           <button id="btn-content" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
             {{manageDocsCtrl.currentContentKey}} <span class="caret"></span>
@@ -67,23 +90,9 @@
           </ul>
         </div>
       </div>
-      <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
-        &nbsp;&nbsp;Author:&nbsp;
-        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
-          <button id="btn-author" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
-            {{manageDocsCtrl.currentAuthorKey}} <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-author"
-              style="min-width:50px">
-            <li class="dropdown-item" data-ng-repeat="author in manageDocsCtrl.authorKeys">
-              <a href="javascript:void(0)" style="padding:3px;"
-                 data-ng-click="manageDocsCtrl.fetchDocumentsByAuthor(author)">{{author}}</a>
-            </li>
-            <li class="divider" style="margin:1px;"></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('Any')" style="padding:3px;">Any</a></li>
-          </ul>
-        </div>
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Controls&nbsp;
+        <button class="btn btn-xs btn-primary" data-ng-click="manageDocsCtrl.listFiles()">List</button>
       </div>
     </div>
     <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
@@ -105,7 +114,6 @@
       </div>
       <div class="col-xs-12 col-sm-6 col-md-3" style="padding:3px;">
         &nbsp;&nbsp;Count: <label>{{manageDocsCtrl.documentCount}}</label>&nbsp;&nbsp;
-        <button class="btn btn-xs btn-primary" data-ng-click="manageDocsCtrl.listFiles()">List</button>
         <button class="btn btn-xs btn-primary" data-ng-click="manageDocsCtrl.upload()">Upload</button>
         <input id="document-upload-button" type="file" style="display:none;" multiple />
       </div>

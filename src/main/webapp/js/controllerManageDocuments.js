@@ -5,19 +5,38 @@
 
   var self = this;
 
-  self.documentCategories = ['Architecture', 'Civil', 'Electrical Design', 'Interior Design', 'Landscape Design',
-      'Mechanical Design', 'Plumbing Design', 'Structure'];
+  self.documentCategories = ["ArchiCAD", "Architecture", "Building Science", "Civil", "Contracts",
+      "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
+      "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
+
   self.documentSubcategories = [];
   self.authorKeys = ['Owner', 'Manager', 'Supervisor', 'Collaborator'];
+  self.authors = [];
+  self.filteredAuthors = [];
+  self.authorsMask = '';
 
   self.documentList = [];
   self.documentCount = 0;
   self.currentFilterKey = 'All';
-  self.currentAuthorKey = "Any";
+  self.currentAuthor = {_id: '', name: 'Any'};
   self.currentContentKey = "Any";
   self.currentSubcategoryKey = "Any";
   self.currentCategoryKey = "Any";
   self.selectedDate = new Date();
+
+  $http.get('api/Person').then(
+    function(resp) {
+      self.authors = resp.data.map(function(p) {
+        var newPerson = {_id: p._id, name: p.first_name + ' ' + p.last_name};
+        return newPerson;
+      });
+      self.filteredAuthors = self.authors;
+      $log.log('OK GET api/Person (' + self.authors.length + ')');
+    },
+    function(resp) {
+      $log.log('ERROR GET api/Person')
+    }
+  )
 
   self.today = function() {
     return new Date().toLocaleDateString();
@@ -31,18 +50,18 @@
     startingDay: 1
   };
 
-  self.fetchDocuments = function(filter) {
-    self.currentFilterKey = filter ? filter : 'All';
-    var filterKey = filter ? filter : 'all';
-    var query = 'baf/OwnedDocumentsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filter;
-    $log.log('HomeCtrl: GET ' + query);
-    $http.get(query).then(
-      function(resp) {
-        self.documentList = resp.data;
-        $log.log('OK-HomeCtrl: got ' + self.documentList.length + ' objects');
-      },
-      function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
-    );
+  self.filterAuthorNames = function() {
+    $log.log('Called filterAuthorNames(' + self.authorsFilter + ')');
+    if (self.authorsFilter = '') {
+      self.filteredAuthors = self.authors;
+    } else {
+      self.filteredAuthors = self.authors.filter(function(a) {
+        var name = a.name.toUpperCase();
+        var mask = self.authorsMask.toUpperCase();
+        var index = name.indexOf(mask);
+        return name.indexOf(mask) != -1;
+      });
+    }
   }
 
   self.fetchDocumentsByCategory = function(categoryKey) {
@@ -55,14 +74,14 @@
     self.currentSubcategoryKey = subcategoryKey;
   }
 
+  self.fetchDocumentsByAuthor = function(author) {
+    $log.log('Setting author=' + author);
+    self.currentAuthor = author;
+  }
+
   self.fetchDocumentsByContent = function(contentKey) {
     $log.log('Setting content=' + contentKey);
     self.currentContentKey = contentKey;
-  }
-
-  self.fetchDocumentsByAuthor = function(authorKey) {
-    $log.log('Setting author=' + authorKey);
-    self.currentAuthorKey = authorKey;
   }
 
   self.upload = function() {

@@ -26,7 +26,10 @@
   self.versionComments = '';
   self.documentName = '';
   self.documentDescription = '';
+
   self.records = [];
+  self.recordSelected = false;
+  self.selectedRecord = null;
 
   $http.get('api/Person').then(
     function(resp) {
@@ -96,6 +99,10 @@
     self.currentContentKey = contentKey;
   }
 
+  self.uploadDisabled = function() {
+    return self.currentAuthor._id == '' || self.versionComments == '';
+  }
+
   self.upload = function() {
     $log.log('Called upload()');
     var uploadButton = $window.document.getElementById('document-upload-button');
@@ -139,19 +146,17 @@
     $log.log('Exiting uploadOk()');
   }
 
-  self.createRecordDisabled = function() {
-    return self.currentCategoryKey == 'Any' || self.documentName == '' || self.currentContentKey == 'Any';
-  }
-
   self.listFiles = function() {
     var q = 'baf/DocumentRecordFind?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey +
-        '&content=' + self.currentContentKey + '&name=' + self.documentName;
+        '&content=' + self.currentContentKey + '&name=' + self.documentName + '&description=' + self.documentDescription;
     $log.log('GET ' + q);
     $http.get(q).then(
       function(resp) {
         self.records = resp.data;
         $log.log('OK GET ' + q + ' (' + self.records.length + ')')
-        self.records.forEach(function(r) {$log.log(JSON.stringify(r));})
+        self.records.forEach(function(r) {
+          $log.log(JSON.stringify(r));
+        })
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
@@ -159,15 +164,16 @@
     )
   }
 
-  self.formattedRecord = function(record) {
-    var line = record.category + ' -> ' + record.subcategory + ' -> ' + record.content + ' -> ' + record.name +
-        ' -> ' + record.timestamp + ' -> ' + record.versions;
-    return line;
+  self.createRecordDisabled = function() {
+    return self.currentCategoryKey == 'Any' || self.currentContentKey == 'Any' || self.documentName == '' ||
+        self.documentDescription == '';
   }
 
   self.createRecord = function() {
-    var q = 'baf/DocumentRecordCreate?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey +
-        '&content=' + self.currentContentKey + '&name=' + self.documentName;
+    var q = 'baf/DocumentRecordCreate?category=' + escape(self.currentCategoryKey) +
+        '&subcategory=' + escape(self.currentSubcategoryKey) +
+        '&content=' + self.currentContentKey + '&name=' + escape(self.documentName) +
+        '&description=' + escape(self.documentDescription);
     $log.log('POST ' + q);
     $http.post(q).then(
       function(resp) {
@@ -177,6 +183,11 @@
         $log.log('ERROR POST' + q)
       }
     )
+  }
+
+  self.selectRecord = function(record) {
+    self.selectedRecord = record;
+    self.recordSelected = true;
   }
 
 }]);

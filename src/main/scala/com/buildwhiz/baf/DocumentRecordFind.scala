@@ -23,8 +23,9 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
             case p => p
           }.toMap
       val records: Seq[Document] = BWMongoDB3.document_master.find(query).asScala.toSeq
-      val jsons = records.map(_.toJson).mkString("[", ", ", "]")
-      response.getOutputStream.println(jsons)
+      val jsonString = records.map(bson2json).mkString("[", ", ", "]")
+      response.getOutputStream.println(jsonString)
+      response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
     } catch {

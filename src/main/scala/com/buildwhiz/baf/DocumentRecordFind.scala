@@ -15,9 +15,13 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val properties = Seq("category", "subcategory", "content", "name")
+      val properties = Seq("category", "subcategory", "content", "name", "description")
       val query = (("project_id" -> project430ForestOid) +:
-          properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).toMap
+          properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
+            case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
+            case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
+            case p => p
+          }.toMap
       val records: Seq[Document] = BWMongoDB3.document_master.find(query).asScala.toSeq
       val jsons = records.map(_.toJson).mkString("[", ", ", "]")
       response.getOutputStream.println(jsons)

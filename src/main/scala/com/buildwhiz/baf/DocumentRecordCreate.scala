@@ -15,12 +15,9 @@ class DocumentRecordCreate extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val category = parameters("category")
-      val subCategory = parameters("subcategory")
-      val content = parameters("content")
-      val name = parameters("name")
-      val query = Map("project_id" -> project430ForestOid, "category" -> category, "subcategory" -> subCategory,
-          "content" -> content, "name" -> name)
+      val properties = Seq("category", "subcategory", "content", "name", "description")
+      val query = (("project_id" -> project430ForestOid) +:
+        properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).toMap
       if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
         throw new Throwable("Record already exists")
       BWMongoDB3.document_master.insertOne(query ++ Map("timestamp" -> System.currentTimeMillis,

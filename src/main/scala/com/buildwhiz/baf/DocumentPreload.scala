@@ -41,7 +41,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
         t.printStackTrace()
         throw t
     }
-    //try {file.delete()} catch {case _: Throwable => /* No recovery */}
+    try {file.delete()} catch {case _: Throwable => /* No recovery */}
     (fileName, fileLength)
   }
 

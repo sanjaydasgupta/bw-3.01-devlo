@@ -17,7 +17,6 @@
 
   self.documentList = [];
   self.documentCount = 0;
-  self.currentFilterKey = 'All';
   self.currentAuthor = {_id: '', name: 'Any'};
   self.currentContentKey = "Any";
   self.currentSubcategoryKey = "Any";
@@ -117,22 +116,15 @@
     uploadButton.removeEventListener('change', self.uploadOk, false);
     var files = evt.target.files; // FileList of File objects
     if (files.length > 0) {
-      var year = self.selectedDate.getUTCFullYear();
-      var month = self.selectedDate.getUTCMonth();
-      var date = self.selectedDate.getUTCDate();
-      var hours = self.selectedDate.getUTCHours();
-      var minutes = self.selectedDate.getUTCMinutes();
-      var seconds = self.selectedDate.getUTCSeconds();
+      var timestamp = self.selectedDate.getTime();
       var formData = new FormData();
       angular.forEach(files, function(file, index) {
         formData.append(file.name, file, file.name);
         $log.log('formData.append(name: ' + file.name);
       });
-      formData.append('end-marker', 'end-marker-content');
-      var query = 'baf/DocumentUpload?person_id=' + AuthService.data._id +
-          '&year=' + year + '&month=' + month + '&date=' + date +
-          '&hours=' + hours + '&minutes=' + minutes + '&seconds=' + seconds +
-          '&category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey;
+      var query = 'baf/DocumentPreload?person_id=' + AuthService.data._id +
+          '&timestamp=' + timestamp + '&document_master_id=' + self.selectedRecord._id +
+          '&comments=' + self.versionComments + '&author_person_id=' + self.currentAuthor._id;
       $log.log("POST: " + query);
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
         function() {
@@ -146,7 +138,25 @@
     $log.log('Exiting uploadOk()');
   }
 
-  self.listFiles = function() {
+  self.resetFields = function() {
+    self.currentContentKey = 'Any';
+    self.currentCategoryKey = 'Any';
+    self.documentName = '';
+    self.documentDescription = '';
+    self.selectedRecord = null;
+    self.recordSelected = false;
+    self.records = [];
+  }
+
+  self.copyFields = function() {
+    self.currentContentKey = self.selectedRecord.content ? self.selectedRecord.content : 'Any';
+    self.currentSubcategoryKey = self.selectedRecord.subcategory ? self.selectedRecord.subcategory : 'Any';
+    self.currentCategoryKey = self.selectedRecord.category ? self.selectedRecord.category : 'Any';
+    self.documentName = self.selectedRecord.name;
+    self.documentDescription = self.selectedRecord.description;
+  }
+
+  self.listRecords = function() {
     var q = 'baf/DocumentRecordFind?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey +
         '&content=' + self.currentContentKey + '&name=' + self.documentName + '&description=' + self.documentDescription;
     $log.log('GET ' + q);
@@ -154,9 +164,9 @@
       function(resp) {
         self.records = resp.data;
         $log.log('OK GET ' + q + ' (' + self.records.length + ')')
-        self.records.forEach(function(r) {
-          $log.log(JSON.stringify(r));
-        })
+        self.selectedRecord = null;
+        self.recordSelected = false;
+        self.records.forEach(function(r) {r.selected = false;})
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
@@ -188,6 +198,10 @@
   self.selectRecord = function(record) {
     self.selectedRecord = record;
     self.recordSelected = true;
+  }
+
+  self.getColor = function(record) {
+    return (record == self.selectedRecord) ? 'yellow' : 'white';
   }
 
 }]);

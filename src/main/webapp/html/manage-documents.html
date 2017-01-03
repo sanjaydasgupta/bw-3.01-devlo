@@ -37,7 +37,7 @@
             </li>
             <li class="divider" style="margin:1px;"></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
-                                         data-ng-click="manageDocsCtrl.fetchDocumentsBySkill('Any')" style="padding:3px;">Any</a></li>
+                data-ng-click="manageDocsCtrl.fetchDocumentsBySkill('Any')" style="padding:3px;">Any</a></li>
           </ul>
         </div>
       </div>
@@ -76,7 +76,10 @@
         <input type="text" data-ng-model="manageDocsCtrl.documentDescription" size="15" style="height:20px; margin:1px;" />
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
-        <button class="btn btn-xs btn-info" data-ng-click="manageDocsCtrl.listFiles()">List</button>
+        <button class="btn btn-xs btn-info" data-ng-click="manageDocsCtrl.listRecords()">List</button>
+        <button class="btn btn-xs btn-info" data-ng-click="manageDocsCtrl.resetFields()">Reset</button>
+        <button class="btn btn-xs btn-info" data-ng-click="manageDocsCtrl.copyFields()"
+            data-ng-disabled="!manageDocsCtrl.recordSelected">Copy</button>
         <button class="btn btn-xs btn-primary" data-ng-click="manageDocsCtrl.createRecord()"
             data-ng-disabled="manageDocsCtrl.createRecordDisabled()">Record</button>
       </div>
@@ -87,11 +90,14 @@
           <th style="text-align:center;">Name</th><th style="text-align:center;">Description</th>
           <th style="text-align:center;">Versions</th><th style="text-align:center;">Timestamp</th>
           <th style="text-align:center;">Select</th></tr>
-        <tr data-ng-repeat="record in manageDocsCtrl.records">
+        <tr data-ng-repeat="record in manageDocsCtrl.records" style="background-color:{{manageDocsCtrl.getColor(record)}};">
           <td style="text-align:center;">{{record.category}}</td><td style="text-align:center;">{{record.subcategory}}</td>
           <td style="text-align:center;">{{record.name}}</td><td style="text-align:center;">{{record.description}}</td>
-          <td style="text-align:center;">{{record.versions.length}}</td><td style="text-align:center;">{{record.timestamp}}</td>
-          <td style="text-align:center;"><a href="javascript:void(0);" data-ng-click="manageDocsCtrl.selectRecord(record)">select</a></td>
+          <td style="text-align:center;">{{record.versions.length}}</td>
+          <td style="text-align:center;">{{record.timestamp}}</td>
+          <td style="text-align:center;">
+            <a href="javascript:void(0);" data-ng-click="manageDocsCtrl.selectRecord(record)">select</a>
+          </td>
         </tr>
       </table>
     </div>

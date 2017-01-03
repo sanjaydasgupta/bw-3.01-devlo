@@ -17,7 +17,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
     try {
       val properties = Seq("category", "subcategory", "content", "name")
       val query = (("project_id" -> project430ForestOid) +:
-          properties.map(p => (p, parameters(p))).filter(_._2 != "Any")).toMap
+          properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).toMap
       val records: Seq[Document] = BWMongoDB3.document_master.find(query).asScala.toSeq
       val jsons = records.map(_.toJson).mkString("[", ", ", "]")
       response.getOutputStream.println(jsons)

@@ -30,6 +30,8 @@
   self.recordSelected = false;
   self.selectedRecord = null;
 
+  self.versions = [];
+
   $http.get('api/Person').then(
     function(resp) {
       self.authors = resp.data.map(function(p) {
@@ -166,7 +168,8 @@
         $log.log('OK GET ' + q + ' (' + self.records.length + ')')
         self.selectedRecord = null;
         self.recordSelected = false;
-        self.records.forEach(function(r) {r.selected = false;})
+        //self.records.forEach(function(r) {r.selected = false;})
+        self.versions = [];
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
@@ -198,10 +201,26 @@
   self.selectRecord = function(record) {
     self.selectedRecord = record;
     self.recordSelected = true;
+
+    var q = 'baf/DocumentVersions?document_master_id=' + self.selectedRecord._id;
+    $log.log('GET ' + q);
+    $http.get(q).then(
+      function(resp) {
+        self.versions = resp.data;
+        $log.log('OK GET ' + q + ' (' + self.versions.length + ')')
+      },
+      function(resp) {
+        $log.log('ERROR GET ' + q)
+      }
+    )
   }
 
   self.getColor = function(record) {
     return (record == self.selectedRecord) ? 'yellow' : 'white';
+  }
+
+  self.showUploadPanel = function() {
+    return self.recordSelected && AuthService.data.roles.join().indexOf('BW-Admin') != -1;
   }
 
 }]);

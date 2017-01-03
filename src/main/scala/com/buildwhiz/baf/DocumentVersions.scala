@@ -25,8 +25,12 @@ class DocumentVersions extends HttpServlet with HttpUtils with MailUtils {
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
         v.author_name = author.first_name[String] + " " + author.last_name[String]
         val cal = Calendar.getInstance()
-        cal.setTimeInMillis(v.timestamp[Long])
-        v.timestamp = s"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}-${cal.get(Calendar.DAY_OF_MONTH)}"
+        val timestamp = v.timestamp[Long]
+        cal.setTimeInMillis(timestamp)
+        v.date_time = f"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}%02d-${cal.get(Calendar.DAY_OF_MONTH)}%02d" +
+          f" ${cal.get(Calendar.HOUR_OF_DAY)}%02d:${cal.get(Calendar.MINUTE) + 1}%02d:${cal.get(Calendar.SECOND)}%02d"
+        val link = s"""baf/DocumentVersionDownload?document_master_id=$docMasterOid&timestamp=$timestamp"""
+        v.link = link
         v.asDoc
       })
       val jsonString = versions2.map(bson2json).mkString("[", ", ", "]")

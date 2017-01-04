@@ -223,4 +223,8 @@
     return self.recordSelected && AuthService.data.roles.join().indexOf('BW-Admin') != -1;
   }
 
+  self.isAdmin = function() {
+    return AuthService.data.roles.join().indexOf('BW-Admin') != -1;
+  }
+
 }]);

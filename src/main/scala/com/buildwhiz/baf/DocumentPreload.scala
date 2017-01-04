@@ -51,12 +51,15 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
     try {
       val docMasterId = parameters("document_master_id")
       val timestamp = parameters("timestamp").toLong
-      val inputStream = request.getParts.iterator().next().getInputStream
+      val part = request.getParts.iterator().next()
+      val inputStream = part.getInputStream
+      val fileName = part.getSubmittedFileName
       val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, docMasterId, timestamp)
       val comments = parameters("comments")
       val documentOid = new ObjectId(docMasterId)
       val authorOid = new ObjectId(parameters("author_person_id"))
-      val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid)
+      val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
+        "file_name" -> fileName)
       val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
           Map("$push" -> Map("versions" -> versionRecord)))
       if (updateResult.getModifiedCount == 0)

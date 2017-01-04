@@ -20,18 +20,23 @@ class DocumentVersions extends HttpServlet with HttpUtils with MailUtils {
       val docMasterOid = new ObjectId(parameters("document_master_id"))
       val record: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docMasterOid)).asScala.head
       val versions: Seq[DynDoc] = record.versions[DocumentList].asScala
-      val versions2: Seq[Document] = versions.map(v => {
-        val personOid = v.author_person_id[ObjectId]
+      val versions2: Seq[Document] = versions.map(version => {
+        val personOid = version.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
-        v.author_name = author.first_name[String] + " " + author.last_name[String]
+        version.author_name = author.first_name[String] + " " + author.last_name[String]
         val cal = Calendar.getInstance()
-        val timestamp = v.timestamp[Long]
+        val timestamp = version.timestamp[Long]
         cal.setTimeInMillis(timestamp)
-        v.date_time = f"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}%02d-${cal.get(Calendar.DAY_OF_MONTH)}%02d" +
+        version.date_time = f"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}%02d-${cal.get(Calendar.DAY_OF_MONTH)}%02d" +
           f" ${cal.get(Calendar.HOUR_OF_DAY)}%02d:${cal.get(Calendar.MINUTE) + 1}%02d:${cal.get(Calendar.SECOND)}%02d"
-        val link = s"""baf/DocumentVersionDownload?document_master_id=$docMasterOid&timestamp=$timestamp"""
-        v.link = link
-        v.asDoc
+        val link =
+          if (version has "file_name") {
+            val fileName = version.file_name[String]
+            s"""baf/DocumentVersionDownload/$fileName?document_master_id=$docMasterOid&timestamp=$timestamp"""
+          } else
+            s"""baf/DocumentVersionDownload?document_master_id=$docMasterOid&timestamp=$timestamp"""
+        version.link = link
+        version.asDoc
       })
       val jsonString = versions2.map(bson2json).mkString("[", ", ", "]")
       response.getOutputStream.println(jsonString)

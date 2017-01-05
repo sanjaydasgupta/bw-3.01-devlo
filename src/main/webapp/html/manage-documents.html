@@ -82,22 +82,22 @@
             data-ng-disabled="!manageDocsCtrl.recordSelected">Copy</button-->
         <button class="btn btn-xs btn-primary" data-ng-click="manageDocsCtrl.newRecord()"
             data-ng-disabled="manageDocsCtrl.createRecordDisabled()"
-            data-ng-if="manageDocsCtrl.isAdmin()">New</button>
+            data-ng-if="manageDocsCtrl.isDataAdmin()">New</button>
       </div>
     </div>
     <div data-ng-if="manageDocsCtrl.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
       <table border="1">
         <tr><th style="text-align:center;">Category</th><th style="text-align:center;">Subcategory</th>
           <th style="text-align:center;">Name</th><th style="text-align:center;">Description</th>
-          <th data-ng-if="!manageDocsCtrl.isAdmin()" style="text-align:center;">Download</th>
-          <th data-ng-if="manageDocsCtrl.isAdmin()" style="text-align:center;">Versions</th>
-          <th data-ng-if="manageDocsCtrl.isAdmin()" style="text-align:center;">Select</th></tr>
+          <th data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;">Download</th>
+          <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Versions</th>
+          <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Select</th></tr>
         <tr data-ng-repeat="record in manageDocsCtrl.records" style="background-color:{{manageDocsCtrl.getColor(record)}};">
           <td style="text-align:center;">{{record.category}}</td><td style="text-align:center;">{{record.subcategory}}</td>
           <td style="text-align:center;">{{record.name}}</td><td style="text-align:center;">{{record.description}}</td>
-          <td data-ng-if="!manageDocsCtrl.isAdmin()" style="text-align:center;"><a href="{{record.link}}" target="_blank">download</a></td>
-          <td data-ng-if="manageDocsCtrl.isAdmin()" style="text-align:center;">{{record.versions.length}}</td>
-          <td data-ng-if="manageDocsCtrl.isAdmin()" style="text-align:center;">
+          <td data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;"><a href="{{record.link}}" target="_blank">download</a></td>
+          <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">{{record.versions.length}}</td>
+          <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">
             <a href="javascript:void(0);" data-ng-click="manageDocsCtrl.selectRecord(record)">select</a>
           </td>
         </tr>

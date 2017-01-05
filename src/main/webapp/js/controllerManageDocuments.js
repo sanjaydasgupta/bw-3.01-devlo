@@ -151,24 +151,6 @@
     $log.log('Exiting uploadBegin()');
   }
 
-//  self.resetFields = function() {
-//    self.currentContentKey = 'Any';
-//    self.currentCategoryKey = 'Any';
-//    self.documentName = '';
-//    self.documentDescription = '';
-//    self.selectedRecord = null;
-//    self.recordSelected = false;
-//    self.records = [];
-//  }
-//
-//  self.copyFields = function() {
-//    self.currentContentKey = self.selectedRecord.content ? self.selectedRecord.content : 'Any';
-//    self.currentSubcategoryKey = self.selectedRecord.subcategory ? self.selectedRecord.subcategory : 'Any';
-//    self.currentCategoryKey = self.selectedRecord.category ? self.selectedRecord.category : 'Any';
-//    self.documentName = self.selectedRecord.name;
-//    self.documentDescription = self.selectedRecord.description;
-//  }
-//
   self.findRecords = function() {
     self.findModeActive = true;
     self.newModeActive = false;
@@ -203,19 +185,6 @@
     self.recordSelected = false;
     self.selectedRecord = null;
     self.versions = [];
-//    var q = 'baf/DocumentRecordCreate?category=' + escape(self.currentCategoryKey) +
-//        '&subcategory=' + escape(self.currentSubcategoryKey) +
-//        '&content=' + self.currentContentKey + '&name=' + escape(self.documentName) +
-//        '&description=' + escape(self.documentDescription);
-//    $log.log('POST ' + q);
-//    $http.post(q).then(
-//      function(resp) {
-//        $log.log('OK POST' + q)
-//      },
-//      function(resp) {
-//        $log.log('ERROR POST' + q)
-//      }
-//    )
   }
 
   self.selectRecord = function(record) {
@@ -239,12 +208,8 @@
     return (record == self.selectedRecord) ? 'yellow' : 'white';
   }
 
-//  self.showUploadPanel = function() {
-//    return self.recordSelected && AuthService.data.roles.join().indexOf('BW-Admin') != -1;
-//  }
-//
-  self.isAdmin = function() {
-    return AuthService.data.roles.join().indexOf('BW-Admin') != -1;
+  self.isDataAdmin = function() {
+    return AuthService.data.roles.join().indexOf('BW-Data-Admin') != -1;
   }
 
 }]);

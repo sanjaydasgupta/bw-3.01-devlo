@@ -5,7 +5,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import org.bson.Document
+import org.bson.types.ObjectId
+import java.util.Calendar
 
 import scala.collection.JavaConverters._
 
@@ -22,8 +23,25 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case p => p
           }.toMap
-      val records: Seq[Document] = BWMongoDB3.document_master.find(query).asScala.toSeq
-      val jsonString = records.map(bson2json).mkString("[", ", ", "]")
+      val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
+      val recsWithLinks = docMasterRecords.map(docMaster => {
+        val versions: Seq[DynDoc] = docMaster.versions[DocumentList]
+        if (versions.nonEmpty) {
+          val latestVersion: DynDoc = versions.last
+          val timestamp = latestVersion.timestamp[Long]
+          val cal = Calendar.getInstance()
+          cal.setTimeInMillis(timestamp)
+          docMaster.timestamp = f"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}%02d-${cal.get(Calendar.DAY_OF_MONTH)}%02d" +
+              f" ${cal.get(Calendar.HOUR_OF_DAY)}%02d:${cal.get(Calendar.MINUTE)}%02d:${cal.get(Calendar.SECOND)}%02d"
+          val fileName = if (latestVersion has "file_name") latestVersion.file_name[String] else docMaster.name[String]
+          docMaster.link = s"baf/DocumentVersionDownload/$fileName?document_master_id=${docMaster._id[ObjectId]}&" +
+            s"timestamp=$timestamp"
+        } else {
+          docMaster.timestamp = ""
+        }
+        docMaster
+      })
+      val jsonString = recsWithLinks.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]")
       response.getOutputStream.println(jsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

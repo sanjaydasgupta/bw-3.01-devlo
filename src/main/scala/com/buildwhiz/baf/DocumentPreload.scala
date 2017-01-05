@@ -6,17 +6,32 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
 import com.buildwhiz.{HttpUtils, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 import scala.annotation.tailrec
 
 class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
 
+  private def createRecord(parameters: mutable.Map[String, String]): ObjectId = {
+    val properties = Seq("category", "subcategory", "content", "name", "description")
+    val query = (("project_id" -> project430ForestOid) +:
+      properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).toMap
+    if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
+      throw new Throwable("Record already exists")
+    val newDocument = new Document(query ++ Map("timestamp" -> System.currentTimeMillis,
+      "versions" -> Seq.empty[Document]))
+    BWMongoDB3.document_master.insertOne(newDocument)
+    newDocument.getObjectId("_id")
+  }
 
-  private def storeDocumentAmazonS3(is: InputStream, projectId: String, documentId: String, timestamp: Long):
+  private def storeDocumentAmazonS3(is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long):
       (String, Long) = {
     BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "ENTRY")
-    val fileName = f"$projectId-$documentId-$timestamp%x"
+    val fileName = f"$projectId-$documentOid-$timestamp%x"
     val file = new File(fileName)
     var fileLength = 0L
     try {
@@ -49,14 +64,14 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val docMasterId = parameters("document_master_id")
       val timestamp = parameters("timestamp").toLong
       val part = request.getParts.iterator().next()
       val inputStream = part.getInputStream
       val fileName = part.getSubmittedFileName
-      val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, docMasterId, timestamp)
+      val documentOid = if (parameters.contains("document_master_id"))
+          new ObjectId(parameters("document_master_id")) else createRecord(parameters)
+      val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
       val comments = parameters("comments")
-      val documentOid = new ObjectId(docMasterId)
       val authorOid = new ObjectId(parameters("author_person_id"))
       val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
         "file_name" -> fileName)

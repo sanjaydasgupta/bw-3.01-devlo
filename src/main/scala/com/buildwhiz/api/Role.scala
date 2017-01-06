@@ -9,7 +9,7 @@ class Role extends HttpServlet with RestUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPost(request, response, "Role")
+    handleRestPost(request, response, "roles_master")
   }
 
 }

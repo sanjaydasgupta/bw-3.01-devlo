@@ -5,6 +5,7 @@
   self.collections = [];
   self.details = [];
   self.name = ""
+  self.archiveStatus = {status: -1};
 
   $log.log('MongodbCtrl: calling GET baf/MongoDBView');
   $http.get('baf/MongoDBView').then(
@@ -31,5 +32,17 @@
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
     );
   }
+
+  self.archive = function() {
+    query = 'baf/MongoDBView?collection_name=*';
+    $log.log('MongodbCtrl: GET ' + query);
+    $http.get(query).then(
+      function(resp) {
+        self.archiveStatus = resp.data;
+      },
+      function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
+    );
+  }
+
 }]);
 

@@ -1,5 +1,9 @@
 <div class="panel panel-primary">
-  <div  class="panel-heading">MongoDB View</div>
+  <div  class="panel-heading">MongoDB View
+    <span class="pull-right">&nbsp;&nbsp;{{mongoCtrl.archiveStatus.status == 0 ? 'OK' : '?'}}</span>
+    <button data-ng-click="mongoCtrl.archive()" class="btn btn-xs btn-warning pull-right"
+        style="padding:0px; margin:0px;">Archive</button>
+  </div>
 
   <div class="row panel-body fixed-panel">
     <div class="container-fluid">

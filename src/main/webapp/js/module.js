@@ -16,7 +16,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
         templateUrl: 'html/tasks.html',
         controller: 'TasksCtrl as tasksCtrl'
     }).when('/rfi', {
-        template: '<h2>RFI Route</h2>'
+        templateUrl: 'html/rfi.html',
+        controller: 'RFICtrl as rfiCtrl'
     }).when('/userProfile', {
         templateUrl: 'html/userProfile.html',
         controller: 'UserProfileCtrl as profileCtrl'

@@ -1,6 +1,7 @@
-package com.buildwhiz.infra
+package com.buildwhiz.obsolete
 
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.Document
 import org.bson.types.ObjectId
 

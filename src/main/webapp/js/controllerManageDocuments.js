@@ -9,6 +9,8 @@
       "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
       "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
 
+  self.contentTypes = [];
+
   self.documentSubcategories = [];
   self.authorKeys = ['Owner', 'Manager', 'Supervisor', 'Collaborator'];
   self.authors = [];
@@ -45,6 +47,19 @@
     },
     function(resp) {
       $log.log('ERROR GET api/Person')
+    }
+  )
+
+  $http.get('api/ContentType').then(
+    function(resp) {
+      self.contentTypes = resp.data.map(function(p) {
+        var contentType = p.type;
+        return contentType;
+      });
+      $log.log('OK GET api/ContentType (' + self.contentTypes + ')');
+    },
+    function(resp) {
+      $log.log('ERROR GET api/contentType')
     }
   )
 

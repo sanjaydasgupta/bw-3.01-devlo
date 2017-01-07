@@ -5,6 +5,11 @@
 
   <div class="panel-body fixed-panel container-fluid" style="padding:5px">
     <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
+        <table width="100%">
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Document Attributes</th></tr>
+        </table>
+      </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;Category&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
@@ -49,18 +54,8 @@
           </button>
           <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-content"
               style="min-width:50px">
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('MS-Excel')" style="padding:3px;">MS-Excel</a></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('MS-PPT')" style="padding:3px;">MS-PPT</a></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('MS-Word')" style="padding:3px;">MS-Word</a></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('PDF')" style="padding:3px;">PDF</a></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('Text')" style="padding:3px;">Text</a></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
-                data-ng-click="manageDocsCtrl.fetchDocumentsByContent('XML')" style="padding:3px;">XML</a></li>
+            <li class="dropdown-item" data-ng-repeat="contentType in manageDocsCtrl.contentTypes"><a href="javascript:void(0)"
+                data-ng-click="manageDocsCtrl.fetchDocumentsByContent(contentType)" style="padding:3px;">{{contentType}}</a></li>
             <li class="divider" style="margin:1px;"></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
                 data-ng-click="manageDocsCtrl.fetchDocumentsByContent('Any')" style="padding:3px;">Any</a></li>
@@ -85,37 +80,52 @@
             data-ng-if="manageDocsCtrl.isDataAdmin()">New</button>
       </div>
     </div>
-    <div data-ng-if="manageDocsCtrl.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
-      <table border="1">
-        <tr><th style="text-align:center;">Category</th><th style="text-align:center;">Subcategory</th>
-          <th style="text-align:center;">Name</th><th style="text-align:center;">Description</th>
-          <th data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;">Download</th>
-          <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Versions</th>
-          <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Select</th></tr>
-        <tr data-ng-repeat="record in manageDocsCtrl.records" style="background-color:{{manageDocsCtrl.getColor(record)}};">
-          <td style="text-align:center;">{{record.category}}</td><td style="text-align:center;">{{record.subcategory}}</td>
-          <td style="text-align:center;">{{record.name}}</td><td style="text-align:center;">{{record.description}}</td>
-          <td data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;"><a href="{{record.link}}" target="_blank">download</a></td>
-          <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">{{record.versions.length}}</td>
-          <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">
-            <a href="javascript:void(0);" data-ng-click="manageDocsCtrl.selectRecord(record)">select</a>
-          </td>
-        </tr>
+    <div data-ng-if="manageDocsCtrl.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="100%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Found Files</th></tr>
       </table>
+      <div style="height:100px; max-height:100px; min-height:100px; overflow:auto;">
+        <table border="1" width="100%">
+          <tr><th style="text-align:center;">Category</th><th style="text-align:center;">Subcategory</th>
+            <th style="text-align:center;">Name</th><th style="text-align:center;">Description</th>
+            <th data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;">Download</th>
+            <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Versions</th>
+            <th data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">Select</th></tr>
+          <tr data-ng-repeat="record in manageDocsCtrl.records" style="background-color:{{manageDocsCtrl.getColor(record)}};">
+            <td style="text-align:center;">{{record.category}}</td><td style="text-align:center;">{{record.subcategory}}</td>
+            <td style="text-align:center;">{{record.name}}</td><td style="text-align:center;">{{record.description}}</td>
+            <td data-ng-if="!manageDocsCtrl.isDataAdmin()" style="text-align:center;"><a href="{{record.link}}" target="_blank">download</a></td>
+            <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">{{record.versions.length}}</td>
+            <td data-ng-if="manageDocsCtrl.isDataAdmin()" style="text-align:center;">
+              <a href="javascript:void(0);" data-ng-click="manageDocsCtrl.selectRecord(record)">select</a>
+            </td>
+          </tr>
+        </table>
+      </div>
     </div>
     <div data-ng-if="manageDocsCtrl.recordSelected" class="row center-block"
-         style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% height:100px; max-height:100px; min-height:100px; overflow:auto; vertical-align:top;">
-      <table border="1">
-        <tr><th style="text-align:center;">File-Name</th><th style="text-align:center;">Comments</th><th style="text-align:center;">Timestamp</th>
-          <th style="text-align:center;">Author</th><th style="text-align:center;">Download</th></tr>
-        <tr data-ng-repeat="version in manageDocsCtrl.versions">
-          <td style="text-align:center;">{{version.file_name}}</td><td style="text-align:center;">{{version.comments}}</td>
-          <td style="text-align:center;">{{version.date_time}}</td><td style="text-align:center;">{{version.author_name}}</td>
-          <td style="text-align:center;"><a href="{{version.link}}" target="_blank">download</a></td>
-        </tr>
+         style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="100%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Selected Versions</th></tr>
       </table>
+      <div style="height:75px; max-height:75px; min-height:75px; overflow:auto;">
+        <table border="1" width="100%">
+          <tr><th style="text-align:center;">File-Name</th><th style="text-align:center;">Comments</th><th style="text-align:center;">Timestamp</th>
+            <th style="text-align:center;">Author</th><th style="text-align:center;">Download</th></tr>
+          <tr data-ng-repeat="version in manageDocsCtrl.versions">
+            <td style="text-align:center;">{{version.file_name}}</td><td style="text-align:center;">{{version.comments}}</td>
+            <td style="text-align:center;">{{version.date_time}}</td><td style="text-align:center;">{{version.author_name}}</td>
+            <td style="text-align:center;"><a href="{{version.link}}" target="_blank">download</a></td>
+          </tr>
+        </table>
+      </div>
     </div>
     <div data-ng-if="manageDocsCtrl.recordSelected || manageDocsCtrl.newModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
+        <table width="100%">
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Upload</th></tr>
+        </table>
+      </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;Comment&nbsp;
         <input type="text" data-ng-model="manageDocsCtrl.versionComments" size="10" style="margin:4px;"/>

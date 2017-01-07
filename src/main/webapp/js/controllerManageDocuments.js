@@ -118,7 +118,8 @@
   }
 
   self.uploadDisabled = function() {
-    return self.currentAuthor._id == '' || self.versionComments == '';
+    return self.currentAuthor._id == '' || self.versionComments == '' ||
+        self.currentCategoryKey == 'Any' || self.documentName == '' || self.documentDescription == '';
   }
 
   self.upload = function() {
@@ -188,9 +189,8 @@
     )
   }
 
-  self.createRecordDisabled = function() {
-    return self.currentCategoryKey == 'Any' || self.currentContentKey == 'Any' || self.documentName == '' ||
-        self.documentDescription == '';
+  self.newButtonDisabled = function() {
+    return self.currentCategoryKey == 'Any' || self.documentName == '' || self.documentDescription == '';
   }
 
   self.newRecord = function() {

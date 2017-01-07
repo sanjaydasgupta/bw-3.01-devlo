@@ -16,9 +16,9 @@ import scala.annotation.tailrec
 
 class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
 
-  private def createRecord(parameters: mutable.Map[String, String]): ObjectId = {
-    val properties = Seq("category", "subcategory", "content", "name", "description")
-    val query = (("project_id" -> project430ForestOid) +:
+  private def createRecord(parameters: mutable.Map[String, String], contentType: String): ObjectId = {
+    val properties = Seq("category", "subcategory", "name", "description")
+    val query = (("project_id" -> project430ForestOid) +: ("content" -> contentType) +:
       properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).toMap
     if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
       throw new Throwable("Record already exists")
@@ -68,8 +68,9 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
       val part = request.getParts.iterator().next()
       val inputStream = part.getInputStream
       val fileName = part.getSubmittedFileName
+      val fileExtension = fileName.split("\\.").last.toUpperCase
       val documentOid = if (parameters.contains("document_master_id"))
-          new ObjectId(parameters("document_master_id")) else createRecord(parameters)
+          new ObjectId(parameters("document_master_id")) else createRecord(parameters, fileExtension)
       val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
       val comments = parameters("comments")
       val authorOid = new ObjectId(parameters("author_person_id"))

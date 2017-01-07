@@ -19,6 +19,10 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
       val properties = Seq("category", "subcategory", "content", "name", "description")
       val query = (("project_id" -> project430ForestOid) +:
           properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
+            case ("content", value) =>
+              val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
+              val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
+              ("content", Map("$in" -> allExtensionTypes))
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case p => p

@@ -2,15 +2,14 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import org.bson.types.ObjectId
-import java.util.Calendar
 
 import scala.collection.JavaConverters._
 
-class DocumentRecordFind extends HttpServlet with HttpUtils {
+class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
@@ -33,10 +32,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils {
         if (versions.nonEmpty) {
           val latestVersion: DynDoc = versions.last
           val timestamp = latestVersion.timestamp[Long]
-          val cal = Calendar.getInstance()
-          cal.setTimeInMillis(timestamp)
-          docMaster.timestamp = f"${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH) + 1}%02d-${cal.get(Calendar.DAY_OF_MONTH)}%02d" +
-              f" ${cal.get(Calendar.HOUR_OF_DAY)}%02d:${cal.get(Calendar.MINUTE)}%02d:${cal.get(Calendar.SECOND)}%02d"
+          docMaster.timestamp = dateTimeString(timestamp)
           val fileName = if (latestVersion has "file_name") latestVersion.file_name[String] else docMaster.name[String]
           docMaster.link = s"baf/DocumentVersionDownload/$fileName?document_master_id=${docMaster._id[ObjectId]}&" +
             s"timestamp=$timestamp"

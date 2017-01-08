@@ -46,7 +46,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
           "read_person_ids" -> Seq.empty[ObjectId]))
       if (parameters.contains("rfi_id")) {
         val rfiOid = new ObjectId(parameters("rfi_id"))
-        BWMongoDB3.rfi_messages.updateOne(Map("rfi_id" -> rfiOid), Map("$push" -> Map("messages" -> message),
+        BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("$push" -> Map("messages" -> message),
             "$set" -> Map("status" -> "active")))
       } else {
         val subject = parameters("subject")

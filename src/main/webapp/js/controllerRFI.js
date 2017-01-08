@@ -7,19 +7,34 @@ angular.module('BuildWhizApp')
   self.subject = '';
   self.text = '';
   self.messages = [];
+  self.messageDetails = [];
 
-  self.newRfiMessage = function() {
-    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id +
-        '&text=' + self.text + '&subject=' + self.subject;
+  self.selectedMessage = null;
+
+  self.submitRFI = function() {
+    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + self.text;
+    if (self.selectedMessage != null) {
+      query += '&rfi_id=' + self.selectedMessage._id;
+    } else {
+      query += '&subject=' + self.subject;
+    }
     $log.log('Calling POST ' + query);
     $http.post(query).then(
       function(resp) {
+        self.text = '';
+        if (self.selectedMessage == null) {
+          self.subject = '';
+        }
         $log.log('OK POST ' + query)
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
       }
     )
+  }
+
+  self.sendDisabled = function() {
+    return self.subject == '' || self.text == '';
   }
 
   self.refreshRfiList = function() {
@@ -34,6 +49,29 @@ angular.module('BuildWhizApp')
         $log.log('ERROR GET ' + query)
       }
     )
+  }
+
+  self.selectMessage = function(msg) {
+    if (msg) {
+      var query = 'baf/RFIDetailsFetch?person_id=' + AuthService.data._id + '&tz=' + AuthService.data.tz +
+          '&rfi_id=' + msg._id;
+      $log.log('Calling GET ' + query);
+      $http.get(query).then(
+        function(resp) {
+          self.messageDetails = resp.data;
+          self.selectedMessage = msg;
+          self.subject = msg.subject;
+          $log.log('OK GET ' + query)
+        },
+        function(resp) {
+          self.selectedMessage = null;
+          $log.log('ERROR GET ' + query)
+        }
+      )
+    } else {
+      self.selectedMessage = null;
+      self.subject = '';
+    }
   }
 
   self.refreshRfiList();

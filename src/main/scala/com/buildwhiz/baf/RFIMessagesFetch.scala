@@ -12,6 +12,8 @@ import scala.collection.JavaConverters._
 
 class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
+  private def limitText(t: String) = if (t.length < 70) t else t.substring(0, 70) + " ..."
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
@@ -26,8 +28,8 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = parameters("tz")
         new Document(Map("_id" -> exchange._id[ObjectId], "subject" -> exchange.subject[String],
-          "timestamp" -> dateTimeString(lastMessage.timestamp[Long], Some(clientTimezone)),
-          "last_message" -> lastMessage.text[String], "sender" -> senderName))
+          "count" -> messages.length, "timestamp" -> dateTimeString(lastMessage.timestamp[Long], Some(clientTimezone)),
+          "last_message" -> limitText(lastMessage.text[String]), "sender" -> senderName))
       })
       response.getWriter.print(rfiLines.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")

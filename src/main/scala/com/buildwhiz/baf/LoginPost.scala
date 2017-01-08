@@ -34,8 +34,8 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         case None => """{"_id": "", "first_name": "", "last_name": ""}"""
         case Some(p) =>
           storeCookie(email, request, response)
-          val permittedFields = Set("_id", "first_name", "last_name", "roles",
-            "organization_id", "project_ids")
+          val permittedFields = Set("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
+              "tz")
           val resultPerson = new Document()
           p.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = p.asScala(key))
           bson2json(resultPerson)
@@ -43,7 +43,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
       response.getWriter.print(result)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK (${person.isDefined})", request)
+      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK ($result)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

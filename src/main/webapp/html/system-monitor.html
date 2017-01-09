@@ -14,8 +14,10 @@
                 </td>
               </tr>
               <tr>
-                <td data-ng-click="sysMonCtrl.monitor('topbn')" class="cursor: pointer;">
-                  <a href="javascript:void(0);">Processes (top -b -n 1)</a>
+                <td>
+                  Processes (top -b -n 1)
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-all')">ALL</a>
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-mj')">mongo/java</a>
                 </td>
               </tr>
             </table>

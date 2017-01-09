@@ -19,10 +19,12 @@ class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
     response.setContentType("application/json")
   }
 
-  private def topbn(response: HttpServletResponse): Unit = {
+  private def topbn(response: HttpServletResponse, filtered: Boolean): Unit = {
     val output: String = "top -b -n 1".!!
     val lines = output.split("\n").map(_.trim).filter(_.nonEmpty).dropWhile(line => !line.startsWith("PID"))
-    val fieldedLines = lines.map(_.split("\\s+"))
+    val filteredLines = lines.head +: lines.tail.
+        filter(line => if (filtered) line.matches("(?i).*(mongo|java).*") else true)
+    val fieldedLines = filteredLines.map(_.split("\\s+"))
     val json = fieldedLines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
@@ -34,7 +36,8 @@ class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
     try {
       parameters("command") match {
         case "dfh" => dfh(response)
-        case "topbn" => topbn(response)
+        case "topbn-mj" => topbn(response, filtered = true)
+        case "topbn-all" => topbn(response, filtered = false)
         case _ =>
       }
       response.setStatus(HttpServletResponse.SC_OK)

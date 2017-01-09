@@ -2,10 +2,34 @@
   <div class="panel-heading">System Monitor</div>
 
   <div class="panel-body fixed-panel">
-    <table border="1">
-      <tr data-ng-repeat="row in sysMonCtrl.dfh track by $index">
-        <td data-ng-repeat="field in row">{{field}}</td>
-      </tr>
-    </table>
+    <div class="row">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 col-xl-3">
+            <table class="table table-condensed table-bordered table-hover">
+              <tr><th class="bg-primary text-center">Commands</th></tr>
+              <tr>
+                <td data-ng-click="sysMonCtrl.monitor('dfh')" class="cursor: pointer;">
+                  <a href="javascript:void(0);">Disk (df -h)</a>
+                </td>
+              </tr>
+              <tr>
+                <td data-ng-click="sysMonCtrl.monitor('topbn')" class="cursor: pointer;">
+                  <a href="javascript:void(0);">Processes (top -b -n 1)</a>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
+            <table class="table table-condensed table-bordered" data-ng-if="sysMonCtrl.output.length > 0">
+              <tr><th class="bg-primary text-center" colspan="100">Output</th></tr>
+              <tr data-ng-repeat="row in sysMonCtrl.output" style="background-color:{{sysMonCtrl.bgColor(row)}};">
+                <td data-ng-repeat="field in row track by $index">{{field}}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

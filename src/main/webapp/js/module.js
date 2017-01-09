@@ -22,6 +22,9 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/mongodb', {
         templateUrl: 'html/mongodb.html',
         controller: 'MongodbCtrl as mongoCtrl'
+    }).when('/systemMonitor', {
+        templateUrl: 'html/system-monitor.html',
+        controller: 'SystemMonitorCtrl as sysMonCtrl'
     }).when('/manageUsers', {
         templateUrl: 'html/manage-users.html',
         controller: 'ManageUsersCtrl as usersCtrl'

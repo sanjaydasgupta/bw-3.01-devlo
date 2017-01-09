@@ -29,18 +29,6 @@
             </button>
             <div class="collapse navbar-collapse" data-uib-collapse="mainCtrl.isNavCollapsed">
                 <ul class="nav navbar-nav navbar-right" data-ng-if="mainCtrl.loggedIn">
-                    <!--li class="sdg-active"><a href="#/" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-home"></span> Home</a></li-->
-                    <!--li><a href="#/documents" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-inbox"></span> Documents</a></li-->
-                    <!--li><a href="#/tasks" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-tasks"></span> Tasks</a></li-->
-                    <!--li><a href="#/projects" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-cog"></span> Projects</a></li-->
-                    <!--li><a href="#/rfi" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-info-sign"></span> RFI</a></li-->
-                    <!--li><a href="#/userProfile" data-ng-click="mainCtrl.clickCommon()">
-                        <span class="glyphicon glyphicon-user"></span> Profile</a></li-->
                     <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body data-ng-if="mainCtrl.isAdmin()">
                         <a href="#" id="btn-append-to" data-uib-dropdown-toggle class="dropdown-toggle">
                             Admin <span class="caret"></span>
@@ -51,7 +39,8 @@
                             <li><a href="#/manageUsers" data-ng-click="mainCtrl.clickCommon()">
                                 <span class="glyphicon glyphicon-user"></span> Users</a></li>
                             <li class="divider"></li>
-                            <li><a href="#" data-ng-click="mainCtrl.clickCommon()">Separated link</a></li>
+                            <li><a href="#/systemMonitor" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-dashboard"></span> Sys-Monitor</a></li>
                         </ul>
                     </li>
                     <li><a href="#" data-ng-click="mainCtrl.logout()">
@@ -99,6 +88,7 @@
     <script src="js/controllerManageDocuments.js"></script>
     <script src="js/controllerHome.js"></script>
     <script src="js/controllerRFI.js"></script>
+    <script src="js/controllerSystemMonitor.js"></script>
     <script src="js/serviceAuthentication.js"></script>
   </body>
 </html>

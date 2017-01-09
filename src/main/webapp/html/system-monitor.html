@@ -2,5 +2,10 @@
   <div class="panel-heading">System Monitor</div>
 
   <div class="panel-body fixed-panel">
+    <table border="1">
+      <tr data-ng-repeat="row in sysMonCtrl.dfh track by $index">
+        <td data-ng-repeat="field in row">{{field}}</td>
+      </tr>
+    </table>
   </div>
 </div>

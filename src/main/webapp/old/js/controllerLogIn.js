@@ -1,10 +1,10 @@
 ﻿app.controller("BuildWhizNgAppLogInCtrl", function ($log, $http, $scope, BuildWhizNgAppLogInService) {
 
-    $log.log('HTTP GET api/Environment');
-    $http.get('api/Environment').then(
+    $log.log('HTTP GET etc/Environment');
+    $http.get('etc/Environment').then(
         function(response) {
             var env = response.data;
-            $log.log('api/Environment -> ' + JSON.stringify(env));
+            $log.log('etc/Environment -> ' + JSON.stringify(env));
             if (env.timezone_raw_offset != 0) {
                 // to facilitate testing on local machine
                 $scope.email = "sanjay.dasgupta@buildwhiz.com";

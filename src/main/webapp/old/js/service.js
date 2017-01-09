@@ -5,7 +5,7 @@ app.service("BuildWhizNgAppLogInService", function ($http) {
     this.UserAuthenticate = function (email, password) {
         var response = $http({
             method: "POST",
-            url: "baf/LoginPost",
+            url: "etc/LoginPost",
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             params: {
                 email: email,

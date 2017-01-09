@@ -1,14 +1,16 @@
 angular.module('BuildWhizApp')
 
-.factory('AuthenticationService', ['$log', '$http', function ($log, $http) {
+.factory('AuthenticationService', ['$log', '$http', '$document',
+    function ($log, $http, $document) {
   return {
     loggedIn: false,
     tryAgain: false,
     data: null,
     loginClient: null,
+
     login: function(email, password, client) {
       var self = this;
-      var url = 'baf/LoginPost?email=' + email + '&password=' + password;
+      var url = 'etc/LoginPost?email=' + email + '&password=' + password;
       //$log.log('POST ' + url);
       $http.post(url).then(
         function (response) {
@@ -21,6 +23,7 @@ angular.module('BuildWhizApp')
             client.tryAgain = false;
             client.password = '';
             loginClient = client;
+            //self.setUserNameEmail(email);
           } else {
             $log.log('AuthenticationService: FAILURE');
             self.loggedIn = false;
@@ -45,6 +48,32 @@ angular.module('BuildWhizApp')
       this.data = null;
       loginClient.loggedIn = false;
       loginClient.data = null;
+    },
+
+    setUserNameEmail: function(email) {
+      $document.cookie = 'UserNameEmail=' + email + '; expires=Thu, 23 Nov 2017 18:00:00 GMT';
+      $log.log('Set cookie userNameEmail=' + email);
+    },
+
+    getUserNameEmail: function() {
+      var cookies = $document.cookies;
+      var start = cookies.indexOf('UserNameEmail=');
+      if (start == -1) {
+        $log.log('Default cookie-email: abc@buildwhiz.com')
+        return 'abc@buildwhiz.com';
+      } else {
+        var end = cookies.indexOf(';', start);
+        if (end == -1) {
+          var email = cookies.slice(start + 'UserNameEmail='.length);
+          $log.log('Got cookie-email: ' + email)
+          return email;
+        } else {
+          var email = cookies.slice(start + 'UserNameEmail='.length, end);
+          $log.log('Got cookie-email: ' + email)
+          return email;
+        }
+      }
     }
+
   };
 }]);

@@ -110,7 +110,7 @@
 
   self.userNameEmailFromCookie = function() {
     $log.log('TasksCtrl: userNameEmailFromCookie() Called');
-    $http.get('baf/UserNameEmailFromCookie').then(
+    $http.get('etc/Environment').then(
       function(resp) {
         self.userNameEmail = resp.data;
         $log.log('TasksCtrl: userNameEmailFromCookie(): ' + self.userNameEmail);

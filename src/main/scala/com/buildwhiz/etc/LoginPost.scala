@@ -1,11 +1,11 @@
-package com.buildwhiz.baf
+package com.buildwhiz.etc
 
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import org.bson.Document
-import BWMongoDB3._
 import com.buildwhiz.{CryptoUtils, HttpUtils}
+import org.bson.Document
 
 import scala.collection.JavaConverters._
 
@@ -13,6 +13,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   private def storeCookie(userNameEmail: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val cookie = new Cookie("UserNameEmail", userNameEmail)
+    cookie.setHttpOnly(true)
     cookie.setMaxAge(30 * 24 * 60 * 60)
     response.addCookie(cookie)
     BWLogger.log(getClass.getName, "storeCookie", "Stored UserName Cookie", request)

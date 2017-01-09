@@ -8,14 +8,14 @@ angular.module('BuildWhizApp')
   self.tryAgain = false;
   self.username = '';
 
-  $log.log('HTTP GET api/Environment');
-  $http.get('api/Environment').then(
+  $log.log('HTTP GET etc/Environment');
+  $http.get('etc/Environment').then(
     function(response) {
       var env = response.data;
-      $log.log('api/Environment -> ' + JSON.stringify(env));
+      $log.log('etc/Environment -> ' + JSON.stringify(env));
+      self.username = env.email;
       if (env.timezone_raw_offset == 19800000) {
         // to facilitate testing on local machine
-        self.username = "sanjay.dasgupta@buildwhiz.com";
       }
     }
   );

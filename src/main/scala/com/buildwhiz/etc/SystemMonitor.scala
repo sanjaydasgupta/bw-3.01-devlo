@@ -44,7 +44,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     })
     val output = Seq("Name", "Directory", "Size") +: fileData
     val json = output.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
-    BWLogger.log(getClass.getName, "tomcat-json", json)
+    //BWLogger.log(getClass.getName, "tomcat-json", json)
     response.getWriter.print(json)
     response.setContentType("application/json")
   }

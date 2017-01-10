@@ -11,12 +11,13 @@ import scala.collection.JavaConverters._
 
 class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
-  private def storeCookie(userNameEmail: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def cookieSessionSet(userNameEmail: String, person: Document, request: HttpServletRequest,
+        response: HttpServletResponse): Unit = {
+    request.getSession.setAttribute("bw-user", person)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
     cookie.setHttpOnly(true)
     cookie.setMaxAge(30 * 24 * 60 * 60)
     response.addCookie(cookie)
-    BWLogger.log(getClass.getName, "storeCookie", "Stored UserName Cookie", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -24,27 +25,36 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val email = parameters("email")
-      val password = parameters("password")
-      //val query = Map("email_work" -> userEmail, "password" -> password)
-      //val passwordHash = "%x".format(password.hashCode)
-      val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password),
-        "enabled" -> true)
-      val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
-      val result = person match {
-        case None => """{"_id": "", "first_name": "", "last_name": ""}"""
-        case Some(p) =>
-          storeCookie(email, request, response)
-          val permittedFields = Set("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
+      if (parameters.contains("email") && parameters.contains("password")) {
+        val email = parameters("email")
+        val password = parameters("password")
+        val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password),
+          "enabled" -> true)
+        val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
+        val result = person match {
+          case None => """{"_id": "", "first_name": "", "last_name": ""}"""
+          case Some(pers) =>
+            cookieSessionSet(email, pers, request, response)
+            val permittedFields = Set("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
               "tz")
-          val resultPerson = new Document()
-          p.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = p.asScala(key))
-          bson2json(resultPerson)
+            val resultPerson = new Document()
+            pers.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = pers.asScala(key))
+            bson2json(resultPerson)
+        }
+        response.getWriter.print(result)
+        response.setContentType("application/json")
+        response.setStatus(HttpServletResponse.SC_OK)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", request)
+      } else if (request.getSession.getAttribute("bw-user") != null) {
+        request.getSession.removeAttribute("bw-user")
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log OUT", request)
+      } else {
+        val result = """{"_id": "", "first_name": "", "last_name": ""}"""
+        response.getWriter.print(result)
+        response.setContentType("application/json")
+        response.setStatus(HttpServletResponse.SC_OK)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", request)
       }
-      response.getWriter.print(result)
-      response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK ($result)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

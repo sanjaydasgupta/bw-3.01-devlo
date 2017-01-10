@@ -11,45 +11,49 @@ import scala.language.reflectiveCalls
 @MultipartConfig()
 class Entry extends HttpServlet {
 
-  private def authenticate(request: HttpServletRequest): Unit = {
-    val session = request.getSession
-    if (session.isNew) {
+  private def authenticated(request: HttpServletRequest): Boolean = {
+    val session = request.getSession(true)
+    val uriParts = request.getRequestURI.split("/")
+    val loggingIn = uriParts.last.matches("LoginPost|Environment") && uriParts.init.last == "etc"
+    session.getAttribute("bw-user") != null || loggingIn
+  }
+
+  private def log(event: String, request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getSimpleName, request.getMethod, event, request)
+  }
+
+  private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
+        delegateTo: Entry.BWServlet => Unit): Unit = {
+    if (authenticated(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
-    } else {
-      val bwToken = session.getAttribute("bw_token")
-    }
-  }
-
-  private def log(httpOperation: String, event: String, request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getSimpleName, httpOperation, event, request)
-  }
-
-  private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
-    val urlParts = request.getRequestURL.toString.split("/")
-    val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|etc|tools|web")).head._2
-    val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
-    Entry.cache.get(className) match {
-      case Some(httpServlet) => delegateTo(httpServlet)
-      case None => Try(Class.forName(className)) match {
-        case Success(clazz) =>
-          Try(clazz.newInstance()) match {
-            case Success(httpServlet: Entry.BWServlet @ unchecked) =>
-              Entry.cache(className) = httpServlet
-              delegateTo(httpServlet)
-            case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
-            case Failure(t) => throw t
-          }
-        case Failure(classNotFound) => throw classNotFound
+      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|etc|tools|web")).head._2
+      val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
+      Entry.cache.get(className) match {
+        case Some(httpServlet) => delegateTo(httpServlet)
+        case None => Try(Class.forName(className)) match {
+          case Success(clazz) =>
+            Try(clazz.newInstance()) match {
+              case Success(httpServlet: Entry.BWServlet @ unchecked) =>
+                Entry.cache(className) = httpServlet
+                delegateTo(httpServlet)
+              case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
+              case Failure(t) => throw t
+            }
+          case Failure(classNotFound) => throw classNotFound
+        }
       }
+    } else {
+      val uri = request.getRequestURI
+      response.sendRedirect("/" + uri.split("/")(1))
     }
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, servlet => servlet.doPost(request, response))
+      handleRequest(request, response, servlet => servlet.doPost(request, response))
     } catch {
       case t: Throwable =>
-        log("doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -57,10 +61,10 @@ class Entry extends HttpServlet {
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, servlet => servlet.doPut(request, response))
+      handleRequest(request, response, servlet => servlet.doPut(request, response))
     } catch {
       case t: Throwable =>
-        log("doPut", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -68,10 +72,10 @@ class Entry extends HttpServlet {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, servlet => servlet.doGet(request, response))
+      handleRequest(request, response, servlet => servlet.doGet(request, response))
     } catch {
       case t: Throwable =>
-        log("doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
@@ -79,10 +83,10 @@ class Entry extends HttpServlet {
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, servlet => servlet.doDelete(request, response))
+      handleRequest(request, response, servlet => servlet.doDelete(request, response))
     } catch {
       case t: Throwable =>
-        log("doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }

@@ -11,15 +11,6 @@
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
 
-  <!--servlet>
-    <servlet-name>MainProgramLauncher</servlet-name>
-    <servlet-class>com.buildwhiz.tools.MainProgramLauncher</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>MainProgramLauncher</servlet-name>
-    <url-pattern>/tools/MainProgramLauncher/*</url-pattern>
-  </servlet-mapping-->
-
   <servlet>
     <servlet-name>UploadFile</servlet-name>
     <servlet-class>com.buildwhiz.tools.UploadFile</servlet-class>
@@ -43,6 +34,7 @@
     <url-pattern>/old/baf/*</url-pattern>
     <url-pattern>/old/api/*</url-pattern>
     <url-pattern>/old/web/*</url-pattern>
+    <url-pattern>/old/etc/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

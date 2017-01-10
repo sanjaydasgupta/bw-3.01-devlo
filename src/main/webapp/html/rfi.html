@@ -9,10 +9,11 @@
       </table>
       <div data-ng-if="rfiCtrl.selectedMessage == null" style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
-          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Count</th>
+          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Members</th><th style="text-align:center;">Count</th>
             <th style="text-align:center;">Last Message</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Select</th></tr>
           <tr data-ng-repeat="message in rfiCtrl.messages">
-            <td style="text-align:center;">{{message.timestamp}}</td><td style="text-align:center;">{{message.subject}}</td><td style="text-align:center;">{{message.count}}</td>
+            <td style="text-align:center;">{{message.timestamp}}</td><td style="text-align:center;">{{message.subject}}</td>
+            <td style="text-align:center;">{{message.member_names.join(", ")}}</td><td style="text-align:center;">{{message.count}}</td>
             <td>{{message.last_message}}</td><td style="text-align:center;">{{message.sender}}</td>
             <td style="text-align:center;"><a href="javascript:void(0)" data-ng-click="rfiCtrl.selectMessage(message)">select</a></td>
           </tr>
@@ -30,6 +31,8 @@
       <table width="100%">
         <tr><td width="100%" class="pull-right">
           <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-primary pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
+          <!--label data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left" style="margin:0px;">Members: </label-->
+          <!--span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">{{rfiCtrl.selectedMessage.member_names.join(", ")}}</span-->
           <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-primary pull-right" data-ng-click="rfiCtrl.selectMessage()">Back</button>
         </td></tr>
       </table>

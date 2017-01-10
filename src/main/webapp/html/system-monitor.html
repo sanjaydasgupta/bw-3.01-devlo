@@ -25,7 +25,10 @@
           <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
             <table class="table table-condensed table-bordered" data-ng-if="sysMonCtrl.output.length > 0">
               <tr><th class="bg-primary text-center" colspan="100">Output</th></tr>
-              <tr data-ng-repeat="row in sysMonCtrl.output" style="background-color:{{sysMonCtrl.bgColor(row)}};">
+              <tr style="font-weight:bold; background-color:#66ccff;">
+                <td data-ng-repeat="field in sysMonCtrl.output[0] track by $index">{{field}}</td>
+              </tr>
+              <tr data-ng-repeat="row in sysMonCtrl.output.slice(1)" style="background-color:{{sysMonCtrl.bgColor(row)}};">
                 <td data-ng-repeat="field in row track by $index">{{field}}</td>
               </tr>
             </table>

@@ -4,11 +4,22 @@ import java.io.File
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWLogger
-import com.buildwhiz.{CryptoUtils, HttpUtils}
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 
 import scala.sys.process._
+import com.buildwhiz.infra.{AmazonS3 => AS3}
 
-class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
+class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  private def amazonS3(response: HttpServletResponse, option: String): Unit = {
+    val summary = AS3.getSummary
+    val (count, size, earliest, latest) = (summary("count"), summary("size"), summary("earliest"), summary("latest") )
+    val lines = Seq(Seq("Count", "Total Size", "Earliest", "Latest"),
+        Seq(count, size, dateTimeString(earliest), dateTimeString(latest)))
+    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    response.getWriter.print(json)
+    response.setContentType("application/json")
+  }
 
   private def dfh(response: HttpServletResponse): Unit = {
     val output: String = "df -h".!!
@@ -53,12 +64,14 @@ class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val tomcatRe ="tomcat-(.+)".r
+    val as3Re ="as3-(.+)".r
     try {
       parameters("command") match {
         case "dfh" => dfh(response)
         case "topbn-mj" => topbn(response, filtered = true)
         case "topbn-all" => topbn(response, filtered = false)
         case tomcatRe(dir) => tomcat(response, dir)
+        case as3Re(option) => amazonS3(response, option)
         case _ =>
       }
       response.setStatus(HttpServletResponse.SC_OK)

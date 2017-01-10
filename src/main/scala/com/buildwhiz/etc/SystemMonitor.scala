@@ -1,5 +1,6 @@
 package com.buildwhiz.etc
 
+import java.io.File
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWLogger
@@ -19,6 +20,24 @@ class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
     response.setContentType("application/json")
   }
 
+  private def tomcat(response: HttpServletResponse, directory: String): Unit = {
+    val canonDir = new File(directory).getCanonicalFile
+    val allFiles = (new File(canonDir, "..") +: canonDir.listFiles).
+      sortWith((a, b) => a.getName.toLowerCase < b.getName.toLowerCase)
+    val fileData = allFiles.map(file => {
+      val name = if (file.isDirectory)
+        file.getName
+      else
+        file.getName //s"""<a href=\"${file.getName}\" target=\"_blank\">${file.getName}</a>"""
+      Seq(name, if (file.isDirectory) "Y" else "", if (file.isDirectory) "-" else file.length.toString)
+    })
+    val output = Seq("Name", "Directory", "Size") +: fileData
+    val json = output.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    BWLogger.log(getClass.getName, "tomcat-json", json)
+    response.getWriter.print(json)
+    response.setContentType("application/json")
+  }
+
   private def topbn(response: HttpServletResponse, filtered: Boolean): Unit = {
     val output: String = "top -b -n 1".!!
     val lines = output.split("\n").map(_.trim).filter(_.nonEmpty).dropWhile(line => !line.startsWith("PID"))
@@ -33,11 +52,13 @@ class SystemMonitor extends HttpServlet with HttpUtils with CryptoUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+    val tomcatRe ="tomcat-(.+)".r
     try {
       parameters("command") match {
         case "dfh" => dfh(response)
         case "topbn-mj" => topbn(response, filtered = true)
         case "topbn-all" => topbn(response, filtered = false)
+        case tomcatRe(dir) => tomcat(response, dir)
         case _ =>
       }
       response.setStatus(HttpServletResponse.SC_OK)

@@ -12,6 +12,9 @@ import scala.io.Source
 
 trait HttpUtils {
 
+  def getUser(request: HttpServletRequest): Document = request.getSession.getAttribute("bw-user").
+      asInstanceOf[Document]
+
   def getParameterMap(request: HttpServletRequest): mutable.Map[String, String] =
     request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))
 

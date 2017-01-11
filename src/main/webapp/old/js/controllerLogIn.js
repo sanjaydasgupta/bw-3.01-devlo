@@ -7,7 +7,7 @@
             $log.log('etc/Environment -> ' + JSON.stringify(env));
             if (env.timezone_raw_offset != 0) {
                 // to facilitate testing on local machine
-                $scope.email = "sanjay.dasgupta@buildwhiz.com";
+                $scope.email = env.email;
             }
         }
     );

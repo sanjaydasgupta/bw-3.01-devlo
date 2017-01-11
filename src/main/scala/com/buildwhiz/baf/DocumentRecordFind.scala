@@ -24,6 +24,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
               ("content", Map("$in" -> allExtensionTypes))
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
+            case ("subcategory", value) => ("subcategory", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case p => p
           }.toMap

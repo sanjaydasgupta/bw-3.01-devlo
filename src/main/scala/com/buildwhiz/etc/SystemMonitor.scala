@@ -16,7 +16,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val (count, size, smallest, biggest, earliest, latest) =
         (summary.count, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
     val lines = Seq(Seq("Count", "Total Size", "Smallest", "Biggest", "Earliest", "Latest"),
-        Seq(count, size, smallest, biggest, dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
+        Seq(count, by3(size), by3(smallest), by3(biggest), dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
     val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
@@ -45,7 +45,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val maxMemory = runtime.maxMemory()
     val threadCount = Thread.activeCount()
     val lines = Seq(Seq("Start Time", "Sys Avg Load", "Max Memory", "Free Memory", "Thread Count", "Processors"),
-      Seq(dateTimeString(startTime, Some(tz)), systemLoadAverage, maxMemory, freeMemory, threadCount, processors))
+      Seq(dateTimeString(startTime, Some(tz)), systemLoadAverage, by3(maxMemory), by3(freeMemory), threadCount, processors))
     val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
@@ -60,7 +60,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
         file.getName
       else
         file.getName //s"""<a href=\"${file.getName}\" target=\"_blank\">${file.getName}</a>"""
-      Seq(name, if (file.isDirectory) "Y" else "", if (file.isDirectory) "-" else file.length.toString)
+      Seq(name, if (file.isDirectory) "Y" else "", if (file.isDirectory) "-" else by3(file.length))
     })
     val output = Seq("Name", "Directory", "Size") +: fileData
     val json = output.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")

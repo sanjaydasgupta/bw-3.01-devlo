@@ -48,10 +48,11 @@
             <table class="table table-condensed table-bordered" data-ng-if="sysMonCtrl.output.length > 0">
               <tr><th class="bg-primary text-center" colspan="100">Output: {{sysMonCtrl.commandName}}</th></tr>
               <tr style="font-weight:bold; background-color:#66ccff;">
-                <td data-ng-repeat="field in sysMonCtrl.output[0] track by $index">{{field}}</td>
+                <td data-ng-repeat="field in sysMonCtrl.output[0] track by $index" style="text-align:center;">{{field}}</td>
               </tr>
-              <tr data-ng-repeat="row in sysMonCtrl.output.slice(1)" style="background-color:{{sysMonCtrl.bgColor(row)}};">
-                <td data-ng-repeat="field in row track by $index">{{field}}</td>
+              <tr data-ng-repeat="row in sysMonCtrl.output.slice(1)"
+                    style="background-color:{{sysMonCtrl.bgColor(row)}};">
+                <td data-ng-repeat="field in row track by $index" style="text-align:center;">{{field}}</td>
               </tr>
             </table>
           </div>

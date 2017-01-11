@@ -11,11 +11,12 @@ import com.buildwhiz.infra.{AmazonS3 => AS3}
 
 class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def amazonS3(response: HttpServletResponse, option: String): Unit = {
+  private def amazonS3(response: HttpServletResponse, tz: String): Unit = {
     val summary = AS3.getSummary
-    val (count, size, earliest, latest) = (summary("count"), summary("size"), summary("earliest"), summary("latest") )
-    val lines = Seq(Seq("Count", "Total Size", "Earliest", "Latest"),
-        Seq(count, size, dateTimeString(earliest), dateTimeString(latest)))
+    val (count, size, smallest, biggest, earliest, latest) =
+        (summary.count, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
+    val lines = Seq(Seq("Count", "Total Size", "Smallest", "Biggest", "Earliest", "Latest"),
+        Seq(count, size, smallest, biggest, dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
     val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
@@ -27,6 +28,25 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val fieldedLines = lines.map(_.split("\\s+"))
     val fieldedLines2 = fieldedLines.head.init +: fieldedLines.tail
     val json = fieldedLines2.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    response.getWriter.print(json)
+    response.setContentType("application/json")
+  }
+
+  private def javaMgmt(response: HttpServletResponse, tz: String): Unit = {
+    import java.lang.management._
+    val startTime = ManagementFactory.getRuntimeMXBean.getStartTime
+    val systemLoadAverage = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
+    //val memBean = ManagementFactory.getMemoryMXBean
+    //val heapMemoryUsage = memBean.getHeapMemoryUsage
+    //val nonHeapMemoryUsage = memBean.getNonHeapMemoryUsage
+    val runtime = sys.runtime
+    val processors = runtime.availableProcessors()
+    val freeMemory = runtime.freeMemory()
+    val maxMemory = runtime.maxMemory()
+    val threadCount = Thread.activeCount()
+    val lines = Seq(Seq("Start Time", "Sys Avg Load", "Max Memory", "Free Memory", "Thread Count", "Processors"),
+      Seq(dateTimeString(startTime, Some(tz)), systemLoadAverage, maxMemory, freeMemory, threadCount, processors))
+    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
   }
@@ -60,18 +80,30 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     response.setContentType("application/json")
   }
 
+  private def vmstat(response: HttpServletResponse): Unit = {
+    val output: String = "vmstat".!!
+    val lines = output.split("\n").map(_.trim).tail
+    val fieldedLines = lines.map(_.split("\\s+"))
+    val json = fieldedLines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    response.getWriter.print(json)
+    response.setContentType("application/json")
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val tomcatRe ="tomcat-(.+)".r
-    val as3Re ="as3-(.+)".r
+    val amazonS3Re ="as3-(.+)".r
     try {
+      val tz = getUser(request).get("tz").asInstanceOf[String]
       parameters("command") match {
         case "dfh" => dfh(response)
         case "topbn-mj" => topbn(response, filtered = true)
         case "topbn-all" => topbn(response, filtered = false)
         case tomcatRe(dir) => tomcat(response, dir)
-        case as3Re(option) => amazonS3(response, option)
+        case amazonS3Re(_) => amazonS3(response, tz)
+        case "java" => javaMgmt(response, tz)
+        case "vmstat" => vmstat(response)
         case _ =>
       }
       response.setStatus(HttpServletResponse.SC_OK)

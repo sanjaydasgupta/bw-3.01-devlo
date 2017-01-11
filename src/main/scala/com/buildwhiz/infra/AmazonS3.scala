@@ -23,21 +23,25 @@ object AmazonS3 {
 
   def getObject(key: String): S3Object = s3Client.getObject(bucketName, key)
 
-  def getSummary: Map[String, Long] = {
+  case class Summary(count: Long, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
+
+  def getSummary: Summary = {
     val lor = new ListObjectsRequest()
     lor.setBucketName(bucketName)
-    def getStats(acc: Map[String, Long] = Map("size" -> 0L, "earliest" -> Long.MaxValue, "latest" -> 0L, "count" -> 0L)): Map[String, Long] = {
-      def combine(map: Map[String, Long], s: S3ObjectSummary): Map[String, Long] = {
-        val size = s.getSize + map("size")
-        val count = map("count") + 1
+    def getStats(acc: Summary = Summary(0, 0, Long.MaxValue, 0, Long.MaxValue, 0)): Summary = {
+      def combine(sum: Summary, s: S3ObjectSummary): Summary = {
+        val size = s.getSize + sum.totalSize
+        val count = sum.count + 1
         val ms = s.getLastModified.getTime
-        val earliest = math.min(ms, map("earliest"))
-        val latest = math.max(ms, map("latest"))
-        Map("size" -> size, "earliest" -> earliest, "latest" -> latest, "count" -> count)
+        val earliest = math.min(ms, sum.earliest)
+        val latest = math.max(ms, sum.latest)
+        val smallest = math.min(size, sum.smallest)
+        val biggest = math.max(size, sum.biggest)
+        Summary(count, size, smallest, biggest, earliest, latest)
       }
       val listing = s3Client.listObjects(lor)
       val summaries = listing.getObjectSummaries
-      val newMap: Map[String, Long] = summaries.asScala.foldLeft(acc)(combine)
+      val newMap: Summary = summaries.asScala.foldLeft(acc)(combine)
       if (listing.isTruncated) {
         lor.setMarker(listing.getMarker)
         getStats(newMap)

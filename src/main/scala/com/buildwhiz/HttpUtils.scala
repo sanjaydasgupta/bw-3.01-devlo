@@ -36,4 +36,16 @@ trait HttpUtils {
     document.asScala.toSeq.map(kv => s""""${kv._1}": ${obj2str(kv._2)}""").mkString("{", ", ", "}").replaceAll("\n", " ")
   }
 
+  def by3(n: Long, acc: Seq[String] = Nil): String = {
+    if (n > 999) {
+      val acc2 = "%03d".format(n % 1000) +: acc
+      val next = n / 1000
+      by3(next, acc2)
+    } else if (n > 0) {
+      val acc2 = "%d".format(n) +: acc
+      acc2.mkString(",")
+    } else
+      acc.mkString(",")
+  }
+
 }

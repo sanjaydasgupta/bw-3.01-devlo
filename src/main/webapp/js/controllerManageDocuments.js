@@ -11,7 +11,6 @@
 
   self.contentTypes = [];
 
-  self.documentSubcategories = [];
   self.authorKeys = ['Owner', 'Manager', 'Supervisor', 'Collaborator'];
   self.authors = [];
   self.filteredAuthors = [];
@@ -24,12 +23,12 @@
   self.documentCount = 0;
   self.currentAuthor = {_id: '', name: 'Any'};
   self.currentContentKey = "Any";
-  self.currentSubcategoryKey = "Any";
   self.currentCategoryKey = "Any";
   self.selectedDate = new Date();
   self.versionComments = '';
   self.documentName = '';
   self.documentDescription = '';
+  self.documentSubcategory = '';
 
   self.records = [];
   self.recordSelected = false;
@@ -102,11 +101,6 @@
     self.currentCategoryKey = categoryKey;
   }
 
-  self.fetchDocumentsBySubcategory = function(subcategoryKey) {
-    $log.log('Setting subcategory=' + subcategoryKey);
-    self.currentSubcategoryKey = subcategoryKey;
-  }
-
   self.fetchDocumentsByAuthor = function(author) {
     $log.log('Setting author=' + author);
     self.currentAuthor = author;
@@ -147,11 +141,14 @@
           '&author_person_id=' + self.currentAuthor._id;
       if (self.recordSelected) {
         query += '&document_master_id=' + self.selectedRecord._id + '&category=' + escape(self.selectedRecord.category) +
-            '&subcategory=' + escape(self.selectedRecord.subcategory) + '&content=' + self.selectedRecord.content +
-            '&name=' + escape(self.selectedRecord.name) + '&description=' + escape(self.selectedRecord.description);
+            '&content=' + self.selectedRecord.content + '&name=' + escape(self.selectedRecord.name) +
+            '&description=' + escape(self.selectedRecord.description);
+        if (self.selectedRecord.hasOwnProperty("subcategory")) {
+          query += '&subcategory=' + escape(self.selectedRecord.subcategory);
+        }
       } else {
         query += '&category=' + escape(self.currentCategoryKey) +
-            '&subcategory=' + escape(self.currentSubcategoryKey) + '&content=' + self.currentContentKey +
+            '&subcategory=' + escape(self.documentSubcategory) + '&content=' + self.currentContentKey +
             '&name=' + escape(self.documentName) + '&description=' + escape(self.documentDescription);
       }
       $log.log("POST: " + query);
@@ -171,7 +168,7 @@
     self.findModeActive = true;
     self.newModeActive = false;
     var q = 'baf/DocumentRecordFind?category=' + self.currentCategoryKey +
-        '&subcategory=' + self.currentSubcategoryKey + '&content=' + self.currentContentKey +
+        '&subcategory=' + self.documentSubcategory + '&content=' + self.currentContentKey +
         '&name=' + self.documentName + '&description=' + self.documentDescription;
     $log.log('GET ' + q);
     $http.get(q).then(

@@ -5,13 +5,15 @@
   var self = this;
 
   self.output = [];
+  self.commandName = '?';
 
-  self.monitor = function(command) {
+  self.monitor = function(command, name) {
     var dfhQuery = 'etc/SystemMonitor?command=' + command;
     $log.log('Calling POST ' + dfhQuery)
     $http.post(dfhQuery).then(
       function(resp) {
         self.output = resp.data;
+        self.commandName = name;
         $log.log('OK POST ' + dfhQuery + ', rows: ' + self.output.length)
       },
       function(resp) {

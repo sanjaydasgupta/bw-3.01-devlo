@@ -9,34 +9,44 @@
             <table class="table table-condensed table-bordered table-hover">
               <tr><th class="bg-primary text-center">Commands</th></tr>
               <tr>
-                <td data-ng-click="sysMonCtrl.monitor('dfh')" class="cursor: pointer;">
+                <td data-ng-click="sysMonCtrl.monitor('java', 'Java VM')" class="cursor: pointer;">
+                  <a href="javascript:void(0);">Java</a>
+                </td>
+              </tr>
+              <tr>
+                <td data-ng-click="sysMonCtrl.monitor('dfh', 'Disk')" class="cursor: pointer;">
                   <a href="javascript:void(0);">Disk (df -h)</a>
                 </td>
               </tr>
               <tr>
                 <td>
                   Processes (top -b -n 1)
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-all')">ALL</a>
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-mj')">mongo/java</a>
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-all', 'Processes (All)')">ALL</a>
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('topbn-mj', 'Processes (java/mongo)')">mongo/java</a>
+                </td>
+              </tr>
+              <tr>
+                <td data-ng-click="sysMonCtrl.monitor('vmstat', 'Virtual Memory')" class="cursor: pointer;">
+                  <a href="javascript:void(0);">Virtual Memory (vmstat)</a>
                 </td>
               </tr>
               <tr>
                 <td>
                   Tomcat
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('tomcat-.')">Files</a>
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('tomcat-.', 'Tomcat Files')">Files</a>
                 </td>
               </tr>
               <tr>
                 <td>
                   Amazon-S3
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('as3-summary')">Summary</a>
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('as3-summary', 'S3 Summary')">Summary</a> (slow)
                 </td>
               </tr>
             </table>
           </div>
           <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9 col-xl-9">
             <table class="table table-condensed table-bordered" data-ng-if="sysMonCtrl.output.length > 0">
-              <tr><th class="bg-primary text-center" colspan="100">Output</th></tr>
+              <tr><th class="bg-primary text-center" colspan="100">Output: {{sysMonCtrl.commandName}}</th></tr>
               <tr style="font-weight:bold; background-color:#66ccff;">
                 <td data-ng-repeat="field in sysMonCtrl.output[0] track by $index">{{field}}</td>
               </tr>

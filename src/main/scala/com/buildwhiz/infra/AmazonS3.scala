@@ -29,15 +29,16 @@ object AmazonS3 {
     val lor = new ListObjectsRequest()
     lor.setBucketName(bucketName)
     def getStats(acc: Summary = Summary(0, 0, Long.MaxValue, 0, Long.MaxValue, 0)): Summary = {
-      def combine(sum: Summary, s: S3ObjectSummary): Summary = {
-        val size = s.getSize + sum.totalSize
+      def combine(sum: Summary, s3: S3ObjectSummary): Summary = {
+        val size = s3.getSize
+        val newTotalSize = size + sum.totalSize
         val count = sum.count + 1
-        val ms = s.getLastModified.getTime
-        val earliest = math.min(ms, sum.earliest)
-        val latest = math.max(ms, sum.latest)
+        val millis = s3.getLastModified.getTime
+        val earliest = math.min(millis, sum.earliest)
+        val latest = math.max(millis, sum.latest)
         val smallest = math.min(size, sum.smallest)
         val biggest = math.max(size, sum.biggest)
-        Summary(count, size, smallest, biggest, earliest, latest)
+        Summary(count, newTotalSize, smallest, biggest, earliest, latest)
       }
       val listing = s3Client.listObjects(lor)
       val summaries = listing.getObjectSummaries

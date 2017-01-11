@@ -16,6 +16,7 @@ class DocumentVersions extends HttpServlet with HttpUtils with MailUtils with Da
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
+      val tz = getUser(request).get("tz").asInstanceOf[String]
       val docMasterOid = new ObjectId(parameters("document_master_id"))
       val docMasterRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docMasterOid)).asScala.head
       val versions: Seq[DynDoc] = docMasterRecord.versions[DocumentList].asScala
@@ -24,7 +25,7 @@ class DocumentVersions extends HttpServlet with HttpUtils with MailUtils with Da
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
         version.author_name = author.first_name[String] + " " + author.last_name[String]
         val timestamp = version.timestamp[Long]
-        version.date_time = dateTimeString(timestamp)
+        version.date_time = dateTimeString(timestamp, Some(tz))
         val link =
           if (version has "file_name")
             s"""baf/DocumentVersionDownload/${version.file_name[String]}?document_master_id=$docMasterOid&timestamp=$timestamp"""

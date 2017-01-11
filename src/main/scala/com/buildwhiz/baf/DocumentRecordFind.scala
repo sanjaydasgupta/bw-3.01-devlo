@@ -15,6 +15,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
+      val tz = getUser(request).get("tz").asInstanceOf[String]
       val properties = Seq("category", "subcategory", "content", "name", "description")
       val query = (("project_id" -> project430ForestOid) +:
           properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
@@ -32,7 +33,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
         if (versions.nonEmpty) {
           val latestVersion: DynDoc = versions.last
           val timestamp = latestVersion.timestamp[Long]
-          docMaster.timestamp = dateTimeString(timestamp)
+          docMaster.timestamp = dateTimeString(timestamp, Some(tz))
           val fileName = if (latestVersion has "file_name") latestVersion.file_name[String] else docMaster.name[String]
           docMaster.link = s"baf/DocumentVersionDownload/$fileName?document_master_id=${docMaster._id[ObjectId]}&" +
             s"timestamp=$timestamp"

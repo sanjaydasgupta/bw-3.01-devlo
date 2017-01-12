@@ -12,6 +12,13 @@ import scala.collection.mutable
 
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
 
+  private def addSpaces(line: String): String = {
+    if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*"))
+      line.replaceAll("&", "&amp; ").replaceAll("%20", " ")
+    else
+      line
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter
     try {
@@ -39,7 +46,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val fields = labels.map(doc.get).toBuffer
         fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
         fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
-        val htmlRowData = fields.zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").mkString
+        val htmlRowData = fields.zip(widths).
+          map(p => s"""<td style="width: ${p._2}%;" align="center">${addSpaces(p._1.toString)}</td>""").mkString
         if (htmlRowData.contains(clientIp))
           writer.println(s"""<tr style="background-color: yellow;">$htmlRowData</tr>""")
         else

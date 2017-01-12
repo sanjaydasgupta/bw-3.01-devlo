@@ -10,7 +10,7 @@
               <tr><th class="bg-primary text-center">Commands</th></tr>
               <tr>
                 <td data-ng-click="sysMonCtrl.monitor('java', 'Java VM')" class="cursor: pointer;">
-                  <a href="javascript:void(0);">Java</a>
+                  <a href="javascript:void(0);">Java API</a>
                 </td>
               </tr>
               <tr>
@@ -32,14 +32,19 @@
               </tr>
               <tr>
                 <td>
-                  Tomcat
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('tomcat-.', 'Tomcat Files')">Files</a>
+                  Amazon-S3
+                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('as3-summary', 'S3 Summary')">Summary</a> (slow)
                 </td>
               </tr>
               <tr>
                 <td>
-                  Amazon-S3
-                  <a href="javascript:void(0);" data-ng-click="sysMonCtrl.monitor('as3-summary', 'S3 Summary')">Summary</a> (slow)
+                  Tomcat
+                  <a href="web/BrowseFiles" target="_blank">Files</a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <a href="web/TraceLog" target="_blank">Trace & Log</a>
                 </td>
               </tr>
             </table>

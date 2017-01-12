@@ -42,10 +42,6 @@
     }
   )
 
-  self.today = function() {
-    return new Date().toLocaleDateString();
-  }
-
   self.fetchDocumentsByCategory = function(categoryKey) {
     var query = 'baf/DocumentSubcategoriesFetch?category=' + categoryKey;
     $log.log('calling GET ' + query);
@@ -53,6 +49,10 @@
       function(resp) {
         self.documentSubcategories = resp.data;
         self.currentSubcategoryKey = 'Any';
+        self.selectedRecord = null;
+        self.recordSelected = false;
+        self.records = [];
+        self.versions = [];
         $log.log('OK GET ' + query + ' (' + resp.data.length + ')');
       },
       function(resp) {
@@ -65,6 +65,10 @@
   self.fetchDocumentsBySubcategory = function(subcategoryKey) {
     $log.log('Setting subcategory=' + subcategoryKey);
     self.currentSubcategoryKey = subcategoryKey;
+    self.selectedRecord = null;
+    self.recordSelected = false;
+    self.records = [];
+    self.versions = [];
   }
 
   self.fetchDocumentsByContent = function(contentKey) {

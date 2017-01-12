@@ -3,9 +3,9 @@ package com.buildwhiz.web
 import java.io.{File, FileInputStream}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.{DateTimeUtils, HttpUtils}
 
-class BrowseFiles extends HttpServlet with HttpUtils {
+class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def browseDirectory(directory: File, request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter
@@ -14,7 +14,7 @@ class BrowseFiles extends HttpServlet with HttpUtils {
     writer.println("<table align=\"center\" border=\"1\">")
     writer.println(
       s"""<tr><td align="center">Name</td><td align="center">Directory</td>
-         |<td align="center">Size</td></tr>""".stripMargin)
+         |<td align="center">Size</td><td align="center">Last Modified</td></tr>""".stripMargin)
     val canonDir = directory.getCanonicalFile
     val allFiles = (new File(canonDir, "..") +: canonDir.listFiles).
       sortWith((a, b) => a.getName.toLowerCase < b.getName.toLowerCase)
@@ -28,9 +28,11 @@ class BrowseFiles extends HttpServlet with HttpUtils {
       val dirColor = if (file.isDirectory) "bgcolor=\"yellow\"" else ""
       val dirFlag = if (file.isDirectory) "Y" else ""
       val length = if (file.isDirectory) "-" else by3(file.length).toString
+      val tz = getUser(request).get("tz").asInstanceOf[String]
+      val lastModified = dateTimeString(file.lastModified(), Some(tz))
       writer.println(
         s"""<tr $dirColor><td align="center">$hyperlink</td><td align="center">$dirFlag</td>
-           |<td align="center">$length</td></tr>""".stripMargin)
+           |<td align="center">$length</td><td align="center">$lastModified</td></tr>""".stripMargin)
     }
     writer.println(s"</table>")
     val zipName = canonDir.getName + ".zip"

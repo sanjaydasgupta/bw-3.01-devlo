@@ -10,7 +10,7 @@ class BrowseFiles extends HttpServlet with HttpUtils {
   private def browseDirectory(directory: File, request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val writer = response.getWriter
     writer.println("<html><head><title>Browse Directory</title></head><body>")
-    writer.println(s"""<h1 align="center">${directory.getCanonicalPath}</h1>""")
+    writer.println(s"""<h3 align="center">${directory.getCanonicalPath}</h3>""")
     writer.println("<table align=\"center\" border=\"1\">")
     writer.println(
       s"""<tr><td align="center">Name</td><td align="center">Directory</td>
@@ -27,7 +27,7 @@ class BrowseFiles extends HttpServlet with HttpUtils {
         s"""<a href="$url/${file.getName}?location=$linkedName">${file.getName}</a>"""
       val dirColor = if (file.isDirectory) "bgcolor=\"yellow\"" else ""
       val dirFlag = if (file.isDirectory) "Y" else ""
-      val length = if (file.isDirectory) "-" else file.length.toString
+      val length = if (file.isDirectory) "-" else by3(file.length).toString
       writer.println(
         s"""<tr $dirColor><td align="center">$hyperlink</td><td align="center">$dirFlag</td>
            |<td align="center">$length</td></tr>""".stripMargin)

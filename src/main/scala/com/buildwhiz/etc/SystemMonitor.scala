@@ -15,7 +15,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val summary = AS3.getSummary
     val (count, size, smallest, biggest, earliest, latest) =
         (summary.count, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
-    val lines = Seq(Seq("Count", "Total Size", "Smallest", "Biggest", "Earliest", "Latest"),
+    val lines = Seq(Seq("Count", "Total Size (Bytes)", "Smallest (Bytes)", "Biggest (Bytes)", "Earliest Time", "Latest Time"),
         Seq(count, by3(size), by3(smallest), by3(biggest), dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
     val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
@@ -84,7 +84,8 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val output: String = "vmstat".!!
     val lines = output.split("\n").map(_.trim).tail
     val fieldedLines = lines.map(_.split("\\s+"))
-    val json = fieldedLines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    val fieldedLines2 = fieldedLines.head +: fieldedLines.tail.map(_.map(field => by3(field.toLong)))
+    val json = fieldedLines2.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
   }

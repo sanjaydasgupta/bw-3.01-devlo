@@ -7,6 +7,7 @@ import com.buildwhiz.infra.BWLogger
 import com.buildwhiz.{DateTimeUtils, HttpUtils}
 
 import scala.sys.process._
+import scala.collection.JavaConverters._
 import com.buildwhiz.infra.{AmazonS3 => AS3}
 
 class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
@@ -28,6 +29,17 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val fieldedLines = lines.map(_.split("\\s+"))
     val fieldedLines2 = fieldedLines.head.init +: fieldedLines.tail
     val json = fieldedLines2.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+    response.getWriter.print(json)
+    response.setContentType("application/json")
+  }
+
+  private def javaThreads(response: HttpServletResponse, tz: String): Unit = {
+    val stackTraces = Thread.getAllStackTraces.asScala.toList
+    val data: List[Seq[String]] = stackTraces./*filter(_._1.getState != Thread.State.RUNNABLE).*/
+        flatMap(t => t._2.map(st => Seq(s"${t._1.getName} (${t._1.getId})", t._1.getState, t._1.isAlive, t._1.isDaemon, st.getClassName.replaceAll("\\.", " "),
+          st.getLineNumber, st.isNativeMethod))).map(row => row.map(_.toString))
+    val lines: Seq[Seq[String]] = Seq("Name", "State", "is-Alive", "is-Daemon", "Class Name", "Line #", "is-Native") +: data
+    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")
   }
@@ -104,6 +116,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
         case tomcatRe(dir) => tomcat(response, dir)
         case amazonS3Re(_) => amazonS3(response, tz)
         case "java" => javaMgmt(response, tz)
+        case "java-threads" => javaThreads(response, tz)
         case "vmstat" => vmstat(response)
         case _ =>
       }

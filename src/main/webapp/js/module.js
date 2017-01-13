@@ -5,10 +5,10 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
         templateUrl: 'html/home.html',
         controller: 'HomeCtrl as homeCtrl'
     }).when('/documents-manage', {
-        templateUrl: 'html/manage-documents.html',
+        templateUrl: 'html/documents-manage.html',
         controller: 'ManageDocumentsCtrl as manageDocsCtrl'
     }).when('/documents-view', {
-        templateUrl: 'html/view-documents.html',
+        templateUrl: 'html/documents-view.html',
         controller: 'ViewDocumentsCtrl as viewDocsCtrl'
     }).when('/projects', {
         templateUrl: 'html/projects.html',

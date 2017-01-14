@@ -14,6 +14,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
   private def cookieSessionSet(userNameEmail: String, person: Document, request: HttpServletRequest,
         response: HttpServletResponse): Unit = {
     request.getSession.setAttribute("bw-user", person)
+    request.getSession.setMaxInactiveInterval(0)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
     cookie.setHttpOnly(true)
     cookie.setMaxAge(30 * 24 * 60 * 60)

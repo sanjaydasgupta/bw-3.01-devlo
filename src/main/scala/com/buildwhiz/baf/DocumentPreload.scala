@@ -30,7 +30,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
 
   private def storeDocumentAmazonS3(is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long):
       (String, Long) = {
-    BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "ENTRY")
+    //BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "ENTRY")
     val fileName = f"$projectId-$documentOid-$timestamp%x"
     val file = new File(fileName)
     var fileLength = 0L
@@ -49,7 +49,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
       }
       fileLength = handleBlock()
       AmazonS3.putObject(fileName, file)
-      BWLogger.log(getClass.getName, s"storeDocumentAmazonS3 ($fileLength)", "EXIT-OK")
+      //BWLogger.log(getClass.getName, s"storeDocumentAmazonS3 ($fileLength)", "EXIT-OK")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "storeDocumentAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
@@ -62,28 +62,33 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val timestamp = parameters("timestamp").toLong
-      val part = request.getParts.iterator().next()
-      val inputStream = part.getInputStream
-      val fileName = part.getSubmittedFileName
-      val fileExtension = fileName.split("\\.").last.toUpperCase
-      val documentOid = if (parameters.contains("document_master_id"))
+      val parts = request.getParts.asScala.toList
+      if (parts.length > 1 && parameters.contains("document_master_id"))
+        throw new IllegalArgumentException(s"Provided parts.length > 1 and 'document_master_id'")
+      for (part <- parts) {
+        val fileName = part.getSubmittedFileName
+        if (parts.length > 1)
+          parameters.put("name", fileName.split("\\.").init.mkString("."))
+        val fileExtension = fileName.split("\\.").last.toUpperCase
+        val documentOid = if (parameters.contains("document_master_id"))
           new ObjectId(parameters("document_master_id")) else createRecord(parameters, fileExtension)
-      val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
-      val comments = parameters("comments")
-      val authorOid = new ObjectId(parameters("author_person_id"))
-      val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
-        "file_name" -> fileName)
-      val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
+        val timestamp = parameters("timestamp").toLong
+        val inputStream = part.getInputStream
+        val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
+        val comments = parameters("comments")
+        val authorOid = new ObjectId(parameters("author_person_id"))
+        val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
+          "file_name" -> fileName)
+        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
           Map("$push" -> Map("versions" -> versionRecord)))
-      if (updateResult.getModifiedCount == 0)
+        if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      response.getWriter.print(s"""{"fileName": "${result._1}", "length": ${result._2}}""")
-      response.setContentType("application/json")
+        BWLogger.log(getClass.getName, "doPost", s"OK: Amazon-S3 $fileName $result", request)
+      }
+      //response.getWriter.print(s"""{"fileName": "${result._1}", "length": ${result._2}}""")
+      //response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

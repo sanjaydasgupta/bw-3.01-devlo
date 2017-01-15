@@ -4,12 +4,18 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     $routeProvider.when('/', {
         templateUrl: 'html/home.html',
         controller: 'HomeCtrl as homeCtrl'
+    }).when('/documents-loader', {
+        templateUrl: 'html/documents-loader.html',
+        controller: 'LoaderDocumentsCtrl as loaderCtrl'
     }).when('/documents-manage', {
         templateUrl: 'html/documents-manage.html',
         controller: 'ManageDocumentsCtrl as manageDocsCtrl'
     }).when('/documents-view', {
         templateUrl: 'html/documents-view.html',
         controller: 'ViewDocumentsCtrl as viewDocsCtrl'
+    }).when('/documents-view2', {
+        templateUrl: 'html/documents-view2.html',
+        controller: 'ViewDocumentsCtrl2 as viewDocsCtrl2'
     }).when('/projects', {
         templateUrl: 'html/projects.html',
         controller: 'ProjectsCtrl as projectsCtrl'

@@ -27,6 +27,9 @@
   self.versionComments = '';
   self.selectedDate = new Date();
 
+  self.documents = [];
+  self.selectedDocument = null;
+
   self.dateOptions = {
     dateDisabled: false,
     formatYear: 'yy',
@@ -146,7 +149,7 @@
         $log.log('formData.append(' + file.name + ')');
       });
       var query = 'baf/DocumentPreload?person_id=' + AuthService.data._id +
-          '&timestamp=' + timestamp + '&comments=' + self.versionComments +
+          '&timestamp=' + timestamp + '&comments=' + escape(self.versionComments) +
           '&author_person_id=' + self.currentAuthor._id + '&category=' + escape(self.currentCategoryKey) +
           '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
           '&name=' + escape(self.documentName) + '&description=' + escape(self.documentDescription);
@@ -161,6 +164,41 @@
       )
     }
     $log.log('Exiting uploadBegin()');
+  }
+
+  self.findDisabled = function() {
+    return self.currentCategoryKey == 'Select';
+  }
+
+  self.findDocuments = function() {
+    var q = 'baf/DocumentSearch?category=' + escape(self.currentCategoryKey) +
+        '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
+        '&content=Any&name=' + escape(self.documentName) +
+        '&description=' + escape(self.documentDescription);
+    $log.log('GET ' + q);
+    $http.get(q).then(
+      function(resp) {
+        self.documents = resp.data;
+        self.selectedDocument = null;
+        $log.log('OK GET ' + q + ' (' + self.documents.length + ')');
+      },
+      function(resp) {
+        $log.log('ERROR GET ' + q);
+      }
+    );
+  }
+
+  self.selectDocument = function(doc) {
+    self.selectedDocument = doc;
+    $log.log('Called selectDocument(' + doc.name + ')');
+  }
+
+  self.update = function() {
+    $log.log('Called update()');
+  }
+
+  self.documentColor = function(document) {
+    return (document == self.selectedDocument) ? 'yellow' : 'white';
   }
 
 }]);

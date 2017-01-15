@@ -1,6 +1,6 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    Load Documents
+    Documents Loader
   </div>
 
   <div class="panel-body fixed-panel container-fluid" style="padding:5px">
@@ -8,7 +8,7 @@
     <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
-          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Meta Data 1</th></tr>
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Class Meta Data</th></tr>
         </table>
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
@@ -59,14 +59,15 @@
         <input type="text" data-ng-model="loaderCtrl.documentDescription" size="15" style="height:20px; margin:1px;" />
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
-        <button disabled class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
+        <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
+        <button data-ng-disabled="loaderCtrl.selectedDocument == null" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
       </div>
     </div>
     <!-- Data Input 2 -->
     <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
-          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Meta Data 2</th></tr>
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Instance Meta Data</th></tr>
         </table>
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
@@ -114,6 +115,27 @@
         <button class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.upload()"
                 data-ng-disabled="loaderCtrl.uploadDisabled()">Upload</button>
         <input id="document-upload-button" type="file" style="display:none;" multiple />
+      </div>
+    </div>
+    <!-- Found Documents Table (displayed conditionally) -->
+    <div data-ng-if="loaderCtrl.documents.length != 0" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="100%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{loaderCtrl.documents.length}})</th></tr>
+      </table>
+      <div style="height:200px; max-height:200px; min-height:200px; overflow:auto;">
+        <table border="1" width="100%">
+          <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
+            <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
+            <th style="text-align:center;">Select</th>
+          </tr>
+          <tr data-ng-repeat="document in loaderCtrl.documents" style="background-color:{{loaderCtrl.documentColor(document)}};">
+            <td style="text-align:center;">{{document.name}}</td><td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
+            <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
+            <td style="text-align:center;">
+              <a href="javascript:void(0);" data-ng-click="loaderCtrl.selectDocument(document)">select</a>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>

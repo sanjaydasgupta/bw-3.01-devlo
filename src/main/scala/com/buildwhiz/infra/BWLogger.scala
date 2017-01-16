@@ -5,14 +5,14 @@ import javax.servlet.http.HttpServletRequest
 import com.mongodb.client.MongoCollection
 import org.bson.Document
 import BWMongoDB3._
-
 import java.util.{HashMap => JHashMap, Map => JMap}
+
+import com.buildwhiz.HttpUtils
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 
-object BWLogger {
+object BWLogger extends HttpUtils {
 
   private val traceLogCollection: MongoCollection[Document] =
     BWMongoDB3.trace_log
@@ -53,15 +53,16 @@ object BWLogger {
     log(className, methodName, eventName, varNames)
   }
 
-  private def getParameterMap(request: HttpServletRequest): mutable.Map[String, String] =
-    request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))
-
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
     val parameters = getParameterMap(request)
     val url = request.getRequestURL.toString
     val clientIp = request.getHeader("X-FORWARDED-FOR") match {
       case null => request.getRemoteAddr
       case ip => ip
+    }
+    val paramsWithName = getUser(request) match {
+      case null => parameters
+      case user => parameters ++ Map("u$nm" -> s"""${user.get("first_name")} ${user.get("last_name")}""")
     }
     if (eventName.toLowerCase.contains("entry")) {
       val referrer = if (request.getHeaderNames.asScala.contains("referer")) request.getHeader("referer") else "(none)"
@@ -71,9 +72,9 @@ object BWLogger {
       val query = request.getQueryString
       log(className, methodName,
         s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp referrer=$refPage""",
-        parameters.toSeq: _*)
+        paramsWithName.toSeq: _*)
     } else {
-      log(className, methodName, s"""$eventName client=$clientIp""", parameters.toSeq: _*)
+      log(className, methodName, s"""$eventName client=$clientIp""", paramsWithName.toSeq: _*)
     }
   }
 

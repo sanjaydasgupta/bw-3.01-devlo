@@ -23,7 +23,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
     val writer = response.getWriter
     try {
       val urlName = request.getRequestURL.toString.split("/").last
-      val parameters: mutable.Map[String, String] = request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))
+      val parameters: mutable.Map[String, String] = getParameterMap(request)
       val count = parameters.get("count") match {
         case None => 50
         case Some(c) => c.toInt
@@ -48,7 +48,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
         val htmlRowData = fields.zip(widths).
           map(p => s"""<td style="width: ${p._2}%;" align="center">${addSpaces(p._1.toString)}</td>""").mkString
-        if (htmlRowData.contains(clientIp))
+        if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: ${parameters("u$nm")}"))
           writer.println(s"""<tr style="background-color: yellow;">$htmlRowData</tr>""")
         else
           writer.println(s"<tr>$htmlRowData</tr>")

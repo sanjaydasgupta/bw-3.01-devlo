@@ -14,7 +14,8 @@
   self.contentTypes = [];
   self.authors = [];
   self.filteredAuthors = [];
-  self.currentAuthor = {name: 'Select'};
+  self.NoAuthor = {name: 'Select', _id: ""};
+  self.currentAuthor = self.NoAuthor;
 
   self.findModeActive = false;
   self.newModeActive = false;
@@ -30,6 +31,8 @@
   self.documents = [];
   self.selectedDocument = null;
 
+  self.currentOperationKey = 'Files Upload';
+
   self.dateOptions = {
     dateDisabled: false,
     formatYear: 'yy',
@@ -37,7 +40,6 @@
     minDate: new Date(2010, 0, 1),
     startingDay: 1
   };
-
 
   $http.get('api/Person').then(
     function(resp) {
@@ -73,10 +75,6 @@
       function(resp) {
         self.documentSubcategories = resp.data;
         self.currentSubcategoryKey = 'Other';
-        self.selectedDocument = null;
-        self.documents = [];
-        self.rfiList = [];
-        self.selectedRfi = null;
         $log.log('OK GET ' + query + ' (' + resp.data.length + ')');
       },
       function(resp) {
@@ -89,10 +87,6 @@
   self.fetchDocumentsBySubcategory = function(subcategoryKey) {
     $log.log('Setting subcategory=' + subcategoryKey);
     self.currentSubcategoryKey = subcategoryKey;
-    self.selectedDocument = null;
-    self.documents = [];
-    self.rfiList = [];
-    self.selectedRfi = null;
   }
 
   self.setMidnight = function() {
@@ -157,9 +151,11 @@
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
         function() {
           $log.log('OK ' + query);
+          alert('OK: Uploading ' + files.length + ' files completed');
         },
         function() {
           $log.log('ERROR ' + query);
+          alert('ERROR: Uploading ' + files.length + ' files failed');
         }
       )
     }
@@ -174,7 +170,7 @@
     var q = 'baf/DocumentSearch?category=' + escape(self.currentCategoryKey) +
         '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
         '&content=Any&name=' + escape(self.documentName) +
-        '&description=' + escape(self.documentDescription);
+        '&description=' + escape(self.documentDescription) + '&author_person_id=' + self.currentAuthor._id;
     $log.log('GET ' + q);
     $http.get(q).then(
       function(resp) {
@@ -190,6 +186,13 @@
 
   self.selectDocument = function(doc) {
     self.selectedDocument = doc;
+    self.currentCategoryKey = doc.category;
+    self.currentSubcategoryKey = doc.subcategory;
+    self.documentName = doc.name;
+    self.documentDescription = doc.description;
+    self.versionComments = doc.comments;
+    self.currentAuthor = self.authors.filter(function(a){return a._id == doc.author_person_id;})[0];
+    self.selectedDate.setTime(doc.timestamp);
     $log.log('Called selectDocument(' + doc.name + ')');
   }
 
@@ -198,7 +201,36 @@
   }
 
   self.documentColor = function(document) {
-    return (document == self.selectedDocument) ? 'yellow' : 'white';
+    return (document == self.selectedDocument) ? 'yellow' : (document.version == 0) ? 'white' : 'lightgray';
+  }
+
+  self.resetClassMetaData = function(document) {
+    self.currentCategoryKey = 'Select';
+    self.currentSubcategoryKey = 'Other';
+    self.documentName = '';
+    self.documentDescription = '';
+    self.documentSubcategories = [];
+    $log.log('Called resetClassMetaData()');
+  }
+
+  self.resetVersionMetaData = function(document) {
+    self.versionComments = '';
+    self.currentAuthor = self.NoAuthor;
+    self.selectedDate = new Date();
+    $log.log('Called resetVersionMetaData()');
+  }
+
+  self.reset = function(document) {
+    self.resetClassMetaData();
+    self.resetVersionMetaData();
+    self.documents = [];
+    self.selectedDocument = null;
+    $log.log('Called reset()');
+  }
+
+  self.setOperation = function(op) {
+    self.currentOperationKey = op;
+    $log.log('Called setOperation(' + op + ')');
   }
 
 }]);

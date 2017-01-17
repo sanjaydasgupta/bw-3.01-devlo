@@ -4,7 +4,7 @@
   </div>
 
   <div class="panel-body fixed-panel container-fluid" style="padding:5px">
-    <!-- Data Input 1 -->
+    <!-- Class Meta Data -->
     <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
@@ -59,15 +59,14 @@
         <input type="text" data-ng-model="loaderCtrl.documentDescription" size="15" style="height:20px; margin:1px;" />
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
-        <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
-        <button data-ng-disabled="loaderCtrl.selectedDocument == null" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
+        <button class="btn btn-xs btn-info" data-ng-click="loaderCtrl.resetClassMetaData()"><span class="glyphicon glyphicon-erase"></span> Reset</button>
       </div>
     </div>
-    <!-- Data Input 2 -->
+    <!-- Version Meta Data -->
     <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
-          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Instance Meta Data</th></tr>
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Version Meta Data</th></tr>
         </table>
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
@@ -112,13 +111,38 @@
       </div>
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7; height:42px;">
         <button class="btn btn-xs btn-info" data-ng-click="loaderCtrl.setMidnight()">Midnight</button>
-        <button class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.upload()"
+        <button class="btn btn-xs btn-info" data-ng-click="loaderCtrl.resetVersionMetaData()"><span class="glyphicon glyphicon-erase"></span> Reset</button>
+      </div>
+    </div>
+    <!-- Option Selection -->
+    <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;<span style="font-weight:bold;">Operation</span>&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="option-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{loaderCtrl.currentOperationKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="option-type" style="min-width:50px">
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="loaderCtrl.setOperation('Files Upload')" style="padding:3px;">Files Upload</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="loaderCtrl.setOperation('Metadata Update')" style="padding:3px;">Metadata Update</a></li>
+          </ul>
+        </div>
+        <span data-ng-if="loaderCtrl.currentOperationKey == 'Files Upload'" style="margin:0px" class="pull-right">
+          <button class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.upload()"
                 data-ng-disabled="loaderCtrl.uploadDisabled()">Upload</button>
-        <input id="document-upload-button" type="file" style="display:none;" multiple />
+          <input id="document-upload-button" type="file" style="display:none;" multiple />
+        </span>
+        <span data-ng-if="loaderCtrl.currentOperationKey == 'Metadata Update'" style="margin:0px" class="pull-right">
+          <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
+          <button data-ng-disabled="loaderCtrl.selectedDocument == null" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
+          <button class="btn btn-xs btn-info" data-ng-click="loaderCtrl.reset()"><span class="glyphicon glyphicon-erase"></span> Reset</button>
+        </span>
       </div>
     </div>
     <!-- Found Documents Table (displayed conditionally) -->
-    <div data-ng-if="loaderCtrl.documents.length != 0" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="loaderCtrl.currentOperationKey == 'Metadata Update'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{loaderCtrl.documents.length}})</th></tr>
       </table>

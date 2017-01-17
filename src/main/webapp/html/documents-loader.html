@@ -136,7 +136,7 @@
         </span>
         <span data-ng-if="loaderCtrl.currentOperationKey == 'Metadata Update'" style="margin:0px" class="pull-right">
           <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
-          <button data-ng-disabled="loaderCtrl.selectedDocument == null" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
+          <button data-ng-disabled="loaderCtrl.updateDisabled()" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
           <button class="btn btn-xs btn-info" data-ng-click="loaderCtrl.reset()"><span class="glyphicon glyphicon-erase"></span> Reset</button>
         </span>
       </div>

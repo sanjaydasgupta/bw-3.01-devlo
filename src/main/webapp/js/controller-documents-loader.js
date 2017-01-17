@@ -196,8 +196,57 @@
     $log.log('Called selectDocument(' + doc.name + ')');
   }
 
+  self.updateDisabled = function() {
+    var subcategory = self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey;
+    return self.selectedDocument == null ||
+        (self.currentCategoryKey == self.selectedDocument.category &&
+        subcategory == self.selectedDocument.subcategory &&
+        self.documentName == self.selectedDocument.name &&
+        self.documentDescription == self.selectedDocument.description &&
+        self.currentAuthor._id == self.selectedDocument.author_person_id &&
+        self.selectedDate.getTime() == self.selectedDocument.timestamp &&
+        self.versionComments == self.selectedDocument.comments);
+  }
+
   self.update = function() {
-    $log.log('Called update()');
+    var q = 'baf/DocumentMetadataUpdate?document_master_id=' + self.selectedDocument._id;
+    if (self.currentCategoryKey != self.selectedDocument.category) {
+      q += '&category=' + escape(self.currentCategoryKey);
+    }
+    var subcategory = self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey;
+    if (subcategory != self.selectedDocument.subcategory) {
+      q += '&subcategory=' + escape(subcategory);
+    }
+    if (self.documentName != self.selectedDocument.name) {
+      q += '&name=' + escape(self.documentName);
+    }
+    if (self.documentDescription != self.selectedDocument.description) {
+      q += '&description=' + escape(self.documentDescription);
+    }
+    var needTimestamp = false;
+    if (self.currentAuthor._id != self.selectedDocument.author_person_id) {
+      q += '&author_person_id=' + self.currentAuthor._id;
+      needTimestamp = true;
+    }
+    //if (self.selectedDate.getTime() != self.selectedDocument.timestamp) {
+    //  q += '&timestamp=' + self.selectedDate.getTime();
+    //}
+    if (self.versionComments != self.selectedDocument.comments) {
+      q += '&comments=' + escape(self.versionComments);
+      needTimestamp = true;
+    }
+    if (needTimestamp) {
+      q += '&timestamp=' + self.selectedDocument.timestamp;
+    }
+    $log.log('POST ' + q);
+    $http.post(q).then(
+      function(resp) {
+        $log.log('OK POST ' + q + ')');
+      },
+      function(resp) {
+        $log.log('ERROR POST ' + q);
+      }
+    );
   }
 
   self.documentColor = function(document) {

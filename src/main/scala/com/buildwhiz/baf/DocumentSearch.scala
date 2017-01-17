@@ -17,9 +17,12 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val tz = getUser(request).get("tz").asInstanceOf[String]
-      val properties = Seq("category", "subcategory", "content", "name", "description")
+      val queryProperties = if (parameters.contains("author_person_id"))
+        Seq("category", "subcategory", "content", "name", "description", "author_person_id")
+      else
+        Seq("category", "subcategory", "content", "name", "description")
       val query = (("project_id" -> project430ForestOid) +:
-          properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
+          queryProperties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
             case ("content", value) =>
               val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
@@ -27,12 +30,17 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("subcategory", value) => ("subcategory", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
+            case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
             case p => p
           }.toMap
       val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
       val recsWithVersions: Seq[Map[String, AnyRef]] = docMasterRecords.flatMap(docRec => {
-        val versions: Seq[DynDoc] = docRec.versions[DocumentList].reverse.
+        val allVersions: Seq[DynDoc] = docRec.versions[DocumentList].sortBy(d => -d.timestamp[Long]).
             zipWithIndex.map(t => {t._1.version = t._2; t._1})
+        val versions = if (parameters.contains("versions") && parameters("versions") == "latest" && allVersions.length > 1)
+          Seq(allVersions.head)
+        else
+          allVersions
         val clientRecords: Seq[Map[String, AnyRef]] = versions.map(version => {
           val fileName = if (version has "file_name") version.file_name[String] else docRec.name[String]
           val authorOid = version.author_person_id[ObjectId]
@@ -45,11 +53,14 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             "rfi_ids" -> (if (!version.has("rfi_ids")) Seq.empty[ObjectId] else version.rfi_ids[ObjectIdList]),
             "_id" -> docRec._id[ObjectId],
             "timestamp" -> version.timestamp[Long].asInstanceOf[AnyRef],
+            "category" -> docRec.category[String],
+            "subcategory" -> docRec.subcategory[String],
             "name" -> docRec.name[String],
             "description" -> docRec.description[String],
             "comments" -> version.comments[String],
             "date_time" -> dateTimeString(version.timestamp[Long], Some(tz)),
             "author" -> authorName,
+            "author_person_id" -> version.author_person_id[ObjectId],
             "version" -> version.version[Int].asInstanceOf[AnyRef],
             "link" -> (s"baf/DocumentVersionDownload/$fileName?document_master_id=${docRec._id[ObjectId]}&" +
               s"timestamp=${version.timestamp[Long]}")

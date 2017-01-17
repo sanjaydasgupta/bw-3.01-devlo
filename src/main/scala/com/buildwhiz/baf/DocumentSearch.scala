@@ -17,12 +17,9 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val tz = getUser(request).get("tz").asInstanceOf[String]
-      val queryProperties = if (parameters.contains("author_person_id"))
-        Seq("category", "subcategory", "content", "name", "description", "author_person_id")
-      else
-        Seq("category", "subcategory", "content", "name", "description")
+      val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id")
       val query = (("project_id" -> project430ForestOid) +:
-          queryProperties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
+          parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
             case ("content", value) =>
               val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava

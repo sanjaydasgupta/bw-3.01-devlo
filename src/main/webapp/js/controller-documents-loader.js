@@ -32,6 +32,7 @@
   self.selectedDocument = null;
 
   self.currentOperationKey = 'Files Upload';
+  self.useTextInSearch = false;
 
   self.dateOptions = {
     dateDisabled: false,
@@ -40,6 +41,8 @@
     minDate: new Date(2010, 0, 1),
     startingDay: 1
   };
+
+  self.lastSearchQuery = '';
 
   $http.get('api/Person').then(
     function(resp) {
@@ -167,19 +170,36 @@
   }
 
   self.findDocuments = function() {
-    var q = 'baf/DocumentSearch?category=' + escape(self.currentCategoryKey) +
+    self.lastSearchQuery = 'baf/DocumentSearch?category=' + escape(self.currentCategoryKey) +
         '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
-        '&content=Any&name=' + escape(self.documentName) +
-        '&description=' + escape(self.documentDescription) + '&author_person_id=' + self.currentAuthor._id;
-    $log.log('GET ' + q);
-    $http.get(q).then(
+        '&content=Any&author_person_id=' + self.currentAuthor._id;
+    if (self.useTextInSearch) {
+      self.lastSearchQuery += '&name=' + escape(self.documentName) +
+      '&description=' + escape(self.documentDescription) + '&comments=' + escape(self.versionComments);
+    }
+    $log.log('GET ' + self.lastSearchQuery);
+    $http.get(self.lastSearchQuery).then(
       function(resp) {
         self.documents = resp.data;
         self.selectedDocument = null;
-        $log.log('OK GET ' + q + ' (' + self.documents.length + ')');
+        $log.log('OK GET ' + self.lastSearchQuery + ' (' + self.documents.length + ')');
       },
       function(resp) {
-        $log.log('ERROR GET ' + q);
+        $log.log('ERROR GET ' + self.lastSearchQuery);
+      }
+    );
+  }
+
+  self.refreshDocuments = function() {
+    $log.log('GET ' + self.lastSearchQuery);
+    $http.get(self.lastSearchQuery).then(
+      function(resp) {
+        self.documents = resp.data;
+        self.selectedDocument = null;
+        $log.log('OK GET ' + self.lastSearchQuery + ' (' + self.documents.length + ')');
+      },
+      function(resp) {
+        $log.log('ERROR GET ' + self.lastSearchQuery);
       }
     );
   }
@@ -242,6 +262,7 @@
     $http.post(q).then(
       function(resp) {
         $log.log('OK POST ' + q + ')');
+        self.refreshDocuments();
       },
       function(resp) {
         $log.log('ERROR POST ' + q);
@@ -253,22 +274,22 @@
     return (document == self.selectedDocument) ? 'yellow' : (document.version == 0) ? 'white' : 'lightgray';
   }
 
-  self.resetClassMetaData = function(document) {
-    self.currentCategoryKey = 'Select';
-    self.currentSubcategoryKey = 'Other';
-    self.documentName = '';
-    self.documentDescription = '';
-    self.documentSubcategories = [];
-    $log.log('Called resetClassMetaData()');
-  }
-
-  self.resetVersionMetaData = function(document) {
-    self.versionComments = '';
-    self.currentAuthor = self.NoAuthor;
-    self.selectedDate = new Date();
-    $log.log('Called resetVersionMetaData()');
-  }
-
+//  self.resetClassMetaData = function(document) {
+//    self.currentCategoryKey = 'Select';
+//    self.currentSubcategoryKey = 'Other';
+//    self.documentName = '';
+//    self.documentDescription = '';
+//    self.documentSubcategories = [];
+//    $log.log('Called resetClassMetaData()');
+//  }
+//
+//  self.resetVersionMetaData = function(document) {
+//    self.versionComments = '';
+//    self.currentAuthor = self.NoAuthor;
+//    self.selectedDate = new Date();
+//    $log.log('Called resetVersionMetaData()');
+//  }
+//
   self.reset = function(document) {
     self.resetClassMetaData();
     self.resetVersionMetaData();

@@ -20,17 +20,20 @@ class DocumentMetadataUpdate extends HttpServlet with HttpUtils with DateTimeUti
       case other => other
     }.toMap
     val oid = new ObjectId(parameters("document_master_id"))
+    val versionedParamNames = Set("timestamp", "author_person_id", "comments")
+    val (versionedParams, nonVersionedParams) = nonIds.partition(p => versionedParamNames.contains(p._1))
     try {
-      if (parameters.contains("timestamp")) {
+      if (versionedParams.nonEmpty) {
         val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> oid)).asScala.head
         val versions: Seq[DynDoc] = docRecord.versions[DocumentList]
-        val idx = versions.zipWithIndex.find(_._1.timestamp[Long] == nonIds("timestamp")).head._2
+        val idx = versions.zipWithIndex.find(_._1.timestamp[Long] == versionedParams("timestamp")).head._2
         val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> oid),
-          Map("$set" -> nonIds.map(t => (s"versions.$idx.${t._1}", t._2))))
+          Map("$set" -> versionedParams.filter(_._1 != "timestamp").map(t => (s"versions.$idx.${t._1}", t._2))))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
-      } else {
-        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> oid), Map("$set" -> nonIds))
+      }
+      if (nonVersionedParams.nonEmpty) {
+        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> oid), Map("$set" -> nonVersionedParams))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }

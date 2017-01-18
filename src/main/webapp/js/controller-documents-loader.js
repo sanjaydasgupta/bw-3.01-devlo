@@ -14,7 +14,7 @@
   self.contentTypes = [];
   self.authors = [];
   self.filteredAuthors = [];
-  self.NoAuthor = {name: 'Select', _id: ""};
+  self.NoAuthor = {name: 'Select', _id: ''};
   self.currentAuthor = self.NoAuthor;
 
   self.findModeActive = false;
@@ -274,28 +274,56 @@
     return (document == self.selectedDocument) ? 'yellow' : (document.version == 0) ? 'white' : 'lightgray';
   }
 
-//  self.resetClassMetaData = function(document) {
-//    self.currentCategoryKey = 'Select';
-//    self.currentSubcategoryKey = 'Other';
-//    self.documentName = '';
-//    self.documentDescription = '';
-//    self.documentSubcategories = [];
-//    $log.log('Called resetClassMetaData()');
-//  }
-//
-//  self.resetVersionMetaData = function(document) {
-//    self.versionComments = '';
-//    self.currentAuthor = self.NoAuthor;
-//    self.selectedDate = new Date();
-//    $log.log('Called resetVersionMetaData()');
-//  }
-//
   self.reset = function(document) {
     self.resetClassMetaData();
     self.resetVersionMetaData();
     self.documents = [];
     self.selectedDocument = null;
     $log.log('Called reset()');
+  }
+
+  self.findRfiDestinationDisabled = function() {
+    return self.currentCategoryKey == 'Select' || self.currentSubcategoryKey == 'Other';
+  }
+
+  self.findRfiDestination = function() {
+    var q = 'api/RFIDestination?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey;
+    $log.log('Calling findRfiDestination(GET ' + q + ')');
+    $http.get(q).then(
+      function(resp) {
+        var persons = resp.data;
+        if (persons.length == 0) {
+          self.currentAuthor = self.NoAuthor;
+        } else {
+          $log.log(JSON.stringify(persons))
+          var id = persons[0].person_id;
+          self.currentAuthor = self.authors.filter(function(a){return a._id == id;})[0];
+        }
+        $log.log('OK findRfiDestination(GET ' + q + ')');
+      },
+      function(resp) {
+        $log.log('ERROR findRfiDestination(GET ' + q + ')');
+      }
+    )
+  }
+
+  self.setRfiDestinationDisabled = function() {
+    return self.currentCategoryKey == 'Select' || self.currentSubcategoryKey == 'Other' || self.currentAuthor._id == '';
+  }
+
+  self.setRfiDestination = function() {
+    var q = 'api/RFIDestination'
+    var data = {category: self.currentCategoryKey, subcategory: self.currentSubcategoryKey,
+        person_id: self.currentAuthor._id};
+    $log.log('Calling setRfiDestination(POST ' + q);
+    $http.post(q, data).then(
+      function(resp) {
+        $log.log('OK setRfiDestination(POST ' + q);
+      },
+      function(resp) {
+        $log.log('ERROR setRfiDestination(POST ' + q);
+      }
+    )
   }
 
   self.setOperation = function(op) {

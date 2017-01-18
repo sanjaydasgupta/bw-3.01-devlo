@@ -89,7 +89,7 @@
             </li>
             <li class="divider" style="margin:1px;"></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
-                                         data-ng-click="loaderCtrl.fetchDocumentsByAuthor({_id: '', name: 'Any'})" style="padding:3px;">Any</a></li>
+                data-ng-click="loaderCtrl.fetchDocumentsByAuthor({_id: '', name: 'Any'})" style="padding:3px;">Any</a></li>
           </ul>
         </div>
       </div>
@@ -120,6 +120,8 @@
                 data-ng-click="loaderCtrl.setOperation('Files Upload')" style="padding:3px;">Files Upload</a></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
                 data-ng-click="loaderCtrl.setOperation('Metadata Update')" style="padding:3px;">Metadata Update</a></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="loaderCtrl.setOperation('RFI Destinations')" style="padding:3px;">RFI Destinations</a></li>
           </ul>
         </div>
         <span style="margin:0px" class="pull-right">
@@ -132,8 +134,16 @@
         </span>
         <span data-ng-if="loaderCtrl.currentOperationKey == 'Metadata Update'" style="margin:0px" class="pull-right">
           <input type="checkbox" data-ng-model="loaderCtrl.useTextInSearch" /> Use text in search
-          <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
-          <button data-ng-disabled="loaderCtrl.updateDisabled()" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()"><span class="glyphicon glyphicon-edit"></span> Update</button>
+          <button data-ng-disabled="loaderCtrl.findDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findDocuments()">
+            <span class="glyphicon glyphicon-search"></span> Find</button>
+          <button data-ng-disabled="loaderCtrl.updateDisabled()" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.update()">
+            <span class="glyphicon glyphicon-edit"></span> Update</button>
+        </span>
+        <span data-ng-if="loaderCtrl.currentOperationKey == 'RFI Destinations'" style="margin:0px" class="pull-right">
+          <button data-ng-disabled="loaderCtrl.findRfiDestinationDisabled()" class="btn btn-xs btn-primary" data-ng-click="loaderCtrl.findRfiDestination()">
+            <span class="glyphicon glyphicon-search"></span> Refresh</button>
+          <button data-ng-disabled="loaderCtrl.setRfiDestinationDisabled()" class="btn btn-xs btn-warning" data-ng-click="loaderCtrl.setRfiDestination()">
+            <span class="glyphicon glyphicon-edit"></span> Update</button>
         </span>
       </div>
     </div>

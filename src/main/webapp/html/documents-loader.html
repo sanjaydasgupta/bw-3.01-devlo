@@ -156,13 +156,16 @@
         <table border="1" width="100%">
           <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
             <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
-            <th style="text-align:center;">Select</th>
+            <th style="text-align:center;">Use</th><th style="text-align:center;">Select</th>
           </tr>
           <tr data-ng-repeat="document in loaderCtrl.documents" style="background-color:{{loaderCtrl.documentColor(document)}};">
             <td style="text-align:center;">{{document.name}}</td><td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
             <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
             <td style="text-align:center;">
               <a href="javascript:void(0);" data-ng-click="loaderCtrl.selectDocument(document)">select</a>
+            </td>
+            <td style="text-align:center;">
+              <input type="checkbox" style="margin:0px;" data-ng-model="document.isSelected" />
             </td>
           </tr>
         </table>

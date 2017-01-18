@@ -217,18 +217,39 @@
   }
 
   self.updateDisabled = function() {
-    var subcategory = self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey;
-    return self.selectedDocument == null ||
-        (self.currentCategoryKey == self.selectedDocument.category &&
-        subcategory == self.selectedDocument.subcategory &&
-        self.documentName == self.selectedDocument.name &&
-        self.documentDescription == self.selectedDocument.description &&
-        self.currentAuthor._id == self.selectedDocument.author_person_id &&
-        self.selectedDate.getTime() == self.selectedDocument.timestamp &&
-        self.versionComments == self.selectedDocument.comments);
+//    var subcategory = self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey;
+//    return self.selectedDocument == null ||
+//        (self.currentCategoryKey == self.selectedDocument.category &&
+//        subcategory == self.selectedDocument.subcategory &&
+//        self.documentName == self.selectedDocument.name &&
+//        self.documentDescription == self.selectedDocument.description &&
+//        self.currentAuthor._id == self.selectedDocument.author_person_id &&
+//        self.selectedDate.getTime() == self.selectedDocument.timestamp &&
+//        self.versionComments == self.selectedDocument.comments);
+    return self.selectedDocument == null || self.documents.filter(function(d){return d.isSelected;}).length == 0;
   }
 
   self.update = function() {
+    var docIds = self.documents.filter(function(d){return d.isSelected;}).
+        map(function(d){return {document_master_id: d._id, timestamp: d.timestamp,
+        category: self.currentCategoryKey, subcategory: self.currentSubcategoryKey,
+        name: self.documentName, description: self.documentDescription,
+        author_person_id: self.currentAuthor._id, comments: self.versionComments};});
+
+    var q = 'baf/DocumentMetadataUpdate';
+    $log.log('POST ' + q + ') ' + JSON.stringify(docIds));
+    $http.post(q, docIds).then(
+      function(resp) {
+        $log.log('OK POST ' + q + ')');
+        self.refreshDocuments();
+      },
+      function(resp) {
+        $log.log('ERROR POST ' + q);
+      }
+    );
+  }
+
+  self.update2 = function() {
     var q = 'baf/DocumentMetadataUpdate?document_master_id=' + self.selectedDocument._id;
     if (self.currentCategoryKey != self.selectedDocument.category) {
       q += '&category=' + escape(self.currentCategoryKey);

@@ -26,9 +26,11 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      if (parameters.contains("email") && parameters.contains("password")) {
-        val email = parameters("email")
-        val password = parameters("password")
+      val postData = getStreamData(request)
+      val loginParameters: DynDoc = Document.parse(postData)
+      if (loginParameters.has("email") && loginParameters.has("password")) {
+        val email = loginParameters.email[String]
+        val password = loginParameters.password[String]
         val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password),
           "enabled" -> true)
         val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption

@@ -8,11 +8,11 @@ angular.module('BuildWhizApp')
     data: null,
     loginClient: null,
 
-    login: function(email, password, client) {
+    login: function(theEmail, thePassword, client) {
       var self = this;
-      var url = 'etc/LoginPost?email=' + email + '&password=' + password;
-      //$log.log('POST ' + url);
-      $http.post(url).then(
+      var url = 'etc/LoginPost';
+      var postData = {email: theEmail, password: thePassword};
+      $http.post(url, postData).then(
         function (response) {
           if (response.data.first_name.length != 0 && response.data.last_name.length != 0) {
             $log.log('AuthenticationService: OK, data=' + response.data.first_name + ', ' + response.data.last_name)

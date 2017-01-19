@@ -5,10 +5,8 @@
 
   var self = this;
 
-//  self.documentCategories = ["ArchiCAD", "Architecture", "Building Science", "Civil", "Contracts",
-//      "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
-//      "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
-//
+  self.busy = false;
+
   self.documentSubcategories = [];
 
   self.contentTypes = [];
@@ -143,6 +141,17 @@
     $log.log('Exiting upload()');
   }
 
+  self.metadataFieldsDisabled = function() {
+    return self.isVersioned() && self.currentOperationKey == 'Files Upload';
+  }
+
+  self.isVersioned = function() {
+    return self.selectedDocument != null/* && self.currentCategoryKey == self.selectedDocument.category &&
+        self.currentSubcategoryKey == self.selectedDocument.subcategory &&
+        self.documentName == self.selectedDocument.name &&
+        self.documentDescription == self.selectedDocument.description*/;
+  }
+
   self.uploadBegin = function(evt) {
     $log.log('Called uploadBegin()');
     var uploadButton = $window.document.getElementById('document-upload-button');
@@ -160,14 +169,20 @@
           '&author_person_id=' + self.currentAuthor._id + '&category=' + escape(self.currentCategoryKey) +
           '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
           '&name=' + escape(self.documentName) + '&description=' + escape(self.documentDescription);
+      if (self.isVersioned()) {
+        query += '&document_master_id=' + self.selectedDocument._id;
+      }
       $log.log("POST: " + query);
+      self.busy = true;
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
         function() {
           $log.log('OK ' + query);
+          self.busy = false;
           alert('OK: Uploading ' + files.length + ' files completed');
         },
         function() {
           $log.log('ERROR ' + query);
+          self.busy = false;
           alert('ERROR: Uploading ' + files.length + ' files failed');
         }
       )
@@ -182,34 +197,40 @@
   self.findDocuments = function() {
     self.lastSearchQuery = 'baf/DocumentSearch?category=' + escape(self.currentCategoryKey) +
         '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
-        '&content=Any&author_person_id=' + self.currentAuthor._id;
+        (self.currentAuthor._id == '' ? '' : ('&content=Any&author_person_id=' + self.currentAuthor._id));
     if (self.useTextInSearch) {
       self.lastSearchQuery += '&name=' + escape(self.documentName) +
       '&description=' + escape(self.documentDescription) + '&comments=' + escape(self.versionComments);
     }
     $log.log('GET ' + self.lastSearchQuery);
+    self.busy = true;
     $http.get(self.lastSearchQuery).then(
       function(resp) {
         self.documents = resp.data;
         self.selectedDocument = null;
         $log.log('OK GET ' + self.lastSearchQuery + ' (' + self.documents.length + ')');
+        self.busy = false;
       },
       function(resp) {
         $log.log('ERROR GET ' + self.lastSearchQuery);
+        self.busy = false;
       }
     );
   }
 
   self.refreshDocuments = function() {
     $log.log('GET ' + self.lastSearchQuery);
+    self.busy = true;
     $http.get(self.lastSearchQuery).then(
       function(resp) {
         self.documents = resp.data;
         self.selectedDocument = null;
         $log.log('OK GET ' + self.lastSearchQuery + ' (' + self.documents.length + ')');
+        self.busy = false;
       },
       function(resp) {
         $log.log('ERROR GET ' + self.lastSearchQuery);
+        self.busy = false;
       }
     );
   }
@@ -222,7 +243,8 @@
     self.documentDescription = doc.description;
     self.versionComments = doc.comments;
     self.currentAuthor = self.authors.filter(function(a){return a._id == doc.author_person_id;})[0];
-    self.selectedDate.setTime(doc.timestamp);
+    var newTime = new Date(doc.timestamp);
+    self.selectedDate = newTime;
     $log.log('Called selectDocument(' + doc.name + ')');
   }
 
@@ -248,12 +270,15 @@
 
     var q = 'baf/DocumentMetadataUpdate';
     $log.log('POST ' + q + ') ' + JSON.stringify(docIds));
+    self.busy = true;
     $http.post(q, docIds).then(
       function(resp) {
-        $log.log('OK POST ' + q + ')');
         self.refreshDocuments();
+        self.busy = false;
+        $log.log('OK POST ' + q + ')');
       },
       function(resp) {
+        self.busy = false;
         $log.log('ERROR POST ' + q);
       }
     );
@@ -320,6 +345,7 @@
   self.findRfiDestination = function() {
     var q = 'api/RFIDestination?category=' + self.currentCategoryKey + '&subcategory=' + self.currentSubcategoryKey;
     $log.log('Calling findRfiDestination(GET ' + q + ')');
+    self.busy = true;
     $http.get(q).then(
       function(resp) {
         var persons = resp.data;
@@ -331,9 +357,11 @@
           self.currentAuthor = self.authors.filter(function(a){return a._id == id;})[0];
         }
         $log.log('OK findRfiDestination(GET ' + q + ')');
+        self.busy = false;
       },
       function(resp) {
         $log.log('ERROR findRfiDestination(GET ' + q + ')');
+        self.busy = false;
       }
     )
   }
@@ -347,12 +375,15 @@
     var data = {category: self.currentCategoryKey, subcategory: self.currentSubcategoryKey,
         person_id: self.currentAuthor._id};
     $log.log('Calling setRfiDestination(POST ' + q);
+    self.busy = true;
     $http.post(q, data).then(
       function(resp) {
         $log.log('OK setRfiDestination(POST ' + q);
+        self.busy = false;
       },
       function(resp) {
         $log.log('ERROR setRfiDestination(POST ' + q);
+        self.busy = false;
       }
     )
   }

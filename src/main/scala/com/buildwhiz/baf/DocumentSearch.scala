@@ -19,7 +19,8 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       val tz = getUser(request).get("tz").asInstanceOf[String]
       val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id")
       val query = (("project_id" -> project430ForestOid) +:
-          parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
+          parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).
+            filter(kv => kv._2.nonEmpty && kv._2 != "Any" && kv._1 != "author_person_id")).map {
             case ("content", value) =>
               val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
@@ -27,7 +28,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("subcategory", value) => ("subcategory", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
-            case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
+            //case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
             case p => p
           }.toMap
       val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
@@ -65,7 +66,11 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
         })
         clientRecords
       })
-      val clientDocuments: Seq[Document] = recsWithVersions.map(rec => new Document(rec))
+      val recsWithVersions2 = if (parameters.contains("author_person_id"))
+        recsWithVersions.filter(_("author_person_id") == new ObjectId(parameters("author_person_id")))
+      else
+        recsWithVersions
+      val clientDocuments: Seq[Document] = recsWithVersions2.map(rec => new Document(rec))
       val jsonString = clientDocuments.map(d => bson2json(d)).mkString("[", ", ", "]")
       response.getOutputStream.println(jsonString)
       response.setContentType("application/json")

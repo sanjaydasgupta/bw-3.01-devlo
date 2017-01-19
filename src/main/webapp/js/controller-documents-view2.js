@@ -1,13 +1,11 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ViewDocumentsCtrl", ['$log', '$http', 'AuthenticationService', '$window',
+.controller("ViewDocumentsCtrl2", ['$log', '$http', 'AuthenticationService', '$window',
       function ($log, $http, AuthService, $window) {
 
   var self = this;
 
-  self.documentCategories = ["ArchiCAD", "Architecture", "Building Science", "Civil", "Contracts",
-      "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
-      "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
+  self.documentCategories = [];
 
   self.documentSubcategories = [];
 
@@ -24,6 +22,7 @@
   self.documentName = '';
   self.documentDescription = '';
 
+  self.displayAllVersions = false;
   self.documents = [];
   self.selectedDocument = null;
 
@@ -44,6 +43,16 @@
     },
     function(resp) {
       $log.log('ERROR GET api/contentType')
+    }
+  )
+
+  $http.get('api/DocumentCategory').then(
+    function(resp) {
+      self.documentCategories = resp.data.map(function(p) {return p.category;});
+      $log.log('OK GET api/DocumentCategory (' + self.documentCategories.length + ')');
+    },
+    function(resp) {
+      $log.log('ERROR GET api/DocumentCategory')
     }
   )
 
@@ -91,6 +100,7 @@
     var q = 'baf/DocumentSearch?category=' + self.currentCategoryKey +
         '&subcategory=' + self.currentSubcategoryKey + '&content=' + self.currentContentKey +
         '&name=' + self.documentName + '&description=' + self.documentDescription;
+    q += self.displayAllVersions ? '&versions=all' : '&versions=latest'
     $log.log('GET ' + q);
     $http.get(q).then(
       function(resp) {

@@ -5,10 +5,10 @@
 
   var self = this;
 
-  self.documentCategories = ["ArchiCAD", "Architecture", "Building Science", "Civil", "Contracts",
-      "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
-      "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
-
+//  self.documentCategories = ["ArchiCAD", "Architecture", "Building Science", "Civil", "Contracts",
+//      "Electrical", "Elevator", "GeoTech Fld Rpts", "Interior", "Material Specs", "Mechanical", "Permits",
+//      "Plumbing", "Reports", "Revit", "Special Insp Rpts", "Structure"];
+//
   self.documentSubcategories = [];
 
   self.contentTypes = [];
@@ -55,6 +55,16 @@
     },
     function(resp) {
       $log.log('ERROR GET api/Person')
+    }
+  )
+
+  $http.get('api/DocumentCategory').then(
+    function(resp) {
+      self.documentCategories = resp.data.map(function(p) {return p.category;});
+      $log.log('OK GET api/DocumentCategory (' + self.documentCategories.length + ')');
+    },
+    function(resp) {
+      $log.log('ERROR GET api/DocumentCategory')
     }
   )
 

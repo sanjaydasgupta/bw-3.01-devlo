@@ -64,8 +64,8 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
     val parameters = getParameterMap(request)
     try {
       val parts = request.getParts.asScala.toList
-      if (parts.length > 1 && parameters.contains("document_master_id"))
-        throw new IllegalArgumentException(s"Provided parts.length > 1 and 'document_master_id'")
+      //if (parts.length > 1 && parameters.contains("document_master_id"))
+      //  throw new IllegalArgumentException(s"Provided parts.length > 1 and 'document_master_id'")
       for (part <- parts) {
         val fileName = part.getSubmittedFileName
         if (parts.length > 1)

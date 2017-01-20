@@ -10,9 +10,6 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/documents-manage', {
         templateUrl: 'html/documents-manage.html',
         controller: 'ManageDocumentsCtrl as manageDocsCtrl'
-    }).when('/documents-view', {
-        templateUrl: 'html/documents-view.html',
-        controller: 'ViewDocumentsCtrl as viewDocsCtrl'
     }).when('/documents-view2', {
         templateUrl: 'html/documents-view2.html',
         controller: 'ViewDocumentsCtrl2 as viewDocsCtrl2'

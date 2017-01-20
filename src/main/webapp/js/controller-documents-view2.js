@@ -253,7 +253,7 @@
     self.busy = true;
     $http.post(q).then(
       function(resp) {
-        self.documents = self.documents.filter(function(d){return d._id != idToDelete && d.timestamp != tsToDelete;});
+        self.documents = self.documents.filter(function(d){return d._id != idToDelete || d.timestamp != tsToDelete;});
         $log.log('OK POST ' + q);
         self.busy = false;
         self.documentToDelete = null;

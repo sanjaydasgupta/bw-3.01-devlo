@@ -27,7 +27,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val postData = getStreamData(request)
-      val loginParameters: DynDoc = Document.parse(postData)
+      val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
       if (loginParameters.has("email") && loginParameters.has("password")) {
         val email = loginParameters.email[String]
         val password = loginParameters.password[String]

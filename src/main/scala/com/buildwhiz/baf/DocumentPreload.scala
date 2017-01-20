@@ -71,9 +71,16 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
         if (parts.length > 1)
           parameters.put("name", fileName.split("\\.").init.mkString("."))
         val fileExtension = fileName.split("\\.").last.toUpperCase
-        val documentOid = if (parameters.contains("document_master_id"))
-          new ObjectId(parameters("document_master_id")) else createRecord(parameters, fileExtension)
         val timestamp = parameters("timestamp").toLong
+        val documentOid = if (parameters.contains("document_master_id")) {
+          val docOid = new ObjectId(parameters("document_master_id"))
+          val tsExists = BWMongoDB3.document_master.find(Map("$and" -> Seq(Map("_id" -> docOid),
+            Map("versions" -> Map("$elemMatch" -> Map("timestamp" -> timestamp)))))).asScala.nonEmpty
+          if (tsExists)
+            throw new IllegalArgumentException("An Entry for this timestamp already exists")
+          docOid
+        } else
+          createRecord(parameters, fileExtension)
         val inputStream = part.getInputStream
         val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
         val comments = parameters("comments")

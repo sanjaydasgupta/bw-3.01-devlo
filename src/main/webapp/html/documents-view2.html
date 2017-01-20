@@ -4,6 +4,10 @@
   </div>
 
   <div class="panel-body fixed-panel container-fluid" style="padding:5px">
+    <!-- Busy overlay -->
+    <div data-ng-if="viewDocsCtrl2.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
+      <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+    </div>
     <!-- Search -->
     <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
@@ -84,6 +88,7 @@
           <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
             <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
             <th style="text-align:center;">Download</th><th style="text-align:center;">RFI</th>
+            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.deleteDocumentDisplayed()">Delete</th>
           </tr>
           <tr data-ng-repeat="document in viewDocsCtrl2.documents" style="background-color:{{viewDocsCtrl2.getRowColor(document)}};">
             <td style="text-align:center;">{{document.name}}</td><td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
@@ -91,6 +96,9 @@
             <td style="text-align:center;"><a href="{{document.link}}" target="_blank">download</a></td>
             <td style="text-align:center;">
               <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.selectDocument(document)">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
+            </td>
+            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.deleteDocumentDisplayed()">
+              <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.deleteDocument(document)">del</a>
             </td>
           </tr>
         </table>
@@ -151,6 +159,14 @@
           </tr>
         </table>
       </div>
+    </div>
+    <!-- Delete Document -->
+    <div data-ng-if="viewDocsCtrl2.documentToDelete != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid red; width:100% vertical-align:top;">
+      <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.deleteDocumentConfirmed()">Delete</button>
+      <button class="btn btn-xs btn-info pull-left" data-ng-click="viewDocsCtrl2.documentToDelete = null">Cancel</button>
+      <span class="center-block" style="margin:0px; text-align:center;">Delete {{viewDocsCtrl2.documentToDelete.category}} / {{viewDocsCtrl2.documentToDelete.subcategory}}
+          / {{viewDocsCtrl2.documentToDelete.name}} / {{viewDocsCtrl2.documentToDelete.description}}
+          / {{viewDocsCtrl2.documentToDelete.comments}}?</span>
     </div>
   </div>
 </div>

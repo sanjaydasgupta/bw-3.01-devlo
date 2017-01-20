@@ -5,16 +5,15 @@
 
   var self = this;
 
+  self.busy = false;
+
   self.documentCategories = [];
-
   self.documentSubcategories = [];
-
   self.contentTypes = [];
 
   self.findModeActive = false;
   self.newModeActive = false;
 
-  //self.documentList = [];
   self.documentCount = 0;
   self.currentContentKey = "Any";
   self.currentCategoryKey = "Any";
@@ -30,9 +29,11 @@
   self.selectedRfi = null;
   self.newSubject = '';
   self.newText = '';
-
   self.rfiDetails = [];
 
+  self.documentToDelete = null;
+
+  self.busy = true;
   $http.get('api/ContentType').then(
     function(resp) {
       self.contentTypes = resp.data.map(function(p) {
@@ -40,25 +41,33 @@
         return contentType;
       });
       $log.log('OK GET api/ContentType (' + self.contentTypes + ')');
+      self.busy = false;
+      self.documentToDelete = null;
     },
     function(resp) {
       $log.log('ERROR GET api/contentType')
+      self.busy = false;
     }
   )
 
+  self.busy = true;
   $http.get('api/DocumentCategory').then(
     function(resp) {
       self.documentCategories = resp.data.map(function(p) {return p.category;});
       $log.log('OK GET api/DocumentCategory (' + self.documentCategories.length + ')');
+      self.busy = false;
+      self.documentToDelete = null;
     },
     function(resp) {
       $log.log('ERROR GET api/DocumentCategory')
+      self.busy = false;
     }
   )
 
   self.fetchDocumentsByCategory = function(categoryKey) {
     var query = 'baf/DocumentSubcategoriesFetch?category=' + categoryKey;
     $log.log('calling GET ' + query);
+    self.busy = true;
     $http.get(query).then(
       function(resp) {
         self.documentSubcategories = resp.data;
@@ -68,9 +77,12 @@
         self.rfiList = [];
         self.selectedRfi = null;
         $log.log('OK GET ' + query + ' (' + resp.data.length + ')');
+        self.busy = false;
+        self.documentToDelete = null;
       },
       function(resp) {
         $log.log('ERROR GET ' + query);
+        self.busy = false;
       }
     );
     self.currentCategoryKey = categoryKey;
@@ -102,6 +114,7 @@
         '&name=' + self.documentName + '&description=' + self.documentDescription;
     q += self.displayAllVersions ? '&versions=all' : '&versions=latest'
     $log.log('GET ' + q);
+    self.busy = true;
     $http.get(q).then(
       function(resp) {
         self.documents = resp.data;
@@ -112,10 +125,14 @@
           self.rfiList = [];
         }
         self.selectedRfi = null;
+        self.documentToDelete = null;
         $log.log('OK GET ' + q + ' (' + self.documents.length + ')');
+        self.busy = false;
+        self.documentToDelete = null;
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
+        self.busy = false;
       }
     )
   }
@@ -123,14 +140,18 @@
   self.fetchRfiList = function(rfi_ids) {
     var q = 'baf/RFIMessagesFetch?rfi_ids=' + rfi_ids.join(",");
     $log.log('GET ' + q);
+    self.busy = true;
     $http.get(q).then(
       function(resp) {
         self.rfiList = resp.data;
         self.selectedRfi = null;
         $log.log('OK GET ' + q + ' (' + self.rfiList.length + ')')
+        self.busy = false;
+        self.documentToDelete = null;
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
+        self.busy = false;
       }
     )
   }
@@ -153,16 +174,19 @@
       var query = 'baf/RFIDetailsFetch?person_id=' + AuthService.data._id + '&tz=' + AuthService.data.tz +
           '&rfi_id=' + rfi._id;
       $log.log('Calling GET ' + query);
+      self.busy = true;
       $http.get(query).then(
         function(resp) {
           self.rfiDetails = resp.data;
           self.selectedRfi = rfi;
           self.newSubject = rfi.subject;
           $log.log('OK GET ' + query)
+          self.busy = false;
         },
         function(resp) {
           //self.selectedMessage = null;
           $log.log('ERROR GET ' + query)
+          self.busy = false;
         }
       )
     } else {
@@ -182,6 +206,7 @@
       query += '&rfi_id=' + self.selectedRfi._id;
     }
     $log.log('Calling POST ' + query);
+    self.busy = true;
     $http.post(query).then(
       function(resp) {
         self.newText = '';
@@ -189,9 +214,11 @@
           self.newSubject = '';
         }
         $log.log('OK POST ' + query)
+        self.busy = false;
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
+        self.busy = false;
       }
     )
     $log.log('Called submitRfi()');
@@ -207,6 +234,36 @@
 
   self.sendDisabled = function() {
     return self.newSubject == '' || self.newText == '';
+  }
+
+  self.deleteDocumentDisplayed = function() {
+    return self.displayAllVersions && AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
+  }
+
+  self.deleteDocument = function(doc) {
+    self.documentToDelete = doc;
+    $log.log('Called deleteDocument(' + doc._id + ')');
+  }
+
+  self.deleteDocumentConfirmed = function() {
+    var idToDelete = self.documentToDelete._id;
+    var tsToDelete = self.documentToDelete.timestamp;
+    $log.log('Called deleteDocumentConfirmed(' + self.documentToDelete._id + ')');
+    var q = 'baf/DocumentVersionDelete?document_id=' + idToDelete + '&timestamp=' + tsToDelete;
+    self.busy = true;
+    $http.post(q).then(
+      function(resp) {
+        self.documents = self.documents.filter(function(d){return d._id != idToDelete && d.timestamp != tsToDelete;});
+        $log.log('OK POST ' + q);
+        self.busy = false;
+        self.documentToDelete = null;
+      },
+      function(resp) {
+        $log.log('ERROR POST ' + q)
+        self.busy = false;
+      }
+    )
+    self.documentToDelete = null;
   }
 
 }]);

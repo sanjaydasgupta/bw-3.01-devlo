@@ -31,5 +31,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/manageUsers', {
         templateUrl: 'html/manage-users.html',
         controller: 'ManageUsersCtrl as usersCtrl'
+    }).when('/information', {
+        templateUrl: 'html/information.html',
+        controller: 'InformationCtrl as infoCtrl'
     }).otherwise({redirectTo: '/'})
 }])

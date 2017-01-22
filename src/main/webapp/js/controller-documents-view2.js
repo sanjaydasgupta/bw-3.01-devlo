@@ -64,6 +64,13 @@
     }
   )
 
+  self.resetDisplay = function() {
+    self.selectedDocument = null;
+    self.documents = [];
+    self.rfiList = [];
+    self.selectedRfi = null;
+  }
+
   self.fetchDocumentsByCategory = function(categoryKey) {
     var query = 'baf/DocumentSubcategoriesFetch?category=' + categoryKey;
     $log.log('calling GET ' + query);
@@ -72,10 +79,7 @@
       function(resp) {
         self.documentSubcategories = resp.data;
         self.currentSubcategoryKey = 'Any';
-        self.selectedDocument = null;
-        self.documents = [];
-        self.rfiList = [];
-        self.selectedRfi = null;
+        self.resetDisplay();
         $log.log('OK GET ' + query + ' (' + resp.data.length + ')');
         self.busy = false;
         self.documentToDelete = null;
@@ -91,19 +95,17 @@
   self.fetchDocumentsBySubcategory = function(subcategoryKey) {
     $log.log('Setting subcategory=' + subcategoryKey);
     self.currentSubcategoryKey = subcategoryKey;
-    self.selectedDocument = null;
-    self.documents = [];
-    self.rfiList = [];
-    self.selectedRfi = null;
+    self.resetDisplay();
   }
 
   self.fetchDocumentsByContent = function(contentKey) {
     $log.log('Setting content=' + contentKey);
     self.currentContentKey = contentKey;
-    self.selectedDocument = null;
-    self.documents = [];
-    self.rfiList = [];
-    self.selectedRfi = null;
+    self.resetDisplay();
+  }
+
+  self.allVersionsChanged = function() {
+    self.resetDisplay();
   }
 
   self.findDocuments = function() {
@@ -226,10 +228,6 @@
 
   self.getRowColor = function(document) {
     return document == self.selectedDocument ? 'yellow' : ((document.version == 0) ? 'white' : 'lightgray');
-  }
-
-  self.isDataAdmin = function() {
-    return AuthService.data.roles.join().indexOf('BW-Data-Admin') != -1;
   }
 
   self.sendDisabled = function() {

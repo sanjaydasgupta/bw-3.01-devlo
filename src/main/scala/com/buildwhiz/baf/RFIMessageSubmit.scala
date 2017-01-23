@@ -42,8 +42,14 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
       val timestamp = System.currentTimeMillis
       val senderOid = new ObjectId(parameters("person_id"))
       val text = parameters("text")
-      val message = new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
+      val message = if (parameters.contains("attachments")) {
+        val attachments: Seq[Document] = parameters("attachments").split("#").map(Document.parse).toSeq
+        new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid, "attachments" -> attachments,
           "read_person_ids" -> Seq.empty[ObjectId]))
+      } else {
+        new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
+          "read_person_ids" -> Seq.empty[ObjectId]))
+      }
       if (parameters.contains("rfi_id")) {
         val rfiOid = new ObjectId(parameters("rfi_id"))
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("$push" -> Map("messages" -> message),

@@ -21,7 +21,7 @@ angular.module('BuildWhizApp')
   );
 
   self.headerName = function() {
-    return self.loggedIn ? (self.data.first_name + ' ' + self.data.last_name) : 'BuildWhiz';
+    return self.loggedIn ? (self.data.first_name + ' ' + self.data.last_name) : '';
   }
 
   self.login = function() {

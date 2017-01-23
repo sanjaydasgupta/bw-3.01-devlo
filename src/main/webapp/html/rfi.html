@@ -2,18 +2,23 @@
   <div class="panel-heading">RFI</div>
 
   <div class="panel-body fixed-panel">
+    <!-- RFI Messages List -->
     <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr data-ng-if="rfiCtrl.selectedMessage != null"><th style="background-color:#337ab7; text-align:center; color:white;">{{rfiCtrl.selectedMessage.subject}}</th></tr>
-        <tr data-ng-if="rfiCtrl.selectedMessage == null"><th style="background-color:#337ab7; text-align:center; color:white;">Found {{rfiCtrl.messages.length}} RFI Messages</th></tr>
+        <tr data-ng-if="rfiCtrl.selectedMessage == null"><th style="background-color:#337ab7; text-align:center; color:white;">Found {{rfiCtrl.messages.length}} RFIs</th></tr>
       </table>
       <div data-ng-if="rfiCtrl.selectedMessage == null" style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
-          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Members</th><th style="text-align:center;">Count</th>
+          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Subject</th>
+            <th style="text-align:center;">Document</th><!--th style="text-align:center;">Members</th-->
+            <th style="text-align:center;">Count</th>
             <th style="text-align:center;">Last Message</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Select</th></tr>
           <tr data-ng-repeat="message in rfiCtrl.messages">
             <td style="text-align:center;">{{message.timestamp}}</td><td style="text-align:center;">{{message.subject}}</td>
-            <td style="text-align:center;">{{message.member_names.join(", ")}}</td><td style="text-align:center;">{{message.count}}</td>
+            <td style="text-align:center;"><a href="{{message.document_info.link}}" target="_blank">{{rfiCtrl.documentLabel(message)}}</a></td>
+            <!--td style="text-align:center;">{{message.member_names.join(", ")}}</td-->
+            <td style="text-align:center;">{{message.count}}</td>
             <td>{{message.last_message}}</td><td style="text-align:center;">{{message.sender}}</td>
             <td style="text-align:center;"><a href="javascript:void(0)" data-ng-click="rfiCtrl.selectMessage(message)">select</a></td>
           </tr>
@@ -21,23 +26,29 @@
       </div>
       <div data-ng-if="rfiCtrl.selectedMessage != null" style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
-          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Message</th></tr>
+          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Message</th>
+            <th data-ng-if="detail.hasOwnProperty('document_info')" style="text-align:center;">Document Description</th>
+            <th data-ng-if="detail.hasOwnProperty('document_info')" style="text-align:center;">Download</th>
+          </tr>
           <tr data-ng-repeat="detail in rfiCtrl.messageDetails">
             <td style="text-align:center;">{{detail.timestamp}}</td><td style="text-align:center;">{{detail.sender}}</td><td>{{detail.text}}</td>
+            <td data-ng-if="detail.hasOwnProperty('document_info')">{{detail.document_info.description}}</td>
+            <td data-ng-if="detail.hasOwnProperty('document_info')"><a href="{{detail.document_info.link}}">download</a></td>
           </tr>
         </table>
       </div>
       <hr style="margin:2px;"/>
       <table width="100%">
         <tr><td width="100%" class="pull-right">
-          <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-primary pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
+          <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
           <!--label data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left" style="margin:0px;">Members: </label-->
           <!--span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">{{rfiCtrl.selectedMessage.member_names.join(", ")}}</span-->
-          <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-primary pull-right" data-ng-click="rfiCtrl.selectMessage()">Back</button>
+          <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.selectMessage()">RFI List</button>
         </td></tr>
       </table>
     </div>
-    <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <!-- New RFI Message -->
+    <div data-ng-if="rfiCtrl.selectedMessage != null" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr data-ng-if="rfiCtrl.selectedMessage != null"><th style="background-color:#337ab7; text-align:center; color:white;">Add Response</th></tr>
@@ -47,7 +58,7 @@
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding:3px; border:1px solid #337ab7;">
         <table width="100%">
           <tr><td>Subject</td><td width="95%"><input type="text" data-ng-model="rfiCtrl.subject"
-              style="height:20px; margin:1px; width:90%;" /></td>
+              style="height:20px; margin:1px; width:90%;" disabled/></td>
             <td rowspan="2" width="5%"><button class="btn btn-xs btn-primary" data-ng-disabled="rfiCtrl.sendDisabled()"
                 data-ng-click="rfiCtrl.submitRFI()">Send</button></td>
           </tr>

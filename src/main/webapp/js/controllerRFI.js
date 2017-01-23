@@ -74,6 +74,10 @@ angular.module('BuildWhizApp')
     }
   }
 
+  self.documentLabel = function(doc) {
+    return [doc.document_info.category, doc.document_info.subcategory, doc.document_info.description].join('/')
+  }
+
   self.refreshRfiList();
 
 }]);

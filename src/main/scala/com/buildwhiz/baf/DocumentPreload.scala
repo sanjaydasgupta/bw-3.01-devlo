@@ -84,7 +84,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
           createRecord(parameters, fileExtension)
         val inputStream = part.getInputStream
         val result = storeDocumentAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
-        val comments = parameters("comments")
+        val comments = if (parameters.contains("comments")) parameters("comments") else "-"
         val authorOid = new ObjectId(parameters("author_person_id"))
         val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
           "file_name" -> fileName)

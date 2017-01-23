@@ -2,8 +2,8 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.{DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -24,7 +24,8 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = parameters("tz")
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),
-          "text" -> message.text[String], "sender" -> senderName))
+          "text" -> message.text[String], "sender" -> senderName,
+          "attachments" -> (if (message.has("attachments")) message.attachments[DocumentList] else Nil)))
       })
       response.getWriter.print(messageLines.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")

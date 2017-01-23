@@ -136,9 +136,15 @@
       </div>
       <div data-ng-if="viewDocsCtrl2.selectedRfi != null" style="height:100px; max-height:100px; min-height:100px; overflow:auto;">
         <table border="1" width="100%">
-          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Message</th></tr>
+          <tr>
+            <th style="text-align:center;">Timestamp</th><th style="text-align:center;">Sender</th>
+            <th style="text-align:center;">Message</th><th style="text-align:center;">Attachments</th>
+          </tr>
           <tr data-ng-repeat="detail in viewDocsCtrl2.rfiDetails">
             <td style="text-align:center;">{{detail.timestamp}}</td><td style="text-align:center;">{{detail.sender}}</td><td>{{detail.text}}</td>
+            <td><span data-ng-repeat="attachment in detail.attachments"><a href="{{attachment.link}}" target="_blank">
+                {{attachment.file_name}}</a> </span>
+            </td>
           </tr>
         </table>
       </div>
@@ -163,7 +169,11 @@
           <tr>
             <td>Subject</td><td width="95%"><input type="text" data-ng-model="viewDocsCtrl2.newSubject"
               style="height:20px; margin:1px; width:90%;" data-ng-disabled="viewDocsCtrl2.selectedRfi != null"/></td>
-            <td rowspan="2" width="5%"><button class="btn btn-xs btn-primary" data-ng-disabled="viewDocsCtrl2.sendDisabled()"
+            <td rowspan="2" width="1%"><button class="btn btn-xs btn-primary"
+                data-ng-click="viewDocsCtrl2.attachFile()">Attach ({{viewDocsCtrl2.rfiAttachments.length}})</button>
+              <input id="attach-file-button" type="file" style="display:none;" />
+            </td>
+            <td rowspan="2" width="1%"><button class="btn btn-xs btn-primary" data-ng-disabled="viewDocsCtrl2.sendDisabled()"
                 data-ng-click="viewDocsCtrl2.submitRFI()">Send</button></td>
           </tr>
           <tr>

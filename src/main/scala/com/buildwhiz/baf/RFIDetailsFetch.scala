@@ -12,6 +12,17 @@ import scala.collection.JavaConverters._
 
 class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
+  private def getAttachments(message: DynDoc): Seq[Document] = {
+    val attachments: Seq[DynDoc] = if (message.has("attachments")) message.attachments[DocumentList] else Nil
+    for (attachment <- attachments) {
+      val fileName = attachment.file_name[String]
+      val docOid = attachment.document_id[String]
+      val ts = attachment.timestamp[Long]
+      attachment.link = s"baf/DocumentVersionDownload/$fileName?document_master_id=$docOid&timestamp=$ts"
+    }
+    attachments.map(_.asDoc)
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
@@ -24,8 +35,7 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = parameters("tz")
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),
-          "text" -> message.text[String], "sender" -> senderName,
-          "attachments" -> (if (message.has("attachments")) message.attachments[DocumentList] else Nil)))
+          "text" -> message.text[String], "sender" -> senderName, "attachments" -> getAttachments(message)))
       })
       response.getWriter.print(messageLines.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")

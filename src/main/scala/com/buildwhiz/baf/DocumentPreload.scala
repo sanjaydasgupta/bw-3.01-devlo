@@ -90,7 +90,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
           "file_name" -> fileName)
         val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
           Map("$push" -> Map("versions" -> versionRecord)))
-        storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp, "length" -> result._2))
+        storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
         BWLogger.log(getClass.getName, "doPost", s"OK: Amazon-S3 $fileName $result", request)

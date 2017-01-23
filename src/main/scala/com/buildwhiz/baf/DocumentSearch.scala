@@ -32,7 +32,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             case p => p
           }.toMap
       val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
-      val docRecords = allRecords.filterNot(_.description[String].startsWith("RFI Attachment:"))
+      val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
       val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
         val allVersions: Seq[DynDoc] = docRec.versions[DocumentList].sortBy(d => -d.timestamp[Long]).
             zipWithIndex.map(t => {t._1.version = t._2; t._1})
@@ -55,8 +55,8 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             "category" -> docRec.category[String],
             "subcategory" -> docRec.subcategory[String],
             "name" -> docRec.name[String],
-            "description" -> docRec.description[String],
-            "comments" -> version.comments[String],
+            "description" -> (if (docRec.has("description")) docRec.description[String] else "-"),
+            "comments" -> (if (version.has("comments")) version.comments[String] else "-"),
             "date_time" -> dateTimeString(version.timestamp[Long], Some(tz)),
             "author" -> authorName,
             "author_person_id" -> version.author_person_id[ObjectId],

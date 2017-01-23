@@ -66,6 +66,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
       val parts = request.getParts.asScala.toList
       //if (parts.length > 1 && parameters.contains("document_master_id"))
       //  throw new IllegalArgumentException(s"Provided parts.length > 1 and 'document_master_id'")
+      val storageResults = mutable.Buffer.empty[Document]
       for (part <- parts) {
         val fileName = part.getSubmittedFileName
         if (parts.length > 1)
@@ -89,12 +90,13 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
           "file_name" -> fileName)
         val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
           Map("$push" -> Map("versions" -> versionRecord)))
+        storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp, "length" -> result._2))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
         BWLogger.log(getClass.getName, "doPost", s"OK: Amazon-S3 $fileName $result", request)
       }
-      //response.getWriter.print(s"""{"fileName": "${result._1}", "length": ${result._2}}""")
-      //response.setContentType("application/json")
+      response.getWriter.print(storageResults.map(bson2json).mkString("[", ", ", "]"))
+      response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>

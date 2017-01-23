@@ -31,8 +31,9 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             //case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
             case p => p
           }.toMap
-      val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
-      val recsWithVersions: Seq[Map[String, AnyRef]] = docMasterRecords.flatMap(docRec => {
+      val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
+      val docRecords = allRecords.filterNot(_.description[String].startsWith("RFI Attachment:"))
+      val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
         val allVersions: Seq[DynDoc] = docRec.versions[DocumentList].sortBy(d => -d.timestamp[Long]).
             zipWithIndex.map(t => {t._1.version = t._2; t._1})
         val versions = if (parameters.contains("versions") && parameters("versions") == "latest" && allVersions.length > 1)

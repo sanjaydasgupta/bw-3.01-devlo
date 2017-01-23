@@ -33,7 +33,8 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
         len = inputStream.read(buffer)
       }
       val document: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).asScala.head
-      response.setContentType(contentTypes(document.content[String]))
+      if (contentTypes.contains(document.content[String]))
+        response.setContentType(contentTypes(document.content[String]))
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {

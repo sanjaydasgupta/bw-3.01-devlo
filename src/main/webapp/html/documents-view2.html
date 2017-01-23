@@ -9,7 +9,7 @@
       <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
     </div>
     <!-- Search -->
-    <div class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'DOC'" class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr><th style="background-color:#337ab7; text-align:center; color:white;">Document Search</th></tr>
@@ -80,7 +80,7 @@
       </div>
     </div>
     <!-- Found Documents Table (displayed conditionally) -->
-    <div data-ng-if="viewDocsCtrl2.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'DOC' && viewDocsCtrl2.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{viewDocsCtrl2.documents.length}})</th></tr>
       </table>
@@ -105,8 +105,18 @@
         </table>
       </div>
     </div>
+    <!-- RFI Header -->
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; border:2px solid #337ab7; width:100%">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
+        <table width="100%">
+          <tr>
+            <th style="background-color:#337ab7; text-align:center; color:white;">{{viewDocsCtrl2.rfiHeader()}}</th>
+          </tr>
+        </table>
+      </div>
+    </div>
     <!-- RFI Table -->
-    <div data-ng-if="viewDocsCtrl2.selectedDocument != null && viewDocsCtrl2.rfiList.length > 0"
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI' &&  viewDocsCtrl2.rfiList.length > 0"
          class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr data-ng-if="viewDocsCtrl2.selectedRfi != null"><th style="background-color:#337ab7; text-align:center; color:white;">{{viewDocsCtrl2.selectedRfi.subject}}</th></tr>
@@ -135,23 +145,24 @@
       <hr style="margin:2px;"/>
       <table width="100%">
         <tr><td width="100%" class="pull-right">
-          <button data-ng-if="viewDocsCtrl2.selectedRfi == null" class="btn btn-xs btn-primary pull-right" data-ng-click="viewDocsCtrl2.refreshRfiList()">Refresh</button>
-          <button data-ng-if="viewDocsCtrl2.selectedRfi != null" class="btn btn-xs btn-primary pull-right" data-ng-click="viewDocsCtrl2.selectRfi()">Back</button>
+          <button data-ng-if="viewDocsCtrl2.selectedRfi == null" class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.refreshRfiList()">Refresh</button>
+          <button data-ng-if="viewDocsCtrl2.selectedRfi != null" class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.selectRfi()">RFI List</button>
         </td></tr>
       </table>
     </div>
     <!-- New-RFI or Response Table -->
-    <div data-ng-if="viewDocsCtrl2.selectedDocument != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
-          <tr data-ng-if="viewDocsCtrl2.selectedRfi != null"><th style="background-color:#337ab7; text-align:center; color:white;">Respond to RFI</th></tr>
+          <tr data-ng-if="viewDocsCtrl2.selectedRfi != null"><th style="background-color:#337ab7; text-align:center; color:white;">Respond to '{{viewDocsCtrl2.selectedRfi.subject}}'</th></tr>
           <tr data-ng-if="viewDocsCtrl2.selectedRfi == null"><th style="background-color:#337ab7; text-align:center; color:white;">Start New RFI</th></tr>
         </table>
       </div>
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="padding:3px; border:1px solid #337ab7;">
         <table width="100%">
-          <tr><td>Subject</td><td width="95%"><input type="text" data-ng-model="viewDocsCtrl2.newSubject"
-              style="height:20px; margin:1px; width:90%;" /></td>
+          <tr>
+            <td>Subject</td><td width="95%"><input type="text" data-ng-model="viewDocsCtrl2.newSubject"
+              style="height:20px; margin:1px; width:90%;" data-ng-disabled="viewDocsCtrl2.selectedRfi != null"/></td>
             <td rowspan="2" width="5%"><button class="btn btn-xs btn-primary" data-ng-disabled="viewDocsCtrl2.sendDisabled()"
                 data-ng-click="viewDocsCtrl2.submitRFI()">Send</button></td>
           </tr>
@@ -168,6 +179,16 @@
       <span class="center-block" style="margin:0px; text-align:center;">Delete {{viewDocsCtrl2.documentToDelete.category}} / {{viewDocsCtrl2.documentToDelete.subcategory}}
           / {{viewDocsCtrl2.documentToDelete.name}} / {{viewDocsCtrl2.documentToDelete.description}}
           / {{viewDocsCtrl2.documentToDelete.comments}}?</span>
+    </div>
+    <!-- Return Button -->
+    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
+        <table width="100%">
+          <tr>
+            <th><button class="btn btn-xs btn-warning center-block" data-ng-click="viewDocsCtrl2.backToDocuments()">Return to Document List</button></th>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 </div>

@@ -6,6 +6,7 @@
   var self = this;
 
   self.busy = false;
+  self.displayMode = 'DOC';
 
   self.documentCategories = [];
   self.documentSubcategories = [];
@@ -158,15 +159,25 @@
     )
   }
 
+  self.refreshRfiList = function() {
+    self.fetchRfiList(self.selectedDocument.rfi_ids);
+  }
+
   self.selectDocument = function(document) {
     self.selectedDocument = document;
-
     if (self.selectedDocument.rfi_ids.length > 0) {
       self.fetchRfiList(self.selectedDocument.rfi_ids);
     } else {
       self.rfiList = [];
       self.selectedRfi = null;
     }
+    self.displayMode = 'RFI';
+  }
+
+  self.rfiHeader = function() {
+    var d = self.selectedDocument;
+    var docName = 'RFI for [' + [d.category, d.subcategory, d.name, d.description].join('/') + ']';
+    return docName + ' of ' + self.selectedDocument.date_time + ' by ' + self.selectedDocument.author;
   }
 
   self.selectRfi = function(rfi) {
@@ -197,6 +208,10 @@
       self.newSubject = '';
     }
 
+  }
+
+  self.backToDocuments = function() {
+    self.displayMode = 'DOC';
   }
 
   self.submitRFI = function() {

@@ -31,6 +31,7 @@
   self.newSubject = '';
   self.newText = '';
   self.rfiDetails = [];
+  self.rfiAttachments = [];
 
   self.documentToDelete = null;
 
@@ -215,9 +216,10 @@
   }
 
   self.submitRFI = function() {
-    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + self.newText;
+    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.newText) +
+        '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'));
     if (self.selectedRfi == null) {
-      query += '&subject=' + self.newSubject + '&document_id=' + self.selectedDocument._id +
+      query += '&subject=' + escape(self.newSubject) + '&document_id=' + self.selectedDocument._id +
           '&doc_version_timestamp=' + self.selectedDocument.timestamp;
     } else {
       query += '&rfi_id=' + self.selectedRfi._id;
@@ -277,6 +279,49 @@
       }
     )
     self.documentToDelete = null;
+  }
+
+  self.attachFile = function() {
+    $log.log('Called attachFile()');
+    var attachButton = $window.document.getElementById('attach-file-button');
+    attachButton.addEventListener('change', self.attachmentUploadBegin, false);
+    attachButton.click();
+    $log.log('Exiting attachFile()');
+  }
+
+  self.attachmentUploadBegin = function(evt) {
+    $log.log('Called uploadBegin()');
+    var attachButton = $window.document.getElementById('attach-file-button');
+    attachButton.removeEventListener('change', self.uploadBegin, false);
+    var files = evt.target.files; // FileList of File objects
+    if (files.length > 0) {
+      var timestamp = new Date().getTime();
+      var formData = new FormData();
+      angular.forEach(files, function(file, index) {
+        formData.append(file.name, file, file.name);
+        $log.log('formData.append(' + file.name + ')');
+      });
+      var desc = self.selectedDocument._id + '/' + self.selectedDocument.timestamp + '/' + timestamp;
+      var query = 'baf/DocumentPreload?person_id=' + AuthService.data._id + '&timestamp=' + timestamp +
+          '&author_person_id=' + AuthService.data._id + '&category=SYSTEM' + '&subcategory=RFI-Attachment' +
+          '&name=' + escape(self.documentName) + '&description=' + escape(desc);
+      $log.log("POST: " + query);
+      self.busy = true;
+      $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
+        function(resp) {
+          $log.log('OK ' + query);
+          self.busy = false;
+          self.rfiAttachments.push(resp.data[0]);
+          alert('OK: Uploading: ' + JSON.stringify(resp.data[0]));
+        },
+        function() {
+          $log.log('ERROR ' + query);
+          self.busy = false;
+          alert('ERROR: Uploading ' + files.length + ' files failed');
+        }
+      )
+    }
+    $log.log('Exiting uploadBegin()');
   }
 
 }]);

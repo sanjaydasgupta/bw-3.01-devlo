@@ -46,10 +46,10 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val attachments: Seq[Document] = parameters("attachments").split("#").
           map(a => {val d = Document.parse(a); if (d.containsKey("$$hashKey")) d.remove("$$hashKey"); d}).toSeq
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid, "attachments" -> attachments,
-          "read_person_ids" -> Seq.empty[ObjectId]))
+          "read_person_ids" -> Seq(senderOid)))
       } else {
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
-          "read_person_ids" -> Seq.empty[ObjectId]))
+          "read_person_ids" -> Seq(senderOid)))
       }
       if (parameters.contains("rfi_id")) {
         val rfiOid = new ObjectId(parameters("rfi_id"))
@@ -60,15 +60,16 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
         val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
         val projectManagersOid = project.admin_person_id[ObjectId]
-        val members = Seq(senderOid, projectManagersOid)
         val docVersionTimestamp = parameters("doc_version_timestamp").toLong
         val documentOid = new ObjectId(parameters("document_id"))
-        val newRfiObject = new Document(Map("members" -> members, "subject" -> subject,
+        val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).asScala.head
+        val versions: Seq[DynDoc] = docRecord.versions[DocumentList]
+        val authorOid = versions.filter(_.timestamp[Long] == timestamp).head.author_person_id[ObjectId]
+        val memberOids = Seq(senderOid, projectManagersOid, authorOid).distinct
+        val newRfiObject = new Document(Map("members" -> memberOids, "subject" -> subject,
           "status" -> "new", "project_id" -> projectOid, "messages" -> Seq(message),
           "document" -> Map("document_id" -> documentOid, "version" -> docVersionTimestamp)))
         BWMongoDB3.rfi_messages.insertOne(newRfiObject)
-        val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).asScala.head
-        val versions: Seq[DynDoc] = docRecord.versions[DocumentList]
         val versionIdx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == docVersionTimestamp).head._2
         BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
             Map("$push" -> Map(s"versions.$versionIdx.rfi_ids" -> newRfiObject.get("_id"))))

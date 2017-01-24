@@ -37,6 +37,11 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),
           "text" -> message.text[String], "sender" -> senderName, "attachments" -> getAttachments(message)))
       })
+      val user: DynDoc = getUser(request)
+      for (idx <- messages.indices) {
+        BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid),
+          Map("$addToSet" -> Map(s"messages.$idx.read_person_ids" -> user._id[ObjectId])))
+      }
       response.getWriter.print(messageLines.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

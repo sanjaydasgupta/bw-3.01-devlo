@@ -7,19 +7,23 @@ import com.buildwhiz.infra.BWLogger
 import com.buildwhiz.{DateTimeUtils, HttpUtils}
 
 import scala.sys.process._
-import scala.collection.JavaConverters._
 import com.buildwhiz.infra.{AmazonS3 => AS3}
 
 class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def amazonS3(response: HttpServletResponse, tz: String): Unit = {
-    val summary = AS3.getSummary
-    val (count, size, smallest, biggest, earliest, latest) =
-        (summary.count, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
-    val lines = Seq(Seq("Count", "Total Size (Bytes)", "Smallest (Bytes)", "Biggest (Bytes)", "Earliest Time", "Latest Time"),
-        Seq(count, by3(size), by3(smallest), by3(biggest), dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
-    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
-    response.getWriter.print(json)
+  private def amazonS3(option: String, response: HttpServletResponse, tz: String): Unit = {
+    option match {
+      case "summary" =>
+        val summary = AS3.getSummary
+        val (count, orphans, size, smallest, biggest, earliest, latest) =
+          (summary.total, summary.orphans, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
+        val lines = Seq(Seq("Count", "Orphans", "Total Size (Bytes)", "Smallest (Bytes)", "Biggest (Bytes)", "Earliest Time", "Latest Time"),
+          Seq(count, orphans, by3(size), by3(smallest), by3(biggest), dateTimeString(earliest, Some(tz)), dateTimeString(latest, Some(tz))))
+        val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+        response.getWriter.print(json)
+      case "orphans" =>
+      case _ =>
+    }
     response.setContentType("application/json")
   }
 
@@ -33,17 +37,17 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     response.setContentType("application/json")
   }
 
-  private def javaThreads(response: HttpServletResponse, tz: String): Unit = {
-    val stackTraces = Thread.getAllStackTraces.asScala.toList
-    val data: List[Seq[String]] = stackTraces./*filter(_._1.getState != Thread.State.RUNNABLE).*/
-        flatMap(t => t._2.map(st => Seq(s"${t._1.getName} (${t._1.getId})", t._1.getState, t._1.isAlive, t._1.isDaemon, st.getClassName.replaceAll("\\.", " "),
-          st.getLineNumber, st.isNativeMethod))).map(row => row.map(_.toString))
-    val lines: Seq[Seq[String]] = Seq("Name", "State", "is-Alive", "is-Daemon", "Class Name", "Line #", "is-Native") +: data
-    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
-    response.getWriter.print(json)
-    response.setContentType("application/json")
-  }
-
+//  private def javaThreads(response: HttpServletResponse, tz: String): Unit = {
+//    val stackTraces = Thread.getAllStackTraces.asScala.toList
+//    val data: List[Seq[String]] = stackTraces./*filter(_._1.getState != Thread.State.RUNNABLE).*/
+//        flatMap(t => t._2.map(st => Seq(s"${t._1.getName} (${t._1.getId})", t._1.getState, t._1.isAlive, t._1.isDaemon, st.getClassName.replaceAll("\\.", " "),
+//          st.getLineNumber, st.isNativeMethod))).map(row => row.map(_.toString))
+//    val lines: Seq[Seq[String]] = Seq("Name", "State", "is-Alive", "is-Daemon", "Class Name", "Line #", "is-Native") +: data
+//    val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
+//    response.getWriter.print(json)
+//    response.setContentType("application/json")
+//  }
+//
   private def javaMgmt(response: HttpServletResponse, tz: String): Unit = {
     import java.lang.management._
     val startTime = ManagementFactory.getRuntimeMXBean.getStartTime
@@ -114,9 +118,9 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
         case "topbn-mj" => topbn(response, filtered = true)
         case "topbn-all" => topbn(response, filtered = false)
         case tomcatRe(dir) => tomcat(response, dir)
-        case amazonS3Re(_) => amazonS3(response, tz)
+        case amazonS3Re(option) => amazonS3(option, response, tz)
         case "java" => javaMgmt(response, tz)
-        case "java-threads" => javaThreads(response, tz)
+        //case "java-threads" => javaThreads(response, tz)
         case "vmstat" => vmstat(response)
         case _ =>
       }

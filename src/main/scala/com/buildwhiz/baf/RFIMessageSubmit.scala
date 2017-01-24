@@ -43,7 +43,8 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
       val senderOid = new ObjectId(parameters("person_id"))
       val text = parameters("text")
       val message = if (parameters.contains("attachments")) {
-        val attachments: Seq[Document] = parameters("attachments").split("#").map(Document.parse).toSeq
+        val attachments: Seq[Document] = parameters("attachments").split("#").
+          map(a => {val d = Document.parse(a); if (d.containsKey("$$hashKey")) d.remove("$$hashKey"); d}).toSeq
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid, "attachments" -> attachments,
           "read_person_ids" -> Seq.empty[ObjectId]))
       } else {

@@ -7,21 +7,21 @@
 //  self.taskList = [];
   self.projectList = [];
 //  self.documentList = [];
-  self.rfiList = [];
+  self.rfiStatus = '';
 
-//  self.fetchActions = function(filter) {
-//    var filterKey = filter ? filter : 'all';
-//    var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filter;
-//    $log.log('HomeCtrl: GET ' + query);
-//    $http.get(query).then(
-//      function(resp) {
-//        self.taskList = resp.data;
-//        $log.log('OK-HomeCtrl: got ' + self.taskList.length + ' objects');
-//      },
-//      function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
-//    );
-//  }
-//
+  self.fetchRfiStatus = function() {
+    var query = 'baf/RFIFetchStatus?person_id=' + AuthService.data._id;
+    $log.log('HomeCtrl: GET ' + query);
+    $http.get(query).then(
+      function(resp) {
+        var status = resp.data;
+        self.rfiStatus = status.unread + ' / ' + status.total;
+        $log.log('OK-HomeCtrl: got ' + JSON.stringify(status));
+      },
+      function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
+    );
+  }
+
   self.fetchProjects = function() {
     query = 'person_id=' + AuthService.data._id;
     $log.log('HomeCtrl: GET baf/OwnedProjects?' + query);
@@ -53,7 +53,7 @@
 
   self.fullName = AuthService.data.first_name + ' ' + AuthService.data.last_name;
 
-  self.fetchProjects();
+  self.fetchRfiStatus();
 //  self.fetchActions();
 //  self.fetchDocuments();
 

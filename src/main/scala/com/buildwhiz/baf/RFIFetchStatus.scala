@@ -19,7 +19,7 @@ class RFIFetchStatus extends HttpServlet with HttpUtils with MailUtils with Date
       val rfiRecords: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(Map("members" -> personOid)).asScala.toSeq
       val messages: Seq[DynDoc] = rfiRecords.flatMap(_.messages[DocumentList])
       val newMessagesCount = messages.count(msg => !msg.read_person_ids[ObjectIdList].contains(personOid))
-      val status = s"""{"total": ${messages.length}, "new": $newMessagesCount}"""
+      val status = s"""{"total": ${messages.length}, "unread": $newMessagesCount}"""
       response.getWriter.print(status)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

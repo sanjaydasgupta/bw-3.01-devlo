@@ -137,7 +137,7 @@ angular.module('BuildWhizApp')
 
   self.closeMessage = function() {
     $log.log('Calling closeMessage()');
-    var q = 'baf/CloseRFI?rfi_id=' + self.selectedMessage._id;
+    var q = 'baf/RFIClose?rfi_id=' + self.selectedMessage._id;
      self.busy = true;
     $http.post(q).then(
       function(resp) {

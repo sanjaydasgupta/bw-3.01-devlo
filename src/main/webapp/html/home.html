@@ -1,5 +1,8 @@
 <div class="panel panel-primary">
-  <div class="panel-heading">Home</div>
+  <div class="panel-heading">
+    Home
+    <button class="btn btn-xs btn-info pull-right" data-ng-click="homeCtrl.refresh()">Refresh</button>
+  </div>
 
   <div class="panel-body fixed-panel">
     <div class="container-fluid">
@@ -11,7 +14,7 @@
           </p></a>
           <a href="#/rfi"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-question-sign"></span> RFI
-              <!--span class="badge">{{homeCtrl.rfiList.length}}</span-->
+              <span class="badge">{{homeCtrl.rfiStatus}}</span>
           </p></a>
           <a href="#/userProfile"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-user"></span> Profile
@@ -38,6 +41,7 @@
           </p>
           <p>
             RFIs may be initiated and RFI responses viewed by clicking <span class="badge">RFI</span> in the left margin.
+            The two numbers in the blurb are (a) count of unread messages, and (b) total messages respectively.
           </p>
           <p>
             To change your password or other personal information click on <span class="badge">Profile</span> in the

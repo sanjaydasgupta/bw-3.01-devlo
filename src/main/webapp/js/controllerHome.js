@@ -34,27 +34,16 @@
     );
   }
 
-//  self.fetchDocuments = function(filter) {
-//    var filterKey = filter ? filter : 'all';
-//    var query = 'baf/OwnedDocumentsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filter;
-//    $log.log('HomeCtrl: GET ' + query);
-//    $http.get(query).then(
-//      function(resp) {
-//        self.documentList = resp.data;
-//        $log.log('OK-HomeCtrl: got ' + self.documentList.length + ' objects');
-//      },
-//      function(errResponse) {alert("HomeCtrl: ERROR(collection-details): " + errResponse);}
-//    );
-//  }
-//
   self.logout = function() {
     AuthService.logout();
   }
 
-  self.fullName = AuthService.data.first_name + ' ' + AuthService.data.last_name;
+  self.refresh = function() {
+    self.fullName = AuthService.data.first_name + ' ' + AuthService.data.last_name;
+    self.fetchRfiStatus();
+    self.fetchProjects();
+  }
 
-  self.fetchRfiStatus();
-//  self.fetchActions();
-//  self.fetchDocuments();
+  self.refresh();
 
 }]);

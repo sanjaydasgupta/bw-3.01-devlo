@@ -51,8 +51,10 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
         case _ => Map.empty[String, AnyRef]
       }
       val rfiExchanges: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(query).asScala.toSeq
+      val user = getUser(request).get("_id").asInstanceOf[ObjectId]
       val rfiLines: Seq[Document] = rfiExchanges.map(rfi => {
         val messages: Seq[DynDoc] = rfi.messages[DocumentList]
+        val hasNewMessages = messages.exists(m => !m.read_person_ids[ObjectIdList].contains(user))
         val lastMessage = messages.last
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> lastMessage.sender[ObjectId])).asScala.head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
@@ -60,12 +62,15 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
         // "document_info" -> new Document(docInfo)
         val rfiInfo = new Document(Map("_id" -> rfi._id[ObjectId], "subject" -> rfi.subject[String],
           "member_names" -> memberNames(rfi.members[ObjectIdList]), "count" -> messages.length,
-          "timestamp" -> dateTimeString(lastMessage.timestamp[Long], Some(clientTimezone)),
-          "last_message" -> limitText(lastMessage.text[String]), "sender" -> senderName))
+          "display_time" -> dateTimeString(lastMessage.timestamp[Long], Some(clientTimezone)),
+          "timestamp" -> lastMessage.timestamp[Long],
+          "last_message" -> limitText(lastMessage.text[String]), "sender" -> senderName,
+          "status" -> rfi.status[String], "hasNewMessages" -> hasNewMessages,
+          "isOwn" -> (messages.head.sender[ObjectId] == user)))
         val docReference: DynDoc = rfi.document[Document]
         rfiInfo.put("document_info", new Document(documentInfo(docReference)))
         rfiInfo
-      })
+      }).sortBy(r => -r.y.timestamp[Long])
       response.getWriter.print(rfiLines.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

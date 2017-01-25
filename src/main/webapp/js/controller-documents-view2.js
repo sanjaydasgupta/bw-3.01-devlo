@@ -216,13 +216,15 @@
   }
 
   self.submitRFI = function() {
-    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.newText) +
-        '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'));
+    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.newText);
     if (self.selectedRfi == null) {
       query += '&subject=' + escape(self.newSubject) + '&document_id=' + self.selectedDocument._id +
           '&doc_version_timestamp=' + self.selectedDocument.timestamp;
     } else {
       query += '&rfi_id=' + self.selectedRfi._id;
+    }
+    if (self.rfiAttachments.length > 0) {
+      query += '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'));
     }
     $log.log('Calling POST ' + query);
     self.busy = true;
@@ -232,11 +234,14 @@
         if (self.selectedRfi == null) {
           self.newSubject = '';
         }
+        self.rfiAttachments = [];
+        //alert('RFI Sent OK')
         $log.log('OK POST ' + query)
         self.busy = false;
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
+        alert('ERROR sending RFI')
         self.busy = false;
       }
     )
@@ -312,7 +317,7 @@
           $log.log('OK ' + query);
           self.busy = false;
           self.rfiAttachments.push(resp.data[0]);
-          alert('OK: Uploading: ' + JSON.stringify(resp.data[0]));
+          alert('File attached OK');
         },
         function() {
           $log.log('ERROR ' + query);

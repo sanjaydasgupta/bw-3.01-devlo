@@ -34,11 +34,11 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
       val message = if (parameters.contains("attachments")) {
         val attachments: Seq[Document] = parameters("attachments").split("#").
           map(a => {val d = Document.parse(a); if (d.containsKey("$$hashKey")) d.remove("$$hashKey"); d}).toSeq
-        new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid, "attachments" -> attachments,
-          "read_person_ids" -> Seq(senderOid)))
+        new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
+          "attachments" -> attachments, "read_person_ids" -> Nil))
       } else {
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
-          "read_person_ids" -> Seq(senderOid)))
+          "read_person_ids" -> Nil))
       }
       if (parameters.contains("rfi_id")) {
         val rfiOid = new ObjectId(parameters("rfi_id"))
@@ -61,11 +61,12 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val memberOids = Seq(senderOid, projectManagersOid, authorOid).distinct
         val newRfiObject = new Document(Map("members" -> memberOids, "subject" -> subject,
           "status" -> "new", "project_id" -> projectOid, "messages" -> Seq(message),
-          "document" -> Map("document_id" -> documentOid, "version" -> docVersionTimestamp)))
+          "document" -> Map("document_id" -> documentOid, "version" -> docVersionTimestamp),
+          "timestamps" -> Map("start" -> System.currentTimeMillis)))
         BWMongoDB3.rfi_messages.insertOne(newRfiObject)
-        val versionIdx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == docVersionTimestamp).head._2
+        val idx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == docVersionTimestamp).head._2
         BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
-            Map("$push" -> Map(s"versions.$versionIdx.rfi_ids" -> newRfiObject.get("_id"))))
+            Map("$push" -> Map(s"versions.$idx.rfi_ids" -> newRfiObject.get("_id"))))
         sendMail(memberOids)
       }
       response.setContentType("application/json")

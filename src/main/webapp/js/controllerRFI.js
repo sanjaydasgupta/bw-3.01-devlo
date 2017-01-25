@@ -17,8 +17,10 @@ angular.module('BuildWhizApp')
 
   self.submitRFI = function() {
     var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.text) +
-        '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'));
-    query += '&rfi_id=' + self.selectedMessage._id;
+        '&rfi_id=' + self.selectedMessage._id;
+    if (self.rfiAttachments.length > 0) {
+       query += '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'))
+    }
     $log.log('Calling POST ' + query);
     self.busy = true;
     $http.post(query).then(
@@ -27,12 +29,15 @@ angular.module('BuildWhizApp')
         if (self.selectedMessage == null) {
           self.subject = '';
         }
+        self.rfiAttachments = [];
         $log.log('OK POST ' + query)
         self.busy = false;
+        //alert('RFI Sent OK')
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
         self.busy = false;
+        alert('ERROR sending RFI')
       }
     )
   }
@@ -121,7 +126,7 @@ angular.module('BuildWhizApp')
           $log.log('OK ' + query);
           self.busy = false;
           self.rfiAttachments.push(resp.data[0]);
-          //alert('OK: Uploading: ' + JSON.stringify(resp.data[0]));
+          alert('File attached OK');
           self.busy = false;
         },
         function() {
@@ -142,6 +147,7 @@ angular.module('BuildWhizApp')
     $http.post(q).then(
       function(resp) {
         self.busy = false;
+        self.selectedMessage.status = 'closed';
         $log.log('OK closeMessage()');
       },
       function(resp) {
@@ -149,6 +155,10 @@ angular.module('BuildWhizApp')
         $log.log('ERROR closeMessage()');
       }
     );
+  }
+
+  self.rfiColor = function(rfi) {
+    return rfi.hasNewMessages ? 'GreenYellow' : (rfi.status == 'closed' ? 'LightGray' : 'white');
   }
 
   self.refreshRfiList();

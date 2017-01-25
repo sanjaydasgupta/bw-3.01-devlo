@@ -9,12 +9,13 @@ import org.bson.types.ObjectId
 
 class RFIClose extends HttpServlet with HttpUtils {
 
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val rfiOid = new ObjectId(parameters("rfi_id"))
-      val updateResult = BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("status" -> "closed"))
+      val updateResult = BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid),
+          Map("$set" -> Map("status" -> "closed", "timestamps.close" -> System.currentTimeMillis)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)

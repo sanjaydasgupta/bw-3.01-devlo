@@ -135,6 +135,22 @@ angular.module('BuildWhizApp')
     $log.log('Exiting uploadBegin()');
   }
 
+  self.closeMessage = function() {
+    $log.log('Calling closeMessage()');
+    var q = 'baf/CloseRFI?rfi_id=' + self.selectedMessage._id;
+     self.busy = true;
+    $http.post(q).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK closeMessage()');
+      },
+      function(resp) {
+        self.busy = false;
+        $log.log('ERROR closeMessage()');
+      }
+    );
+  }
+
   self.refreshRfiList();
 
 }]);

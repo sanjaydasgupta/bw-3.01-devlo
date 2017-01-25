@@ -48,7 +48,10 @@
           <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
           <!--label data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left" style="margin:0px;">Members: </label-->
           <!--span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">{{rfiCtrl.selectedMessage.member_names.join(", ")}}</span-->
-          <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.selectMessage()">RFI List</button>
+          <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-success pull-right"
+              style="margin-left:5px;" data-ng-click="rfiCtrl.closeMessage()">Close</button>
+          <button data-ng-if="rfiCtrl.selectedMessage != null" class="btn btn-xs btn-warning pull-right"
+                  data-ng-click="rfiCtrl.selectMessage()">RFI List</button>
         </td></tr>
       </table>
     </div>

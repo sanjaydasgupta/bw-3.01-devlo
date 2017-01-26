@@ -12,16 +12,23 @@ import scala.collection.JavaConverters._
 
 class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
 
-  private def sendMail(members: Seq[ObjectId]): Unit = {
-    //BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
+  private def messageBody(subject: String) =
+    s"""An RFI message has been posted with the following subject:
+      |
+      |    '$subject'
+      |
+      |This email was sent as you are either a manager or an author.""".stripMargin
+
+  private def sendMail(members: Seq[ObjectId], subject: String): Unit = {
+    BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY")
     try {
-      //sendMail(recipientPersonOid, subject, message)
+      sendMail(members, s"RFI for '$subject'", messageBody(subject))
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
     }
-    //BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -46,7 +53,8 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
             "$set" -> Map("status" -> "active")))
         val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
         val members: Seq[ObjectId] = rfiMessage.members[ObjectIdList].asScala
-        sendMail(members)
+        val subject: String = rfiMessage.subject[String]
+        sendMail(members, subject)
       } else {
         val subject = parameters("subject")
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
@@ -67,7 +75,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val idx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == docVersionTimestamp).head._2
         BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
             Map("$push" -> Map(s"versions.$idx.rfi_ids" -> newRfiObject.get("_id"))))
-        sendMail(memberOids)
+        sendMail(memberOids, subject)
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

@@ -124,10 +124,10 @@
       </table>
       <div data-ng-if="viewDocsCtrl2.selectedRfi == null" style="height:100px; max-height:100px; min-height:100px; overflow:auto;">
         <table border="1" width="100%">
-          <tr><th style="text-align:center;">Timestamp</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Members</th><th style="text-align:center;">Count</th>
+          <tr><th style="text-align:center;">Last Update</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Members</th><th style="text-align:center;">Count</th>
             <th style="text-align:center;">Last Message</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Select</th></tr>
           <tr data-ng-repeat="rfi in viewDocsCtrl2.rfiList">
-            <td style="text-align:center;">{{rfi.timestamp}}</td><td style="text-align:center;">{{rfi.subject}}</td>
+            <td style="text-align:center;">{{rfi.display_time}}</td><td style="text-align:center;">{{rfi.subject}}</td>
             <td style="text-align:center;">{{rfi.member_names.join(", ")}}</td><td style="text-align:center;">{{rfi.count}}</td>
             <td>{{rfi.last_message}}</td><td style="text-align:center;">{{rfi.sender}}</td>
             <td style="text-align:center;"><a href="javascript:void(0)" data-ng-click="viewDocsCtrl2.selectRfi(rfi)">select</a></td>

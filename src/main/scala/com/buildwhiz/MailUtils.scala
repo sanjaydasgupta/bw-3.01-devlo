@@ -15,7 +15,11 @@ import scala.collection.JavaConverters._
 
 trait MailUtils {
 
-  val emailSignature = "\nThe 430 Forest project"
+  val emailSignature: String =
+    """
+      |Please do not reply to this email, this mailbox is not monitored.
+      |
+      |The 430 Forest project""".stripMargin
 
   def sendMail(recipientOid: ObjectId, subject: String, body: String): Unit =
     sendMail(Seq(recipientOid), subject, body)

@@ -12,7 +12,6 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
   private val mailBody =
     """Your password on '430forest.com' has just been changed.
       |If you have not changed it, please notify your contact person.
-      |Please do not reply to this email, this mailbox is not monitored.
     """.stripMargin
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -11,8 +11,10 @@ class UserPropertySet extends HttpServlet with HttpUtils {
 
   private def setProperty(personOid: ObjectId, property: String, value: String): Unit = {
     val enabledRe = "(enabled)".r
+    val emailEnabledRe = "(email_enabled)".r
     val roleRe = "role:(.+)".r
     val setterSpec = property match {
+      case emailEnabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
       case enabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
       case roleRe(roleName) => Map((if (value.toBoolean) "$addToSet" else "$pull") -> Map("roles" -> roleName))
     }

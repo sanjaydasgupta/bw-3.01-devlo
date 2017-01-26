@@ -29,8 +29,12 @@
                 Phone ({{phone.type}}): {{phone.phone}}
               </div>
               <hr style="margin:3px;" />
-              <span>Enabled: <input type="checkbox" data-ng-click="usersCtrl.enableDisable()"
-                  data-ng-model="usersCtrl.selectedUser.enabled" data-ng-disabled="usersCtrl.isSelf()"/></span><br/>
+              <span>
+                Login enable: <input type="checkbox" data-ng-click="usersCtrl.enableDisableLogin()"
+                  data-ng-model="usersCtrl.selectedUser.enabled" data-ng-disabled="usersCtrl.isSelf()"/>
+                &nbsp;&nbsp;Email enable: <input type="checkbox" data-ng-click="usersCtrl.enableDisableEmail()"
+                  data-ng-model="usersCtrl.selectedUser.email_enabled"/>
+              </span><br/>
             </div>
           </div>
         </div>

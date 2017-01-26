@@ -37,9 +37,23 @@
     )
   }
 
-  self.enableDisable = function() {
+  self.enableDisableLogin = function() {
     var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=enabled&value=' +
         self.selectedUser.enabled;
+    $log.log('POST ' + query);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+      },
+      function(res) {
+        $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
+  self.enableDisableEmail = function() {
+    var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=email_enabled&value=' +
+        self.selectedUser.email_enabled;
     $log.log('POST ' + query);
     $http.post(query).then(
       function(res) {
@@ -54,6 +68,9 @@
   self.selectUser = function(user) {
     if (!user.hasOwnProperty('enabled')) {
       user.enabled = false;
+    }
+    if (!user.hasOwnProperty('email_enabled')) {
+      user.email_enabled = false;
     }
     self.userRoles = [];
     self.allRoles.forEach(function(role) {

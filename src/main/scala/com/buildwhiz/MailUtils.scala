@@ -49,9 +49,13 @@ trait MailUtils {
         }
       )
 
+      val allowedRecs: Seq[DynDoc] = BWMongoDB3.persons.
+        find(Map("_id" -> Map("$in" -> recipientOids), "email_enabled" -> true)).asScala.toSeq
+      val allowedOids = allowedRecs.map(_._id[ObjectId])
+
       val message = new MimeMessage(session)
       message.setFrom(new InternetAddress(username))
-      val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> recipientOids))).asScala.toSeq
+      val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> allowedOids))).asScala.toSeq
       val emails = persons.map(_.emails[DocumentList].find(_.`type`[String] == "work").head.email[String])
       //val names = persons.map(person => (person.first_name[String], person.last_name[String]))
       //val emailParts = username.split('@')
@@ -60,20 +64,8 @@ trait MailUtils {
       message.setSubject(subject)
       message.setText(body + (if (body.endsWith("\n")) "" else "\n") + emailSignature)
       Transport.send(message)
-      /*import scala.concurrent.ExecutionContext.Implicits.global
-      Future(Transport.send(message)).onComplete {
-        case Failure(t: Throwable) =>
-          BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
-          t.printStackTrace()
-        case _ =>
-      }*/
       BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK")
-    } /*catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
-        t.printStackTrace()
-        throw t
-    }*/ .onComplete {
+    } onComplete {
       case Failure(t: Throwable) =>
         BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
         t.printStackTrace()

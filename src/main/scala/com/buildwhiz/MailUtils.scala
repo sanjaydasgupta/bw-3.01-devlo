@@ -15,6 +15,8 @@ import scala.collection.JavaConverters._
 
 trait MailUtils {
 
+  val emailSignature = "\nThe 430 Forest project"
+
   def sendMail(recipientOid: ObjectId, subject: String, body: String): Unit =
     sendMail(Seq(recipientOid), subject, body)
 
@@ -52,7 +54,7 @@ trait MailUtils {
       val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))
       message.setRecipients(Message.RecipientType.TO, recipients.toArray)
       message.setSubject(subject)
-      message.setText(body)
+      message.setText(body + (if (body.endsWith("\n")) "" else "\n") + emailSignature)
       Transport.send(message)
       /*import scala.concurrent.ExecutionContext.Implicits.global
       Future(Transport.send(message)).onComplete {

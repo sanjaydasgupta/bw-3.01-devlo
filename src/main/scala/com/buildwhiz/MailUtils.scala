@@ -15,9 +15,12 @@ import scala.collection.JavaConverters._
 
 trait MailUtils {
 
-  def sendMail(recipientOid: ObjectId, subject: String, body: String): Unit = {
+  def sendMail(recipientOid: ObjectId, subject: String, body: String): Unit =
+    sendMail(Seq(recipientOid), subject, body)
+
+  def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY")
-    val username = "sanjay.dasgupta@buildwhiz.com"
+    val username = "430forest@gmail.com"
     val password = "rapid-Fire"
 
     val props = new Properties()
@@ -35,21 +38,20 @@ trait MailUtils {
         new javax.mail.Authenticator() {
           override def getPasswordAuthentication: PasswordAuthentication = {
             new PasswordAuthentication(username,
-              s"${username.substring(16, 21)}${password.length/2}${username.substring(21, 25)}")
+              s"sdg${password.length - 7}${username.substring(3, password.length - 1)}")
           }
         }
       )
 
       val message = new MimeMessage(session)
       message.setFrom(new InternetAddress(username))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).asScala.head
-      val email = person.emails[DocumentList].find(_.`type`[String] == "work").head.email[String]
-      val (firstName, lastName) = (person.first_name[String], person.last_name[String])
+      val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> recipientOids))).asScala.toSeq
+      val emails = persons.map(_.emails[DocumentList].find(_.`type`[String] == "work").head.email[String])
+      //val names = persons.map(person => (person.first_name[String], person.last_name[String]))
       //val emailParts = username.split('@')
-      val recipients: Array[Address] = InternetAddress.parse(s"sanjay.dasgupta+$firstName.$lastName@buildwhiz.com").
-        map(_.asInstanceOf[Address])
-      message.setRecipients(Message.RecipientType.TO, recipients)
-      message.setSubject(s"$subject for $email")
+      val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))
+      message.setRecipients(Message.RecipientType.TO, recipients.toArray)
+      message.setSubject(subject)
       message.setText(body)
       Transport.send(message)
       /*import scala.concurrent.ExecutionContext.Implicits.global

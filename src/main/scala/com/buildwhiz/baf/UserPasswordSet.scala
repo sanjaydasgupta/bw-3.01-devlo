@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.{CryptoUtils, HttpUtils, MailUtils}
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import org.bson.Document
 import org.bson.types.ObjectId
 
 class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with MailUtils {
@@ -18,9 +19,10 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val personOid = new ObjectId(parameters("person_id"))
-      val oldPassword = parameters("old_password")
-      val newPassword = parameters("new_password")
+      val postData: DynDoc = Document.parse(getStreamData(request))
+      val personOid = new ObjectId(postData.person_id[String])
+      val oldPassword = postData.old_password[String]
+      val newPassword = postData.new_password[String]
        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid, "password" -> md5(oldPassword)),
         Map("$set" -> Map(s"password" -> md5(newPassword))))
       if (updateResult.getModifiedCount == 0)

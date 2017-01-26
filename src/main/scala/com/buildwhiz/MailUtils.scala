@@ -27,27 +27,10 @@ trait MailUtils {
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY")
     val username = "430forest@gmail.com"
-    val password = "rapid-Fire"
-
-    val props = new Properties()
-
-    props.put("mail.smtp.host", "smtp.gmail.com")
-    props.put("mail.smtp.socketFactory.port", "465")
-    props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
-    props.put("mail.smtp.auth", "true")
-    props.put("mail.smtp.port", "465")
-    props.put("mail.smtp.socketFactory.fallback", "false")
 
     import scala.concurrent.ExecutionContext.Implicits.global
     Future {
-      val session = Session.getInstance(props,
-        new javax.mail.Authenticator() {
-          override def getPasswordAuthentication: PasswordAuthentication = {
-            new PasswordAuthentication(username,
-              s"sdg${password.length - 7}${username.substring(3, password.length - 1)}")
-          }
-        }
-      )
+      val session = MailUtils.session
 
       val allowedRecs: Seq[DynDoc] = BWMongoDB3.persons.
         find(Map("_id" -> Map("$in" -> recipientOids), "email_enabled" -> true)).asScala.toSeq
@@ -72,5 +55,29 @@ trait MailUtils {
       case _ =>
     }
   }
+
+}
+
+object MailUtils {
+
+  private val props = new Properties()
+  props.put("mail.smtp.host", "smtp.gmail.com")
+  props.put("mail.smtp.socketFactory.port", "465")
+  props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
+  props.put("mail.smtp.auth", "true")
+  props.put("mail.smtp.port", "465")
+  props.put("mail.smtp.socketFactory.fallback", "false")
+
+  val username = "430forest@gmail.com"
+  val password = "rapid-Fire"
+
+  lazy val session: Session = Session.getInstance(props,
+    new javax.mail.Authenticator() {
+      override def getPasswordAuthentication: PasswordAuthentication = {
+        new PasswordAuthentication(username,
+          s"sdg${password.length - 7}${username.substring(3, password.length - 1)}")
+      }
+    }
+  )
 
 }

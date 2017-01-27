@@ -216,19 +216,21 @@
   }
 
   self.submitRFI = function() {
-    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.newText);
+    var query = 'baf/RFIMessageSubmit'
+    var postData = {person_id: AuthService.data._id, text: self.newText};
     if (self.selectedRfi == null) {
-      query += '&subject=' + escape(self.newSubject) + '&document_id=' + self.selectedDocument._id +
-          '&doc_version_timestamp=' + self.selectedDocument.timestamp;
+      postData.subject = self.newSubject;
+      postData.document_id = self.selectedDocument._id;
+      postData.doc_version_timestamp = self.selectedDocument.timestamp;
     } else {
-      query += '&rfi_id=' + self.selectedRfi._id;
+      postData.rfi_id = self.selectedRfi._id;
     }
     if (self.rfiAttachments.length > 0) {
-      query += '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'));
+      postData.attachments = self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#');
     }
     $log.log('Calling POST ' + query);
     self.busy = true;
-    $http.post(query).then(
+    $http.post(query, postData).then(
       function(resp) {
         self.newText = '';
         if (self.selectedRfi == null) {
@@ -246,6 +248,10 @@
       }
     )
     $log.log('Called submitRfi()');
+  }
+
+  self.rfiColor = function(rfi) {
+    return rfi.hasNewMessages ? 'GreenYellow' : (rfi.status == 'closed' ? 'LightGray' : 'white');
   }
 
   self.getRowColor = function(document) {

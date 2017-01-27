@@ -126,7 +126,7 @@
         <table border="1" width="100%">
           <tr><th style="text-align:center;">Last Update</th><th style="text-align:center;">Subject</th><th style="text-align:center;">Members</th><th style="text-align:center;">Count</th>
             <th style="text-align:center;">Last Message</th><th style="text-align:center;">Sender</th><th style="text-align:center;">Select</th></tr>
-          <tr data-ng-repeat="rfi in viewDocsCtrl2.rfiList">
+          <tr data-ng-repeat="rfi in viewDocsCtrl2.rfiList" style="background-color:{{viewDocsCtrl2.rfiColor(rfi)}};">
             <td style="text-align:center;">{{rfi.display_time}}</td><td style="text-align:center;">{{rfi.subject}}</td>
             <td style="text-align:center;">{{rfi.member_names.join(", ")}}</td><td style="text-align:center;">{{rfi.count}}</td>
             <td>{{rfi.last_message}}</td><td style="text-align:center;">{{rfi.sender}}</td>

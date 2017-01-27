@@ -16,23 +16,21 @@ angular.module('BuildWhizApp')
   self.rfiAttachments = [];
 
   self.submitRFI = function() {
-    var query = 'baf/RFIMessageSubmit?person_id=' + AuthService.data._id + '&text=' + escape(self.text) +
-        '&rfi_id=' + self.selectedMessage._id;
+    var query = 'baf/RFIMessageSubmit';
+    var postData = {person_id: AuthService.data._id, text: self.text, rfi_id: self.selectedMessage._id};
     if (self.rfiAttachments.length > 0) {
-       query += '&attachments=' + escape(self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#'))
+       postData.attachments = self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#');
     }
     $log.log('Calling POST ' + query);
     self.busy = true;
-    $http.post(query).then(
+    $http.post(query, postData).then(
       function(resp) {
         self.text = '';
-        if (self.selectedMessage == null) {
-          self.subject = '';
-        }
         self.rfiAttachments = [];
         $log.log('OK POST ' + query)
         self.busy = false;
         //alert('RFI Sent OK')
+        self.selectMessage(self.selectedMessage);
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
@@ -53,6 +51,10 @@ angular.module('BuildWhizApp')
     $http.get(query).then(
       function(resp) {
         self.messages = resp.data;
+        self.selectedMessage = null;
+        self.messageDetails = [];
+        self.subject = '';
+        self.text = '';
         $log.log('OK GET ' + query)
         self.busy = false;
       },
@@ -84,10 +86,7 @@ angular.module('BuildWhizApp')
         }
       )
     } else {
-      self.selectedMessage = null;
-      self.messageDetails = [];
-      self.subject = '';
-      self.text = '';
+      self.refreshRfiList();
     }
   }
 

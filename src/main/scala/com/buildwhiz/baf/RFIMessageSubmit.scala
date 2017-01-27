@@ -32,14 +32,14 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
+      val postData: DynDoc = Document.parse(getStreamData(request))
       val timestamp = System.currentTimeMillis
-      val senderOid = new ObjectId(parameters("person_id"))
-      val text = parameters("text")
-      val message = if (parameters.contains("attachments")) {
-        val attachments: Seq[Document] = parameters("attachments").split("#").
+      val senderOid = new ObjectId(postData.person_id[String])
+      val text = postData.text[String]
+      val message = if (postData.has("attachments")) {
+        val attachments: Seq[Document] = postData.attachments[String].split("#").
           map(a => {val d = Document.parse(a); if (d.containsKey("$$hashKey")) d.remove("$$hashKey"); d}).toSeq
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
           "attachments" -> attachments, "read_person_ids" -> Nil))
@@ -47,24 +47,24 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         new Document(Map("text" -> text, "timestamp" -> timestamp, "sender" -> senderOid,
           "read_person_ids" -> Nil))
       }
-      if (parameters.contains("rfi_id")) {
-        val rfiOid = new ObjectId(parameters("rfi_id"))
+      if (postData.has("rfi_id")) {
+        val rfiOid = new ObjectId(postData.rfi_id[String])
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("$push" -> Map("messages" -> message),
             "$set" -> Map("status" -> "active")))
         val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
         val members: Seq[ObjectId] = rfiMessage.members[ObjectIdList].asScala
         val subject: String = rfiMessage.subject[String]
-        sendMail(members, subject)
+        sendMail(members.filterNot(_ == senderOid), subject)
       } else {
-        val subject = parameters("subject")
+        val subject = postData.subject[String]
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
         val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
         val projectManagersOid = project.admin_person_id[ObjectId]
-        val docVersionTimestamp = parameters("doc_version_timestamp").toLong
-        val documentOid = new ObjectId(parameters("document_id"))
+        val docVersionTimestamp = postData.doc_version_timestamp[String].toLong
+        val documentOid = new ObjectId(postData.document_id[String])
         val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).asScala.head
         val versions: Seq[DynDoc] = docRecord.versions[DocumentList]
-        val documentTimestamp = parameters("doc_version_timestamp").toLong
+        val documentTimestamp = postData.doc_version_timestamp[String].toLong
         val authorOid = versions.filter(_.timestamp[Long] == documentTimestamp).head.author_person_id[ObjectId]
         val memberOids = Seq(senderOid, projectManagersOid, authorOid).distinct
         val newRfiObject = new Document(Map("members" -> memberOids, "subject" -> subject,
@@ -75,7 +75,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val idx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == docVersionTimestamp).head._2
         BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
             Map("$push" -> Map(s"versions.$idx.rfi_ids" -> newRfiObject.get("_id"))))
-        sendMail(memberOids, subject)
+        sendMail(memberOids.filterNot(_ == senderOid), subject)
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

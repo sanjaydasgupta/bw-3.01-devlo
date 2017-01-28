@@ -1,0 +1,37 @@
+package com.buildwhiz.baf
+
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
+import com.buildwhiz.HttpUtils
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+
+import org.bson.types.ObjectId
+
+import scala.collection.JavaConverters._
+
+class DocCategoryRoleFetch extends HttpServlet with HttpUtils {
+
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val parameters = getParameterMap(request)
+    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    try {
+      val roleOid = new ObjectId(parameters("role_id"))
+      val allCategories: Seq[DynDoc] = BWMongoDB3.document_category_master.find().asScala.toSeq
+      val categoriesWithPermissions = allCategories.map(cat => {
+        val isPermitted: Seq[DynDoc] = BWMongoDB3.doc_category_mapping.
+          find(Map("category_id" -> cat._id[ObjectId], "role_id" -> roleOid, "permitted" -> true)).asScala.toSeq
+        cat.permitted = isPermitted.nonEmpty
+        cat.asDoc
+      })
+      response.getWriter.println(categoriesWithPermissions.map(bson2json).mkString("[", ", ", "]"))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        t.printStackTrace()
+    }
+  }
+}

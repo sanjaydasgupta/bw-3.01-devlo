@@ -20,6 +20,7 @@ object BWMongoDB3 extends Dynamic {
   type DocumentList = java.util.List[Document]
   type ObjectIdList = java.util.List[ObjectId]
   type ManyThings = java.util.List[_]
+  type Many[T] = java.util.List[T]
 
   class DynDoc(d: Document) extends Dynamic {
     def y: DynDoc = this

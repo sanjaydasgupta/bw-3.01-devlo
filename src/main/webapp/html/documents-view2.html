@@ -15,6 +15,7 @@
           <tr><th style="background-color:#337ab7; text-align:center; color:white;">Document Search</th></tr>
         </table>
       </div>
+      <!-- Category -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;<span style="font-weight:bold;">Category</span>&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
@@ -27,12 +28,13 @@
               <a href="javascript:void(0)" style="padding:3px;"
                  data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory(category)">{{category}}</a>
             </li>
-            <li class="divider" style="margin:1px;"></li>
-            <li class="dropdown-item"><a href="javascript:void(0)"
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin()" class="divider" style="margin:1px;"></li>
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin()" class="dropdown-item"><a href="javascript:void(0)"
                 data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory('Any')" style="padding:3px;">Any</a></li>
           </ul>
         </div>
       </div>
+      <!-- Subcategory -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;<span style="font-weight:bold;">Subcategory</span>&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
@@ -49,6 +51,7 @@
           </ul>
         </div>
       </div>
+      <!-- Content -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;Content&nbsp;
         <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
@@ -65,14 +68,17 @@
           </ul>
         </div>
       </div>
+      <!-- Name -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;Name&nbsp;
         <input type="text" data-ng-model="viewDocsCtrl2.documentName" size="15" style="height:20px; margin:1px;" />
       </div>
+      <!-- Description -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         &nbsp;&nbsp;Descr&nbsp;
         <input type="text" data-ng-model="viewDocsCtrl2.documentDescription" size="15" style="height:20px; margin:1px;" />
       </div>
+      <!-- Buttons, etc. -->
       <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
         <input type="checkbox" data-ng-model="viewDocsCtrl2.displayAllVersions" style="margin:0px;"
             data-ng-change="viewDocsCtrl2.allVersionsChanged()"/>All versions

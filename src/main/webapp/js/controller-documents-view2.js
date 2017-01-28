@@ -17,7 +17,7 @@
 
   self.documentCount = 0;
   self.currentContentKey = "Any";
-  self.currentCategoryKey = "Any";
+  self.currentCategoryKey = "[Select]";
   self.currentSubcategoryKey = "Any";
   self.documentName = '';
   self.documentDescription = '';
@@ -333,6 +333,11 @@
       )
     }
     $log.log('Exiting uploadBegin()');
+  }
+
+  self.isDataAdmin = function() {
+    var roles = AuthService.data.roles.join(',');
+    return roles.indexOf('BW-Admin') != -1 || roles.indexOf('BW-Data-Admin') != -1;
   }
 
 }]);

@@ -19,7 +19,7 @@ class DocCategoryRoleFetch extends HttpServlet with HttpUtils {
       val roleOid = new ObjectId(parameters("role_id"))
       val allCategories: Seq[DynDoc] = BWMongoDB3.document_category_master.find().asScala.toSeq
       val categoriesWithPermissions = allCategories.map(cat => {
-        val isPermitted: Seq[DynDoc] = BWMongoDB3.doc_category_mapping.
+        val isPermitted: Seq[DynDoc] = BWMongoDB3.role_category_mapping.
           find(Map("category_id" -> cat._id[ObjectId], "role_id" -> roleOid, "permitted" -> true)).asScala.toSeq
         cat.permitted = isPermitted.nonEmpty
         cat.asDoc

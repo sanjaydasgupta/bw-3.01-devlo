@@ -18,10 +18,10 @@ class DocCategoryRoleSet extends HttpServlet with HttpUtils {
       val roleOid = new ObjectId(parameters("role_id"))
       val permitted = parameters("permitted").toBoolean
       val query = Map("category_id" -> categoryOid, "role_id" -> roleOid)
-      val updateResult = BWMongoDB3.doc_category_mapping.updateOne(query, Map("$set" -> Map("permitted" -> permitted)))
+      val updateResult = BWMongoDB3.role_category_mapping.updateOne(query, Map("$set" -> Map("permitted" -> permitted)))
       val matchCount = updateResult.getMatchedCount
       if (matchCount == 0) {
-        BWMongoDB3.doc_category_mapping.insertOne(query ++ Map("permitted" -> permitted))
+        BWMongoDB3.role_category_mapping.insertOne(query ++ Map("permitted" -> permitted))
       }
       val status = if (matchCount == 0) "inserted" else "updated"
       response.setStatus(HttpServletResponse.SC_OK)

@@ -14,7 +14,8 @@ import scala.collection.mutable
 trait RestUtils extends HttpUtils {
 
   def handleRestGet(request: HttpServletRequest, response: HttpServletResponse, apiName: String, collectionName: String,
-                    secretFields: Set[String] = Set.empty, sorter: Option[(Document, Document) => Boolean] = None): Unit = {
+      secretFields: Set[String] = Set.empty, sorter: Option[(Document, Document) => Boolean] = None,
+      filter: Option[Document => Boolean] = None): Unit = {
     BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
     val writer = response.getWriter
     try {
@@ -33,7 +34,11 @@ trait RestUtils extends HttpUtils {
         case Some(s) => documents.sortWith(s)
         case None => documents
       }
-      for (p <- sortedDocs) {
+      val filteredDocs = filter match {
+        case Some(f) => sortedDocs.filter(f)
+        case None => sortedDocs
+      }
+      for (p <- filteredDocs) {
         if (sb.length > 1)
           sb.append(",\n")
         sb.append(bson2json(p))

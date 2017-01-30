@@ -1,7 +1,7 @@
 package com.buildwhiz
 
 import java.util.Properties
-import javax.mail.internet.{InternetAddress, MimeMessage}
+import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 import javax.mail._
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
@@ -10,7 +10,6 @@ import org.bson.types.ObjectId
 
 import scala.concurrent.Future
 import scala.util.Failure
-
 import scala.collection.JavaConverters._
 
 trait MailUtils {
@@ -45,7 +44,17 @@ trait MailUtils {
       val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))
       message.setRecipients(Message.RecipientType.TO, recipients.toArray)
       message.setSubject(subject)
-      message.setText(body + (if (body.endsWith("\n")) "" else "\n") + emailSignature)
+      val multipart = new MimeMultipart("alternative")
+      val textPart = new MimeBodyPart()
+      val bodyText = body + (if (body.endsWith("\n")) "" else "\n") + emailSignature
+      textPart.setText(bodyText, "utf-8")
+      multipart.addBodyPart(textPart)
+      val htmlPart = new MimeBodyPart()
+      val bodyHtml = s"""<span>${bodyText.replaceAll("\n", "<br/>")}</span>"""
+      htmlPart.setContent(bodyHtml, "text/html; charset=utf-8")
+      multipart.addBodyPart(htmlPart)
+      message.setContent(multipart)
+      message.saveChanges()
       Transport.send(message)
       BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK")
     } onComplete {

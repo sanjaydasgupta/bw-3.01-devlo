@@ -4,7 +4,7 @@ angular.module('BuildWhizApp')
     function ($log, $http, $document) {
   return {
     loggedIn: false,
-    tryAgain: false,
+    //tryAgain: false,
     data: null,
     loginClient: null,
 
@@ -52,29 +52,41 @@ angular.module('BuildWhizApp')
       $http.post(url)
     },
 
-    setUserNameEmail: function(email) {
-      $document.cookie = 'UserNameEmail=' + email + '; expires=Thu, 23 Nov 2017 18:00:00 GMT';
-      $log.log('Set cookie userNameEmail=' + email);
-    },
-
-    getUserNameEmail: function() {
-      var cookies = $document.cookies;
-      var start = cookies.indexOf('UserNameEmail=');
-      if (start == -1) {
-        $log.log('Default cookie-email: abc@buildwhiz.com')
-        return 'abc@buildwhiz.com';
-      } else {
-        var end = cookies.indexOf(';', start);
-        if (end == -1) {
-          var email = cookies.slice(start + 'UserNameEmail='.length);
-          $log.log('Got cookie-email: ' + email)
-          return email;
-        } else {
-          var email = cookies.slice(start + 'UserNameEmail='.length, end);
-          $log.log('Got cookie-email: ' + email)
-          return email;
-        }
-      }
+//    setUserNameEmail: function(email) {
+//      $document.cookie = 'UserNameEmail=' + email + '; expires=Thu, 23 Nov 2017 18:00:00 GMT';
+//      $log.log('Set cookie userNameEmail=' + email);
+//    },
+//
+//    getUserNameEmail: function() {
+//      var cookies = $document.cookies;
+//      var start = cookies.indexOf('UserNameEmail=');
+//      if (start == -1) {
+//        $log.log('Default cookie-email: abc@buildwhiz.com')
+//        return 'abc@buildwhiz.com';
+//      } else {
+//        var end = cookies.indexOf(';', start);
+//        if (end == -1) {
+//          var email = cookies.slice(start + 'UserNameEmail='.length);
+//          $log.log('Got cookie-email: ' + email)
+//          return email;
+//        } else {
+//          var email = cookies.slice(start + 'UserNameEmail='.length, end);
+//          $log.log('Got cookie-email: ' + email)
+//          return email;
+//        }
+//      }
+//    },
+//
+    setupLoginData: function(data, client) {
+      var self = this;
+      self.data = data;
+      self.loggedIn = true;
+      client.data = data;
+      client.loggedIn = true;
+      client.tryAgain = false;
+      client.password = '';
+      loginClient = client;
+      $log.log('Called setupLoginData()');
     }
 
   };

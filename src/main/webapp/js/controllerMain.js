@@ -12,11 +12,12 @@ angular.module('BuildWhizApp')
   $http.get('etc/Environment').then(
     function(response) {
       var env = response.data;
-      $log.log('etc/Environment -> ' + JSON.stringify(env));
+      $log.log('Environment: ' + JSON.stringify(env));
       self.username = env.email;
-      if (env.timezone_raw_offset == 19800000) {
-        // to facilitate testing on local machine
+      if (env.hasOwnProperty('user')) {
+        AuthService.setupLoginData(env.user, self);
       }
+      $log.log('self.loggedIn: ' + self.loggedIn);
     }
   );
 

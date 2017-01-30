@@ -4,6 +4,7 @@ import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletR
 
 import com.buildwhiz.api.RestUtils
 import com.buildwhiz.infra.BWLogger
+import org.bson.Document
 
 class Environment extends HttpServlet with RestUtils {
 
@@ -16,8 +17,13 @@ class Environment extends HttpServlet with RestUtils {
       case None => "info@buildwhiz.com"
     }
     val tzRawOffset = java.util.TimeZone.getDefault.getRawOffset
-    val environment = s"""{"timezone_raw_offset": $tzRawOffset, "email": "$email"}"""
-    response.getWriter.println(environment)
+    val environment = new Document("timezone_raw_offset", tzRawOffset)
+    environment.put("email", email)
+    getUser(request) match {
+      case null =>
+      case d: Document => environment.put("user", d)
+    }
+    response.getWriter.println(bson2json(environment))
     response.setContentType("application/json")
     response.setStatus(HttpServletResponse.SC_OK)
 

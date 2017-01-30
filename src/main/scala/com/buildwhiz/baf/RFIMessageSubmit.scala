@@ -4,25 +4,26 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.{HttpUtils, MailUtils}
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 import org.bson.Document
 
 import scala.collection.JavaConverters._
 
-class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
+class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-  private def messageBody(subject: String) =
-    s"""An RFI message has been posted with the following subject:
+  private def messageBody(subject: String, uri: String) =
+    s"""${dateTimeString(System.currentTimeMillis)}
+      |An RFI message has been posted with the following subject:
       |
-      |    '$subject'
+      |&nbsp;&nbsp;&nbsp;&nbsp;<a href="$uri">$subject</a>&nbsp;&nbsp;(Click link to see details)
       |
       |This email was sent as you are either a manager or an author.""".stripMargin
 
-  private def sendMail(members: Seq[ObjectId], subject: String): Unit = {
+  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String): Unit = {
     BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY")
     try {
-      sendMail(members, s"RFI for '$subject'", messageBody(subject))
+      sendMail(members, s"RFI for '$subject'", messageBody(subject, uri))
     } catch {
       case t: Throwable =>
         t.printStackTrace()
@@ -54,7 +55,9 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
         val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
         val members: Seq[ObjectId] = rfiMessage.members[ObjectIdList].asScala
         val subject: String = rfiMessage.subject[String]
-        sendMail(members.filterNot(_ == senderOid), subject)
+        val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
+          s"/#/rfi?rfi_id=$rfiOid"
+        sendRFIMail(members.filterNot(_ == senderOid), subject, url)
       } else {
         val subject = postData.subject[String]
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
@@ -72,9 +75,12 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils {
           "timestamps" -> Map("start" -> System.currentTimeMillis)))
         BWMongoDB3.rfi_messages.insertOne(newRfiObject)
         val idx: Int = versions.zipWithIndex.find(_._1.timestamp[Long] == documentTimestamp).head._2
+        val rfiOid = newRfiObject.get("_id")
         BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
-            Map("$push" -> Map(s"versions.$idx.rfi_ids" -> newRfiObject.get("_id"))))
-        sendMail(memberOids.filterNot(_ == senderOid), subject)
+            Map("$push" -> Map(s"versions.$idx.rfi_ids" -> rfiOid)))
+        val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
+          s"/#/rfi?rfi_id=$rfiOid"
+        sendRFIMail(memberOids.filterNot(_ == senderOid), subject, url)
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

@@ -4,30 +4,25 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.{HttpUtils, MailUtils}
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class RFIClose extends HttpServlet with HttpUtils with MailUtils {
+class RFIClose extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-  private def messageBody(subject: String) =
-    s"""An RFI message with the following subject has been closed:
+  private def messageBody(subject: String, uri: String) =
+    s"""${dateTimeString(System.currentTimeMillis)}
+      |An RFI with the following subject has been closed:
       |
-      |    '$subject'
+      |&nbsp;&nbsp;&nbsp;&nbsp;<a href="$uri">$subject</a>&nbsp;&nbsp;(Click link to see details)
       |
       |This email was sent as you are either a manager or an author.""".stripMargin
 
-  private def sendMail(members: Seq[ObjectId], subject: String): Unit = {
-    BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY")
-    try {
-      sendMail(members, s"RFI closed '$subject'", messageBody(subject))
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
-    }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String): Unit = {
+    BWLogger.log(getClass.getName, s"sendRFIMail($members)", "ENTRY")
+    sendMail(members, s"RFI closed '$subject'", messageBody(subject, uri))
+    BWLogger.log(getClass.getName, "sendRFIMail()", "EXIT-OK")
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -42,7 +37,9 @@ class RFIClose extends HttpServlet with HttpUtils with MailUtils {
       val rfiRecord: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
       val members: Seq[ObjectId] = rfiRecord.members[ObjectIdList].asScala
       val originatorOid = getUser(request).get("_id").asInstanceOf[ObjectId]
-      sendMail(members.filterNot(_ == originatorOid), rfiRecord.subject[String])
+      val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
+        s"/#/rfi?rfi_id=$rfiOid"
+      sendRFIMail(members.filterNot(_ == originatorOid), rfiRecord.subject[String], url)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {

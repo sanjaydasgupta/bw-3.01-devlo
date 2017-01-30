@@ -3,9 +3,9 @@ package com.buildwhiz.baf
 import java.io.InputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
+import com.buildwhiz.utils.HttpUtils
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -22,7 +22,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
       val documentHistory: Seq[DynDoc] = project.documents[DocumentList].filter(_.document_id[ObjectId] == documentOid)
       val latestVersion: DynDoc = documentHistory.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
       val amazonS3Key = f"$projectOid-$documentOid-${latestVersion.timestamp[Long]}%x"
-      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent()
+      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)
       var len = inputStream.read(buffer)

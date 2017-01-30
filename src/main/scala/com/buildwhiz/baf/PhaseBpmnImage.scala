@@ -2,8 +2,8 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.{BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
 
 class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
 

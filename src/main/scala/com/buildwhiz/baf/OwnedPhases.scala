@@ -4,7 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.utils.HttpUtils
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._

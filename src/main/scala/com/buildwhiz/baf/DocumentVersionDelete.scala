@@ -4,7 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.{HttpUtils, MailUtils}
+import com.buildwhiz.utils.{HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 class DocumentVersionDelete extends HttpServlet with HttpUtils with MailUtils {

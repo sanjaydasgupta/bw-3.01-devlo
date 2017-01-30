@@ -4,10 +4,10 @@ import java.io.File
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWLogger
-import com.buildwhiz.{DateTimeUtils, HttpUtils}
 
 import scala.sys.process._
 import com.buildwhiz.infra.{AmazonS3 => AS3}
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 
 class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
 

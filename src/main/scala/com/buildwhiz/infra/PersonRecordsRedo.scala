@@ -1,7 +1,7 @@
 package com.buildwhiz.infra
 
-import com.buildwhiz.CryptoUtils
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.utils.CryptoUtils
 import org.bson.Document
 import org.bson.types.ObjectId
 

@@ -2,9 +2,9 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import com.buildwhiz.utils.HttpUtils
 import org.camunda.bpm.engine.ProcessEngines
 
 class PhaseLaunch extends HttpServlet with HttpUtils {

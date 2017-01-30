@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-class OwnedActionsSummary extends HttpServlet with HttpUtils {
+class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): DocumentList = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
@@ -64,26 +64,26 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
       val projectOids: ObjectIdList = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[ObjectIdList]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
-      val allActions = mutable.Buffer.empty[DynDoc]
-      for (project <- projects) {
-        val phaseOids = project.phase_ids[ObjectIdList]
-        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
-        for (phase <- phases) {
-          val activityOids = phase.activity_ids[ObjectIdList]
-          val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
-          for (activity <- activities) {
-            val actions: Seq[DynDoc] = activity.actions[DocumentList]
-            val relevantActions = actions.filter(action => action.assignee_person_id[ObjectId] == personOid)
-            val filteredActions = relevantActions.filter(action => filterKey match {
-              case "active" => action.status[String] == "waiting"
-              case "all" => true
-              case _ => true // placeholder, to be changed later
-            })
-            allActions ++= filteredActions.map(a => getViewObjects(request, a, project, phase, activity))
-          }
-        }
-      }
-      writer.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
+      val allDocuments = mutable.Buffer.empty[DynDoc]
+//      for (project <- projects) {
+//        val phaseOids = project.phase_ids[ObjectIdList]
+//        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+//        for (phase <- phases) {
+//          val activityOids = phase.activity_ids[ObjectIdList]
+//          val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
+//          for (activity <- activities) {
+//            val actions: Seq[DynDoc] = activity.actions[DocumentList]
+//            val relevantActions = actions.filter(action => action.assignee_person_id[ObjectId] == personOid)
+//            val filteredActions = relevantActions.filter(action => filterKey match {
+//              case "active" => action.status[String] == "waiting"
+//              case "all" => true
+//              case _ => true // placeholder, to be changed later
+//            })
+//            allDocuments ++= filteredActions.map(a => getViewObjects(request, a, project, phase, activity))
+//          }
+//        }
+//      }
+      writer.print(allDocuments.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

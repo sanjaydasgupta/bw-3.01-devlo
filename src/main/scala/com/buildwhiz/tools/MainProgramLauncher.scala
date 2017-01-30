@@ -2,8 +2,8 @@ package com.buildwhiz.tools
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.HttpUtils
 import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.HttpUtils
 
 class MainProgramLauncher extends HttpServlet with HttpUtils {
 

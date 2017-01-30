@@ -3,9 +3,9 @@ package com.buildwhiz.baf
 import java.util
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.{BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.bson.Document
 import org.bson.types.ObjectId

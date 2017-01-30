@@ -1,4 +1,4 @@
-package com.buildwhiz
+package com.buildwhiz.utils
 
 import java.io.InputStream
 

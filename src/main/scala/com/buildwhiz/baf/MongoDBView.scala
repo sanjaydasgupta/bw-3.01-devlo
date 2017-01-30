@@ -6,7 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.utils.HttpUtils
 
 import scala.sys.process._
 import scala.languageFeature.{implicitConversions, postfixOps}

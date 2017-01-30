@@ -3,7 +3,7 @@ package com.buildwhiz.web
 import java.io.{File, FileInputStream}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.{DateTimeUtils, HttpUtils}
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 
 class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
 

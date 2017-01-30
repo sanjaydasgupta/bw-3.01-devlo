@@ -7,7 +7,7 @@ import org.bson.Document
 import BWMongoDB3._
 import java.util.{HashMap => JHashMap, Map => JMap}
 
-import com.buildwhiz.HttpUtils
+import com.buildwhiz.utils.HttpUtils
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 import scala.collection.JavaConverters._

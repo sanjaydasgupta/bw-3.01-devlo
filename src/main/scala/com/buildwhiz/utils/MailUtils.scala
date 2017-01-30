@@ -1,16 +1,16 @@
-package com.buildwhiz
+package com.buildwhiz.utils
 
 import java.util.Properties
-import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 import javax.mail._
+import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import BWMongoDB3._
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.Failure
-import scala.collection.JavaConverters._
 
 trait MailUtils {
 

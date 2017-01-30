@@ -4,7 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.{CryptoUtils, HttpUtils}
+import com.buildwhiz.utils.{CryptoUtils, HttpUtils}
 import org.bson.types.ObjectId
 
 class UserSkillsSet extends HttpServlet with HttpUtils with CryptoUtils {

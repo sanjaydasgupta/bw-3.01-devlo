@@ -2,9 +2,9 @@ package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.{DateTimeUtils, HttpUtils}
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 import org.bson.Document
 
 import scala.collection.JavaConverters._

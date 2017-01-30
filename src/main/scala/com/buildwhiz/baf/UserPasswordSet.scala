@@ -2,9 +2,9 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.{CryptoUtils, HttpUtils, MailUtils}
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
+import com.buildwhiz.utils.{CryptoUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 

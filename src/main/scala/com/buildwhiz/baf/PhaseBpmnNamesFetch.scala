@@ -2,8 +2,8 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.BpmnUtils
 import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.BpmnUtils
 
 class PhaseBpmnNamesFetch extends HttpServlet with BpmnUtils {
 

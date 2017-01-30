@@ -5,13 +5,12 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
-import com.buildwhiz.{HttpUtils, MailUtils}
+import com.buildwhiz.utils.{HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-
 import scala.annotation.tailrec
 
 class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {

@@ -4,7 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
 import BWMongoDB3._
-import com.buildwhiz.{BpmnUtils, HttpUtils}
+import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
 import org.bson.types.ObjectId
 
 class ProjectEnd extends HttpServlet with HttpUtils with BpmnUtils {

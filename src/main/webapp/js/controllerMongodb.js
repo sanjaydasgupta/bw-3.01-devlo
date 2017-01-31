@@ -38,6 +38,7 @@
     $log.log('MongodbCtrl: GET ' + query);
     $http.get(query).then(
       function(resp) {
+        $log.log('MongoDB archive status: ' + JSON.stringify(resp.data));
         self.archiveStatus = resp.data;
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}

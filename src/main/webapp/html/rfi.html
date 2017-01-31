@@ -6,12 +6,13 @@
     <div data-ng-if="rfiCtrl.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
       <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
     </div>
-    <!-- RFI Messages List -->
+    <!-- RFI Messages Display -->
     <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr data-ng-if="rfiCtrl.selectedMessage != null"><th style="background-color:#337ab7; text-align:center; color:white;">{{rfiCtrl.selectedMessage.subject}}</th></tr>
         <tr data-ng-if="rfiCtrl.selectedMessage == null"><th style="background-color:#337ab7; text-align:center; color:white;">Found {{rfiCtrl.messages.length}} RFIs</th></tr>
       </table>
+      <!-- All RFIs -->
       <div data-ng-if="rfiCtrl.selectedMessage == null" style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
           <tr><th style="text-align:center;">Last Update</th><th style="text-align:center;">Subject</th>
@@ -28,6 +29,7 @@
           </tr>
         </table>
       </div>
+      <!-- Selected RFI Details -->
       <div data-ng-if="rfiCtrl.selectedMessage != null" style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
           <tr>
@@ -45,6 +47,7 @@
       <hr style="margin:2px;"/>
       <table width="100%">
         <tr><td width="100%" class="pull-right">
+          <span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">Document: {{rfiCtrl.documentLabel(rfiCtrl.selectedMessage)}}</span>
           <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
           <!--label data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left" style="margin:0px;">Members: </label-->
           <!--span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">{{rfiCtrl.selectedMessage.member_names.join(", ")}}</span-->

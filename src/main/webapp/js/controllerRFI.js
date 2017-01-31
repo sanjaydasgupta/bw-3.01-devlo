@@ -1,7 +1,7 @@
 angular.module('BuildWhizApp')
 
-.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window',
-    function ($log, $http, AuthService, $window) {
+.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams',
+    function ($log, $http, AuthService, $window, $routeParams) {
 
   var self = this;
 
@@ -44,7 +44,7 @@ angular.module('BuildWhizApp')
     return self.subject == '' || self.text == '';
   }
 
-  self.refreshRfiList = function() {
+  self.refreshRfiList = function(checkForId) {
     var query = 'baf/RFIMessagesFetch?person_id=' + AuthService.data._id + '&tz=' + AuthService.data.tz;
     $log.log('Calling GET ' + query);
     self.busy = true;
@@ -57,6 +57,13 @@ angular.module('BuildWhizApp')
         self.text = '';
         $log.log('OK GET ' + query)
         self.busy = false;
+        if (checkForId && $routeParams.hasOwnProperty('rfi_id')) {
+          var rfi_id = $routeParams.rfi_id;
+          var theMessage = self.messages.filter(function(msg){return msg._id == rfi_id;});
+          if (theMessage.length > 0) {
+            self.selectMessage(theMessage[0]);
+          }
+        }
       },
       function(resp) {
         $log.log('ERROR GET ' + query)
@@ -160,6 +167,6 @@ angular.module('BuildWhizApp')
     return rfi.hasNewMessages ? 'GreenYellow' : (rfi.status == 'closed' ? 'LightGray' : 'white');
   }
 
-  self.refreshRfiList();
+  self.refreshRfiList(true);
 
 }]);

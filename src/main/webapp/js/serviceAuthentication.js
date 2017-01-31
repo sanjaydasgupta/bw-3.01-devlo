@@ -1,7 +1,7 @@
 angular.module('BuildWhizApp')
 
-.factory('AuthenticationService', ['$log', '$http', '$document',
-    function ($log, $http, $document) {
+.factory('AuthenticationService', ['$log', '$http', '$document', '$location',
+    function ($log, $http, $document, $location) {
   return {
     loggedIn: false,
     //tryAgain: false,
@@ -12,6 +12,7 @@ angular.module('BuildWhizApp')
       var self = this;
       var url = 'etc/LoginPost';
       var postData = {email: theEmail, password: thePassword};
+      var location = $location.url();
       $http.post(url, postData).then(
         function (response) {
           if (response.data.first_name.length != 0 && response.data.last_name.length != 0) {
@@ -23,7 +24,7 @@ angular.module('BuildWhizApp')
             client.tryAgain = false;
             client.password = '';
             loginClient = client;
-            //self.setUserNameEmail(email);
+            $location.url(location);
           } else {
             $log.log('AuthenticationService: FAILURE');
             self.loggedIn = false;
@@ -52,31 +53,6 @@ angular.module('BuildWhizApp')
       $http.post(url)
     },
 
-//    setUserNameEmail: function(email) {
-//      $document.cookie = 'UserNameEmail=' + email + '; expires=Thu, 23 Nov 2017 18:00:00 GMT';
-//      $log.log('Set cookie userNameEmail=' + email);
-//    },
-//
-//    getUserNameEmail: function() {
-//      var cookies = $document.cookies;
-//      var start = cookies.indexOf('UserNameEmail=');
-//      if (start == -1) {
-//        $log.log('Default cookie-email: abc@buildwhiz.com')
-//        return 'abc@buildwhiz.com';
-//      } else {
-//        var end = cookies.indexOf(';', start);
-//        if (end == -1) {
-//          var email = cookies.slice(start + 'UserNameEmail='.length);
-//          $log.log('Got cookie-email: ' + email)
-//          return email;
-//        } else {
-//          var email = cookies.slice(start + 'UserNameEmail='.length, end);
-//          $log.log('Got cookie-email: ' + email)
-//          return email;
-//        }
-//      }
-//    },
-//
     setupLoginData: function(data, client) {
       var self = this;
       self.data = data;

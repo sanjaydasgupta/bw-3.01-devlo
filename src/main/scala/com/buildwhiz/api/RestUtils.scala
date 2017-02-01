@@ -107,6 +107,9 @@ trait RestUtils extends HttpUtils {
     try {
       val data = getStreamData(request)
       val document = Document.parse(data)
+      val exists = BWMongoDB3(collectionName).find(document).asScala.nonEmpty
+      if (exists)
+        throw new IllegalArgumentException("Record already exists")
       document.asScala("timestamps") = new Document("created", System.currentTimeMillis)
       BWMongoDB3(collectionName).insertOne(document)
       response.setContentType("text/plain")

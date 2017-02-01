@@ -9,22 +9,27 @@
         <!-- Roles -->
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
           <label>Roles</label>
-          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top; margin-bottom:5px;">
             <span data-ng-repeat="role in roleCtrl.roles" data-ng-click="roleCtrl.selectRole(role)"
                 style="margin-left:5px; background-color:{{roleCtrl.roleColor(role)}};">
               <a href="javascript:void(0);">{{role.category}}/{{role.name}}</a><br/>
             </span>
           </div>
+          <input type="text" size="10" data-ng-model="roleCtrl.newRoleCategory" />
+          <input type="text" size="10" data-ng-model="roleCtrl.newRoleName" />
+          <button type="button" class="btn btn-xs btn-primary" data-ng-click="roleCtrl.addNewRole()">Add</button>
         </div>
         <!-- Permitted Categories -->
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
           <label>Permitted Categories</label>
-          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+          <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top; margin-bottom:5px;">
             <span data-ng-repeat="cat in roleCtrl.categories" style="margin-left:5px;">
               <input type="checkbox" data-ng-model="cat.permitted" data-ng-click="roleCtrl.togglePermission(cat)"/>
               {{cat.category}}<br/>
             </span>
           </div>
+          <input type="text" size="10" data-ng-model="roleCtrl.newCategory" />
+          <button type="button" class="btn btn-xs btn-primary" data-ng-click="roleCtrl.addNewCategory()">Add</button>
         </div>
         <!-- Subategories -->
         <!--div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">

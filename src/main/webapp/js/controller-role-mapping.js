@@ -9,12 +9,14 @@
   self.roles = [];
   self.selectedRole = null;
 
-  $http.get('api/Role').then(
-    function(resp) {
-      self.roles = resp.data;
-      $log.log('Got ' + self.roles.length + ' roles');
-    }
-  )
+  self.getRoles = function() {
+    $http.get('api/Role').then(
+      function(resp) {
+        self.roles = resp.data;
+        $log.log('Got ' + self.roles.length + ' roles');
+      }
+    )
+  }
 
   self.selectRole = function(role) {
     $log.log('Called selectRole(' + role.category + '/' + role.name + ')');
@@ -49,5 +51,37 @@
       }
     )
   }
+
+  self.addNewRole = function() {
+    $log.log('Called addNewRole(' + self.newRoleCategory + '/' + self.newRoleName +')');
+    var postData = {category: self.newRoleCategory, name: self.newRoleName};
+    $http.post('api/Role', postData).then(
+      function(resp) {
+        self.newRoleCategory = '';
+        self.newRoleName = '';
+        self.getRoles();
+        $log.log('OK addNewRole(' + self.newRoleCategory + '/' + self.newRoleName +')');
+      },
+      function(resp) {
+        alert('ERROR POST api/Role ' + JSON.stringify(postData));
+      }
+    )
+  }
+
+  self.addNewCategory = function() {
+    $log.log('Called addNewCategory(' + self.newCategory +')');
+    var postData = {category: self.newCategory};
+    $http.post('api/DocumentCategory', postData).then(
+      function(resp) {
+        self.newCategory = '';
+        $log.log('OK addNewCategory(' + self.newCategory +')');
+      },
+      function(resp) {
+        alert('ERROR POST api/DocumentCategory ' + JSON.stringify(postData));
+      }
+    )
+  }
+
+  self.getRoles();
 
 }]);

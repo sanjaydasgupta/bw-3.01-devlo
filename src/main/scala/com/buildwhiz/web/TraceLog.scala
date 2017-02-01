@@ -13,7 +13,7 @@ import scala.collection.mutable
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def addSpaces(line: String): String = {
-    if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*"))
+    if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*") || line.split("%20").length > 2)
       line.replaceAll("&", "&amp; ").replaceAll("%20", " ")
     else
       line

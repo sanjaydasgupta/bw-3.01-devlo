@@ -26,7 +26,7 @@
     $log.log('MongodbCtrl: GET baf/MongoDBView' + query);
     $http.get('baf/MongoDBView' + query).then(
       function(resp) {
-        self.details = resp.data;
+        self.details = resp.data.map(function(d){return JSON.stringify(d, null, 1);});
         self.name = name;
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}

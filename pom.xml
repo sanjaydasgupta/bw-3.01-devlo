@@ -7,7 +7,7 @@
 	<packaging>war</packaging>
 
 	<properties>
-		<camunda.version>7.5.0</camunda.version>
+		<camunda.version>7.6.0</camunda.version>
 		<spring.version>3.1.2.RELEASE</spring.version>
 	</properties>
 
@@ -59,8 +59,8 @@
 
 		<dependency>
   			<groupId>org.slf4j</groupId>
-  			<artifactId>slf4j-log4j12</artifactId>
-  			<version>1.7.9</version>
+  			<artifactId>slf4j-jdk14</artifactId>
+  			<version>1.7.13</version>
 		</dependency>
 		
 		<dependency>

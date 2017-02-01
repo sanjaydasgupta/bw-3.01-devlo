@@ -1,6 +1,6 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.BWLogger
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
 class ArchiveProject extends JavaDelegate {

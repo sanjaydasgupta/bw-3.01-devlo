@@ -3,8 +3,8 @@ package com.buildwhiz.etc
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.{CryptoUtils, HttpUtils}
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import org.bson.Document
 
 import scala.collection.JavaConverters._

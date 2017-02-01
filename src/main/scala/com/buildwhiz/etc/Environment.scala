@@ -3,7 +3,7 @@ package com.buildwhiz.etc
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.api.RestUtils
-import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 
 class Environment extends HttpServlet with RestUtils {

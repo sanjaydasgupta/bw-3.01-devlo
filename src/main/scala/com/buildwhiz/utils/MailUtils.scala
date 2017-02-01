@@ -5,7 +5,7 @@ import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.infra.BWMongoDB3
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._

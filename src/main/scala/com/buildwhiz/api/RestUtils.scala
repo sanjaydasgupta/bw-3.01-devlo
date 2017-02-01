@@ -3,8 +3,8 @@ package com.buildwhiz.api
 import java.net.URI
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.HttpUtils
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 

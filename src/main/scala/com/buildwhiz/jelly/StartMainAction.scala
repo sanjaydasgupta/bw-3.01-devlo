@@ -1,7 +1,7 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.BWLogger
-import org.camunda.bpm.engine.delegate.{JavaDelegate, DelegateExecution}
+import com.buildwhiz.utils.BWLogger
+import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
 class StartMainAction extends JavaDelegate {
 

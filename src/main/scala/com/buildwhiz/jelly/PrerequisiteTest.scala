@@ -1,7 +1,8 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 

@@ -2,8 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWLogger
-import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 
 import scala.collection.mutable
 

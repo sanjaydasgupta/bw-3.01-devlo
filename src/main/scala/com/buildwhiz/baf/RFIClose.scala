@@ -2,9 +2,9 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
-import com.buildwhiz.utils.{DateTimeUtils, HttpUtils, MailUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._

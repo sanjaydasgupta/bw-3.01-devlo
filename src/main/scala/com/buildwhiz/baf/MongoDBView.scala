@@ -4,13 +4,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.HttpUtils
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 
 import scala.sys.process._
 import scala.languageFeature.{implicitConversions, postfixOps}
 import scala.collection.JavaConverters._
-
 import org.bson.Document
 
 class MongoDBView extends HttpServlet with HttpUtils {

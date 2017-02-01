@@ -4,8 +4,7 @@ import java.io.{File, FileOutputStream, InputStream}
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWLogger
-import com.buildwhiz.utils.HttpUtils
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 
 import scala.collection.JavaConverters._
 import scala.sys.process._

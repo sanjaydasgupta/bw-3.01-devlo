@@ -3,8 +3,8 @@ package com.buildwhiz.jelly
 import java.util.Calendar
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.{DateTimeUtils, MailUtils}
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, MailUtils}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 

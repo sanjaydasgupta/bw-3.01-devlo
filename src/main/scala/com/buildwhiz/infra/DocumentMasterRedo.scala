@@ -3,6 +3,8 @@ package com.buildwhiz.infra
 import org.bson.Document
 import org.bson.types.ObjectId
 import BWMongoDB3._
+import com.buildwhiz.utils.BWLogger
+
 import scala.collection.JavaConverters._
 
 object DocumentMasterRedo extends App {

@@ -4,8 +4,8 @@ import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._

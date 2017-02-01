@@ -3,7 +3,7 @@ package com.buildwhiz
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWLogger
+import com.buildwhiz.utils.BWLogger
 
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls

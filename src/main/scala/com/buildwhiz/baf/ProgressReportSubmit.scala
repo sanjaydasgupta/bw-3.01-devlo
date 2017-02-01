@@ -5,8 +5,8 @@ import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, Part}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.{HttpUtils, MailUtils}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec

@@ -7,7 +7,8 @@ import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.baf.OwnedProjects
 import com.buildwhiz.infra.AmazonS3
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{BWLogger, BWMongoDB3}
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 import org.bson.types.ObjectId
 

@@ -4,8 +4,8 @@ import java.io.InputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWLogger, BWMongoDB3}
-import com.buildwhiz.utils.HttpUtils
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._

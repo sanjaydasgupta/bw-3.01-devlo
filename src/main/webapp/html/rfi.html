@@ -1,5 +1,9 @@
 <div class="panel panel-primary">
-  <div class="panel-heading">RFI</div>
+  <div class="panel-heading">
+    <span style="font-weight:bold;">RFI</span>
+    <button class="btn btn-xs btn-warning pull-right" style="margin-left:5px;" data-ng-click="">Info</button>
+    <button class="btn btn-xs btn-info pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
+  </div>
 
   <div class="panel-body fixed-panel">
     <!-- Busy overlay -->
@@ -48,7 +52,7 @@
       <table width="100%">
         <tr><td width="100%" class="pull-right">
           <span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">Document: {{rfiCtrl.documentLabel(rfiCtrl.selectedMessage)}}</span>
-          <button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
+          <!--button data-ng-if="rfiCtrl.selectedMessage == null" class="btn btn-xs btn-warning pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button-->
           <!--label data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left" style="margin:0px;">Members: </label-->
           <!--span data-ng-if="rfiCtrl.selectedMessage != null" class="pull-left">{{rfiCtrl.selectedMessage.member_names.join(", ")}}</span-->
           <button data-ng-if="rfiCtrl.selectedMessage != null && rfiCtrl.selectedMessage.isOwn"

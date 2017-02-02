@@ -1,5 +1,6 @@
-package com.buildwhiz.infra
+package com.buildwhiz.infra.scripts
 
+import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 
 import scala.collection.JavaConverters._

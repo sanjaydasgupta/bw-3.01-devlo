@@ -1,5 +1,6 @@
-package com.buildwhiz.infra
+package com.buildwhiz.infra.scripts
 
+import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
@@ -34,6 +35,7 @@ object Project430RecordsRedo extends App {
   }
 
   private def createPhase(): ObjectId = {
+    BWLogger.log(getClass.getName, "createPhase()", s"CREATING phase '$defaultName'")
     println(s"CREATING phase '$defaultName'")
     val now = System.currentTimeMillis
     val defaultPhase: Document = Map("name" -> defaultName, "timestamps" -> Map("created" -> now, "start" -> now),
@@ -42,11 +44,13 @@ object Project430RecordsRedo extends App {
       "bpmn_timestamps" -> Seq.empty[Document])
     BWMongoDB3.phases.insertOne(defaultPhase)
     val thePhase: DynDoc = BWMongoDB3.phases.find(Map("name" -> defaultName)).asScala.head
+    BWLogger.log(getClass.getName, "createPhase()", s"INSERTED phase: $thePhase")
     println(s"INSERTED phase: $thePhase")
     thePhase._id[ObjectId]
   }
 
   private def createProject(): Unit = {
+    BWLogger.log(getClass.getName, "createProject()", "CREATING project '430 Forest'")
     println("CREATING project '430 Forest'")
     val phaseOid = createPhase()
     val now = System.currentTimeMillis
@@ -54,12 +58,15 @@ object Project430RecordsRedo extends App {
       "timestamps" -> Map("created" -> now, "start" -> now), "phase_ids" -> Seq(phaseOid).asJava,
       "status" -> "running", "admin_person_id" -> new ObjectId("56f124dfd5d8ad25b1325b3e"), "ver" -> "1.01")
     BWMongoDB3.projects.insertOne(forest430)
-    println(s"INSERTED project: ${BWMongoDB3.projects.find(Map("name" -> defaultName)).asScala.head}")
+    val msg = s"INSERTED project: ${BWMongoDB3.projects.find(Map("name" -> defaultName)).asScala.head}"
+    BWLogger.log(getClass.getName, "createProject()", msg)
+    println(msg)
   }
 
   BWMongoDB3.projects.find(Map("name" -> defaultName)).asScala.headOption match {
     case Some(project) => println(s"'$defaultName' EXISTS ($project)")
       if (args.nonEmpty && args(0).matches("init(ialize)?")) {
+        BWLogger.log(getClass.getName, "main()", "DELETING existing project")
         println("DELETING existing project")
         BWMongoDB3.projects.deleteOne(Map("name" -> defaultName))
         createProject()

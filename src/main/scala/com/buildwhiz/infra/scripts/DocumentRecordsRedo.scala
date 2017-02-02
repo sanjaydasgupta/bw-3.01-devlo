@@ -1,8 +1,10 @@
-package com.buildwhiz.infra
+package com.buildwhiz.infra.scripts
 
+import com.buildwhiz.infra.BWMongoDB3
+import BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
-import BWMongoDB3._
+
 import scala.collection.JavaConverters._
 
 object DocumentRecordsRedo extends App {

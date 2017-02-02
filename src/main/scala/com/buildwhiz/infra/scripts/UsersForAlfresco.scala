@@ -1,9 +1,11 @@
-package com.buildwhiz.infra
+package com.buildwhiz.infra.scripts
 
-import BWMongoDB3._
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.BWMongoDB3.{DocumentList, DynDoc}
+import org.bson.Document
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import org.bson.Document
 
 object UsersForAlfresco extends App {
 

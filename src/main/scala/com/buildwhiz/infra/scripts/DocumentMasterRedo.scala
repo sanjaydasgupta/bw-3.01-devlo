@@ -1,9 +1,9 @@
-package com.buildwhiz.infra
+package com.buildwhiz.infra.scripts
 
-import org.bson.Document
-import org.bson.types.ObjectId
+import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
+import org.bson.Document
 
 import scala.collection.JavaConverters._
 
@@ -43,7 +43,7 @@ object DocumentMasterRedo extends App {
 
   val documents: Seq[Document] = data.split("\n").map(d => Document.parse(d))
 
-  val deleteResult = BWMongoDB3.document_master.deleteMany(Map("project_id" -> project430ForestOid))
+  val deleteResult = BWMongoDB3.document_master.deleteMany(Map("project_id" -> BWMongoDB3.project430ForestOid))
   println(s"Deleted ${deleteResult.getDeletedCount} records")
   BWMongoDB3.document_master.insertMany(documents.asJava)
   val count = BWMongoDB3.document_master.count()

@@ -1,11 +1,12 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ViewDocumentsCtrl2", ['$log', '$http', 'AuthenticationService', '$window',
-      function ($log, $http, AuthService, $window) {
+.controller("ViewDocumentsCtrl2", ['$log', '$http', 'AuthenticationService', '$window', '$sce',
+      function ($log, $http, AuthService, $window, $sce) {
 
   var self = this;
 
   self.busy = false;
+  self.showInfo = false;
   self.displayMode = 'DOC';
 
   self.documentCategories = [];
@@ -34,6 +35,14 @@
   self.rfiAttachments = [];
 
   self.documentToDelete = null;
+
+  self.toggleInfoDisplay = function() {
+    self.showInfo = !self.showInfo;
+    $log.log('Calling toggleInfoDisplay: ' + self.showInfo);
+  }
+
+  self.infoText = $sce.trustAsHtml('The documents page allows you to find and download the information you need, ' +
+  'and to upload new versions of documents you create if applicable ... (Still under construction) ');
 
   self.busy = true;
   $http.get('api/ContentType').then(

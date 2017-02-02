@@ -1,11 +1,12 @@
 angular.module('BuildWhizApp')
 
-.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams',
-    function ($log, $http, AuthService, $window, $routeParams) {
+.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams', '$sce',
+    function ($log, $http, AuthService, $window, $routeParams, $sce) {
 
   var self = this;
 
   self.busy = false;
+  self.showInfo = false;
   self.subject = '';
   self.text = '';
   self.messages = [];
@@ -14,6 +15,13 @@ angular.module('BuildWhizApp')
   self.selectedMessage = null;
 
   self.rfiAttachments = [];
+
+  self.toggleInfoDisplay = function() {
+    self.showInfo = !self.showInfo;
+    $log.log('Calling toggleInfoDisplay: ' + self.showInfo);
+  }
+
+  self.infoText = $sce.trustAsHtml('RFIs may be initiated and RFI responses on this page ... (Still under construction) ');
 
   self.submitRFI = function() {
     var query = 'baf/RFIMessageSubmit';

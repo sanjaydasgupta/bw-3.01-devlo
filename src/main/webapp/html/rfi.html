@@ -1,7 +1,8 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
     <span style="font-weight:bold;">RFI</span>
-    <button class="btn btn-xs btn-warning pull-right" style="margin-left:5px;" data-ng-click="rfiCtrl.toggleInfoDisplay()">Info</button>
+    <button class="btn btn-xs btn-warning pull-right" style="margin-left:5px;" data-ng-click="rfiCtrl.toggleInfoDisplay()">
+      <span class="glyphicon glyphicon-info-sign"></span> Info</button>
     <button class="btn btn-xs btn-info pull-right" data-ng-click="rfiCtrl.refreshRfiList()">Refresh</button>
   </div>
 
@@ -14,7 +15,7 @@
     <div data-ng-if="rfiCtrl.showInfo" style="padding:5px 5px; margin-top:3px; border:2px solid DarkGreen; width:100% vertical-align:top;">
       <table width="100%">
         <tr><th style="background-color:DarkGreen; text-align:center; color:white;">Information</th></tr>
-        <tr><td data-ng-bind-html="rfiCtrl.infoText"></td></tr>
+        <tr><td><div data-ng-include="'info/rfi.html'" style="height:200px; max-height:200px; min-height:200px; overflow:auto;"></div></td></tr>
       </table>
     </div>
     <!-- RFI Messages Display -->

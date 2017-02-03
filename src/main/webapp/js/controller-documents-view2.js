@@ -41,9 +41,6 @@
     $log.log('Calling toggleInfoDisplay: ' + self.showInfo);
   }
 
-  self.infoText = $sce.trustAsHtml('The documents page allows you to find and download the information you need, ' +
-  'and to upload new versions of documents you create if applicable ... (Still under construction) ');
-
   self.busy = true;
   $http.get('api/ContentType').then(
     function(resp) {

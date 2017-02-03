@@ -21,8 +21,6 @@ angular.module('BuildWhizApp')
     $log.log('Calling toggleInfoDisplay: ' + self.showInfo);
   }
 
-  self.infoText = $sce.trustAsHtml('RFIs may be initiated and RFI responses on this page ... (Still under construction) ');
-
   self.submitRFI = function() {
     var query = 'baf/RFIMessageSubmit';
     var postData = {person_id: AuthService.data._id, text: self.text, rfi_id: self.selectedMessage._id};

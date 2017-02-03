@@ -31,9 +31,9 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/manageUsers', {
         templateUrl: 'html/manage-users.html',
         controller: 'ManageUsersCtrl as usersCtrl'
-    }).when('/information', {
-        templateUrl: 'html/information.html',
-        controller: 'InformationCtrl as infoCtrl'
+    }).when('/help', {
+        templateUrl: 'html/help.html',
+        controller: 'HelpCtrl as helpCtrl'
     }).when('/role-mapping', {
         templateUrl: 'html/role-mapping.html',
         controller: 'RoleCtrl as roleCtrl'

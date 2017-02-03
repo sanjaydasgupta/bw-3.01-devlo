@@ -15,11 +15,11 @@
     <div data-ng-if="rfiCtrl.showInfo" style="padding:5px 5px; margin-top:3px; border:2px solid DarkGreen; width:100% vertical-align:top;">
       <table width="100%">
         <tr><th style="background-color:DarkGreen; text-align:center; color:white;">Information</th></tr>
-        <tr><td><div data-ng-include="'info/rfi.html'" style="height:200px; max-height:200px; min-height:200px; overflow:auto;"></div></td></tr>
+        <tr><td><div data-ng-include="'info/rfi.html'" style="height:300px; max-height:300px; min-height:300px; overflow:auto;"></div></td></tr>
       </table>
     </div>
     <!-- RFI Messages Display -->
-    <div class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="!rfiCtrl.showInfo" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr data-ng-if="rfiCtrl.selectedMessage != null"><th style="background-color:#337ab7; text-align:center; color:white;">{{rfiCtrl.selectedMessage.subject}}</th></tr>
         <tr data-ng-if="rfiCtrl.selectedMessage == null"><th style="background-color:#337ab7; text-align:center; color:white;">Found {{rfiCtrl.messages.length}} RFIs</th></tr>
@@ -72,7 +72,7 @@
       </table>
     </div>
     <!-- New RFI Message -->
-    <div data-ng-if="rfiCtrl.selectedMessage != null && rfiCtrl.selectedMessage.status != 'closed'"
+    <div data-ng-if="!rfiCtrl.showInfo && rfiCtrl.selectedMessage != null && rfiCtrl.selectedMessage.status != 'closed'"
          class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">

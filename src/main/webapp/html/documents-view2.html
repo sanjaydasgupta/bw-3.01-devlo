@@ -14,11 +14,11 @@
     <div data-ng-if="viewDocsCtrl2.showInfo" style="padding:5px 5px; margin-top:3px; border:2px solid DarkGreen; width:100% vertical-align:top;">
       <table style="width:100%;">
         <tr><th style="background-color:DarkGreen; text-align:center; color:white;">Information</th></tr>
-        <tr><td><div data-ng-include="'info/documents-view.html'" style="height:200px; max-height:200px; min-height:200px; overflow:auto;"></div></td></tr>
+        <tr><td><div data-ng-include="'info/documents-view.html'" style="height:300px; max-height:300px; min-height:300px; overflow:auto;"></div></td></tr>
       </table>
     </div>
     <!-- Search -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'DOC'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'DOC'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr><th style="background-color:#337ab7; text-align:center; color:white;">Document Search</th></tr>
@@ -95,7 +95,7 @@
       </div>
     </div>
     <!-- Found Documents Table (displayed conditionally) -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'DOC' && viewDocsCtrl2.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'DOC' && viewDocsCtrl2.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{viewDocsCtrl2.documents.length}})</th></tr>
       </table>
@@ -121,7 +121,7 @@
       </div>
     </div>
     <!-- RFI Header -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr>
@@ -131,7 +131,7 @@
       </div>
     </div>
     <!-- RFI Table -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI' &&  viewDocsCtrl2.rfiList.length > 0"
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'RFI' &&  viewDocsCtrl2.rfiList.length > 0"
          class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <table width="100%">
         <tr data-ng-if="viewDocsCtrl2.selectedRfi != null"><th style="background-color:#337ab7; text-align:center; color:white;">{{viewDocsCtrl2.selectedRfi.subject}}</th></tr>
@@ -172,7 +172,7 @@
       </table>
     </div>
     <!-- New-RFI or Response Table -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'RFI'"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr data-ng-if="viewDocsCtrl2.selectedRfi != null"><th style="background-color:#337ab7; text-align:center; color:white;">Respond to '{{viewDocsCtrl2.selectedRfi.subject}}'</th></tr>
@@ -199,7 +199,7 @@
       </div>
     </div>
     <!-- Delete Document -->
-    <div data-ng-if="viewDocsCtrl2.documentToDelete != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid red; width:100% vertical-align:top;">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToDelete != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid red; width:100% vertical-align:top;">
       <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.deleteDocumentConfirmed()">Delete</button>
       <button class="btn btn-xs btn-info pull-left" data-ng-click="viewDocsCtrl2.documentToDelete = null">Cancel</button>
       <span class="center-block" style="margin:0px; text-align:center;">Delete {{viewDocsCtrl2.documentToDelete.category}} / {{viewDocsCtrl2.documentToDelete.subcategory}}
@@ -207,7 +207,7 @@
           / {{viewDocsCtrl2.documentToDelete.comments}}?</span>
     </div>
     <!-- Return Button -->
-    <div data-ng-if="viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.displayMode == 'RFI'" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
       <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
         <table width="100%">
           <tr>

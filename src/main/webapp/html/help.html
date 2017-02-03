@@ -1,7 +1,16 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    Help {{helpCtrl.projectName}}
+    <span style="font-weight:bold;">Help</span>
   </div>
 
+  <div class="panel-body fixed-panel container-fluid" style="padding:5px">
+    <div style="height:300px; max-height:300px; min-height:300px; overflow:auto;">
+<h3>Working with Documents</h3>
+      <span data-ng-include="'info/documents-view.html'"></span>
+<h3>Working with RFIs</h3>
+      <span data-ng-include="'info/rfi.html'"></span>
+<h3>Your Profile</h3>
+    </div>
+  </div>
 </div>
 

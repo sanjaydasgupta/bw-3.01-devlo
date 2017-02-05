@@ -19,6 +19,9 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/rfi', {
         templateUrl: 'html/rfi.html',
         controller: 'RFICtrl as rfiCtrl'
+    }).when('/status-update', {
+        templateUrl: 'html/status-update.html',
+        controller: 'StatusUpdateCtrl as statusCtrl'
     }).when('/userProfile', {
         templateUrl: 'html/userProfile.html',
         controller: 'UserProfileCtrl as profileCtrl'

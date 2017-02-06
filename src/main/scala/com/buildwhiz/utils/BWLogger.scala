@@ -67,7 +67,7 @@ object BWLogger extends HttpUtils {
       val referrer = if (request.getHeaderNames.asScala.contains("referer")) request.getHeader("referer") else "(none)"
       val commonPrefix = url.toList.zip(referrer.toList).takeWhile(p => p._1 == p._2)
       val refPage = referrer.substring(commonPrefix.length)
-      val path = request.getServletPath
+      val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
       val query = request.getQueryString
       log(className, methodName,
         s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp referrer=$refPage""",

@@ -15,7 +15,8 @@ class DocumentCategory extends HttpServlet with RestUtils {
     val user: DynDoc = getUser(request)
     val rawRoles: Seq[String] = user.roles[Many[String]].asScala
     if (rawRoles.mkString("|").matches(".*BW-(Data-)?Admin.*")) {
-      val allCategories: Seq[Document] = BWMongoDB3.document_category_master.find().asScala.toSeq
+      val allCategories: Seq[Document] = BWMongoDB3.document_category_master.find().asScala.toSeq.
+        sortBy(_.get("category").asInstanceOf[String])
       response.getWriter.println(allCategories.map(bson2json).mkString("[", ", ", "]"))
     } else {
       val roles = rawRoles.filter(r => r.split(":").length == 2 && r.split(":").count(_.length > 2) == 2)
@@ -30,8 +31,8 @@ class DocumentCategory extends HttpServlet with RestUtils {
         println(s"**** permittedCategoryOids: $permittedCategoryOids ****")
         val permittedCategoryRecs: Seq[DynDoc] = BWMongoDB3.document_category_master.
           find(Map("_id" -> Map("$in" -> permittedCategoryOids))).asScala.toSeq
-        permittedCategoryRecs.sortBy(_.category[String]).map(_.asDoc)
-      }).distinct
+        permittedCategoryRecs.map(_.asDoc)
+      }).distinct.sortBy(_.get("category").asInstanceOf[String])
       response.getWriter.println(categories.map(bson2json).mkString("[", ", ", "]"))
     }
     response.setContentType("application/json")

@@ -17,7 +17,7 @@
               <span class="badge">{{homeCtrl.rfiStatus}}</span>
           </p></a>
           <a href="#/status-update"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
-            <span class="glyphicon glyphicon-question-sign"></span> Status Update
+            <span class="glyphicon glyphicon-upload"></span> Status Update
           </p></a>
           <a href="#/userProfile"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-user"></span> Profile
@@ -26,9 +26,7 @@
             <span class="glyphicon glyphicon-info-sign"></span> Help
               <!--span class="badge">{{homeCtrl.rfiList.length}}</span-->
           </p></a>
-          <p style="padding: 5px; margin-bottom:5px;">
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          </p>
+          <hr style="margin:10px;" />
           <a href="javascript:void(0)" data-ng-click="homeCtrl.logout()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:mistyrose;">
             <span class="glyphicon glyphicon-log-out"></span> Logout
           </p></a>
@@ -45,6 +43,9 @@
           <p>
             RFIs may be initiated and RFI responses viewed by clicking <span class="badge">RFI</span> in the left margin.
             The two numbers in the blurb are (a) count of unread messages, and (b) total messages respectively.
+          </p>
+          <p>
+            The <span class="badge">Status Update</span> page enables you to report progress and file submittals.
           </p>
           <p>
             To change your password or other personal information click on <span class="badge">Profile</span> in the

@@ -33,30 +33,34 @@ trait MailUtils {
 
       val allowedRecs: Seq[DynDoc] = BWMongoDB3.persons.
         find(Map("_id" -> Map("$in" -> recipientOids), "email_enabled" -> true)).asScala.toSeq
-      val allowedOids = allowedRecs.map(_._id[ObjectId])
 
-      val message = new MimeMessage(session)
-      message.setFrom(new InternetAddress(username))
-      val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> allowedOids))).asScala.toSeq
-      val emails = persons.map(_.emails[DocumentList].find(_.`type`[String] == "work").head.email[String])
-      //val names = persons.map(person => (person.first_name[String], person.last_name[String]))
-      //val emailParts = username.split('@')
-      val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))
-      message.setRecipients(Message.RecipientType.TO, recipients.toArray)
-      message.setSubject(subject)
-      val multipart = new MimeMultipart("alternative")
-      val textPart = new MimeBodyPart()
-      val bodyText = body + (if (body.endsWith("\n")) "" else "\n") + emailSignature
-      textPart.setText(bodyText, "utf-8")
-      multipart.addBodyPart(textPart)
-      val htmlPart = new MimeBodyPart()
-      val bodyHtml = s"""<span>${bodyText.replaceAll("\n", "<br/>")}</span>"""
-      htmlPart.setContent(bodyHtml, "text/html; charset=utf-8")
-      multipart.addBodyPart(htmlPart)
-      message.setContent(multipart)
-      message.saveChanges()
-      Transport.send(message)
-      BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK")
+      if (allowedRecs.nonEmpty) {
+        val allowedOids = allowedRecs.map(_._id[ObjectId])
+        val message = new MimeMessage(session)
+        message.setFrom(new InternetAddress(username))
+        val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> allowedOids))).asScala.toSeq
+        val emails = persons.map(_.emails[DocumentList].find(_.`type`[String] == "work").head.email[String])
+        //val names = persons.map(person => (person.first_name[String], person.last_name[String]))
+        //val emailParts = username.split('@')
+        val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))
+        message.setRecipients(Message.RecipientType.TO, recipients.toArray)
+        message.setSubject(subject)
+        val multipart = new MimeMultipart("alternative")
+        val textPart = new MimeBodyPart()
+        val bodyText = body + (if (body.endsWith("\n")) "" else "\n") + emailSignature
+        textPart.setText(bodyText, "utf-8")
+        multipart.addBodyPart(textPart)
+        val htmlPart = new MimeBodyPart()
+        val bodyHtml = s"""<span>${bodyText.replaceAll("\n", "<br/>")}</span>"""
+        htmlPart.setContent(bodyHtml, "text/html; charset=utf-8")
+        multipart.addBodyPart(htmlPart)
+        message.setContent(multipart)
+        message.saveChanges()
+        Transport.send(message)
+        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (${recipients.length} recipients)")
+      } else {
+        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (NO RECIPIENTS)")
+      }
     } onComplete {
       case Failure(t: Throwable) =>
         BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")

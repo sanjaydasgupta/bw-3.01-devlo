@@ -42,16 +42,11 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
             parameters.get("description"), project430ForestOid)
         }
         val inputStream = part.getInputStream
-        val result = storeAmazonS3(inputStream, project430ForestOid.toString, documentOid, timestamp)
         val comments = if (parameters.contains("comments")) parameters("comments") else "-"
         val authorOid = new ObjectId(parameters("author_person_id"))
-        val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
-          "file_name" -> fileName)
-        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid),
-          Map("$push" -> Map("versions" -> versionRecord)))
+        storeAmazonS3(fileName, inputStream, project430ForestOid.toString, documentOid, timestamp, comments,
+          authorOid, request)
         storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp, "file_name" -> fileName))
-        if (updateResult.getModifiedCount == 0)
-          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
       response.getWriter.print(storageResults.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
@@ -81,10 +76,11 @@ object DocumentPreload {
     newDocument.getObjectId("_id")
   }
 
-  def storeAmazonS3(is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long): (String, Long) = {
-    BWLogger.log(getClass.getName, "storeAmazonS3", "ENTRY")
-    val fileName = f"$projectId-$documentOid-$timestamp%x"
-    val file = new File(fileName)
+  def storeAmazonS3(fileName: String, is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long,
+      comments: String, authorOid: ObjectId, request: HttpServletRequest): (String, Long) = {
+    BWLogger.log(getClass.getName, "storeAmazonS3", "ENTRY", request)
+    val s3key = f"$projectId-$documentOid-$timestamp%x"
+    val file = new File(s3key)
     var fileLength = 0L
     try {
       val outFile = new FileOutputStream(file)
@@ -100,16 +96,22 @@ object DocumentPreload {
         }
       }
       fileLength = handleBlock()
-      AmazonS3.putObject(fileName, file)
-      BWLogger.log(getClass.getName, s"storeAmazonS3 ($fileLength)", "EXIT-OK")
+      AmazonS3.putObject(s3key, file)
+      val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
+        "file_name" -> fileName)
+      val updateResult = BWMongoDB3.document_master.
+        updateOne(Map("_id" -> documentOid), Map("$push" -> Map("versions" -> versionRecord)))
+      if (updateResult.getModifiedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      BWLogger.log(getClass.getName, s"storeAmazonS3 ($fileLength)", "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "storeAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "storeAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }
     try {file.delete()} catch {case _: Throwable => /* No recovery */}
-    (fileName, fileLength)
+    (s3key, fileLength)
   }
 
 }

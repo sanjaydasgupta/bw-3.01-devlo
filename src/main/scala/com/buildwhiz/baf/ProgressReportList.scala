@@ -4,33 +4,37 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class ProgressReportList extends HttpServlet with HttpUtils {
+class ProgressReportList extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
-      val isAdmin = person.roles[Many[String]].asScala.contains("BW-Admin")
+      val timezone = parameters("timezone")
+      val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
+      val isAdmin = user.roles[Many[String]].asScala.contains("BW-Admin")
       val userUpdateRecords: Seq[DynDoc] = BWMongoDB3.user_updates.
         find(if (isAdmin) Map.empty[String, AnyRef] else Map("person_id" -> personOid)).asScala.toSeq
       val outputRecords = userUpdateRecords.map(rec => {
+        val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> rec.person_id[ObjectId])).asScala.head
+        rec.full_name = s"${author.first_name[String]} ${author.last_name[String]}"
+        rec.date_time = dateTimeString(rec.timestamp[Long], Some(timezone))
         val docOids: Seq[ObjectId] = rec.attachments[ObjectIdList].asScala
-        val docRecs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("_id" -> Map("$in" -> docOids))).asScala.toSeq
-        val versions: Seq[DynDoc] = docRecs.map(_.versions[DocumentList].get(0)) // Only 1 version expected
-        val fileNames = versions.map(_.file_name[String])
-        rec.file_names = fileNames
-        val timestamps = versions.map(_.timestamp[Long])
-        rec.links = docOids.indices.map(i => {
-          s"baf/DocumentVersionDownload/${fileNames(i)}?document_master_id=${docOids(i)}&timestamp=${timestamps(i)}"
+        rec.links = docOids.map(docOid => {
+          val docRec: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docOid)).asScala.head
+          val version: DynDoc = docRec.versions[DocumentList].get(0)
+          val fileName = version.file_name[String]
+          val timestamp = version.timestamp[Long]
+          val url = s"baf/DocumentVersionDownload/$fileName?document_master_id=$docOid&timestamp=$timestamp"
+          new Document(Map("file_name" -> fileName, "url" -> url))
         })
-        rec.remove("versions")
         rec
       })
       response.getWriter.println(outputRecords.map(b => bson2json(b.asDoc)).mkString("[", ", ", "]"))

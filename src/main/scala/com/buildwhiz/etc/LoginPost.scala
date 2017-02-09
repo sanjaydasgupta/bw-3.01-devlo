@@ -50,6 +50,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", request)
       } else if (request.getSession.getAttribute("bw-user") != null) {
         request.getSession.removeAttribute("bw-user")
+        request.getSession.invalidate()
         BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log OUT", request)
       } else {
         val result = """{"_id": "", "first_name": "", "last_name": ""}"""

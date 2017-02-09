@@ -12,16 +12,27 @@
           <table class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Collections</th></tr>
             <tr data-ng-repeat="collection in mongoCtrl.collections">
-              <td data-ng-click="mongoCtrl.displayCollection(collection.name)" class="cursor: pointer;">
-                  <a href="javascript:void(0);">{{collection.name}}</a> <span class="badge">{{collection.count}}</span>
+              <td class="cursor: pointer;">
+                <a href="javascript:void(0);" data-ng-click="mongoCtrl.displayCollection(collection.name)">{{collection.name}}</a>
+                <span class="badge">{{collection.count}}</span>
+                <a href="javascript:void(0);" data-ng-click="mongoCtrl.displaySchema(collection.name)">[schema]</a>
               </td>
             </tr>
           </table>
         </div>
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
-          <table class="table table-condensed table-bordered" data-ng-if="mongoCtrl.details.length > 0">
+          <table data-ng-if="!mongoCtrl.displayingSchema" class="table table-condensed table-bordered">
             <tr><th class="bg-primary text-center">{{mongoCtrl.name}}</th></tr>
             <tr data-ng-repeat="detail in mongoCtrl.details"><td>{{detail}}</td></tr>
+          </table>
+          <table data-ng-if="mongoCtrl.displayingSchema" class="table table-condensed table-bordered">
+            <tr><th class="bg-primary text-center" colspan="3">Schema: {{mongoCtrl.name}}</th></tr>
+            <tr style="background-color:#66ccff; text-align:center; font-weight:bold;">
+              <td width="20%">Field Name</td><td width="75%">Type</td><td width="5%">Occurrences</td>
+            </tr>
+            <tr data-ng-repeat="detail in mongoCtrl.details">
+              <td>{{detail[0]}}</td><td>{{detail[1]}}</td><td>{{detail[2]}}</td>
+            </tr>
           </table>
         </div>
       </div>

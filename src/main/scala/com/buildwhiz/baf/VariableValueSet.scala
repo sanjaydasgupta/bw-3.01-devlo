@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -17,7 +18,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
-      val variables: Seq[DynDoc] = thePhase.variables[DocumentList]
+      val variables: Seq[DynDoc] = thePhase.variables[Many[Document]]
       val label = parameters("label")
       val bpmnName = parameters("bpmn_name")
       val labelsAndBpmnNames: Seq[(String, String)] = variables.map(v => (v.label[String], v.bpmn_name[String]))

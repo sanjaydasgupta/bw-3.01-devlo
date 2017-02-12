@@ -6,6 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -66,7 +67,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       val rfiText = parameters("rfi_text")
       val documentOid = if (isRequest) rfiRequestOid else rfiResponseOid
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
-      val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
+      val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionIndex = actionNames.indexOf(actionName)
       storeDocumentAmazonS3(rfiText, projectOid.toString, documentOid.toString, documentTimestamp)
       BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
@@ -74,7 +75,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
           "action_name" -> actionName, "timestamp" -> documentTimestamp))))
       BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
         Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
-      val theAction: DynDoc = theActivity.actions[DocumentList].get(actionIndex)
+      val theAction: DynDoc = theActivity.actions[Many[Document]].get(actionIndex)
       saveAndSendMail(projectOid, activityOid, theAction, isRequest)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

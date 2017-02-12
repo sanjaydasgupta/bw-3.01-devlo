@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -12,9 +13,9 @@ import scala.collection.JavaConverters._
 class OwnedPhases extends HttpServlet with HttpUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
-    val activityOids = phase.activity_ids[ObjectIdList]
+    val activityOids = phase.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
-    activities.flatMap(_.actions[DocumentList])
+    activities.flatMap(_.actions[Many[Document]])
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -26,7 +27,7 @@ class OwnedPhases extends HttpServlet with HttpUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
       val projectIsPublic = (project has "public") && project.public[Boolean]
-      val phaseOids = project.phase_ids[ObjectIdList]
+      val phaseOids = project.phase_ids[Many[ObjectId]]
       val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
       val phases = if (projectIsPublic || project.admin_person_id[ObjectId] == personOid) allPhases else
         allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
@@ -49,12 +50,12 @@ object OwnedPhases {
 
   def processPhase(phase: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> phase.activity_ids[ObjectIdList]))).asScala.toSeq
-    val isRelevant = activities.flatMap(_.actions[DocumentList]).
+      find(Map("_id" -> Map("$in" -> phase.activity_ids[Many[ObjectId]]))).asScala.toSeq
+    val isRelevant = activities.flatMap(_.actions[Many[Document]]).
       exists(_.assignee_person_id[ObjectId] == personOid)
     phase.is_managed = phase.admin_person_id[ObjectId] == personOid
     phase.is_relevant = isRelevant || phase.is_managed[Boolean]
-    val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
+    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
       phase.display_status = "waiting"
     else if (actions.exists(action => action.status[String] == "waiting"))

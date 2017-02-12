@@ -13,11 +13,11 @@ import scala.collection.mutable
 
 class OwnedActionsAll extends HttpServlet with HttpUtils {
 
-  private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
+  private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): Many[Document] = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
-        project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+        project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > createdAfter)
       } else {
         false
@@ -44,18 +44,18 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val projectOids: ObjectIdList = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[ObjectIdList]
+      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val allActions = mutable.Buffer.empty[DynDoc]
       for (project <- projects) {
-        val phaseOids = project.phase_ids[ObjectIdList]
+        val phaseOids = project.phase_ids[Many[ObjectId]]
         val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
         for (phase <- phases) {
-          val activityOids = phase.activity_ids[ObjectIdList]
+          val activityOids = phase.activity_ids[Many[ObjectId]]
           val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
           for (activity <- activities) {
-            val actions: Seq[DynDoc] = activity.actions[DocumentList]
+            val actions: Seq[DynDoc] = activity.actions[Many[Document]]
             val relevantActions = actions.filter(action => action.assignee_person_id[ObjectId] == personOid ||
               phase.admin_person_id[ObjectId] == personOid)
             for (action <- relevantActions) {
@@ -78,12 +78,12 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
               action.is_relevant = isRelevant
               if (isRelevant) {
                 val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-                action.inDocuments = docList(project, action.inbox[ObjectIdList].asScala, p0)
+                action.inDocuments = docList(project, action.inbox[Many[ObjectId]].asScala, p0)
                 val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
                 val outDocumentsOids: Seq[ObjectId] =
                   if (assigneeIsUser) {
-                    rfiRequestOid +: action.outbox[ObjectIdList].asScala
-                  } else if (phaseManagerIsUser && action.inbox[ObjectIdList].contains(rfiRequestOid)) {
+                    rfiRequestOid +: action.outbox[Many[ObjectId]].asScala
+                  } else if (phaseManagerIsUser && action.inbox[Many[ObjectId]].contains(rfiRequestOid)) {
                     Seq(rfiResponseOid)
                   } else
                     Nil

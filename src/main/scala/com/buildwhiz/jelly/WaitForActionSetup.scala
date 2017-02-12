@@ -5,6 +5,7 @@ import java.util.Calendar
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
@@ -42,7 +43,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
     try {
       val activityQuery = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
       val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
-      val actions: Seq[DynDoc] = activity.actions[DocumentList]
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionNames: Seq[String] = actions.map(_.name[String])
       val actionName = de.getVariable("action_name").asInstanceOf[String]
       actionNames.indexOf(actionName) match {

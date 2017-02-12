@@ -56,7 +56,7 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
           case (_, "running") => "running"
           case _ => b
         })
-      val actions: Seq[DynDoc] = myActivities.flatMap(_.actions[DocumentList])
+      val actions: Seq[DynDoc] = myActivities.flatMap(_.actions[Many[Document]])
       if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
         p._2.display_status = "waiting"
       else if (actions.exists(action => action.status[String] == "waiting"))
@@ -76,10 +76,10 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
-      val activityOids = phase.activity_ids[ObjectIdList]
+      val activityOids = phase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.
         toSeq.map(a => OwnedProcesses.processActivity(a, personOid))
-      val processes = createProcesses(activities, phase.variables[DocumentList], phase.timers[DocumentList], personOid)
+      val processes = createProcesses(activities, phase.variables[Many[Document]], phase.timers[Many[Document]], personOid)
       writer.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -97,7 +97,7 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
 object OwnedProcesses {
 
   def processActivity(activity: DynDoc, personOid: ObjectId): DynDoc = {
-    activity.is_relevant = activity.actions[DocumentList].exists(_.assignee_person_id[ObjectId] == personOid)
+    activity.is_relevant = activity.actions[Many[Document]].exists(_.assignee_person_id[ObjectId] == personOid)
     activity
   }
 

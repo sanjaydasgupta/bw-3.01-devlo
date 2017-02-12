@@ -1,7 +1,7 @@
 package com.buildwhiz.infra.scripts
 
 import com.buildwhiz.infra.BWMongoDB3
-import com.buildwhiz.infra.BWMongoDB3.{DocumentList, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3.{DynDoc, Many}
 import org.bson.Document
 
 import scala.collection.JavaConverters._
@@ -17,7 +17,7 @@ object UsersForAlfresco extends App {
   val persons: Seq[DynDoc] = BWMongoDB3.persons.find().asScala.toSeq
   for (person <- persons) {
     val buffer = mutable.Buffer.empty[String]
-    val emails: Seq[DynDoc] = person.emails[DocumentList]
+    val emails: Seq[DynDoc] = person.emails[Many[Document]]
     buffer += emails.filter(_.`type`[String] == "work").head.email[String]
     buffer += person.first_name[String]
     buffer += person.last_name[String]
@@ -27,7 +27,7 @@ object UsersForAlfresco extends App {
     buffer += person.company[String]
     buffer += person.title[String]
     buffer += "" // location
-    val phones: Seq[DynDoc] = person.phones[DocumentList]
+    val phones: Seq[DynDoc] = person.phones[Many[Document]]
     buffer += (phones.find(_.`type`[String] == "work") match {
       case Some(p) => p.phone[String]
       case None => ""

@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -28,7 +29,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Bad duration format")
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
-      val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
+      val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionName = parameters("action_name")
       val actionIdx = actionNames.indexOf(actionName)
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),

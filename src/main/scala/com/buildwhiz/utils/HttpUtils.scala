@@ -30,7 +30,7 @@ trait HttpUtils {
       case d: Document => bson2json(d)
       case seq: Seq[_] => seq.map(e => obj2str(e)).mkString("[", ", ", "]")
       //case ms: mutable.Seq[_] => ms.map(e => obj2str(e)).mkString("[", ", ", "]")
-      case jList: ManyThings => jList.asScala.map(e => obj2str(e)).mkString("[", ", ", "]")
+      case jList: Many[_] => jList.asScala.map(e => obj2str(e)).mkString("[", ", ", "]")
       case _ => obj.toString
     }
     document.asScala.toSeq.map(kv => s""""${kv._1}": ${obj2str(kv._2)}""").mkString("{", ", ", "}").replaceAll("\n", " ")

@@ -6,6 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
@@ -87,12 +88,12 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
       // Add document to action's inbox
       if (activityOid.isDefined && actionName.isDefined) {
         val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid.get)).asScala.head
-        val actionNames: Seq[String] = theActivity.actions[DocumentList].map(_.name[String])
+        val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
         val actionIndex = actionNames.indexOf(actionName.get)
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid.get),
           Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
         if (documentOid == rfiRequestOid || documentOid == rfiResponseOid) {
-          saveAndSendMail(projectOid, activityOid.get, theActivity.actions[DocumentList].get(actionIndex), documentOid)
+          saveAndSendMail(projectOid, activityOid.get, theActivity.actions[Many[Document]].get(actionIndex), documentOid)
         }
       }
       if (projectsUpdateResult.getModifiedCount == 0)

@@ -26,10 +26,10 @@ class ProgressReportList extends HttpServlet with HttpUtils with DateTimeUtils {
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> rec.person_id[ObjectId])).asScala.head
         rec.full_name = s"${author.first_name[String]} ${author.last_name[String]}"
         rec.date_time = dateTimeString(rec.timestamp[Long], Some(timezone))
-        val docOids: Seq[ObjectId] = rec.attachments[ObjectIdList].asScala
+        val docOids: Seq[ObjectId] = rec.attachments[Many[ObjectId]].asScala
         rec.links = docOids.map(docOid => {
           val docRec: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docOid)).asScala.head
-          val version: DynDoc = docRec.versions[DocumentList].get(0)
+          val version: DynDoc = docRec.versions[Many[Document]].get(0)
           val fileName = version.file_name[String]
           val timestamp = version.timestamp[Long]
           val url = s"baf/DocumentVersionDownload/$fileName?document_master_id=$docOid&timestamp=$timestamp"

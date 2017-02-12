@@ -3,6 +3,7 @@ package com.buildwhiz.jelly
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -15,7 +16,7 @@ class PrerequisiteTest extends JavaDelegate {
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
       val activity: DynDoc = BWMongoDB3.activities.find(query).asScala.head
-      val actions: Seq[DynDoc] = activity.actions[DocumentList]
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionsWithIndex = actions.zipWithIndex
       val actionName = de.getVariable("action_name")
       actionsWithIndex.find(a => a._1.name[String] == actionName && a._1.`type`[String] == "prerequisite").

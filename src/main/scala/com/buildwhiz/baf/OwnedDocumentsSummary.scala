@@ -13,11 +13,11 @@ import scala.collection.mutable
 
 class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
 
-  private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): DocumentList = {
+  private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): Many[Document] = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
-        project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+        project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > startTime)
       } else {
         false
@@ -43,9 +43,9 @@ class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
     viewAction.activity_description = activity.description[String]
     viewAction.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
     val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-    viewAction.in_documents = docList(project, action.inbox[ObjectIdList].asScala, p0)
+    viewAction.in_documents = docList(project, action.inbox[Many[ObjectId]].asScala, p0)
     val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-    val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[ObjectIdList].asScala
+    val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[Many[ObjectId]].asScala
     val outDocs = docList(project, outDocumentsOids, t0)
     viewAction.out_documents = outDocs
     viewAction.is_ready = (action.`type`[String] == "review") ||
@@ -61,7 +61,7 @@ class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val filterKey = parameters("filter_key")
-      val projectOids: ObjectIdList = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[ObjectIdList]
+      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val allDocuments = mutable.Buffer.empty[DynDoc]

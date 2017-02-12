@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -30,7 +31,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
           }.toMap
       val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
       val recsWithLinks = docMasterRecords.map(docMaster => {
-        val versions: Seq[DynDoc] = docMaster.versions[DocumentList]
+        val versions: Seq[DynDoc] = docMaster.versions[Many[Document]]
         if (versions.nonEmpty) {
           val latestVersion: DynDoc = versions.last
           val timestamp = latestVersion.timestamp[Long]

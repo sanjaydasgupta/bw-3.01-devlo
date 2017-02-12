@@ -5,6 +5,7 @@ import java.util
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -17,7 +18,7 @@ class StartRectification extends JavaDelegate {
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
       val activity: DynDoc = BWMongoDB3.activities.find(query).asScala.head
-      val actions: Seq[DynDoc] = activity.actions[DocumentList]
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
 
       val failedReviewNames: Seq[String] = actions.filter(_.`type`[String] == "review").
         filterNot(_.review_ok[Boolean]).map(_.name[String])

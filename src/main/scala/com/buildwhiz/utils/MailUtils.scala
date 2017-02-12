@@ -6,6 +6,7 @@ import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMult
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -39,7 +40,7 @@ trait MailUtils {
         val message = new MimeMessage(session)
         message.setFrom(new InternetAddress(username))
         val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map("$in" -> allowedOids))).asScala.toSeq
-        val emails = persons.map(_.emails[DocumentList].find(_.`type`[String] == "work").head.email[String])
+        val emails = persons.map(_.emails[Many[Document]].find(_.`type`[String] == "work").head.email[String])
         //val names = persons.map(person => (person.first_name[String], person.last_name[String]))
         //val emailParts = username.split('@')
         val recipients: Seq[Address] = emails.flatMap(email => InternetAddress.parse(email))

@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
@@ -18,7 +19,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
     try {
       val activityQuery = Map("_id" -> new ObjectId(parameters("activity_id")))
       val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
-      val actions: Seq[DynDoc] = activity.actions[DocumentList]
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionsWithIndex = actions.zipWithIndex
       val actionName = parameters("action_name")
       actionsWithIndex.find(_._1.name[String] == actionName) match {
@@ -44,17 +45,17 @@ class ActionComplete extends HttpServlet with HttpUtils {
             throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
           val theActivity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
-          val allActionsComplete = theActivity.actions[DocumentList].forall(_.status[String] == "ended")
+          val allActionsComplete = theActivity.actions[Many[Document]].forall(_.status[String] == "ended")
 
           Thread.sleep(500)
 
           val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> theActivity._id[ObjectId])).asScala.head
           val bpmnName = theActivity.bpmn_name[String]
-          val allActivitiesComplete = thePhase.bpmn_timestamps[DocumentList].
+          val allActivitiesComplete = thePhase.bpmn_timestamps[Many[Document]].
             exists(bts => bts.name[String] == bpmnName && bts.event[String] == "end")
 
           val topBpmnName = thePhase.bpmn_name[String]
-          val allProcessesComplete = thePhase.bpmn_timestamps[DocumentList].
+          val allProcessesComplete = thePhase.bpmn_timestamps[Many[Document]].
             exists(bts => bts.name[String] == topBpmnName && bts.event[String] == "end")
 
           if (this != ActionComplete) {

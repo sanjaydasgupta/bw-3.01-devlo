@@ -3,6 +3,7 @@ package com.buildwhiz.jelly
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -36,10 +37,10 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
     try {
       val activityOid = new ObjectId(de.getVariable("activity_id").asInstanceOf[String])
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
-      val actions: Seq[DynDoc] = theActivity.actions[DocumentList]
+      val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
       val reviewActions: Seq[DynDoc] = actions.filter(_.`type`[String] == "review")
       // Copy review documents to main action's inbox
-      val reviewDocOids: ObjectIdList = reviewActions.flatMap(_.outbox[ObjectIdList].asScala).asJava
+      val reviewDocOids: Many[ObjectId] = reviewActions.flatMap(_.outbox[Many[ObjectId]].asScala).asJava
       val mainActionIdx: Int = actions.map(_.`type`[String]).indexOf("main")
       for (oid <- reviewDocOids.asScala) {
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),

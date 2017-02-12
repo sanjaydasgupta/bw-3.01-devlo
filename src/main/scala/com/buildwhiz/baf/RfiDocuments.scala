@@ -6,6 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -49,7 +50,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       val actionName = parameters("action_name")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
       val rfiDocuments: Seq[DynDoc] = if (project has "documents") {
-        project.documents[DocumentList].filter(_.activity_id[ObjectId] == activityOid).
+        project.documents[Many[Document]].filter(_.activity_id[ObjectId] == activityOid).
           filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))
       } else {
         Nil

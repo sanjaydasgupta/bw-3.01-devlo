@@ -21,10 +21,10 @@ class ActionAdd extends HttpServlet with HttpUtils {
     }
   }
 
-  private def mainInbox(activityOid: ObjectId, actionName: String): ObjectIdList = {
+  private def mainInbox(activityOid: ObjectId, actionName: String): Many[ObjectId] = {
     val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
-    val mainAction: DynDoc = activity.actions[DocumentList].find(_.`type`[String] == "main").head
-    mainAction.inbox[ObjectIdList]
+    val mainAction: DynDoc = activity.actions[Many[Document]].find(_.`type`[String] == "main").head
+    mainAction.inbox[Many[ObjectId]]
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -1,12 +1,11 @@
 package com.buildwhiz.infra
 
 import com.mongodb.MongoClient
-import com.mongodb.client.MongoCollection
+import com.mongodb.client.{FindIterable, MongoCollection}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
-
 import scala.language.dynamics
 import scala.language.implicitConversions
 
@@ -17,9 +16,8 @@ object BWMongoDB3 extends Dynamic {
   val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
   val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
 
-  type DocumentList = java.util.List[Document]
-  type ObjectIdList = java.util.List[ObjectId]
-  type ManyThings = java.util.List[_]
+  //type DocumentList = java.util.List[Document]
+  //type ObjectIdList = java.util.List[ObjectId]
   type Many[T] = java.util.List[T]
 
   class DynDoc(d: Document) extends Dynamic {
@@ -32,8 +30,10 @@ object BWMongoDB3 extends Dynamic {
   }
 
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
+  implicit def findIterable2DynDocSeq(fi: FindIterable[Document]): Seq[DynDoc] = fi.asScala.map(document2DynDoc).toSeq
+  implicit def findIterable2DocumentSeq(fi: FindIterable[Document]): Seq[Document] = fi.asScala.toSeq
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
-  implicit def javaDocList2DynDocSeq(ds: DocumentList): Seq[DynDoc] = {
+  implicit def javaDocList2DynDocSeq(ds: Many[Document]): Seq[DynDoc] = {
     val sd: Seq[Document] = ds.asScala
     sd.map(new DynDoc(_))
   }

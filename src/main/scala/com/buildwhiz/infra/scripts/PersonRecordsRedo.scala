@@ -58,7 +58,7 @@ object PersonRecordsRedo extends App with CryptoUtils {
 
     val (projectIds, oldPassword, isEnabled) = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.headOption match {
       case None => (new java.util.ArrayList[ObjectId], null, false)
-      case Some(d) => (d.get("project_ids").asInstanceOf[ObjectIdList], d.get("password").asInstanceOf[String],
+      case Some(d) => (d.get("project_ids").asInstanceOf[Many[ObjectId]], d.get("password").asInstanceOf[String],
         d.get("enabled").asInstanceOf[Boolean])
     }
     if (!projectIds.contains(project430ForestOid)) {

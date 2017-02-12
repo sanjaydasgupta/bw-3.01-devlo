@@ -5,6 +5,7 @@ import java.util.{ArrayList => JArrayList}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -39,7 +40,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       setupEssentials(de)
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
-      val activityOids: Seq[ObjectId] = phase.activity_ids[ObjectIdList].asScala
+      val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]].asScala
       //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
       val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de.getSuperExecution)
@@ -48,7 +49,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 
       de.setVariable("activity_id", activity._id[ObjectId].toString)
 
-      val actions: Seq[DynDoc] = activity.actions[DocumentList]
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
 
       val prerequisiteNames: Seq[String] = actions.filter(_.`type`[String] == "prerequisite").map(_.name[String])
       val prerequisiteNamesList = new JArrayList[String]()

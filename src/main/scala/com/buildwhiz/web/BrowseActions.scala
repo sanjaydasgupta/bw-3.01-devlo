@@ -17,16 +17,16 @@ class BrowseActions extends HttpServlet with HttpUtils {
   private def peopleNames(personOidOption: Option[ObjectId]): String = {
 
     def personStatusColor(person: DynDoc): String = {
-      val projectIds = person.project_ids[ObjectIdList]
+      val projectIds = person.project_ids[Many[ObjectId]]
       if (projectIds.isEmpty) {
         "black"
       } else {
         val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectIds))).asScala.toSeq
-        val phaseIds = projects.flatMap(_.phase_ids[ObjectIdList].asScala)
+        val phaseIds = projects.flatMap(_.phase_ids[Many[ObjectId]].asScala)
         val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
-        val activityIds = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
+        val activityIds = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
-        val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList]).
+        val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]]).
           filter(_.assignee_person_id[ObjectId] == person._id[ObjectId])
         if (actions.exists(_.status[String] == "waiting"))
           "magenta"
@@ -66,18 +66,18 @@ class BrowseActions extends HttpServlet with HttpUtils {
     val actionData = mutable.Buffer.empty[DynDoc]
     val text = mutable.Buffer.empty[String]
     val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
-    val projectOids = person.project_ids[ObjectIdList]
+    val projectOids = person.project_ids[Many[ObjectId]]
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
     for (project <- projects) {
-      val phaseOids: ObjectIdList = project.phase_ids[ObjectIdList]
+      val phaseOids: Many[ObjectId] = project.phase_ids[Many[ObjectId]]
       val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
       for (phase <- phases) {
-        val activityOids: ObjectIdList = phase.activity_ids[ObjectIdList]
+        val activityOids: Many[ObjectId] = phase.activity_ids[Many[ObjectId]]
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
         val activitiesByBpmn = activities.groupBy(_.bpmn_name[String])
         for ((bpmnName, activities) <- activitiesByBpmn) {
           for (activity <- activities) {
-            val actions: Seq[DynDoc] = activity.actions[DocumentList]
+            val actions: Seq[DynDoc] = activity.actions[Many[Document]]
             for (action <- actions.filter(_.assignee_person_id[ObjectId] == personOid)) {
               action.project_name = project.name[String]
               action.phase_name = phase.name[String]
@@ -127,11 +127,11 @@ class BrowseActions extends HttpServlet with HttpUtils {
 
   private def actionPanel(activityOid: ObjectId, actionName: String, personOid: ObjectId): String = {
 
-    def docId2Document(project: DynDoc, docIds: ObjectIdList, createdAfter: Long): DocumentList = {
+    def docId2Document(project: DynDoc, docIds: Many[ObjectId], createdAfter: Long): Many[Document] = {
       val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
       for (doc <- docs) {
         val isReady = if (project has "documents") {
-          project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+          project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
             d.timestamp[Long] > createdAfter)
         } else {
           false
@@ -142,7 +142,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
     }.asJava
 
     val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
-    val action: DynDoc = activity.actions[DocumentList].filter(_.name[String] == actionName).head
+    val action: DynDoc = activity.actions[Many[Document]].filter(_.name[String] == actionName).head
     val text = mutable.Buffer.empty[String]
     text += "<table width=\"100%\" border=\"1\">" +
       s"""<tr><td style="text-align: center; color: white; background-color: blue; font-weight: bold; font-size: large;">
@@ -153,7 +153,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
       val isRelevant = action.assignee_person_id[ObjectId] == personOid
       if (isRelevant) {
         val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-        val inDocuments = docId2Document(project, action.inbox[ObjectIdList], p0)
+        val inDocuments = docId2Document(project, action.inbox[Many[ObjectId]], p0)
         text +=
           s"""<tr><td style="text-align: center; color: white; background-color: blue;">
               |Available Documents</td></tr>""".stripMargin
@@ -170,7 +170,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
           }
         }
         val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-        val outDocuments = docId2Document(project, action.outbox[ObjectIdList], t0)
+        val outDocuments = docId2Document(project, action.outbox[Many[ObjectId]], t0)
         text +=
           s"""<tr><td style="text-align: center; color: white; background-color: blue;">
               |Required Documents</td></tr>""".stripMargin

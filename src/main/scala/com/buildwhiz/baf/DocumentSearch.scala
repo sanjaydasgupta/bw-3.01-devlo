@@ -34,7 +34,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
       val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
       val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
-        val allVersions: Seq[DynDoc] = docRec.versions[DocumentList].sortBy(d => -d.timestamp[Long]).
+        val allVersions: Seq[DynDoc] = docRec.versions[Many[Document]].sortBy(d => -d.timestamp[Long]).
             zipWithIndex.map(t => {t._1.version = t._2; t._1})
         val versions = if (parameters.contains("versions") && parameters("versions") == "latest" && allVersions.length > 1)
           Seq(allVersions.head)
@@ -49,7 +49,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             version.rfi_ids = Seq.empty[ObjectId]
           }
           Map(
-            "rfi_ids" -> (if (!version.has("rfi_ids")) Seq.empty[ObjectId] else version.rfi_ids[ObjectIdList]),
+            "rfi_ids" -> (if (!version.has("rfi_ids")) Seq.empty[ObjectId] else version.rfi_ids[Many[ObjectId]]),
             "_id" -> docRec._id[ObjectId],
             "timestamp" -> version.timestamp[Long].asInstanceOf[AnyRef],
             "category" -> docRec.category[String],

@@ -12,11 +12,11 @@ import scala.collection.JavaConverters._
 
 class OwnedActions extends HttpServlet with HttpUtils {
 
-  private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): DocumentList = {
+  private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): Many[Document] = {
     val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
-        project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+        project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
           d.timestamp[Long] > createdAfter)
       } else {
         false
@@ -42,7 +42,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
       val activityOid = new ObjectId(parameters("activity_id"))
       val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
       val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
-      val sortedActions: Seq[DynDoc] = activity.actions[DocumentList].
+      val sortedActions: Seq[DynDoc] = activity.actions[Many[Document]].
         sortWith((a, b) => actionOrder(a.`type`[String]) < actionOrder(b.`type`[String]))
       val (phase, project) = activityOidToPhaseAndProject(activityOid)
       for (action <- sortedActions) {
@@ -63,12 +63,12 @@ class OwnedActions extends HttpServlet with HttpUtils {
         action.is_relevant = isRelevant
         if (isRelevant) {
           val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-          action.inDocuments = docList(project, action.inbox[ObjectIdList].asScala, p0)
+          action.inDocuments = docList(project, action.inbox[Many[ObjectId]].asScala, p0)
           val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
           val outDocumentsOids: Seq[ObjectId] =
             if (assigneeIsUser) {
-              rfiRequestOid +: submittalOid +: action.outbox[ObjectIdList].asScala
-            } else if (phaseManagerIsUser && action.inbox[ObjectIdList].contains(rfiRequestOid)) {
+              rfiRequestOid +: submittalOid +: action.outbox[Many[ObjectId]].asScala
+            } else if (phaseManagerIsUser && action.inbox[Many[ObjectId]].contains(rfiRequestOid)) {
               Seq(rfiResponseOid)
             } else
               Nil

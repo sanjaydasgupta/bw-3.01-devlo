@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
-import com.buildwhiz.infra.BWMongoDB3.{DynDoc, ManyThings}
+import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import com.mongodb.client.FindIterable
 
@@ -33,7 +33,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
     def generateSchema(baseName: String, obj: Any, acc: mutable.Map[String, (Int, Set[String])]): Unit = obj match {
       case dd: DynDoc => generateSchema(baseName, dd.asDoc, acc)
       case fi: FindIterable[Document] @unchecked => fi.asScala.foreach(d => generateSchema(baseName, d, acc))
-      case list: ManyThings => list.asScala.foreach(d => generateSchema(baseName + "[]", d, acc))
+      case list: Many[_] => list.asScala.foreach(d => generateSchema(baseName + "[]", d, acc))
       case document: Document => for ((k, v) <- document.asScala) {
         val typ = v.getClass.getSimpleName
         val newKey = if (baseName.isEmpty) k else s"$baseName.$k"
@@ -43,7 +43,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
         } else {
           acc(newKey) = (1, Set(typ))
         }
-        if (v.isInstanceOf[Document] || v.isInstanceOf[ManyThings])
+        if (v.isInstanceOf[Document] || v.isInstanceOf[Many[_]])
           generateSchema(newKey, v, acc)
       }
       case x =>
@@ -81,7 +81,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
           if (collectionName.endsWith("*")) {
             collectionSchema(request, response, collectionName.substring(0, collectionName.length - 1))
           } else {
-            val docs: Seq[Document] = BWMongoDB3(collectionName).find().limit(100).asScala.toSeq
+            val docs: Seq[Document] = BWMongoDB3(collectionName).find().limit(100)//.asScala.toSeq
             val jsonStrings: Seq[String] = docs.map(_.toJson)
             writer.print(jsonStrings.mkString("[", ", ", "]"))
           }

@@ -62,9 +62,9 @@ class Project extends HttpServlet with RestUtils {
         case _ => throw new IllegalArgumentException("Id not found")
       }
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
-      val phaseOids: Seq[ObjectId] = theProject.phase_ids[ObjectIdList].asScala
+      val phaseOids: Seq[ObjectId] = theProject.phase_ids[Many[ObjectId]].asScala
       val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
-      val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
+      val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteMany(Map("_id" -> Map("$in" -> phaseOids)))
       BWMongoDB3.mails.deleteMany(Map("project_id" -> projectOid))

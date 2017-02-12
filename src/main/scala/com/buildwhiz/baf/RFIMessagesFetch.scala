@@ -14,7 +14,7 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
 
   private def limitText(t: String) = if (t.length < 70) t else t.substring(0, 70) + " ..."
 
-  private def memberNames(memberOids: ObjectIdList): Seq[String] = {
+  private def memberNames(memberOids: Many[ObjectId]): Seq[String] = {
     memberOids.asScala.map(oid => {
       val member: DynDoc = BWMongoDB3.persons.find(Map("_id" -> oid)).asScala.head
       s"${member.first_name[String]} ${member.last_name[String]}"
@@ -29,7 +29,7 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
     val docSubcategory = theDocument.subcategory[String]
     val docName = theDocument.name[String]
     val docDescription = theDocument.description[String]
-    val documentVersions: Seq[DynDoc] = theDocument.versions[DocumentList]
+    val documentVersions: Seq[DynDoc] = theDocument.versions[Many[Document]]
     val theVersion: DynDoc = documentVersions.filter(_.timestamp[Long] == documentTimestamp).head
     val versionComments = theVersion.comments[String]
     val fileName = if (theVersion.has("file_name")) theVersion.file_name[String] else docName
@@ -53,15 +53,15 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
       val rfiExchanges: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(query).asScala.toSeq
       val user = getUser(request).get("_id").asInstanceOf[ObjectId]
       val rfiLines: Seq[Document] = rfiExchanges.map(rfi => {
-        val messages: Seq[DynDoc] = rfi.messages[DocumentList]
-        val hasNewMessages = messages.exists(m => !m.read_person_ids[ObjectIdList].contains(user))
+        val messages: Seq[DynDoc] = rfi.messages[Many[Document]]
+        val hasNewMessages = messages.exists(m => !m.read_person_ids[Many[ObjectId]].contains(user))
         val lastMessage = messages.last
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> lastMessage.sender[ObjectId])).asScala.head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = getUser(request).get("tz").asInstanceOf[String]
         // "document_info" -> new Document(docInfo)
         val rfiInfo = new Document(Map("_id" -> rfi._id[ObjectId], "subject" -> rfi.subject[String],
-          "member_names" -> memberNames(rfi.members[ObjectIdList]), "count" -> messages.length,
+          "member_names" -> memberNames(rfi.members[Many[ObjectId]]), "count" -> messages.length,
           "display_time" -> dateTimeString(lastMessage.timestamp[Long], Some(clientTimezone)),
           "timestamp" -> lastMessage.timestamp[Long],
           "last_message" -> limitText(lastMessage.text[String]), "sender" -> senderName,

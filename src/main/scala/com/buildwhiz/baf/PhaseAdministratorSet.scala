@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -36,11 +37,11 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
   private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
     for (project <- projects) {
-      val phaseIds: Seq[ObjectId] = project.phase_ids[ObjectIdList].asScala
+      val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]].asScala
       val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
-      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[ObjectIdList].asScala)
+      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
-      val actions: Seq[DynDoc] = activities.flatMap(_.actions[DocumentList])
+      val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
       val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||
         phases.exists(_.admin_person_id[ObjectId] == personOid) ||
         projects.exists(_.admin_person_id[ObjectId] == personOid)

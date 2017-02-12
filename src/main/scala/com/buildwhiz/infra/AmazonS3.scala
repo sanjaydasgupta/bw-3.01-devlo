@@ -5,8 +5,8 @@ import java.io.File
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model._
-
 import com.buildwhiz.infra.BWMongoDB3._
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -34,7 +34,7 @@ object AmazonS3 {
       val (projOid, docOid, timestamp) = (new ObjectId(parts(0)), new ObjectId(parts(1)),
         java.lang.Long.parseLong(parts(2), 16))
       val doc: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docOid, "project_id" -> projOid)).asScala.head
-      val versions: Seq[DynDoc] = doc.versions[DocumentList].asScala
+      val versions: Seq[DynDoc] = doc.versions[Many[Document]].asScala
       !versions.exists(_.timestamp[Long] == timestamp)
     } catch {
       case _: Throwable => true

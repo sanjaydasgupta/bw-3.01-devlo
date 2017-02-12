@@ -16,12 +16,12 @@ class ViewMain extends HttpServlet with HttpUtils {
 
   private def addEmbeddedObjects(personId: ObjectId)(proj: Document): Document = {
 
-    def docId2Document(project: DynDoc, docIds: ObjectIdList, createdAfter: Long): DocumentList = {
+    def docId2Document(project: DynDoc, docIds: Many[ObjectId], createdAfter: Long): Many[Document] = {
       val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
       for (doc <- docs) {
         val isReady = if (project has "documents") {
         //val isReady = if (action ? "uploaded_documents") {
-          project.documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
+          project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
             //d.timestamp[Long] > createdAfter)
             //action.uploaded_documents[DocumentList].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
             d.timestamp[Long] > createdAfter)
@@ -35,7 +35,7 @@ class ViewMain extends HttpServlet with HttpUtils {
     val project: DynDoc = proj
     project.is_manager = project.admin_person_id[ObjectId] == personId
     project.displayDetails = project.status[String] matches "waiting|defined"
-    val phaseIds: ObjectIdList = project.phase_ids
+    val phaseIds: Many[ObjectId] = project.phase_ids
     val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
     val relevantPhases = mutable.Buffer.empty[DynDoc]
     for (phase <- allPhases) {
@@ -43,14 +43,14 @@ class ViewMain extends HttpServlet with HttpUtils {
       phase.displayDetails = isWaiting
       if (isWaiting)
         project.displayDetails = true
-      val activityIds: ObjectIdList = phase.activity_ids
+      val activityIds: Many[ObjectId] = phase.activity_ids
       val relevantActivities = new java.util.ArrayList[Document]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.
         find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
       for (activity <- activities) {
         activity.displayDetails = false
         val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
-        val sortedActions: Seq[DynDoc] = activity.actions[DocumentList].
+        val sortedActions: Seq[DynDoc] = activity.actions[Many[Document]].
           sortWith((a, b) => actionOrder(a.`type`[String]) < actionOrder(b.`type`[String]))
         val filteredActions = sortedActions/*.
           filter(_("assignee_person_id") == personId)*/
@@ -66,12 +66,12 @@ class ViewMain extends HttpServlet with HttpUtils {
             action.displayDetails = false
           }
           val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-          action.inDocuments = docId2Document(project, action.inbox[ObjectIdList], p0)
+          action.inDocuments = docId2Document(project, action.inbox[Many[ObjectId]], p0)
           //action.inDocuments = docId2Document(action, action.inbox[ObjectIdList], p0)
           val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-          action.outDocuments = docId2Document(project, action.outbox[ObjectIdList], t0)
+          action.outDocuments = docId2Document(project, action.outbox[Many[ObjectId]], t0)
           //action.outDocuments = docId2Document(action, action.outbox[ObjectIdList], t0)
-          val outDocs: Seq[DynDoc] = action.outDocuments[DocumentList]
+          val outDocs: Seq[DynDoc] = action.outDocuments[Many[Document]]
           action.is_ready = outDocs.forall(_.is_ready[Boolean])
         })
         activity.actions = filteredActions.map(_.asDoc)
@@ -84,7 +84,7 @@ class ViewMain extends HttpServlet with HttpUtils {
       relevantPhases += phase
       phase.activities = relevantActivities
     }
-    val phasesList: DocumentList = relevantPhases.map(_.asDoc).asJava
+    val phasesList: Many[Document] = relevantPhases.map(_.asDoc).asJava
     project.phases = phasesList
     project.asDoc
   }
@@ -96,7 +96,7 @@ class ViewMain extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
-      val projectOids: Seq[ObjectId] = person.project_ids[ObjectIdList].asScala
+      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]].asScala
       val projects: Seq[Document] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq.
         map(addEmbeddedObjects(personOid))
       writer.print(projects.map(bson2json).mkString("[", ", ", "]"))

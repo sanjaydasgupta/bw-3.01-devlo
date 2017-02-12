@@ -3,6 +3,7 @@ package com.buildwhiz.jelly
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -58,11 +59,11 @@ class BpmnStart extends JavaDelegate with BpmnUtils {
       }
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
       if (thePhase has "timers") {
-        val timers: Seq[DynDoc] = thePhase.timers[DocumentList].filter(_.bpmn_name[String] == bpmnName)
+        val timers: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         timers.foreach(t => de.setVariable(t.variable[String], duration2iso(t.duration[String])))
       }
       if (thePhase has "variables") {
-        val variables: Seq[DynDoc] = thePhase.variables[DocumentList].filter(_.bpmn_name[String] == bpmnName)
+        val variables: Seq[DynDoc] = thePhase.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         variables.foreach(t => de.setVariable(t.name[String], t.value[Any]))
       }
       BWLogger.log(getClass.getName, "execute()", "EXIT-OK", de)

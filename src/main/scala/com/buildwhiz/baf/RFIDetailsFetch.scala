@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   private def getAttachments(message: DynDoc): Seq[Document] = {
-    val attachments: Seq[DynDoc] = if (message.has("attachments")) message.attachments[DocumentList] else Nil
+    val attachments: Seq[DynDoc] = if (message.has("attachments")) message.attachments[Many[Document]] else Nil
     for (attachment <- attachments) {
       val fileName = attachment.file_name[String]
       val docOid = attachment.document_id[String]
@@ -29,7 +29,7 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
     try {
       val rfiOid = new ObjectId(parameters("rfi_id"))
       val rfiExchange: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
-      val messages: Seq[DynDoc] = rfiExchange.messages[DocumentList]
+      val messages: Seq[DynDoc] = rfiExchange.messages[Many[Document]]
       val messageLines: Seq[Document] = messages.sortBy(m => -m.timestamp[Long]).map(message => {
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).asScala.head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"

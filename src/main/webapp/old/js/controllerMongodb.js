@@ -13,15 +13,19 @@
     );
 
     self.displayCollection = function(name) {
-        query = '?collection_name=' + name;
-        $log.log('calling GET baf/MongoDBView' + query);
-        $http.get('baf/MongoDBView' + query).then(
-            function(resp) {
-                self.details = resp.data;
-                self.name = name;
-            },
-            function(errResponse) {alert("ERROR(collection-details): " + errResponse);}
-        );
+      query = 'baf/MongoDBView?collection_name=' + name;
+      $log.log('calling GET ' + query);
+      $http.get(query).then(
+        function(resp) {
+          self.details = resp.data.map(function(d){return JSON.stringify(d, null, 1);});
+          self.name = name;
+          $log.log('OK GET ' + query);
+        },
+        function(errResponse) {
+          alert("ERROR(collection-details): " + errResponse);
+          $log.log('ERROR GET ' + query);
+        }
+      );
     }
 });
 

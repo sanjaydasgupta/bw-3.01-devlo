@@ -7,13 +7,13 @@
                     <tr><th class="bg-primary text-center">Collections</th></tr>
                     <tr data-ng-repeat="collection in mongoDBCtrl.collections">
                         <td data-ng-click="mongoDBCtrl.displayCollection(collection.name)" class="cursor: pointer;">
-                            <a href="#">{{collection.name}}</a> <span class="badge">{{collection.count}}</span>
+                            <a href="javascript:void(0)">{{collection.name}}</a> <span class="badge">{{collection.count}}</span>
                         </td>
                     </tr>
                 </table>
             </td>
             <td style="vertical-align: top;" width="85%">
-                <table class="table table-condensed table-bordered" data-ng-if="mongoDBCtrl.details.length > 0">
+                <table class="table table-condensed table-bordered">
                     <tr><th class="bg-primary text-center">{{mongoDBCtrl.name}}</th></tr>
                     <tr data-ng-repeat="detail in mongoDBCtrl.details">
                         <td>{{detail}}</td></tr>

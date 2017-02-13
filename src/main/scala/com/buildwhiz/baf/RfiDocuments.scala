@@ -34,7 +34,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     val text: String = new String(byteBuffer.toArray).replaceAll("\"", "\\\\\"")
     rfiDoc.asDoc.put("text", text)
     rfiDoc.asDoc.put("type", if (documentOid == rfiRequestOid) "request" else "response")
-    val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
+    val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
     val displayTime = dateTimeString(timestamp, Some(person.tz[String]))
     rfiDoc.asDoc.put("time", displayTime)
     rfiDoc
@@ -48,7 +48,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val rfiDocuments: Seq[DynDoc] = if (project has "documents") {
         project.documents[Many[Document]].filter(_.activity_id[ObjectId] == activityOid).
           filter(_.action_name[String] == actionName).filter(d => rfiDocOids.contains(d.document_id[ObjectId]))

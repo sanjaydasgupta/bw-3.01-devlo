@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 
 object DuplicatedTimestampsCheck extends App {
 
-  val docRecs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("versions" -> Map("$exists" -> true))).asScala.toSeq
+  val docRecs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("versions" -> Map("$exists" -> true)))
   println(s"with versions: ${docRecs.length}")
   val withBadTimestamps = docRecs.filter(d => {
     val versions: Seq[DynDoc] = d.versions[Many[Document]]

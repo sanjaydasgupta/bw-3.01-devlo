@@ -15,8 +15,8 @@ class PrerequisiteRetest extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: Document = BWMongoDB3.activities.find(query).asScala.head
-      val actions: Seq[Document] = activity.asScala("actions").asInstanceOf[Many[Document]].asScala
+      val activity: DynDoc = BWMongoDB3.activities.find(query).head
+      val actions: Seq[Document] = activity.actions[Many[Document]].asScala
       val actionsWithIndex = actions.zipWithIndex
       val prerequisiteName = de.getVariable("action_name")
       actionsWithIndex.find(a => a._1.asScala("name") == prerequisiteName && a._1.asScala("type") == "prerequisite") match {

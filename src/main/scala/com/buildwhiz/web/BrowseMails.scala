@@ -22,10 +22,10 @@ class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
     writer.println(s"<html><head><title>Mails Listing</title></head><body>")
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val name = s"${person.first_name[String]} ${person.last_name[String]}"
       writer.println(s"""<h1 align="center">Mails for $name</h1>""")
-      val mails: Seq[DynDoc] = BWMongoDB3.mails.find(Map("recipient_person_id" -> personOid)).asScala.toSeq
+      val mails: Seq[DynDoc] = BWMongoDB3.mails.find(Map("recipient_person_id" -> personOid))
       if (mails.nonEmpty) {
         writer.println(
           s"""<table border="1" align="center"></tr><td align="center">Time-Stamp</td><td align="center">Subject</td>

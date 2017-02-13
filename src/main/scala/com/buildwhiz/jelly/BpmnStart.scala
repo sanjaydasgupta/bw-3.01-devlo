@@ -57,7 +57,7 @@ class BpmnStart extends JavaDelegate with BpmnUtils {
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       if (thePhase has "timers") {
         val timers: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         timers.foreach(t => de.setVariable(t.variable[String], duration2iso(t.duration[String])))

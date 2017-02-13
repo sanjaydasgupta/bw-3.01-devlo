@@ -75,7 +75,7 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
       import scala.collection.JavaConverters._
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val activityOids = phase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.
         toSeq.map(a => OwnedProcesses.processActivity(a, personOid))

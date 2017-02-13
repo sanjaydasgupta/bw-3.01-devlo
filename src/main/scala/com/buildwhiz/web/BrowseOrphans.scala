@@ -21,7 +21,7 @@ class BrowseOrphans extends HttpServlet with HttpUtils {
       repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala
 
     val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     val projectIds = projects.map(_._id[ObjectId].toString)
     val query = rts.createProcessInstanceQuery()
     val instances: Seq[ProcessInstance] =

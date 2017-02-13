@@ -45,7 +45,7 @@ object PersonRecordsRedo extends App with CryptoUtils {
   ).map(p => Document.parse(p))
 
   private def replaceProjectsInPersons(): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
       val adminPersonOId = project.admin_person_id[ObjectId]
       BWMongoDB3.persons.updateOne(Map("_id" -> adminPersonOId),

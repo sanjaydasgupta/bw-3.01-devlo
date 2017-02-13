@@ -15,7 +15,7 @@ class DocumentSubcategoriesFetch extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val category = parameters("category")
-      val records: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("category" -> category)).asScala.toSeq
+      val records: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("category" -> category))
       val subcategories: Seq[String] = records.filter(_.has("subcategory")).map(_.subcategory[String]).
           distinct.sortBy(_.toLowerCase)
       val jsonArrayString = subcategories.map(sc => s""" "$sc" """.trim).mkString("[", ", ", "]")

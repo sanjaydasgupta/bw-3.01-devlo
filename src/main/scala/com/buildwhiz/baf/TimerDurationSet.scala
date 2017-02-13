@@ -28,7 +28,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
       if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
         throw new IllegalArgumentException("Bad duration format")
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val timerNamesAndBpmnNames: Seq[(String, String)] = thePhase.timers[Many[Document]].
         map(t => (t.name[String], t.bpmn_name[String]))
       val timerName = parameters("timer_name")

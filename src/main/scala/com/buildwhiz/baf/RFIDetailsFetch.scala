@@ -28,10 +28,10 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val rfiOid = new ObjectId(parameters("rfi_id"))
-      val rfiExchange: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
+      val rfiExchange: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).head
       val messages: Seq[DynDoc] = rfiExchange.messages[Many[Document]]
       val messageLines: Seq[Document] = messages.sortBy(m => -m.timestamp[Long]).map(message => {
-        val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).asScala.head
+        val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = parameters("tz")
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),

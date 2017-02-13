@@ -17,7 +17,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).asScala.head
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val variables: Seq[DynDoc] = thePhase.variables[Many[Document]]
       val label = parameters("label")
       val bpmnName = parameters("bpmn_name")

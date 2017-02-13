@@ -25,7 +25,7 @@ class DocumentMetadataUpdate extends HttpServlet with HttpUtils with DateTimeUti
     val versionedParamNames = Set("timestamp", "author_person_id", "comments")
     val (versionedParams, nonVersionedParams) = nonIds.partition(p => versionedParamNames.contains(p._1))
     if (versionedParams.nonEmpty) {
-      val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> oid)).asScala.head
+      val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> oid)).head
       val versions: Seq[DynDoc] = docRecord.versions[Many[Document]]
       val idx = versions.zipWithIndex.find(_._1.timestamp[Long] == versionedParams("timestamp")).head._2
       val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> oid),

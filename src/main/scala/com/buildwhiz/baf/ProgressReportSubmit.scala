@@ -61,7 +61,7 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
         "attachments" -> docIds))
       val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
         s"/#/status-update"
-      val projectRecord: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
+      val projectRecord: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectManager = projectRecord.admin_person_id[ObjectId]
       sendProgressMail(projectManager, title, url, request)
     } catch {

@@ -22,7 +22,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
           parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).
             filter(kv => kv._2.nonEmpty && kv._2 != "Any" && kv._1 != "author_person_id")).map {
             case ("content", value) =>
-              val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
+              val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).head
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
               ("content", Map("$in" -> allExtensionTypes))
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
@@ -31,7 +31,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             //case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
             case p => p
           }.toMap
-      val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
+      val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
       val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
       val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
         val allVersions: Seq[DynDoc] = docRec.versions[Many[Document]].sortBy(d => -d.timestamp[Long]).
@@ -43,7 +43,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
         val clientRecords: Seq[Map[String, AnyRef]] = versions.map(version => {
           val fileName = if (version has "file_name") version.file_name[String] else docRec.name[String]
           val authorOid = version.author_person_id[ObjectId]
-          val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).asScala.head
+          val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
           val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
           if (!version.has("rfi_ids")) {
             version.rfi_ids = Seq.empty[ObjectId]

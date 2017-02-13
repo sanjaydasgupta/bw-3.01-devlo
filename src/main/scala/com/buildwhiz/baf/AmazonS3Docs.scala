@@ -16,7 +16,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     dateTimeString(java.lang.Long.parseLong(hexMs, 16), Some(tz))
 
   private def projectId2IdAndName(projectId: String): String = {
-    val name = BWMongoDB3.projects.find(Map("_id" -> new ObjectId(projectId))).asScala.headOption match {
+    val name = BWMongoDB3.projects.find(Map("_id" -> new ObjectId(projectId))).headOption match {
       case None => "???"
       case Some(projectDocument) => val project: DynDoc = projectDocument
         project.name[String]
@@ -29,7 +29,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     val writer = response.getWriter
     try {
       val parameters = getParameterMap(request)
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).asScala.head
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).head
       val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects.getObjectSummaries.asScala
       val namesAndSizes: Seq[(String, Long)] = objectSummaries.map(obj => (obj.getKey, obj.getSize))
       val projectDocumentTimestampSize: Seq[(String, String, String, Long)] =

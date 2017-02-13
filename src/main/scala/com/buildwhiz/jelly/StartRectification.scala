@@ -17,7 +17,7 @@ class StartRectification extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(query).asScala.head
+      val activity: DynDoc = BWMongoDB3.activities.find(query).head
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
 
       val failedReviewNames: Seq[String] = actions.filter(_.`type`[String] == "review").

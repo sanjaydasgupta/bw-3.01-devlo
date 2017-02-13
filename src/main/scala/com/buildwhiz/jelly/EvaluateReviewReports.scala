@@ -36,7 +36,7 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val activityOid = new ObjectId(de.getVariable("activity_id").asInstanceOf[String])
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
       val reviewActions: Seq[DynDoc] = actions.filter(_.`type`[String] == "review")
       // Copy review documents to main action's inbox

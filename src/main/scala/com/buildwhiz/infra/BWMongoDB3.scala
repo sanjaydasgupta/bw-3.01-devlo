@@ -16,13 +16,16 @@ object BWMongoDB3 extends Dynamic {
   val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")
   val submittalOid = new ObjectId("572456d4d5d8ad25eb8943a2")
 
-  //type DocumentList = java.util.List[Document]
-  //type ObjectIdList = java.util.List[ObjectId]
+  private lazy val db = mongoClient.getDatabase("BuildWhiz")
+
   type Many[T] = java.util.List[T]
 
   class DynDoc(d: Document) extends Dynamic {
     def y: DynDoc = this
-    def selectDynamic[T](fieldName: String): T = d.get(fieldName).asInstanceOf[T]
+    def selectDynamic[T](fieldName: String): T = if (has(fieldName))
+      d.get(fieldName).asInstanceOf[T]
+    else
+      throw new IllegalArgumentException(s"No field named '$fieldName'")
     def updateDynamic[T](fieldName: String)(value: T): AnyRef = d.put(fieldName, value.asInstanceOf[AnyRef])
     def asDoc: Document = d
     def has(key: String): Boolean = d.containsKey(key)
@@ -31,7 +34,6 @@ object BWMongoDB3 extends Dynamic {
 
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
   implicit def findIterable2DynDocSeq(fi: FindIterable[Document]): Seq[DynDoc] = fi.asScala.map(document2DynDoc).toSeq
-  implicit def findIterable2DocumentSeq(fi: FindIterable[Document]): Seq[Document] = fi.asScala.toSeq
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
   implicit def javaDocList2DynDocSeq(ds: Many[Document]): Seq[DynDoc] = {
     val sd: Seq[Document] = ds.asScala
@@ -60,12 +62,11 @@ object BWMongoDB3 extends Dynamic {
     pairs2document(map.toSeq)
   }
 
-  private lazy val mongoClient = new MongoClient()
-  private lazy val db = mongoClient.getDatabase("BuildWhiz")
-
   def selectDynamic(cn: String): MongoCollection[Document] = db.getCollection(cn)
 
   def apply(collectionName: String): MongoCollection[Document] = db.getCollection(collectionName)
 
   def collectionNames: Seq[String] = db.listCollectionNames().asScala.toSeq
+
+  private lazy val mongoClient = new MongoClient()
 }

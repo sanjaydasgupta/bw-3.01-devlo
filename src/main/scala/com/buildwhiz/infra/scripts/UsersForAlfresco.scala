@@ -14,7 +14,7 @@ object UsersForAlfresco extends App {
     "Post Code", "Telephone", "Fax", "Email")
 
   println(fields.mkString(", "))
-  val persons: Seq[DynDoc] = BWMongoDB3.persons.find().asScala.toSeq
+  val persons: Seq[DynDoc] = BWMongoDB3.persons.find()
   for (person <- persons) {
     val buffer = mutable.Buffer.empty[String]
     val emails: Seq[DynDoc] = person.emails[Many[Document]]

@@ -81,8 +81,8 @@ class MongoDBView extends HttpServlet with HttpUtils {
           if (collectionName.endsWith("*")) {
             collectionSchema(request, response, collectionName.substring(0, collectionName.length - 1))
           } else {
-            val docs: Seq[Document] = BWMongoDB3(collectionName).find().limit(100)//.asScala.toSeq
-            val jsonStrings: Seq[String] = docs.map(_.toJson)
+            val docs: Seq[DynDoc] = BWMongoDB3(collectionName).find().limit(100)//.asScala.toSeq
+            val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
             writer.print(jsonStrings.mkString("[", ", ", "]"))
           }
       }

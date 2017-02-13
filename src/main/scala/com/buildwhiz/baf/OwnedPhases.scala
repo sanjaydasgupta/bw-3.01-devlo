@@ -14,7 +14,7 @@ class OwnedPhases extends HttpServlet with HttpUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
     val activityOids = phase.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
     activities.flatMap(_.actions[Many[Document]])
   }
 
@@ -25,10 +25,10 @@ class OwnedPhases extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val projectOid = new ObjectId(parameters("project_id"))
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectIsPublic = (project has "public") && project.public[Boolean]
       val phaseOids = project.phase_ids[Many[ObjectId]]
-      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
       val phases = if (projectIsPublic || project.admin_person_id[ObjectId] == personOid) allPhases else
         allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
           phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
@@ -50,7 +50,7 @@ object OwnedPhases {
 
   def processPhase(phase: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> phase.activity_ids[Many[ObjectId]]))).asScala.toSeq
+      find(Map("_id" -> Map("$in" -> phase.activity_ids[Many[ObjectId]])))
     val isRelevant = activities.flatMap(_.actions[Many[Document]]).
       exists(_.assignee_person_id[ObjectId] == personOid)
     phase.is_managed = phase.admin_person_id[ObjectId] == personOid

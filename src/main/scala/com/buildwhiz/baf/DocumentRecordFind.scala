@@ -21,7 +21,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
       val query = (("project_id" -> project430ForestOid) +:
           properties.map(p => (p, parameters(p))).filter(kv => kv._2.nonEmpty && kv._2 != "Any")).map {
             case ("content", value) =>
-              val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).asScala.head
+              val contentType: DynDoc = BWMongoDB3.content_types_master.find(Map("type" -> value)).head
               val allExtensionTypes  = contentType.extensions[java.util.List[String]].asScala.map(_.toUpperCase).asJava
               ("content", Map("$in" -> allExtensionTypes))
             case ("name", value) => ("name", Map("$regex" -> s".*$value.*", "$options" -> "i"))
@@ -29,7 +29,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
             case ("description", value) => ("description", Map("$regex" -> s".*$value.*", "$options" -> "i"))
             case p => p
           }.toMap
-      val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query).asScala.toSeq
+      val docMasterRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
       val recsWithLinks = docMasterRecords.map(docMaster => {
         val versions: Seq[DynDoc] = docMaster.versions[Many[Document]]
         if (versions.nonEmpty) {

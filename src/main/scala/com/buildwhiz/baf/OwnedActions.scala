@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 class OwnedActions extends HttpServlet with HttpUtils {
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): Many[Document] = {
-    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
+    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
         project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
@@ -27,9 +27,9 @@ class OwnedActions extends HttpServlet with HttpUtils {
   }.asJava
 
   private def activityOidToPhaseAndProject(activityOid: ObjectId): (DynDoc, DynDoc) = {
-    val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
+    val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
     val phaseOid = phase._id[ObjectId]
-    val project = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).asScala.head
+    val project = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
     (phase, project)
   }
 
@@ -40,7 +40,7 @@ class OwnedActions extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
-      val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
+      val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val sortedActions: Seq[DynDoc] = activity.actions[Many[Document]].
         sortWith((a, b) => actionOrder(a.`type`[String]) < actionOrder(b.`type`[String]))

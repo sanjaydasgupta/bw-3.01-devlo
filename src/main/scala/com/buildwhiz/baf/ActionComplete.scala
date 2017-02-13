@@ -18,7 +18,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val activityQuery = Map("_id" -> new ObjectId(parameters("activity_id")))
-      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
+      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionsWithIndex = actions.zipWithIndex
       val actionName = parameters("action_name")
@@ -44,12 +44,12 @@ class ActionComplete extends HttpServlet with HttpUtils {
           if (updateResult.getModifiedCount == 0)
             throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
-          val theActivity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
+          val theActivity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
           val allActionsComplete = theActivity.actions[Many[Document]].forall(_.status[String] == "ended")
 
           Thread.sleep(500)
 
-          val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> theActivity._id[ObjectId])).asScala.head
+          val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> theActivity._id[ObjectId])).head
           val bpmnName = theActivity.bpmn_name[String]
           val allActivitiesComplete = thePhase.bpmn_timestamps[Many[Document]].
             exists(bts => bts.name[String] == bpmnName && bts.event[String] == "end")

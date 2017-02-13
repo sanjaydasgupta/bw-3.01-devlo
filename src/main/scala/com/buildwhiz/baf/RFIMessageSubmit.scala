@@ -52,7 +52,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
         val rfiOid = new ObjectId(postData.rfi_id[String])
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("$push" -> Map("messages" -> message),
             "$set" -> Map("status" -> "active")))
-        val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).asScala.head
+        val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).head
         val members: Seq[ObjectId] = rfiMessage.members[Many[ObjectId]].asScala
         val subject: String = rfiMessage.subject[String]
         val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
@@ -61,10 +61,10 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
       } else {
         val subject = postData.subject[String]
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
-        val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).asScala.head
+        val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
         val projectManagersOid = project.admin_person_id[ObjectId]
         val documentOid = new ObjectId(postData.document_id[String])
-        val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).asScala.head
+        val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
         val versions: Seq[DynDoc] = docRecord.versions[Many[Document]]
         val documentTimestamp = postData.doc_version_timestamp[Long]
         val authorOid = versions.filter(_.timestamp[Long] == documentTimestamp).head.author_person_id[ObjectId]

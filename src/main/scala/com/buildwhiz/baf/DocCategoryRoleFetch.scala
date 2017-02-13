@@ -16,10 +16,10 @@ class DocCategoryRoleFetch extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val roleOid = new ObjectId(parameters("role_id"))
-      val allCategories: Seq[DynDoc] = BWMongoDB3.document_category_master.find().asScala.toSeq
+      val allCategories: Seq[DynDoc] = BWMongoDB3.document_category_master.find()
       val categoriesWithPermissions = allCategories.sortBy(_.category[String].toLowerCase).map(cat => {
         val isPermitted: Seq[DynDoc] = BWMongoDB3.role_category_mapping.
-          find(Map("category_id" -> cat._id[ObjectId], "role_id" -> roleOid, "permitted" -> true)).asScala.toSeq
+          find(Map("category_id" -> cat._id[ObjectId], "role_id" -> roleOid, "permitted" -> true))
         cat.permitted = isPermitted.nonEmpty
         cat.asDoc
       })

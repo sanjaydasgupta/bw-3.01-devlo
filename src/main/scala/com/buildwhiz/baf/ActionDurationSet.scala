@@ -28,7 +28,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
       if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
         throw new IllegalArgumentException("Bad duration format")
       val activityOid = new ObjectId(parameters("activity_id"))
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionName = parameters("action_name")
       val actionIdx = actionNames.indexOf(actionName)

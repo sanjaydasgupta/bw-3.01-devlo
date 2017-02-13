@@ -14,7 +14,7 @@ import scala.collection.mutable
 class OwnedActionsAll extends HttpServlet with HttpUtils {
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], createdAfter: Long): Many[Document] = {
-    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
+    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
         project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
@@ -44,16 +44,16 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[Many[ObjectId]]
-      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
+      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).head.project_ids[Many[ObjectId]]
+      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val allActions = mutable.Buffer.empty[DynDoc]
       for (project <- projects) {
         val phaseOids = project.phase_ids[Many[ObjectId]]
-        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
         for (phase <- phases) {
           val activityOids = phase.activity_ids[Many[ObjectId]]
-          val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.toSeq
+          val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
           for (activity <- activities) {
             val actions: Seq[DynDoc] = activity.actions[Many[Document]]
             val relevantActions = actions.filter(action => action.assignee_person_id[ObjectId] == personOid ||

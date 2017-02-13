@@ -4,6 +4,7 @@ import java.net.URI
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
+import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -21,13 +22,14 @@ trait RestUtils extends HttpUtils {
     try {
       val uriParts = new URI(request.getRequestURI.replace("[", "%5B").replace("]", "%5D")).getPath.split("/").toSeq.reverse
       val collection = BWMongoDB3(collectionName)
-      val documents: Seq[Document] = uriParts match {
+      val dynDocs: Seq[DynDoc] = uriParts match {
         case `apiName` +: _ =>
           val parameters = getParameterMap(request)
-          collection.find(parametersToQuery(parameters)).asScala.toSeq
+          collection.find(parametersToQuery(parameters))
         case id +: `apiName` +: _ =>
-          collection.find(idToQuery(id)).asScala.toSeq
+          collection.find(idToQuery(id))
       }
+      val documents = dynDocs.map(_.asDoc)
       documents.foreach(d => secretFields.foreach(k => d.remove(k)))
       val sb = new StringBuilder("[")
       val sortedDocs = sorter match {

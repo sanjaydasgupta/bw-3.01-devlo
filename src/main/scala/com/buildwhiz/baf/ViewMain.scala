@@ -17,7 +17,7 @@ class ViewMain extends HttpServlet with HttpUtils {
   private def addEmbeddedObjects(personId: ObjectId)(proj: Document): Document = {
 
     def docId2Document(project: DynDoc, docIds: Many[ObjectId], createdAfter: Long): Many[Document] = {
-      val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
+      val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
       for (doc <- docs) {
         val isReady = if (project has "documents") {
         //val isReady = if (action ? "uploaded_documents") {
@@ -36,7 +36,7 @@ class ViewMain extends HttpServlet with HttpUtils {
     project.is_manager = project.admin_person_id[ObjectId] == personId
     project.displayDetails = project.status[String] matches "waiting|defined"
     val phaseIds: Many[ObjectId] = project.phase_ids
-    val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
+    val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
     val relevantPhases = mutable.Buffer.empty[DynDoc]
     for (phase <- allPhases) {
       val isWaiting = phase.status[String] == "waiting"
@@ -46,7 +46,7 @@ class ViewMain extends HttpServlet with HttpUtils {
       val activityIds: Many[ObjectId] = phase.activity_ids
       val relevantActivities = new java.util.ArrayList[Document]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.
-        find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
+        find(Map("_id" -> Map("$in" -> activityIds)))
       for (activity <- activities) {
         activity.displayDetails = false
         val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)

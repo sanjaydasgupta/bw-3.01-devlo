@@ -20,7 +20,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       val subject = s"RFI $reqOrResp received"
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
       val recipientPersonOid: ObjectId = if (isRequest) {
-        val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).asScala.head
+        val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
         phase.admin_person_id[ObjectId]
       } else {
         action.assignee_person_id[ObjectId]
@@ -66,7 +66,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       val isRequest = parameters("is_request").toBoolean
       val rfiText = parameters("rfi_text")
       val documentOid = if (isRequest) rfiRequestOid else rfiResponseOid
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionIndex = actionNames.indexOf(actionName)
       storeDocumentAmazonS3(rfiText, projectOid.toString, documentOid.toString, documentTimestamp)

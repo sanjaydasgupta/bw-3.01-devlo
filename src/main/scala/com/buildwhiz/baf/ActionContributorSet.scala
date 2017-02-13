@@ -35,12 +35,12 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
   }
 
   private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find().asScala.toSeq
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
       val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]].asScala
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds))).asScala.toSeq
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
       val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
       val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
       val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||
         phases.exists(_.admin_person_id[ObjectId] == personOid) ||
@@ -67,7 +67,7 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
     try {
       val assignedPersonOid = new ObjectId(parameters("person_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).asScala.head
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionName = parameters("action_name")
       val actionIdx = actionNames.indexOf(actionName)

@@ -14,7 +14,7 @@ import scala.collection.mutable
 class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
 
   private def docList(project: DynDoc, docIds: Seq[ObjectId], startTime: Long): Many[Document] = {
-    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).asScala.head)
+    val docs: Seq[DynDoc] = docIds.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
     for (doc <- docs) {
       val isReady = if (project has "documents") {
         project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&
@@ -61,8 +61,8 @@ class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val filterKey = parameters("filter_key")
-      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head.y.project_ids[Many[ObjectId]]
-      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
+      val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).head.project_ids[Many[ObjectId]]
+      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val allDocuments = mutable.Buffer.empty[DynDoc]
 //      for (project <- projects) {

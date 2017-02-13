@@ -23,7 +23,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
       calendar.add(Calendar.DATE, days)
       calendar.add(Calendar.HOUR, hours)
       calendar.add(Calendar.MINUTE, minutes)
-      val recipient: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).asScala.head
+      val recipient: DynDoc = BWMongoDB3.persons.find(Map("_id" -> recipientOid)).head
       val targetTime = dateTimeString(calendar.getTimeInMillis, Some(recipient.tz[String]))
       val message = s"The action '${action.name[String]}' can now be started, and must be completed by " +
         s"$targetTime"
@@ -42,7 +42,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       val activityQuery = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).asScala.head
+      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionNames: Seq[String] = actions.map(_.name[String])
       val actionName = de.getVariable("action_name").asInstanceOf[String]

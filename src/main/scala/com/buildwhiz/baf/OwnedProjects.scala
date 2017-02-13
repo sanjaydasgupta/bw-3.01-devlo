@@ -17,9 +17,9 @@ class OwnedProjects extends HttpServlet with HttpUtils {
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
+      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]].asScala
-      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq
+      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
       writer.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")
@@ -38,16 +38,16 @@ object OwnedProjects {
 
   def processProject(project: DynDoc, personOid: ObjectId): DynDoc = {
     def canEnd(project: DynDoc): Boolean = {
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[Many[ObjectId]]))).asScala.toSeq
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[Many[ObjectId]])))
       !phases.exists(_.status[String] == "running")
     }
 
     project.is_managed = project.admin_person_id[ObjectId] == personOid
     project.can_end = canEnd(project)
     val phaseOids = project.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids))).asScala.toSeq
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala).asJava
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds))).asScala.toSeq
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
       project.display_status = "waiting"

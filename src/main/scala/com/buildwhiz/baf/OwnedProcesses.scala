@@ -13,7 +13,7 @@ import scala.collection.mutable
 class OwnedProcesses extends HttpServlet with HttpUtils {
 
   private def createProcesses(activities: Seq[DynDoc], variables: Seq[DynDoc], timers: Seq[DynDoc],
-        personOid: ObjectId): Seq[DynDoc] = {
+        personOid: ObjectId, phase: DynDoc): Seq[DynDoc] = {
     val processes = mutable.Map.empty[String, DynDoc]
     for (activity <- activities) {
       val bpmnName = activity.bpmn_name[String]
@@ -56,6 +56,13 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
           case (_, "running") => "running"
           case _ => b
         })
+      if (myActivities.isEmpty && phase.has("bpmn_timestamps")) {
+        val bpmnTimestamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]]
+        if (bpmnTimestamps.exists(ts => ts.name[String] == bpmnName && ts.event[String] == "end"))
+          p._2.status = "ended"
+        else
+          p._2.status = "running"
+      }
       val actions: Seq[DynDoc] = myActivities.flatMap(_.actions[Many[Document]])
       if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
         p._2.display_status = "waiting"
@@ -72,14 +79,14 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
     val writer = response.getWriter
     try {
-      import scala.collection.JavaConverters._
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val activityOids = phase.activity_ids[Many[ObjectId]]
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids))).asScala.
-        toSeq.map(a => OwnedProcesses.processActivity(a, personOid))
-      val processes = createProcesses(activities, phase.variables[Many[Document]], phase.timers[Many[Document]], personOid)
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+      activities.foreach(a => a.is_relevant = a.actions[Many[Document]].exists(_.assignee_person_id[ObjectId] == personOid))
+      val processes = createProcesses(activities, phase.variables[Many[Document]], phase.timers[Many[Document]],
+          personOid, phase)
       writer.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -90,15 +97,6 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
         t.printStackTrace()
         throw t
     }
-  }
-
-}
-
-object OwnedProcesses {
-
-  def processActivity(activity: DynDoc, personOid: ObjectId): DynDoc = {
-    activity.is_relevant = activity.actions[Many[Document]].exists(_.assignee_person_id[ObjectId] == personOid)
-    activity
   }
 
 }

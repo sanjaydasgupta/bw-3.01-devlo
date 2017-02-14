@@ -4,32 +4,85 @@
 
   var self = this;
 
-  self.projectList = [];
-  self.projectSelected = false;
+  self.newPhaseNames = [];
+  self.selectedPhaseName = 'Select Phase';
+
+  self.projects = [];
   self.selectedProject = null;
 
-  self.select = function(project) {
-    if (project) {
-      self.selectedProject = project;
-      self.projectSelected = true;
-      var message = 'Project ' + project.name + ' selected';
-      $log.log(message)
-    } else {
-      self.selectedProject = null;
-      self.projectSelected = false;
+  self.phases = [];
+  self.selectedPhase = null;
+
+  self.selectedDetail = '';
+
+  $http.get('baf/PhaseBpmnNamesFetch').then(
+    function(resp) {
+      self.newPhaseNames = resp.data;
+      $log.log('OK GET baf/PhaseBpmnNamesFetch');
+    },
+    function() {
+      $log.log('ERROR GET baf/PhaseBpmnNamesFetch');
     }
-  }
+  )
 
   self.fetchProjects = function() {
     query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
-    $log.log('ProjectsCtrl: GET ' + query);
+    $log.log('GET ' + query);
     $http.get(query).then(
       function(resp) {
-        self.projectList = resp.data;
-        $log.log('OK-ProjectsCtrl: got ' + self.projectList.length + ' objects');
+        self.projects = resp.data;
+        $log.log('OK GET ' + self.projects.length + ' objects');
       },
-      function(errResponse) {alert("ProjectsCtrl: ERROR(collection-details): " + errResponse);}
+      function(errResponse) {alert("ERROR(collection-details): " + errResponse);}
     );
+  }
+
+  self.selectProject = function(project) {
+    $log.log('Called selectProject(' + project.name + ')');
+    if (project) {
+      query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + project._id;
+      $log.log('GET ' + query);
+      $http.get(query).then(
+        function(resp) {
+          self.phases = resp.data;
+          $log.log('OK GET ' + self.phases.length + ' objects');
+          self.selectedProject = project;
+          self.selectedDetail = 'project';
+          self.selectedPhase = null;
+        },
+        function(errResponse) {alert("ERROR GET " + query);}
+      );
+    } else {
+      self.selectedProject = null;
+      self.selectedPhase = null;
+    }
+  }
+
+  self.canDisplayProject = function() {
+    return self.selectedDetail == 'project' && AuthService.data._id == self.selectedProject.admin_person_id;
+  }
+
+  self.projectRowColor = function(project) {
+    return project == self.selectedProject ? 'yellow' : 'white';
+  }
+
+  self.newPhaseNameSet = function(name) {
+    self.selectedPhaseName = name;
+    $log.log('Called newPhaseNamesSet(' + name + ')');
+  }
+
+  self.selectPhase = function(phase) {
+    $log.log('Called selectPhase(' + phase.name + ')');
+    self.selectedPhase = phase;
+    self.selectedDetail = 'phase';
+  }
+
+  self.canDisplayPhase = function() {
+    return self.selectedDetail == 'phase' && AuthService.data._id == self.selectedPhase.admin_person_id;
+  }
+
+  self.phaseRowColor = function(phase) {
+    return phase == self.selectedPhase ? 'yellow' : 'white';
   }
 
   self.fetchProjects();

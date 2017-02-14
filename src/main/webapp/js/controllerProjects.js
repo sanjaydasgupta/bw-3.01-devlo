@@ -30,6 +30,7 @@
     $log.log('GET ' + query);
     $http.get(query).then(
       function(resp) {
+        //self.projects = resp.data.map(function(p){if (!p.hasOwnProperty('public')) p.public = false; return p;});
         self.projects = resp.data;
         $log.log('OK GET ' + self.projects.length + ' objects');
       },
@@ -58,12 +59,56 @@
     }
   }
 
+  self.createNewProject = function() {
+    $log.log('Called createNewProject()');
+    var postData = '{"name": "' + self.newProjectName + '", "status": "created", ' +
+        '"admin_person_id": ObjectId("' + AuthService.data._id + '")}';
+    $http.post('api/Project', postData).then(
+      function() {
+        $log.log('OK POST api/Project');
+        self.newProjectName = '';
+        self.fetchProjects();
+      },
+      function() {
+        $log.log('ERROR POST api/Project');
+      }
+    )
+  }
+
+  self.projectPublicChanged = function() {
+    $log.log('Called projectPublicChanged()');
+    var query = 'baf/ProjectSetPublic?project_id=' + self.selectedProject._id + '&public=' + self.selectedProject.public;
+    $http.post(query).then(
+      function() {
+        $log.log('OK POST ' + query);
+      },
+      function() {
+        $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
   self.canDisplayProject = function() {
     return self.selectedDetail == 'project' && AuthService.data._id == self.selectedProject.admin_person_id;
   }
 
   self.projectRowColor = function(project) {
     return project == self.selectedProject ? 'yellow' : 'white';
+  }
+
+  self.addPhase = function(name) {
+    $log.log('Called addPhase()');
+    var query = 'baf/PhaseAdd?phase_name=' + self.selectedPhaseName + '&project_id=' + self.selectedProject._id +
+        '&admin_person_id=' + AuthService.data._id;
+    $http.post(query).then(
+      function() {
+        self.selectProject(self.selectedProject);
+        $log.log('OK POST ' + query);
+      },
+      function() {
+        $log.log('ERROR POST ' + query);
+      }
+    )
   }
 
   self.newPhaseNameSet = function(name) {

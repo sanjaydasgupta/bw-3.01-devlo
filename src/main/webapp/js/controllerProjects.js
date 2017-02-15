@@ -13,8 +13,6 @@
   self.phases = [];
   self.selectedPhase = null;
 
-  self.selectedDetail = '';
-
   $http.get('baf/PhaseBpmnNamesFetch').then(
     function(resp) {
       self.newPhaseNames = resp.data;
@@ -25,14 +23,26 @@
     }
   )
 
-  self.fetchProjects = function() {
+  self.canCreateProject = function() {
+    return AuthService.data.roles.join(',').indexOf('BW-Create-Project') != -1;
+  }
+
+  self.fetchProjects = function(projectIdToSelect) {
+    self.selectedProject = null;
+    self.selectedPhase = null;
+    self.phases = [];
     query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
     $log.log('GET ' + query);
     $http.get(query).then(
       function(resp) {
-        //self.projects = resp.data.map(function(p){if (!p.hasOwnProperty('public')) p.public = false; return p;});
         self.projects = resp.data;
         $log.log('OK GET ' + self.projects.length + ' objects');
+        if (projectIdToSelect) {
+          var p2 = self.projects.filter(function(p){return p._id == projectIdToSelect;});
+          if (p2.length > 0) {
+            self.selectProject(p2[0]);
+          }
+        }
       },
       function(errResponse) {alert("ERROR(collection-details): " + errResponse);}
     );
@@ -48,7 +58,6 @@
           self.phases = resp.data;
           $log.log('OK GET ' + self.phases.length + ' objects');
           self.selectedProject = project;
-          self.selectedDetail = 'project';
           self.selectedPhase = null;
         },
         function(errResponse) {alert("ERROR GET " + query);}
@@ -88,8 +97,46 @@
     )
   }
 
+  self.launchSelectedProject = function() {
+    var project = self.selectedProject;
+    var query = 'baf/ProjectLaunch?project_id=' + project._id;
+    $log.log('calling POST ' + query);
+    $http.post(query).then(
+      function(resp) {
+        $log.log('OK POST ' + query);
+        self.fetchProjects(project._id);
+      },
+      function(errResponse) {$log.log('ERROR POST ' + query);}
+    );
+  }
+
+  self.endSelectedProject = function() {
+    var project = self.selectedProject;
+    var query = 'baf/ProjectEnd?project_id=' + project._id;
+    $log.log('calling POST ' + query)
+    $http.post(query).then(
+      function(resp) {
+        $log.log('OK POST ' + query);
+        self.fetchProjects(project._id);
+      },
+      function(errResponse) {$log.log('ERROR POST ' + query);}
+    );
+  }
+
+  self.deleteSelectedProject = function() {
+    var query = 'api/Project/' + self.selectedProject._id;
+    $log.log('calling DELETE ' + query)
+    $http.delete(query).then(
+      function(resp) {
+        $log.log('OK DELETE ' + query);
+        self.fetchProjects();
+      },
+      function(errResponse) {$log.log('ERROR DELETE ' + query);}
+    );
+  }
+
   self.canDisplayProject = function() {
-    return self.selectedDetail == 'project' && AuthService.data._id == self.selectedProject.admin_person_id;
+    return self.selectedProject != null && AuthService.data._id == self.selectedProject.admin_person_id;
   }
 
   self.projectRowColor = function(project) {
@@ -119,11 +166,10 @@
   self.selectPhase = function(phase) {
     $log.log('Called selectPhase(' + phase.name + ')');
     self.selectedPhase = phase;
-    self.selectedDetail = 'phase';
   }
 
   self.canDisplayPhase = function() {
-    return self.selectedDetail == 'phase' && AuthService.data._id == self.selectedPhase.admin_person_id;
+    return self.selectedPhase != null && AuthService.data._id == self.selectedPhase.admin_person_id;
   }
 
   self.phaseRowColor = function(phase) {

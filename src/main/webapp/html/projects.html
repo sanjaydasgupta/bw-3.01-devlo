@@ -19,7 +19,7 @@
             <tr data-ng-if="projectsCtrl.canCreateProject()">
               <td>
                 <input type="text" data-ng-model="projectsCtrl.newProjectName" placeholder="New project name"/>
-                <button class="btn btn-xs btn-warning" data-ng-click="projectsCtrl.createNewProject()">Create</button>
+                <button data-ng-disabled="projectsCtrl.newProjectName == ''" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.createNewProject()">Create</button>
               </td>
             </tr>
           </table>
@@ -36,21 +36,15 @@
         <!-- Detail -->
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
           <!-- Project Selected -->
-          <table class="table table-condensed table-bordered table-hover" data-ng-if="projectsCtrl.canDisplayProject()">
+          <table data-ng-if="projectsCtrl.selectedProject != null" class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})</th></tr>
-            <tr>
+            <tr data-ng-if="projectsCtrl.isProjectManager()">
               <td>
-                <button class="btn btn-success btn-sm" data-ng-click="projectsCtrl.launchSelectedProject()"
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                     data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
-                <button class="btn btn-danger btn-sm" data-ng-click="projectsCtrl.endSelectedProject()"
-                    data-ng-disabled="!projectsCtrl.selectedProject.can_end || projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
-                <button class="btn btn-danger btn-sm" data-ng-click="projectsCtrl.deleteSelectedProject()"
-                    data-ng-disabled="projectsCtrl.selectedProject.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
-                <label style="width:25px;"></label>
-                <label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label>
                 <label style="width:25px;"></label>
                 <div class="btn-group" data-uib-dropdown>
-                  <button id="single-button" type="button" class="btn btn-info btn-sm" data-uib-dropdown-toggle
+                  <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
                       data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
                     {{projectsCtrl.selectedPhaseName}} <span class="caret"></span>
                   </button>
@@ -60,16 +54,30 @@
                     </li>
                   </ul>
                 </div>
-                <button class="btn btn-success btn-sm" data-ng-click="projectsCtrl.addPhase()"
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
                     data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
+                <label style="width:25px;"></label>
+                <label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label>
+                <label style="width:25px;"></label>
+                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.endSelectedProject()"
+                        data-ng-disabled="!projectsCtrl.selectedProject.can_end || projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
+                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.deleteSelectedProject()"
+                        data-ng-disabled="projectsCtrl.selectedProject.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
               </td>
+            </tr>
+            <tr data-ng-if="!projectsCtrl.isProjectManager()">
+              <td align="center"><span style="color:red;">No access to this part</span></td>
             </tr>
           </table>
           <!-- Phase Selected -->
-          <table class="table table-condensed table-bordered table-hover" data-ng-if="projectsCtrl.canDisplayPhase()">
+          <table data-ng-if="projectsCtrl.selectedPhase != null" class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})</th></tr>
-            <tr>
-              <td>
+            <tr data-ng-if="projectsCtrl.isProjectManager()">
+              <td>Project-Manager's Part
+              </td>
+            </tr>
+            <tr data-ng-if="projectsCtrl.isPhaseManager()">
+              <td>Phase-Manager's Part
               </td>
             </tr>
           </table>

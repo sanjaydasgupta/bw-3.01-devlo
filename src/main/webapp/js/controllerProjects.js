@@ -9,6 +9,7 @@
 
   self.projects = [];
   self.selectedProject = null;
+  self.newProjectName = '';
 
   self.phases = [];
   self.selectedPhase = null;
@@ -135,7 +136,7 @@
     );
   }
 
-  self.canDisplayProject = function() {
+  self.isProjectManager = function() {
     return self.selectedProject != null && AuthService.data._id == self.selectedProject.admin_person_id;
   }
 
@@ -168,7 +169,7 @@
     self.selectedPhase = phase;
   }
 
-  self.canDisplayPhase = function() {
+  self.isPhaseManager = function() {
     return self.selectedPhase != null && AuthService.data._id == self.selectedPhase.admin_person_id;
   }
 

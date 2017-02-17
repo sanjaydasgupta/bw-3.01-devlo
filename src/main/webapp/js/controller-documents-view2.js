@@ -306,6 +306,10 @@
     return self.displayAllVersions && AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
   }
 
+  self.isPrabhas = function() {
+    return AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
+  }
+
   self.deleteDocument = function(doc) {
     self.documentToDelete = doc;
     $log.log('Called deleteDocument(' + doc._id + ')');

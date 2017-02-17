@@ -1,4 +1,4 @@
-<div class="panel panel-primary">
+<div class="panel panel-primary" xmlns="http://www.w3.org/1999/html">
   <div class="panel-heading">
     <span style="font-weight:bold;">View Documents</span>
     <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.toggleInfoDisplay()">
@@ -104,7 +104,8 @@
           <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
             <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
             <th style="text-align:center;">Download</th><th style="text-align:center;">RFI</th>
-            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.deleteDocumentDisplayed()">Delete</th>
+            <th style="text-align:center;">Upload</th>
+            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">Delete</th>
           </tr>
           <tr data-ng-repeat="document in viewDocsCtrl2.documents" style="background-color:{{viewDocsCtrl2.getRowColor(document)}};">
             <td style="text-align:center;">{{document.name}}</td><td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
@@ -113,8 +114,11 @@
             <td style="text-align:center;">
               <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.selectDocument(document)">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
             </td>
-            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.deleteDocumentDisplayed()">
-              <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.deleteDocument(document)">del</a>
+            <td style="text-align:center;"><a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.uploadDocumentVersion(document)">
+              <span class="glyphicon glyphicon-upload"></span> Upload</a></td>
+            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">
+              <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.deleteDocument(document)">
+              <span class="glyphicon glyphicon-remove-sign"></span> Delete</a>
             </td>
           </tr>
         </table>
@@ -198,6 +202,57 @@
         </table>
       </div>
     </div>
+    <!-- Uplolad Document -->
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToUpload != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid green; width:100% vertical-align:top;">
+      <span class="center-block" style="margin:0px; text-align:center;">{{viewDocsCtrl2.documentToUpload.category}} / {{viewDocsCtrl2.documentToUpload.subcategory}}
+          / {{viewDocsCtrl2.documentToUpload.name}} / {{viewDocsCtrl2.documentToUpload.description}}</span>
+      <hr style="margin:1px;" />
+      <table>
+        <tr>
+          <td>
+            &nbsp;<input type="text" data-ng-model="viewDocsCtrl2.versionComments" size="35" style="margin:4px;" placeholder="Version Comments"/>
+          </td>
+          <td>
+            <span style="margin-left:25px;">Author</span>&nbsp;<input type="text" data-ng-model="viewDocsCtrl2.authorsMask" size="5" style="height:20px" />
+            <button class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.filterAuthorNames()">Filter</button>
+            Select&nbsp;
+            <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+              <button id="btn-author2" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+                {{viewDocsCtrl2.currentAuthor.name}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-author2"
+                  style="min-width:50px">
+                <li class="dropdown-item" data-ng-repeat="author in viewDocsCtrl2.filteredAuthors">
+                  <a href="javascript:void(0)" style="padding:3px;"
+                     data-ng-click="viewDocsCtrl2.fetchDocumentsByAuthor(author)">{{author.name}}</a>
+                </li>
+              </ul>
+            </div>
+          </td>
+          <td>
+            <span class="input-group" style="max-width:150px; vertical-align:middle; margin-left:25px; margin-right:25px;">
+              <input type="text" class="form-control" data-uib-datepicker-popup data-ng-model="viewDocsCtrl2.selectedDate"
+                 data-is-open="viewDocsCtrl2.datePickerOpened" data-datepicker-options="viewDocsCtrl2.dateOptions"
+                 data-ng-required="true" style="max-width:150px;" />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" data-ng-click="viewDocsCtrl2.datePickerOpened = true">
+                    <i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </span>
+          </td>
+          <td>
+            <span data-uib-timepicker data-ng-model="viewDocsCtrl2.selectedDate" data-show-spinners="false"></span>
+          </td>
+          <td>
+            <button style="margin-left:25px" class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.documentToUpload = null">
+                Cancel</button>
+            <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="viewDocsCtrl2.startUpload()">
+                Upload</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <input id="version-upload-button" type="file" style="display:none;" />
     <!-- Delete Document -->
     <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToDelete != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid red; width:100% vertical-align:top;">
       <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.deleteDocumentConfirmed()">Delete</button>

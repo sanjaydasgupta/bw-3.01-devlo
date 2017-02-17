@@ -9,6 +9,21 @@
   self.showInfo = false;
   self.displayMode = 'DOC';
 
+  self.authors = [];
+  self.filteredAuthors = [];
+  self.NoAuthor = {name: 'Select', _id: ''};
+  self.currentAuthor = self.NoAuthor;
+  self.versionComments = '';
+  self.selectedDate = new Date();
+
+  self.dateOptions = {
+    dateDisabled: false,
+    formatYear: 'yy',
+    maxDate: new Date(2018, 11, 31),
+    minDate: new Date(2010, 0, 1),
+    startingDay: 1
+  };
+
   self.documentCategories = [];
   self.documentSubcategories = [];
   self.contentTypes = [];
@@ -35,6 +50,21 @@
   self.rfiAttachments = [];
 
   self.documentToDelete = null;
+  self.documentToUpload = null;
+
+  $http.get('api/Person').then(
+    function(resp) {
+      self.authors = resp.data.map(function(p) {
+        var newPerson = {_id: p._id, name: p.first_name + ' ' + p.last_name};
+        return newPerson;
+      });
+      self.filteredAuthors = self.authors;
+      $log.log('OK GET api/Person (' + self.authors.length + ')');
+    },
+    function(resp) {
+      $log.log('ERROR GET api/Person')
+    }
+  )
 
   self.toggleInfoDisplay = function() {
     self.showInfo = !self.showInfo;
@@ -50,7 +80,7 @@
       });
       $log.log('OK GET api/ContentType (' + self.contentTypes + ')');
       self.busy = false;
-      self.documentToDelete = null;
+      //self.documentToDelete = null;
     },
     function(resp) {
       $log.log('ERROR GET api/contentType')
@@ -64,7 +94,7 @@
       self.documentCategories = resp.data.map(function(p) {return p.category;});
       $log.log('OK GET api/DocumentCategory (' + self.documentCategories.length + ')');
       self.busy = false;
-      self.documentToDelete = null;
+      //self.documentToDelete = null;
     },
     function(resp) {
       $log.log('ERROR GET api/DocumentCategory')
@@ -75,6 +105,8 @@
   self.resetDisplay = function() {
     self.selectedDocument = null;
     self.documents = [];
+    self.documentToDelete = null;
+    self.documentToUpload = null;
     self.rfiList = [];
     self.selectedRfi = null;
   }
@@ -90,6 +122,7 @@
         self.resetDisplay();
         $log.log('OK GET ' + query + ' (' + resp.data.length + ')');
         self.busy = false;
+        self.documentToDelete = null;
         self.documentToDelete = null;
       },
       function(resp) {
@@ -136,9 +169,9 @@
         }
         self.selectedRfi = null;
         self.documentToDelete = null;
-        $log.log('OK GET ' + q + ' (' + self.documents.length + ')');
         self.busy = false;
-        self.documentToDelete = null;
+        self.documentToUpload = null;
+        $log.log('OK GET ' + q + ' (' + self.documents.length + ')');
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
@@ -158,6 +191,7 @@
         $log.log('OK GET ' + q + ' (' + self.rfiList.length + ')')
         self.busy = false;
         self.documentToDelete = null;
+        self.documentToUpload = null;
       },
       function(resp) {
         $log.log('ERROR GET ' + q)
@@ -268,7 +302,7 @@
     return self.newSubject == '' || self.newText == '';
   }
 
-  self.deleteDocumentDisplayed = function() {
+  self.specialFunctionsDisplayed = function() {
     return self.displayAllVersions && AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
   }
 
@@ -344,6 +378,72 @@
   self.isDataAdmin = function() {
     var roles = AuthService.data.roles.join(',');
     return roles.indexOf('BW-Admin') != -1 || roles.indexOf('BW-Data-Admin') != -1;
+  }
+
+  self.filterAuthorNames = function() {
+    $log.log('Called filterAuthorNames(' + self.authorsFilter + ')');
+    if (self.authorsFilter = '') {
+      self.filteredAuthors = self.authors;
+    } else {
+      self.filteredAuthors = self.authors.filter(function(a) {
+        var name = a.name.toUpperCase();
+        var mask = self.authorsMask.toUpperCase();
+        var index = name.indexOf(mask);
+        return name.indexOf(mask) != -1;
+      });
+    }
+  }
+
+  self.fetchDocumentsByAuthor = function(author) {
+    self.currentAuthor = author;
+    $log.log('Called fetchDocumentsByAuthor(' + author.name + ')')
+  }
+
+  self.uploadDocumentVersion = function(doc) {
+    $log.log('Called uploadDocumentVersion2()');
+    self.documentToUpload = doc;
+    $log.log('Exiting uploadDocumentVersion2()');
+  }
+
+  self.startUpload = function(doc) {
+    $log.log('Called startUpload()');
+    var uploadButton = $window.document.getElementById('version-upload-button');
+    uploadButton.addEventListener('change', self.performUpload, false);
+    uploadButton.click();
+    $log.log('Exiting startUpload()');
+  }
+
+  self.performUpload = function(evt) {
+    $log.log('Called performUpload()');
+    var uploadButton = $window.document.getElementById('version-upload-button');
+    uploadButton.removeEventListener('change', self.performUpload, false);
+    var files = evt.target.files; // FileList of File objects
+    if (files.length > 0) {
+      var timestamp = self.selectedDate.getTime();
+      var formData = new FormData();
+      angular.forEach(files, function(file, index) {
+        formData.append(file.name, file, file.name);
+        $log.log('formData.append(' + file.name + ')');
+      });
+      var query = 'baf/DocumentPreload?person_id=' + AuthService.data._id + '&timestamp=' + timestamp +
+          '&comments=' + escape(self.versionComments) + '&author_person_id=' + self.currentAuthor._id +
+          '&document_master_id=' + self.documentToUpload._id;
+      $log.log("POST: " + query);
+      self.busy = true;
+      $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
+        function() {
+          $log.log('OK ' + query);
+          self.busy = false;
+          //alert('OK: Uploading ' + files.length + ' files completed');
+        },
+        function() {
+          $log.log('ERROR ' + query);
+          self.busy = false;
+          alert('ERROR: Uploading ' + files.length + ' files failed');
+        }
+      )
+    }
+    $log.log('Exiting performUpload()');
   }
 
 }]);

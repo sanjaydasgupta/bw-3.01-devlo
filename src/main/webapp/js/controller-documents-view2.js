@@ -406,6 +406,7 @@
   self.uploadDocumentVersion = function(doc) {
     $log.log('Called uploadDocumentVersion2()');
     self.documentToUpload = doc;
+    self.currentAuthor = self.authors.filter(function(a){return a._id == doc.author_person_id})[0];
     $log.log('Exiting uploadDocumentVersion2()');
   }
 

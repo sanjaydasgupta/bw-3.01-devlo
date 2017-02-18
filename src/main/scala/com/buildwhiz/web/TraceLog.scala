@@ -28,6 +28,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => 50
         case Some(c) => c.toInt
       }
+      val errorsOnly = parameters.contains("errors") && parameters("errors") == "yes"
       writer.println("<html><head><title>BuildWhiz Trace Information</title></head>")
       val clientIp = request.getHeader("X-FORWARDED-FOR") match {
         case null => request.getRemoteAddr
@@ -41,9 +42,11 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
       val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
       val traceLogCollection = BWMongoDB3.trace_log
-      val traceLogDocs: Seq[Document] = traceLogCollection.find().sort(Map("milliseconds" -> -1)).limit(count).asScala.toSeq
+      val query: Document = if (errorsOnly) Map("event_name" -> Map("$regex" -> ".*ERROR.+")) else
+          Map.empty[String, AnyRef]
+      val traceLogDocs: Seq[DynDoc] = traceLogCollection.find(query).sort(Map("milliseconds" -> -1)).limit(count)
       for (doc <- traceLogDocs) {
-        val fields = labels.map(doc.get).toBuffer
+        val fields = labels.map(doc.asDoc.get).toBuffer
         fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
         fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
         val htmlRowData = fields.zip(widths).
@@ -58,6 +61,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       writer.println("</table></body></html>")
       val links = Seq(100, 500, 2000).map(n => s"""<a href="$urlName?count=$n">$n</a>""").mkString("&nbsp;" * 5)
       writer.println(s"""<h3 align=\"center\">$links</h3>""")
+      writer.println(s"""<h3 align=\"center\"><a href="$urlName?errors=yes&count=${count / 5}">Errors</a></h3>""")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable => writer.println(s"""<span style="background-color: red;">${t.getClass.getSimpleName}(${t.getMessage})</span>""")

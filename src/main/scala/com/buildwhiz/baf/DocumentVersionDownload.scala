@@ -8,8 +8,6 @@ import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class DocumentVersionDownload extends HttpServlet with HttpUtils {
 
   val contentTypes = Map("MS-Excel" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -33,7 +31,7 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
         len = inputStream.read(buffer)
       }
       val document: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
-      if (contentTypes.contains(document.content[String]))
+      if (document.has("content") && contentTypes.contains(document.content[String]))
         response.setContentType(contentTypes(document.content[String]))
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)

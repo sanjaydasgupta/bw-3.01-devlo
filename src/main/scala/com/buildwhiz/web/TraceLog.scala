@@ -28,13 +28,17 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => 50
         case Some(c) => c.toInt
       }
-      val errorsOnly = parameters.contains("errors") && parameters("errors") == "yes"
       writer.println("<html><head><title>BuildWhiz Trace Information</title></head>")
       val clientIp = request.getHeader("X-FORWARDED-FOR") match {
         case null => request.getRemoteAddr
         case ip => ip
       }
-      writer.println(s"""<body><h2 align="center">Log Trace Information ($count lines) for $clientIp</h2>""")
+      val (query, logType) = parameters.get("type").map(_.toLowerCase) match {
+        case Some("error") => (Map("event_name" -> Map("$regex" -> ".*ERROR.+")), "Error")
+        case Some("audit") => (Map("event_name" -> Map("$regex" -> ".*AUDIT.+")), "Audit")
+        case Some(_) | None => (Map.empty[String, AnyRef], "Full")
+      }
+      writer.println(s"""<body><h2 align="center">$logType Log</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
       val widths = Seq(10, 10, 10, 35, 35)
       writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
@@ -42,8 +46,6 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
       val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
       val traceLogCollection = BWMongoDB3.trace_log
-      val query: Document = if (errorsOnly) Map("event_name" -> Map("$regex" -> ".*ERROR.+")) else
-          Map.empty[String, AnyRef]
       val traceLogDocs: Seq[DynDoc] = traceLogCollection.find(query).sort(Map("milliseconds" -> -1)).limit(count)
       for (doc <- traceLogDocs) {
         val fields = labels.map(doc.asDoc.get).toBuffer
@@ -59,9 +61,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           writer.println(s"<tr>$htmlRowData</tr>")
       }
       writer.println("</table></body></html>")
-      val links = Seq(100, 500, 2000).map(n => s"""<a href="$urlName?count=$n">$n</a>""").mkString("&nbsp;" * 5)
+      val links = Seq(100, 500, 2000).map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
       writer.println(s"""<h3 align=\"center\">$links</h3>""")
-      writer.println(s"""<h3 align=\"center\"><a href="$urlName?errors=yes&count=${count / 5}">Errors</a></h3>""")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable => writer.println(s"""<span style="background-color: red;">${t.getClass.getSimpleName}(${t.getMessage})</span>""")

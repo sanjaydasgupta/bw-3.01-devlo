@@ -3,6 +3,7 @@
 .controller("ProjectsCtrl", ['$log', '$http', 'AuthenticationService', function ($log, $http, AuthService) {
 
   var self = this;
+  self.busy = false;
 
   self.newPhaseNames = [];
   self.selectedPhaseName = 'Select Phase';
@@ -13,14 +14,26 @@
 
   self.phases = [];
   self.selectedPhase = null;
+  self.phaseManagers = [];
+  self.selectedPhaseManager = null;
 
   $http.get('baf/PhaseBpmnNamesFetch').then(
     function(resp) {
       self.newPhaseNames = resp.data;
-      $log.log('OK GET baf/PhaseBpmnNamesFetch');
+      $log.log('OK GET baf/PhaseBpmnNamesFetch (' + self.newPhaseNames.length + ') objects');
     },
     function() {
       $log.log('ERROR GET baf/PhaseBpmnNamesFetch');
+    }
+  )
+
+  $http.get('api/Person').then(
+    function(resp) {
+      self.phaseManagers = resp.data.map(function(p){return {_id: p._id, name: p.first_name + ' ' + p.last_name};});
+      $log.log('OK GET api/person (' + self.phaseManagers.length + ') objects');
+    },
+    function() {
+      $log.log('ERROR GET api/Person');
     }
   )
 
@@ -34,10 +47,12 @@
     self.phases = [];
     query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
     $log.log('GET ' + query);
+    self.busy = true;
     $http.get(query).then(
       function(resp) {
+        self.busy = false;
         self.projects = resp.data;
-        $log.log('OK GET ' + self.projects.length + ' objects');
+        $log.log('OK GET ' + query + ' (' + self.projects.length + ') objects');
         if (projectIdToSelect) {
           var p2 = self.projects.filter(function(p){return p._id == projectIdToSelect;});
           if (p2.length > 0) {
@@ -45,23 +60,31 @@
           }
         }
       },
-      function(errResponse) {alert("ERROR(collection-details): " + errResponse);}
+      function(errResponse) {
+        self.busy = false;
+        alert("ERROR(collection-details): " + errResponse);
+      }
     );
   }
 
-  self.selectProject = function(project) {
+  self.selectProject = function(project, phaseId) {
     $log.log('Called selectProject(' + project.name + ')');
     if (project) {
       query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + project._id;
       $log.log('GET ' + query);
+      self.busy = true;
       $http.get(query).then(
         function(resp) {
+          self.busy = false;
           self.phases = resp.data;
-          $log.log('OK GET ' + self.phases.length + ' objects');
+          $log.log('OK GET ' + query + ' (' + self.phases.length + ') objects');
           self.selectedProject = project;
-          self.selectedPhase = null;
+          self.selectedPhase = phaseId ? self.phases.filter(function(p){return p._id == phaseId;})[0] : null;
         },
-        function(errResponse) {alert("ERROR GET " + query);}
+        function(errResponse) {
+          self.busy = false;
+          alert("ERROR GET " + query);
+        }
       );
     } else {
       self.selectedProject = null;
@@ -73,13 +96,16 @@
     $log.log('Called createNewProject()');
     var postData = '{"name": "' + self.newProjectName + '", "status": "created", ' +
         '"admin_person_id": ObjectId("' + AuthService.data._id + '")}';
+    self.busy = true;
     $http.post('api/Project', postData).then(
-      function() {
+      function(resp) {
+        self.busy = false;
         $log.log('OK POST api/Project');
         self.newProjectName = '';
-        self.fetchProjects();
+        self.fetchProjects(resp.data._id);
       },
       function() {
+        self.busy = false;
         $log.log('ERROR POST api/Project');
       }
     )
@@ -88,11 +114,14 @@
   self.projectPublicChanged = function() {
     $log.log('Called projectPublicChanged()');
     var query = 'baf/ProjectSetPublic?project_id=' + self.selectedProject._id + '&public=' + self.selectedProject.public;
+    self.busy = true;
     $http.post(query).then(
       function() {
+        self.busy = false;
         $log.log('OK POST ' + query);
       },
       function() {
+        self.busy = false;
         $log.log('ERROR POST ' + query);
       }
     )
@@ -102,12 +131,17 @@
     var project = self.selectedProject;
     var query = 'baf/ProjectLaunch?project_id=' + project._id;
     $log.log('calling POST ' + query);
+    self.busy = true;
     $http.post(query).then(
       function(resp) {
+        self.busy = false;
         $log.log('OK POST ' + query);
         self.fetchProjects(project._id);
       },
-      function(errResponse) {$log.log('ERROR POST ' + query);}
+      function(errResponse) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
     );
   }
 
@@ -115,24 +149,34 @@
     var project = self.selectedProject;
     var query = 'baf/ProjectEnd?project_id=' + project._id;
     $log.log('calling POST ' + query)
+    self.busy = true;
     $http.post(query).then(
       function(resp) {
+        self.busy = false;
         $log.log('OK POST ' + query);
         self.fetchProjects(project._id);
       },
-      function(errResponse) {$log.log('ERROR POST ' + query);}
+      function(errResponse) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
     );
   }
 
   self.deleteSelectedProject = function() {
     var query = 'api/Project/' + self.selectedProject._id;
     $log.log('calling DELETE ' + query)
+    self.busy = true;
     $http.delete(query).then(
       function(resp) {
+        self.busy = false;
         $log.log('OK DELETE ' + query);
         self.fetchProjects();
       },
-      function(errResponse) {$log.log('ERROR DELETE ' + query);}
+      function(errResponse) {
+        self.busy = false;
+        $log.log('ERROR DELETE ' + query);
+      }
     );
   }
 
@@ -148,12 +192,15 @@
     $log.log('Called addPhase()');
     var query = 'baf/PhaseAdd?phase_name=' + self.selectedPhaseName + '&project_id=' + self.selectedProject._id +
         '&admin_person_id=' + AuthService.data._id;
+    self.busy = true;
     $http.post(query).then(
-      function() {
-        self.selectProject(self.selectedProject);
+      function(resp) {
+        self.busy = false;
         $log.log('OK POST ' + query);
+        self.selectProject(self.selectedProject, resp.data._id);
       },
       function() {
+        self.busy = false;
         $log.log('ERROR POST ' + query);
       }
     )
@@ -167,6 +214,9 @@
   self.selectPhase = function(phase) {
     $log.log('Called selectPhase(' + phase.name + ')');
     self.selectedPhase = phase;
+    $log.log('phase.admin_person_id: ' + phase.admin_person_id);
+    self.selectedPhaseManager = self.phaseManagers.filter(function(p){return p._id == phase.admin_person_id;})[0];
+    $log.log('selectedPhaseManager: ' + JSON.stringify(self.selectedPhaseManager));
   }
 
   self.isPhaseManager = function() {
@@ -175,6 +225,71 @@
 
   self.phaseRowColor = function(phase) {
     return phase == self.selectedPhase ? 'yellow' : 'white';
+  }
+
+  self.phaseManagerSelect = function(pm) {
+    self.selectedPhaseManager = pm;
+    $log.log('Called phaseManagerSelect(' + pm.name + ')');
+  }
+
+  self.phaseManagerSet = function() {
+    var query = 'baf/PhaseAdministratorSet?person_id=' + self.selectedPhaseManager._id +
+        '&project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id;
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        self.selectProject(self.selectedProject, self.selectedPhase._id);
+        $log.log('OK POST ' + query);
+      },
+      function(resp) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    );
+    $log.log('Called phaseManagerSet(' + self.selectedPhaseManager.name + ')');
+  }
+
+  self.selectedPhaseLaunch = function() {
+    $log.log('Called selectedPhaseLaunch(' + self.selectedPhase.name + ')');
+    var query = 'baf/PhaseLaunch?project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id +
+        '&phase_bpmn_name=' + self.selectedPhase.bpmn_name;
+    $log.log('calling POST ' + query)
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK POST ' + query);
+        self.selectProject(self.selectedProject, self.selectedPhase._id);
+      },
+      function(resp) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    );
+  }
+
+  self.selectedPhaseDeletable = function() {
+    var deletable = new RegExp('defined|ended')
+    return deletable.test(self.selectedPhase.status);
+  }
+
+  self.selectedPhaseDelete = function() {
+    $log.log('Called selectedPhaseDelete(' + self.selectedPhase.name + ')');
+    var query = 'api/Phase/' + self.selectedPhase._id;
+    $log.log('calling DELETE ' + query)
+    self.busy = true;
+    $http.delete(query).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK DELETE ' + query);
+        self.selectProject(self.selectedProject);
+      },
+      function(resp) {
+        self.busy = false;
+        $log.log('ERROR DELETE ' + query);
+      }
+    );
   }
 
   self.fetchProjects();

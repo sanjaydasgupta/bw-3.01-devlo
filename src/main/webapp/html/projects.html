@@ -4,6 +4,10 @@
   </div>
 
   <div class="panel-body fixed-panel" style="padding:5px">
+    <!-- Busy overlay -->
+    <div data-ng-if="projectsCtrl.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
+      <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+    </div>
     <div class="container-fluid">
       <div class="row">
         <!-- Left Margin -->
@@ -72,10 +76,32 @@
           <!-- Phase Selected -->
           <table data-ng-if="projectsCtrl.selectedPhase != null" class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})</th></tr>
+            <!-- Project Manager's Part -->
             <tr data-ng-if="projectsCtrl.isProjectManager()">
-              <td>Project-Manager's Part
+              <td>
+                Manager: <div class="btn-group" data-uib-dropdown>
+                  <button id="phase-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
+                      data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'">
+                    {{projectsCtrl.selectedPhaseManager.name}} <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="phase-manager-dropdown">
+                    <li data-ng-repeat="phaseManager in projectsCtrl.phaseManagers" role="menuitem">
+                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.phaseManagerSelect(phaseManager)">{{phaseManager.name}}</a>
+                    </li>
+                  </ul>
+                </div>
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()"
+                    data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+                <label style="width:25px;"></label>
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.selectedPhaseLaunch()"
+                    data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
+                <label style="width:25px;"></label>
+                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseDelete()"
+                    data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
+                    <span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
               </td>
             </tr>
+            <!-- Phase Manager's Part -->
             <tr data-ng-if="projectsCtrl.isPhaseManager()">
               <td>Phase-Manager's Part
               </td>

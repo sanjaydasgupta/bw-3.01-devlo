@@ -274,6 +274,10 @@
     return deletable.test(self.selectedPhase.status);
   }
 
+  self.selectedPhaseCanLaunch = function() {
+    return self.selectedPhase.status == 'defined' && self.selectedProject.status == 'running';
+  }
+
   self.selectedPhaseDelete = function() {
     $log.log('Called selectedPhaseDelete(' + self.selectedPhase.name + ')');
     var query = 'api/Phase/' + self.selectedPhase._id;

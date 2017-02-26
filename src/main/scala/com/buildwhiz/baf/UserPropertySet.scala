@@ -28,6 +28,9 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val personOid = new ObjectId(parameters("person_id"))
+      val user: DynDoc = getUser(request)
+      if (user._id[ObjectId] != personOid && !user.roles[Many[String]].contains("BW-Admin"))
+        throw new IllegalArgumentException("3rd party property change attempt")
       val property = parameters("property")
       val value = parameters("value")
       setProperty(personOid, property, value)

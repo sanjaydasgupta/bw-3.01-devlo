@@ -16,11 +16,14 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
     """.stripMargin
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
       val postData: DynDoc = Document.parse(getStreamData(request))
       val personOid = new ObjectId(postData.person_id[String])
+      if (userOid != personOid)
+        throw new IllegalArgumentException("Password change by 3rd party")
       val oldPassword = postData.old_password[String]
       val newPassword = postData.new_password[String]
        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid, "password" -> md5(oldPassword)),

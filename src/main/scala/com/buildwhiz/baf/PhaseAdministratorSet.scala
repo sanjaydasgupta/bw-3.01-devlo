@@ -12,9 +12,9 @@ import scala.collection.JavaConverters._
 
 class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
 
-  private def saveAndSendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
-        phaseName: String): Unit = {
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
+  private def saveAndSendMail(request: HttpServletRequest, assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId,
+      projectOid: ObjectId, phaseName: String): Unit = {
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY", request)
     try {
       val subject1 = "Manager assignment"
       val message1 = s"You have been assigned the role of phase-manager for phase '$phaseName'"
@@ -29,12 +29,12 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})", request)
     }
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK", request)
   }
 
-  private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
+  private def adjustPersonsProjectIds(request: HttpServletRequest, personOid: ObjectId): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
       val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]].asScala
@@ -50,13 +50,13 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
           Map("$addToSet" -> Map("project_ids" -> project._id[ObjectId])))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
       } else {
         val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
           Map("$pull" -> Map("project_ids" -> project._id[ObjectId])))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
       }
     }
   }
@@ -71,11 +71,12 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
       val deAssignedPersonOid = thePhase.admin_person_id[ObjectId]
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"admin_person_id" -> assignedPersonOid)))
-      if (updateResult.getModifiedCount == 0)
+      if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      adjustPersonsProjectIds(assignedPersonOid)
-      adjustPersonsProjectIds(deAssignedPersonOid)
-      saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), thePhase.name[String])
+      adjustPersonsProjectIds(request, assignedPersonOid)
+      adjustPersonsProjectIds(request, deAssignedPersonOid)
+      saveAndSendMail(request, assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")),
+          thePhase.name[String])
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>

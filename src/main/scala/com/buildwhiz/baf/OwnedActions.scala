@@ -62,9 +62,11 @@ class OwnedActions extends HttpServlet with HttpUtils {
         val isRelevant = assigneeIsUser | phaseManagerIsUser
         action.is_relevant = isRelevant
         if (isRelevant) {
-          val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+          val p0 = if (project.has("timestamps") && project.timestamps[Document].has("start"))
+              project.timestamps[Document].y.start[Long] else Long.MaxValue
           action.inDocuments = docList(project, action.inbox[Many[ObjectId]].asScala, p0)
-          val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
+          val t0 = if (action.has("timestamps") && action.timestamps[Document].has("start"))
+              action.timestamps[Document].y.start[Long] else Long.MaxValue
           val outDocumentsOids: Seq[ObjectId] =
             if (assigneeIsUser) {
               rfiRequestOid +: submittalOid +: action.outbox[Many[ObjectId]].asScala

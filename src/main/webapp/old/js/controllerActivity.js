@@ -26,7 +26,7 @@
 
             if ($scope.phaseActivityDataUpdate.length <= 0) {
                 $(".msgToggle").show();
-                document.getElementById('dvPhaseMessege').innerHTML = "No Activity found.";
+                //document.getElementById('dvPhaseMessege').innerHTML = "No Activity found.";
             }
         }, function (responseError) {
             $("#divPreLoad").hide();

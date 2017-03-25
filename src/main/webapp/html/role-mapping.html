@@ -17,7 +17,8 @@
           </div>
           <input type="text" size="10" data-ng-model="roleCtrl.newRoleCategory" />
           <input type="text" size="10" data-ng-model="roleCtrl.newRoleName" />
-          <button type="button" class="btn btn-xs btn-primary" data-ng-click="roleCtrl.addNewRole()">Add</button>
+          <button type="button" class="btn btn-xs btn-primary" data-ng-disabled="roleCtrl.addNewRoleDisabled()"
+              data-ng-click="roleCtrl.addNewRole()">Add</button>
         </div>
         <!-- Permitted Categories -->
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
@@ -29,7 +30,8 @@
             </span>
           </div>
           <input type="text" size="10" data-ng-model="roleCtrl.newCategory" />
-          <button type="button" class="btn btn-xs btn-primary" data-ng-click="roleCtrl.addNewCategory()">Add</button>
+          <button type="button" class="btn btn-xs btn-primary" data-ng-disabled="roleCtrl.addNewCategoryDisabled()"
+              data-ng-click="roleCtrl.addNewCategory()">Add</button>
         </div>
         <!-- Subategories -->
         <!--div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">

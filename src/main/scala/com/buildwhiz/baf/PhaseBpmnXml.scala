@@ -27,11 +27,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
         }
       }
       copyModelToOutput()
-      val xml = new String(byteBuffer.toArray).replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r").
-          replaceAll("\t", "\\\\t").replaceAll("\"", "\\\\\"").replaceAll("\'", "\\\\\'")
-      val json = s"""{"id": "${processDefinition.getId}", "bpmn20Xml": "$xml"}"""
-      response.getWriter.println(json)
-      response.setContentType("application/json")
+      val xml = new String(byteBuffer.toArray)
+      response.getWriter.println(xml)
+      response.setContentType("application/xml")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {

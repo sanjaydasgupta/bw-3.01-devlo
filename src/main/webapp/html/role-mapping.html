@@ -12,7 +12,7 @@
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top; margin-bottom:5px;">
             <span data-ng-repeat="role in roleCtrl.roles" data-ng-click="roleCtrl.selectRole(role)"
                 style="margin-left:5px; background-color:{{roleCtrl.roleColor(role)}};">
-              <a href="javascript:void(0);">{{role.category}}/{{role.name}}</a><br/>
+              <a href="javascript:void(0);">{{role.category}} / {{role.name}}</a><br/>
             </span>
           </div>
           <input type="text" size="10" data-ng-model="roleCtrl.newRoleCategory" />

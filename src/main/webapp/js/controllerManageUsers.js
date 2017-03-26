@@ -75,7 +75,8 @@
     self.userRoles = [];
     self.allRoles.forEach(function(role) {
       var roleKey = role.category + ':' + role.name;
-      var newRole = {key: roleKey, ok: false}
+      var roleDisplay = role.category + ' / ' + role.name;
+      var newRole = {key: roleKey, ok: false, display: roleDisplay}
       user.roles.forEach(function(ur) {
         if (ur == roleKey) {
           newRole.ok = true;

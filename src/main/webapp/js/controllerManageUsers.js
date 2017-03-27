@@ -11,6 +11,13 @@
   self.allRoles = [];
   self.userRoles = [];
 
+  self.newUserFirstName = '';
+  self.newUserLastName = '';
+  self.newUserEmailWork = '';
+  self.newUserEmailOther = '';
+  self.newUserPhoneWork = '';
+  self.newUserPhoneMobile = '';
+
   $http.get('api/Role').then(
     function(res) {
       self.allRoles = res.data;
@@ -103,6 +110,41 @@
       },
       function(res) {
         $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
+  self.addNewUserDisabled = function() {
+    var re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/
+    return self.newUserFirstName.trim() == '' || self.newUserLastName.trim() == '' ||
+        ! re.test(self.newUserEmailWork.trim());
+  }
+
+  self.addNewUser = function() {
+    $log.log('Called addNewUser(): ' + JSON.stringify(newUser));
+    var newUser = {first_name: self.newUserFirstName, last_name: self.newUserLastName,
+        emails: [{type: 'work', email: self.newUserEmailWork}], phones: [], tz: 'US/Pacific'};
+    if (self.newUserEmailOther.trim() != '') {
+      newUser.emails.push({type: 'other', email: self.newUserEmailOther});
+    }
+    if (self.newUserPhoneWork.trim() != '') {
+      newUser.phones.push({type: 'work', phone: self.newUserPhoneWork});
+    }
+    if (self.newUserPhoneMobile.trim() != '') {
+      newUser.phones.push({type: 'mobile', phone: self.newUserPhoneMobile});
+    }
+    $http.post('api/Person', newUser).then(
+      function() {
+        $log.log('User ' + self.newUserFirstName + ' added');
+        self.newUserFirstName = '';
+        self.newUserLastName = '';
+        self.newUserEmailWork = '';
+        self.newUserEmailOther = '';
+        self.newUserPhoneWork = '';
+        self.newUserPhoneMobile = '';
+      },
+      function(res) {
+        alert('ERROR adding ' + self.newUserFirstName + '. Check input fields.');
       }
     )
   }

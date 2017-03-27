@@ -4,7 +4,8 @@
   <div class="panel-body fixed-panel">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
+        <!-- Names Filter & List -->
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
           <label>Name:</label>
           <input type="text" data-ng-model="usersCtrl.nameFilter" size="7"/>
           <button class="btn btn-xs btn-info" data-ng-click="usersCtrl.findUsers()">
@@ -16,7 +17,8 @@
             </span>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
+        <!-- Selected User - Details -->
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
           <label data-ng-if="!usersCtrl.userSelected">No User Selected</label>
           <label data-ng-if="usersCtrl.userSelected">{{usersCtrl.selectedUser.first_name}} {{usersCtrl.selectedUser.last_name}}</label>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
@@ -38,13 +40,30 @@
             </div>
           </div>
         </div>
-        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4">
+        <!-- Selected User - Roles -->
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
           <label>Roles</label>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
             <div data-ng-if="usersCtrl.userSelected" data-ng-repeat="role in usersCtrl.userRoles" style="margin-left:5px;">
               <input type="checkbox" data-ng-model="role.ok" data-ng-click="usersCtrl.roleToggle(role)"/>
               {{role.display}}
             </div>
+          </div>
+        </div>
+        <!-- New User Add -->
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+          <label>Add New User</label>
+          <div align="center" style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+            <table style="margin-top:7px;">
+              <tr><td>First name</td><td><input type="text" data-ng-model="usersCtrl.newUserFirstName"></td></tr>
+              <tr><td>Last name</td><td><input type="text" data-ng-model="usersCtrl.newUserLastName"></td></tr>
+              <tr><td>Email (work)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailWork"></td></tr>
+              <tr><td>Email (other)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailOther"></td></tr>
+              <tr><td>Phone (work)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneWork"></td></tr>
+              <tr><td>Phone (mobile)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneMobile"></td></tr>
+              <tr><td colspan="2"><button class="btn btn-xs btn-warning center-block"  style="margin-top:5px;"
+                  data-ng-click="usersCtrl.addNewUser()" data-ng-disabled="usersCtrl.addNewUserDisabled()">Add</button></td></tr>
+            </table>
           </div>
         </div>
       </div>

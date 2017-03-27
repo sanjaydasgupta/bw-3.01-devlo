@@ -104,14 +104,23 @@ trait RestUtils extends HttpUtils {
     }
   }
 
-  def handleRestPost(request: HttpServletRequest, response: HttpServletResponse, collectionName: String): Unit = {
+  def handleRestPost(request: HttpServletRequest, response: HttpServletResponse, collectionName: String,
+      dupChecker: Option[Document => Document] = None, updater: Option[Document => Document] = None): Unit = {
     BWLogger.log(getClass.getName, "handlePost", s"ENTRY", request)
     try {
       val data = getStreamData(request)
-      val document = Document.parse(data)
-      val exists = BWMongoDB3(collectionName).find(document).asScala.nonEmpty
-      if (exists)
+      val inDocument = Document.parse(data)
+      val checker = dupChecker match {
+        case None => inDocument
+        case Some(dc) => dc(inDocument)
+      }
+      val existingRecords = BWMongoDB3(collectionName).find(checker)
+      if (existingRecords.nonEmpty)
         throw new IllegalArgumentException("Record already exists")
+      val document = updater match {
+        case Some(u) => u(inDocument)
+        case None => inDocument
+      }
       document.asScala("timestamps") = new Document("created", System.currentTimeMillis)
       BWMongoDB3(collectionName).insertOne(document)
       response.setContentType("text/plain")
@@ -124,6 +133,11 @@ trait RestUtils extends HttpUtils {
         t.printStackTrace()
         throw t
     }
+  }
+
+  def userHasRole(request: HttpServletRequest, role: String): Boolean = {
+    val user: DynDoc = getUser(request)
+    user.roles[Many[String]].contains(role)
   }
 
   def idToQuery(id: String): Document = {

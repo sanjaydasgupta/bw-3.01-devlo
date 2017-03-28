@@ -7,7 +7,6 @@
   self.nameFilter = '';
   self.users = [];
   self.selectedUser = null;
-  self.userSelected = false;
   self.allRoles = [];
   self.userRoles = [];
 
@@ -17,6 +16,15 @@
   self.newUserEmailOther = '';
   self.newUserPhoneWork = '';
   self.newUserPhoneMobile = '';
+
+  self.userEmailWork = '';
+  self.userEmailOther = '';
+  self.userPhoneWork = '';
+  self.userPhoneMobile = '';
+  self.userEmailWorkOriginal = '';
+  self.userEmailOtherOriginal = '';
+  self.userPhoneWorkOriginal = '';
+  self.userPhoneMobileOriginal = '';
 
   $http.get('api/Role').then(
     function(res) {
@@ -35,8 +43,8 @@
     $http.get(query).then(
       function(res) {
         self.users = res.data;
-        self.userSelected = false;
         self.selectedUser = null;
+        self.deselectUser();
       },
       function(res) {
         $log.log('ERROR GET ' + query);
@@ -91,8 +99,21 @@
       })
       self.userRoles.push(newRole);
     })
+    user.emails.forEach(function(email) {
+      if (email.type == 'work') {
+        self.userEmailWork = self.userEmailWorkOriginal = email.email;
+      } else if (email.type == 'other') {
+        self.userEmailOther = self.userEmailOtherOriginal = email.email;
+      }
+    });
+    user.phones.forEach(function(phone) {
+      if (phone.type == 'work') {
+        self.userPhoneWork = self.userPhoneWorkOriginal = phone.phone;
+      } else if (phone.type == 'mobile') {
+        self.userPhoneMobile = self.userPhoneMobileOriginal = phone.phone;
+      }
+    });
     self.selectedUser = user;
-    self.userSelected = true;
   }
 
   self.roleToggle = function(role) {
@@ -117,7 +138,7 @@
   self.addNewUserDisabled = function() {
     var re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/
     return self.newUserFirstName.trim() == '' || self.newUserLastName.trim() == '' ||
-        ! re.test(self.newUserEmailWork.trim());
+        !re.test(self.newUserEmailWork.trim());
   }
 
   self.addNewUser = function() {
@@ -147,6 +168,63 @@
         alert('ERROR adding ' + self.newUserFirstName + '. Check input fields.');
       }
     )
+  }
+
+  self.deselectUser = function() {
+    self.userEmailWork = '';
+    self.userEmailOther = '';
+    self.userPhoneWork = '';
+    self.userPhoneMobile = '';
+    $log.log('Called deselectUser()')
+  }
+
+  self.userContactsSet = function() {
+    $log.log('Called userContactSet()')
+    var parameters = [];
+    var values = [];
+    if (self.userEmailWork != self.userEmailWorkOriginal) {
+      parameters.push("email_work");
+      values.push(self.userEmailWork);
+    }
+    if (self.userEmailOther != self.userEmailOtherOriginal) {
+      parameters.push("email_other");
+      values.push(self.userEmailOther);
+    }
+    if (self.userPhoneWork != self.userPhoneWorkOriginal) {
+      parameters.push("phone_work");
+      values.push(self.userPhoneWork);
+    }
+    if (self.userPhoneMobile != self.userPhoneMobileOriginal) {
+      parameters.push("phone_mobile");
+      values.push(self.userPhoneMobile);
+    }
+    var parameterString = parameters.join('|');
+    var valueString = values.join('|');
+    var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=' + parameterString +
+        '&value=' + valueString;
+    $log.log('POST ' + query);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+      },
+      function(res) {
+        alert('ERROR POST ' + query);
+      }
+    )
+  }
+
+  self.userContactsButtonsDisabled = function() {
+    return self.selectedUser == null || (self.userEmailWork == self.userEmailWorkOriginal &&
+        self.userEmailOther == self.userEmailOtherOriginal && self.userPhoneWork == self.userPhoneWorkOriginal &&
+        self.userPhoneMobile == self.userPhoneMobileOriginal);
+  }
+
+  self.userContactsReset = function() {
+    self.userEmailWork = self.userEmailWorkOriginal;
+    self.userEmailOther = self.userEmailOtherOriginal;
+    self.userPhoneWork = self.userPhoneWorkOriginal;
+    self.userPhoneMobile = self.userPhoneMobileOriginal;
+    $log.log('Called userContactReset()')
   }
 
   self.isSelf = function() {

@@ -19,10 +19,10 @@
         </div>
         <!-- Selected User - Details -->
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
-          <label data-ng-if="!usersCtrl.userSelected">No User Selected</label>
-          <label data-ng-if="usersCtrl.userSelected">{{usersCtrl.selectedUser.first_name}} {{usersCtrl.selectedUser.last_name}}</label>
+          <label data-ng-if="usersCtrl.selectedUser == null">No User Selected</label>
+          <label data-ng-if="usersCtrl.selectedUser != null">{{usersCtrl.selectedUser.first_name}} {{usersCtrl.selectedUser.last_name}}</label>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
-            <div data-ng-if="usersCtrl.userSelected" style="margin-left:5px;">
+            <div data-ng-if="usersCtrl.selectedUser != null" style="margin-left:5px;">
               <div data-ng-repeat="email in usersCtrl.selectedUser.emails">
                 Email ({{email.type}}): {{email.email}}
               </div>
@@ -44,12 +44,49 @@
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
           <label>Roles</label>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
-            <div data-ng-if="usersCtrl.userSelected" data-ng-repeat="role in usersCtrl.userRoles" style="margin-left:5px;">
+            <div data-ng-if="usersCtrl.selectedUser != null" data-ng-repeat="role in usersCtrl.userRoles" style="margin-left:5px;">
               <input type="checkbox" data-ng-model="role.ok" data-ng-click="usersCtrl.roleToggle(role)"/>
               {{role.display}}
             </div>
           </div>
         </div>
+        <!-- Emails and Phones -->
+        <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
+          <label>Emails & Phones</label>
+          <div align="center" style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
+            <table align="center">
+              <tr><td style="height:1.5em;"> </td></tr>
+              <tr style="vertical-align:center;">
+                <td>Email (Work)</td><td><input type="text" data-ng-model="usersCtrl.userEmailWork"/></td>
+              </tr>
+              <tr><td style="height:.25em;"> </td></tr>
+              <tr style="vertical-align:center;">
+                <td>Email (Other)</td><td><input type="text" data-ng-model="usersCtrl.userEmailOther"/></td>
+              </tr>
+              <tr><td style="height:.25em;"> </td></tr>
+              <tr style="vertical-align:center;">
+                <td>Phone (Work)</td><td><input type="text" data-ng-model="usersCtrl.userPhoneWork"/></td>
+              </tr>
+              <tr><td style="height:.25em;"> </td></tr>
+              <tr style="vertical-align:center;">
+                <td>Phone (Mobile)</td><td><input type="text" data-ng-model="usersCtrl.userPhoneMobile"/></td>
+              </tr>
+              <tr><td style="height:1.5em;"> </td></tr>
+              <tr style="vertical-align:center;">
+                <td colspan="2" align="center">
+                  <button class="btn btn-xs btn-info center-block pull-left"
+                      data-ng-disabled="usersCtrl.userContactsButtonsDisabled()"
+                      data-ng-click="usersCtrl.userContactsReset()">Reset</button>
+                  <button class="btn btn-xs btn-warning center-block pull-right"
+                      data-ng-disabled="usersCtrl.userContactsButtonsDisabled()"
+                      data-ng-click="usersCtrl.userContactsSet()">Set</button>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <!-- New User Add -->
         <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
           <label>Add New User</label>
@@ -57,12 +94,14 @@
             <table style="margin-top:7px;">
               <tr><td>First name</td><td><input type="text" data-ng-model="usersCtrl.newUserFirstName"></td></tr>
               <tr><td>Last name</td><td><input type="text" data-ng-model="usersCtrl.newUserLastName"></td></tr>
-              <tr><td>Email (work)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailWork"></td></tr>
-              <tr><td>Email (other)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailOther"></td></tr>
-              <tr><td>Phone (work)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneWork"></td></tr>
-              <tr><td>Phone (mobile)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneMobile"></td></tr>
-              <tr><td colspan="2"><button class="btn btn-xs btn-warning center-block"  style="margin-top:5px;"
-                  data-ng-click="usersCtrl.addNewUser()" data-ng-disabled="usersCtrl.addNewUserDisabled()">Add</button></td></tr>
+              <tr><td>Email (Work)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailWork"></td></tr>
+              <tr><td>Email (Other)</td><td><input type="text" data-ng-model="usersCtrl.newUserEmailOther"></td></tr>
+              <tr><td>Phone (Work)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneWork"></td></tr>
+              <tr><td>Phone (Mobile)</td><td><input type="text" data-ng-model="usersCtrl.newUserPhoneMobile"></td></tr>
+              <tr>
+                <td colspan="2"><button class="btn btn-xs btn-warning center-block"  style="margin-top:5px;"
+                    data-ng-click="usersCtrl.addNewUser()" data-ng-disabled="usersCtrl.addNewUserDisabled()">Add</button></td>
+              </tr>
             </table>
           </div>
         </div>

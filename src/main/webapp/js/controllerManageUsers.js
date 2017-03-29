@@ -36,15 +36,22 @@
     }
   )
 
-  self.findUsers = function() {
+  self.findUsers = function(userId) {
     var query = 'api/Person/{$or: [{first_name: {$regex: "' + self.nameFilter + '", $options: "i"}},' +
         '{last_name: {$regex: "' + self.nameFilter + '", $options: "i"}}]}';
     $log.log('GET ' + query);
     $http.get(query).then(
       function(res) {
         self.users = res.data;
-        self.selectedUser = null;
-        self.deselectUser();
+        if (userId) {
+          var u2s = self.users.filter(function(u){return u._id == userId;});
+          if (u2s.length == 1) {
+            self.selectUser(u2s[0]);
+          }
+        } else {
+          self.selectedUser = null;
+          self.deselectUser();
+        }
       },
       function(res) {
         $log.log('ERROR GET ' + query);
@@ -81,6 +88,7 @@
   }
 
   self.selectUser = function(user) {
+    $log.log('Called selectUser(' + user._id + ')');
     if (!user.hasOwnProperty('enabled')) {
       user.enabled = false;
     }
@@ -184,19 +192,19 @@
     var values = [];
     if (self.userEmailWork != self.userEmailWorkOriginal) {
       parameters.push("email_work");
-      values.push(self.userEmailWork);
+      values.push(self.userEmailWork.trim());
     }
     if (self.userEmailOther != self.userEmailOtherOriginal) {
       parameters.push("email_other");
-      values.push(self.userEmailOther);
+      values.push(self.userEmailOther.trim());
     }
     if (self.userPhoneWork != self.userPhoneWorkOriginal) {
       parameters.push("phone_work");
-      values.push(self.userPhoneWork);
+      values.push(self.userPhoneWork.trim());
     }
     if (self.userPhoneMobile != self.userPhoneMobileOriginal) {
       parameters.push("phone_mobile");
-      values.push(self.userPhoneMobile);
+      values.push(self.userPhoneMobile.trim());
     }
     var parameterString = parameters.join('|');
     var valueString = values.join('|');
@@ -206,6 +214,7 @@
     $http.post(query).then(
       function(res) {
         $log.log('OK POST ' + query);
+        self.findUsers(self.selectedUser._id);
       },
       function(res) {
         alert('ERROR POST ' + query);
@@ -214,9 +223,10 @@
   }
 
   self.userContactsButtonsDisabled = function() {
-    return self.selectedUser == null || (self.userEmailWork == self.userEmailWorkOriginal &&
-        self.userEmailOther == self.userEmailOtherOriginal && self.userPhoneWork == self.userPhoneWorkOriginal &&
-        self.userPhoneMobile == self.userPhoneMobileOriginal);
+    return self.selectedUser == null || (self.userEmailWork.trim() == self.userEmailWorkOriginal &&
+        self.userEmailOther.trim() == self.userEmailOtherOriginal &&
+        self.userPhoneWork.trim() == self.userPhoneWorkOriginal &&
+        self.userPhoneMobile.trim() == self.userPhoneMobileOriginal);
   }
 
   self.userContactsReset = function() {

@@ -28,7 +28,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         val emails: Seq[DynDoc] = person.emails[Many[Document]]
         val idx = emails.indexWhere(_.`type`[String] == emailType)
         if (idx == -1) {
-          Map("$push" -> Map("emails" -> Map(emailType -> value)))
+          Map("$push" -> Map("emails" -> Map("type" -> emailType, "email" -> value)))
         } else {
           Map("$set" -> Map(s"emails.$idx.email" -> value))
         }
@@ -37,7 +37,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         val phones: Seq[DynDoc] = person.phones[Many[Document]]
         val idx = phones.indexWhere(_.`type`[String] == phoneType)
         if (idx == -1) {
-          Map("$push" -> Map("phones" -> Map(phoneType -> value)))
+          Map("$push" -> Map("phones" -> Map("type" -> phoneType, "phone" -> value)))
         } else {
           Map("$set" -> Map(s"phones.$idx.phone" -> value))
         }

@@ -40,5 +40,8 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     }).when('/role-mapping', {
         templateUrl: 'html/role-mapping.html',
         controller: 'RoleCtrl as roleCtrl'
+    }).when('/bpmn', {
+        templateUrl: 'html/bpmn.html',
+        controller: 'BpmnCtrl as bpmnCtrl'
     }).otherwise({redirectTo: '/'})
 }])

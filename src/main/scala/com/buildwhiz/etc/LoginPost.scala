@@ -36,12 +36,11 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
         val result = person match {
           case None => """{"_id": "", "first_name": "", "last_name": ""}"""
-          case Some(pers) =>
-            cookieSessionSet(email, pers, request, response)
-            val permittedFields = Set("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
-              "tz")
-            val resultPerson = new Document()
-            pers.keySet.asScala.foreach(key => if (permittedFields.contains(key)) resultPerson.asScala(key) = pers.asScala(key))
+          case Some(p) =>
+            cookieSessionSet(email, p, request, response)
+            val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
+              "tz", "email_enabled").filter(f => p.containsKey(f))
+            val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
             bson2json(resultPerson)
         }
         response.getWriter.print(result)

@@ -36,7 +36,7 @@
                 ({{phase.status}})
                 <!--a data-ng-if="projectsCtrl.selectedPhase == phase" href="javascript:void(0);" data-ng-click="projectsCtrl.displayBpmn(phase)">BPMN</a-->
                 <a data-ng-if="projectsCtrl.selectedPhase == phase"
-                   href="#/bpmn?process={{phase.name}}&project_id={{projectsCtrl.selectedProject._id}}&phase_id={{phase._id}}">BPMN</a>
+                   href="#/bpmn?process={{phase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{phase._id}}">BPMN</a>
               </td>
             </tr>
           </table>

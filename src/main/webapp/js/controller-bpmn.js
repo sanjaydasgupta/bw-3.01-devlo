@@ -7,6 +7,7 @@ angular.module('BuildWhizApp')
 
   self.processName = $routeParams.hasOwnProperty("process") ? $routeParams.process : null;
   self.projectId = $routeParams.hasOwnProperty("project_id") ? $routeParams.project_id : null;
+  self.projectName = $routeParams.hasOwnProperty("project_name") ? $routeParams.project_name : null;
   self.phaseId = $routeParams.hasOwnProperty("phase_id") ? $routeParams.phase_id : null;
 
   $log.log('Process: ' + self.processName);

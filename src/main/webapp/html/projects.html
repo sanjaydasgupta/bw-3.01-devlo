@@ -17,7 +17,7 @@
             <tr><th class="bg-primary text-center">Projects ({{projectsCtrl.projects.length}})</th></tr>
             <tr data-ng-repeat="project in projectsCtrl.projects" style="background-color:{{projectsCtrl.projectRowColor(project)}};">
               <td class="cursor: pointer;">
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project)">{{project.name}} ({{project.status}})</a>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.status}})</a>
               </td>
             </tr>
             <tr data-ng-if="projectsCtrl.canCreateProject()">
@@ -31,8 +31,12 @@
           <table class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Phases ({{projectsCtrl.phases.length}})</th></tr>
             <tr data-ng-repeat="phase in projectsCtrl.phases" style="background-color:{{projectsCtrl.phaseRowColor(phase)}}">
-              <td class="cursor: pointer;">
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}} ({{phase.status}})</a>
+              <td>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}}</a>
+                ({{phase.status}})
+                <!--a data-ng-if="projectsCtrl.selectedPhase == phase" href="javascript:void(0);" data-ng-click="projectsCtrl.displayBpmn(phase)">BPMN</a-->
+                <a data-ng-if="projectsCtrl.selectedPhase == phase"
+                   href="#/bpmn?process={{phase.name}}&project_id={{projectsCtrl.selectedProject._id}}&phase_id={{phase._id}}">BPMN</a>
               </td>
             </tr>
           </table>
@@ -40,7 +44,8 @@
         <!-- Detail -->
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
           <!-- Project Selected -->
-          <table data-ng-if="projectsCtrl.selectedProject != null" class="table table-condensed table-bordered table-hover">
+          <table data-ng-if="projectsCtrl.selectedProject != null"
+              class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})</th></tr>
             <tr data-ng-if="projectsCtrl.isProjectManager()">
               <td>
@@ -74,7 +79,8 @@
             </tr>
           </table>
           <!-- Phase Selected -->
-          <table data-ng-if="projectsCtrl.selectedPhase != null" class="table table-condensed table-bordered table-hover">
+          <table data-ng-if="projectsCtrl.selectedPhase != null"
+              class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})</th></tr>
             <!-- Project Manager's Part -->
             <tr data-ng-if="projectsCtrl.isProjectManager()">

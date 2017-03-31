@@ -1,10 +1,13 @@
 <div class="panel panel-primary">
     <div class="panel-heading">
-        <span style="font-weight:bold;">BPMN ({{bpmnCtrl.processKey}})</span>
+        <span style="font-weight:bold;">BPMN ({{bpmnCtrl.processName}})</span>
+        <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&phase_id={{bpmnCtrl.phaseId}}"
+        style="font-weight:bold; color:white;">&nbsp;Back</a>
+        <span style="color:white;" class="glyphicon glyphicon-circle-arrow-left pull-right"></span>
     </div>
 
     <div class="panel-body fixed-panel container-fluid" style="padding:5px">
-        <div style="height:500px; max-height:500px; min-height:500px; overflow:auto;">
+        <div id="canvas" style="height:500px; max-height:500px; min-height:500px; overflow:auto;">
         </div>
     </div>
 </div>

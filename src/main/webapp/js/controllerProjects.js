@@ -1,9 +1,13 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ProjectsCtrl", ['$log', '$http', 'AuthenticationService', function ($log, $http, AuthService) {
+.controller("ProjectsCtrl", ['$log', '$http', 'AuthenticationService', '$routeParams',
+    function ($log, $http, AuthService, $routeParams) {
 
   var self = this;
   self.busy = false;
+
+  self.initialProjectId = $routeParams.hasOwnProperty("project_id") ? $routeParams.project_id : null;
+  self.initialPhaseId = $routeParams.hasOwnProperty("phase_id") ? $routeParams.phase_id : null;
 
   self.newPhaseNames = [];
   self.selectedPhaseName = 'Select Phase';
@@ -41,7 +45,7 @@
     return AuthService.data.roles.join(',').indexOf('BW-Create-Project') != -1;
   }
 
-  self.fetchProjects = function(projectIdToSelect) {
+  self.fetchProjects = function(projectIdToSelect, phaseIdToSelect) {
     self.selectedProject = null;
     self.selectedPhase = null;
     self.phases = [];
@@ -54,10 +58,7 @@
         self.projects = resp.data;
         $log.log('OK GET ' + query + ' (' + self.projects.length + ') objects');
         if (projectIdToSelect) {
-          var p2 = self.projects.filter(function(p){return p._id == projectIdToSelect;});
-          if (p2.length > 0) {
-            self.selectProject(p2[0]);
-          }
+          self.selectProject(projectIdToSelect, phaseIdToSelect);
         }
       },
       function(errResponse) {
@@ -67,10 +68,10 @@
     );
   }
 
-  self.selectProject = function(project, phaseId) {
-    $log.log('Called selectProject(' + project.name + ')');
-    if (project) {
-      query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + project._id;
+  self.selectProject = function(projectId, phaseId) {
+    $log.log('Called selectProject(' + projectId + ', ' + phaseId + ')');
+    if (projectId) {
+      query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + projectId;
       $log.log('GET ' + query);
       self.busy = true;
       $http.get(query).then(
@@ -78,7 +79,7 @@
           self.busy = false;
           self.phases = resp.data;
           $log.log('OK GET ' + query + ' (' + self.phases.length + ') objects');
-          self.selectedProject = project;
+          self.selectedProject = self.projects.filter(function(p){return p._id == projectId;})[0];
           self.selectedPhase = phaseId ? self.phases.filter(function(p){return p._id == phaseId;})[0] : null;
         },
         function(errResponse) {
@@ -197,7 +198,7 @@
       function(resp) {
         self.busy = false;
         $log.log('OK POST ' + query);
-        self.selectProject(self.selectedProject, resp.data._id);
+        self.selectProject(self.selectedProject._id, resp.data._id);
       },
       function() {
         self.busy = false;
@@ -239,7 +240,7 @@
     $http.post(query).then(
       function(resp) {
         self.busy = false;
-        self.selectProject(self.selectedProject, self.selectedPhase._id);
+        self.selectProject(self.selectedProject._id, self.selectedPhase._id);
         $log.log('OK POST ' + query);
       },
       function(resp) {
@@ -260,7 +261,7 @@
       function(resp) {
         self.busy = false;
         $log.log('OK POST ' + query);
-        self.selectProject(self.selectedProject, self.selectedPhase._id);
+        self.selectProject(self.selectedProject._id, self.selectedPhase._id);
       },
       function(resp) {
         self.busy = false;
@@ -287,7 +288,7 @@
       function(resp) {
         self.busy = false;
         $log.log('OK DELETE ' + query);
-        self.selectProject(self.selectedProject);
+        self.selectProject(self.selectedProject._id);
       },
       function(resp) {
         self.busy = false;
@@ -296,6 +297,6 @@
     );
   }
 
-  self.fetchProjects();
+  self.fetchProjects(self.initialProjectId, self.initialPhaseId);
 
 }]);

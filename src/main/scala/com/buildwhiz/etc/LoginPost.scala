@@ -24,7 +24,8 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    parameters("User-Agent") = request.getHeader("User-Agent")
+    BWLogger.log(getClass.getName, "doPost", "ENTRY", parameters.toSeq: _*)
     try {
       val postData = getStreamData(request)
       val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
@@ -46,21 +47,21 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", request)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", parameters.toSeq: _*)
       } else if (request.getSession.getAttribute("bw-user") != null) {
         request.getSession.removeAttribute("bw-user")
         request.getSession.invalidate()
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log OUT", request)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log OUT", parameters.toSeq: _*)
       } else {
         val result = """{"_id": "", "first_name": "", "last_name": ""}"""
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", request)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Log IN ($result)", parameters.toSeq: _*)
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
         t.printStackTrace()
         throw t
     }

@@ -8,6 +8,8 @@
   self.archiveStatus = {status: -1};
   self.displayingSchema = false;
 
+  self.query = '';
+
   $log.log('MongodbCtrl: calling GET baf/MongoDBView');
   $http.get('baf/MongoDBView').then(
     function(resp) {
@@ -36,9 +38,9 @@
   }
 
   self.displaySchema = function(name) {
-    query = '?collection_name=' + name + '*';
-    $log.log('MongodbCtrl: GET baf/MongoDBView' + query);
-    $http.get('baf/MongoDBView' + query).then(
+    query = 'baf/MongoDBView?collection_name=' + name + '*';
+    $log.log('MongodbCtrl: GET ' + query);
+    $http.get(query).then(
       function(resp) {
         self.details = resp.data;
         self.name = name;
@@ -55,6 +57,19 @@
       function(resp) {
         $log.log('MongoDB archive status: ' + JSON.stringify(resp.data));
         self.archiveStatus = resp.data;
+      },
+      function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
+    );
+  }
+
+  self.runQuery = function() {
+    $log.log('Called runQuery()');
+    query = 'baf/MongoDBView?collection_name=' + escape(self.name + '#' + self.query);
+    $log.log('MongodbCtrl: GET ' + query);
+    $http.get(query).then(
+      function(resp) {
+        self.details = resp.data;
+        self.displayingSchema = false;
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
     );

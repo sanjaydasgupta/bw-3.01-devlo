@@ -8,6 +8,7 @@
   <div class="row panel-body fixed-panel">
     <div class="container-fluid">
       <div class="row">
+        <!-- Collections -->
         <div class="col-xs-12 col-sm-4 col-md-4 col-lg-3 col-xl-3">
           <table class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Collections</th></tr>
@@ -20,6 +21,7 @@
             </tr>
           </table>
         </div>
+        <!-- Details -->
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
           <table data-ng-if="!mongoCtrl.displayingSchema" class="table table-condensed table-bordered">
             <tr><th class="bg-primary text-center">{{mongoCtrl.name}}</th></tr>
@@ -33,6 +35,14 @@
             <tr data-ng-repeat="detail in mongoCtrl.details">
               <td>{{detail[0]}}</td><td>{{detail[1]}}</td><td>{{detail[2]}}</td>
             </tr>
+          </table>
+          <table class="table table-condensed table-bordered">
+            <tr data-ng-if="mongoCtrl.name != ''"><td class="bg-info text-center">
+              db.{{mongoCtrl.name}}.find({&nbsp;
+              <input type="text" data-ng-model="mongoCtrl.query">
+              &nbsp;})
+              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runQuery()"><span class="glyphicon glyphicon-play"></span> Run</button>
+            </td></tr>
           </table>
         </div>
       </div>

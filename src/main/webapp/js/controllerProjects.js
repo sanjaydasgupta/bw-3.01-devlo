@@ -9,6 +9,7 @@
   self.initialProjectId = $routeParams.hasOwnProperty("project_id") ? $routeParams.project_id : null;
   self.initialPhaseId = $routeParams.hasOwnProperty("phase_id") ? $routeParams.phase_id : null;
 
+  self.newPhaseName = '';
   self.newPhaseNames = [];
   self.selectedPhaseName = 'Select Phase';
 
@@ -189,10 +190,15 @@
     return project == self.selectedProject ? 'yellow' : 'white';
   }
 
+  self.addPhaseDisabled = function() {
+    return self.selectedProject.status == 'ended' || self.newPhaseName.trim() == '' ||
+        self.selectedPhaseName == 'Select Phase';
+  }
+
   self.addPhase = function(name) {
     $log.log('Called addPhase()');
-    var query = 'baf/PhaseAdd?phase_name=' + self.selectedPhaseName + '&project_id=' + self.selectedProject._id +
-        '&admin_person_id=' + AuthService.data._id;
+    var query = 'baf/PhaseAdd?bpmn_name=' + self.selectedPhaseName + '&project_id=' + self.selectedProject._id +
+        '&admin_person_id=' + AuthService.data._id + '&phase_name=' + self.newPhaseName;
     self.busy = true;
     $http.post(query).then(
       function(resp) {

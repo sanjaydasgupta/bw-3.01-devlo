@@ -16,7 +16,7 @@ angular.module('BuildWhizApp')
 
   self.bpmnViewer = new BpmnJS({container: '#canvas'});
 
-  var q = 'baf/PhaseBpmnXml?bpmn_name=Phase-' + self.processName;
+  var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName;
   $http.get(q).then(
     function(resp) {
       self.bpmnViewer.importXML(resp.data, function(err) {

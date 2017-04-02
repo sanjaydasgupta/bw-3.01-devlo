@@ -34,9 +34,8 @@
               <td>
                 <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}}</a>
                 ({{phase.status}})
-                <!--a data-ng-if="projectsCtrl.selectedPhase == phase" href="javascript:void(0);" data-ng-click="projectsCtrl.displayBpmn(phase)">BPMN</a-->
                 <a data-ng-if="projectsCtrl.selectedPhase == phase"
-                   href="#/bpmn?process={{phase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{phase._id}}">BPMN</a>
+                   href="#/bpmn?process={{phase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{phase._id}}">BPMN</a>
               </td>
             </tr>
           </table>
@@ -63,8 +62,9 @@
                     </li>
                   </ul>
                 </div>
+                <input type="text" data-ng-model="projectsCtrl.newPhaseName">
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
-                    data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
+                    data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
                 <label style="width:25px;"></label>
                 <label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label>
                 <label style="width:25px;"></label>

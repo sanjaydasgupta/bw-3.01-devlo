@@ -70,11 +70,15 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
           fields(fields.length - 1) = prettyPrint(fields.last.asInstanceOf[Document])
           val htmlRowData = fields.zip(widths).
-            map(p => s"""<td style="width: ${p._2}%;" align="center">${addSpaces(p._1.toString)}</td>""").mkString
+            map(p => {
+              val text = addSpaces(p._1.toString)
+              val color = if (text.toLowerCase.contains("error")) "red" else "black"
+              s"""<td style="width: ${p._2}%; color:$color" align="center">$text</td>"""
+            }).mkString
           val user: DynDoc = getUser(request)
           val fullName = s"${user.first_name[String]} ${user.last_name[String]}"
           if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
-            writer.println(s"""<tr style="background-color: yellow;">$htmlRowData</tr>""")
+            writer.println(s"""<tr style="background-color: beige;">$htmlRowData</tr>""")
           else
             writer.println(s"<tr>$htmlRowData</tr>")
         }

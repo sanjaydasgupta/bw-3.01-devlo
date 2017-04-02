@@ -54,7 +54,6 @@ object BWLogger extends HttpUtils {
 
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
     val parameters = getParameterMap(request)
-    val url = request.getRequestURL.toString
     val clientIp = request.getHeader("X-FORWARDED-FOR") match {
       case null => request.getRemoteAddr
       case ip => ip
@@ -63,14 +62,11 @@ object BWLogger extends HttpUtils {
       case null => parameters
       case user => parameters ++ Map("u$nm" -> s"""${user.get("first_name")} ${user.get("last_name")}""")
     }
-    if (eventName.toLowerCase.contains("entry")) {
-      val referrer = if (request.getHeaderNames.asScala.contains("referer")) request.getHeader("referer") else "(none)"
-      val commonPrefix = url.toList.zip(referrer.toList).takeWhile(p => p._1 == p._2)
-      val refPage = referrer.substring(commonPrefix.length)
+    if (Seq("entry", "error").exists(eventName.toLowerCase.contains(_))) {
       val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
       val query = request.getQueryString
       log(className, methodName,
-        s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp referrer=$refPage""",
+        s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp""",
         paramsWithName.toSeq: _*)
     } else {
       log(className, methodName, s"""$eventName client=$clientIp""", paramsWithName.toSeq: _*)

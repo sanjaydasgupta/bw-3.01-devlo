@@ -54,17 +54,17 @@
                 <div class="btn-group" data-uib-dropdown>
                   <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
                       data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
-                    {{projectsCtrl.selectedPhaseName}} <span class="caret"></span>
+                    {{projectsCtrl.selectedBpmnName}} <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                    <li data-ng-repeat="newPhaseName in projectsCtrl.newPhaseNames" role="menuitem">
-                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.newPhaseNameSet(newPhaseName)">{{newPhaseName}}</a>
+                    <li data-ng-repeat="bpmnName in projectsCtrl.bpmnNames" role="menuitem">
+                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.bpmnNameSet(bpmnName)">{{bpmnName}}</a>
                     </li>
                   </ul>
                 </div>
-                <input type="text" data-ng-model="projectsCtrl.newPhaseName">
+                <input type="text" data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
-                    data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
+                    data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> New Phase</button>
                 <label style="width:25px;"></label>
                 <label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label>
                 <label style="width:25px;"></label>

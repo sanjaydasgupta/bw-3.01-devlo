@@ -10,8 +10,8 @@
   self.initialPhaseId = $routeParams.hasOwnProperty("phase_id") ? $routeParams.phase_id : null;
 
   self.newPhaseName = '';
-  self.newPhaseNames = [];
-  self.selectedPhaseName = 'Select Phase';
+  self.bpmnNames = [];
+  self.selectedBpmnName = 'Select BPMN';
 
   self.projects = [];
   self.selectedProject = null;
@@ -24,8 +24,8 @@
 
   $http.get('baf/PhaseBpmnNamesFetch').then(
     function(resp) {
-      self.newPhaseNames = resp.data;
-      $log.log('OK GET baf/PhaseBpmnNamesFetch (' + self.newPhaseNames.length + ') objects');
+      self.bpmnNames = resp.data;
+      $log.log('OK GET baf/PhaseBpmnNamesFetch (' + self.bpmnNames.length + ') objects');
     },
     function() {
       $log.log('ERROR GET baf/PhaseBpmnNamesFetch');
@@ -192,12 +192,12 @@
 
   self.addPhaseDisabled = function() {
     return self.selectedProject.status == 'ended' || self.newPhaseName.trim() == '' ||
-        self.selectedPhaseName == 'Select Phase';
+        self.selectedBpmnName == 'Select BPMN';
   }
 
   self.addPhase = function(name) {
     $log.log('Called addPhase()');
-    var query = 'baf/PhaseAdd?bpmn_name=' + self.selectedPhaseName + '&project_id=' + self.selectedProject._id +
+    var query = 'baf/PhaseAdd?bpmn_name=' + self.selectedBpmnName + '&project_id=' + self.selectedProject._id +
         '&admin_person_id=' + AuthService.data._id + '&phase_name=' + self.newPhaseName;
     self.busy = true;
     $http.post(query).then(
@@ -213,9 +213,9 @@
     )
   }
 
-  self.newPhaseNameSet = function(name) {
-    self.selectedPhaseName = name;
-    $log.log('Called newPhaseNamesSet(' + name + ')');
+  self.bpmnNameSet = function(name) {
+    self.selectedBpmnName = name;
+    $log.log('Called bpmnNameSet(' + name + ')');
   }
 
   self.selectPhase = function(phase) {

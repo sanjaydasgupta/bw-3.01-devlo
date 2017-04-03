@@ -35,6 +35,7 @@ object BWMongoDB3 extends Dynamic {
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
   implicit def findIterable2DynDocSeq(fi: FindIterable[Document]): Seq[DynDoc] = fi.asScala.map(document2DynDoc).toSeq
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
+  implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala
   implicit def javaDocList2DynDocSeq(ds: Many[Document]): Seq[DynDoc] = {
     val sd: Seq[Document] = ds.asScala
     sd.map(new DynDoc(_))

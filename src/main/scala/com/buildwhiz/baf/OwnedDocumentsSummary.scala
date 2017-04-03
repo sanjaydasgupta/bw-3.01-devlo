@@ -43,9 +43,9 @@ class OwnedDocumentsSummary extends HttpServlet with HttpUtils {
     viewAction.activity_description = activity.description[String]
     viewAction.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
     val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
-    viewAction.in_documents = docList(project, action.inbox[Many[ObjectId]].asScala, p0)
+    viewAction.in_documents = docList(project, action.inbox[Many[ObjectId]], p0)
     val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
-    val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[Many[ObjectId]].asScala
+    val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[Many[ObjectId]]
     val outDocs = docList(project, outDocumentsOids, t0)
     viewAction.out_documents = outDocs
     viewAction.is_ready = (action.`type`[String] == "review") ||

@@ -34,7 +34,7 @@ object AmazonS3 {
       val (projOid, docOid, timestamp) = (new ObjectId(parts(0)), new ObjectId(parts(1)),
         java.lang.Long.parseLong(parts(2), 16))
       val doc: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> docOid, "project_id" -> projOid)).head
-      val versions: Seq[DynDoc] = doc.versions[Many[Document]].asScala
+      val versions: Seq[DynDoc] = doc.versions[Many[Document]]
       !versions.exists(_.timestamp[Long] == timestamp)
     } catch {
       case _: Throwable => true

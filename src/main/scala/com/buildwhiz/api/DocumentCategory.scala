@@ -13,7 +13,7 @@ class DocumentCategory extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val user: DynDoc = getUser(request)
-    val rawRoles: Seq[String] = user.roles[Many[String]].asScala
+    val rawRoles: Seq[String] = user.roles[Many[String]]
     if (rawRoles.mkString("|").matches(".*BW-(Data-)?Admin.*")) {
       val categoryRecords: Seq[DynDoc] = BWMongoDB3.document_category_master.find()
       val allCategories = categoryRecords.sortBy(_.category[String])

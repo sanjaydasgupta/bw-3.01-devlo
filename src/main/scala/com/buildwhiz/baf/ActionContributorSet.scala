@@ -37,9 +37,9 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
   private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
-      val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]].asScala
+      val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
       val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
-      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
+      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]])
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
       val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
       val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||

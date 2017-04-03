@@ -96,7 +96,7 @@ class ViewMain extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).asScala.head
-      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]].asScala
+      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]]
       val projects: Seq[Document] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids))).asScala.toSeq.
         map(addEmbeddedObjects(personOid))
       writer.print(projects.map(bson2json).mkString("[", ", ", "]"))

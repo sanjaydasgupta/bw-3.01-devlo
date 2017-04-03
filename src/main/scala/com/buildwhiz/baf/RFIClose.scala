@@ -35,7 +35,7 @@ class RFIClose extends HttpServlet with HttpUtils with MailUtils with DateTimeUt
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       val rfiRecord: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).head
-      val members: Seq[ObjectId] = rfiRecord.members[Many[ObjectId]].asScala
+      val members: Seq[ObjectId] = rfiRecord.members[Many[ObjectId]]
       val originatorOid = getUser(request).get("_id").asInstanceOf[ObjectId]
       val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
         s"/#/rfi?rfi_id=$rfiOid"

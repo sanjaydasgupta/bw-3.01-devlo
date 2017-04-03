@@ -53,7 +53,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid), Map("$push" -> Map("messages" -> message),
             "$set" -> Map("status" -> "active")))
         val rfiMessage: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).head
-        val members: Seq[ObjectId] = rfiMessage.members[Many[ObjectId]].asScala
+        val members: Seq[ObjectId] = rfiMessage.members[Many[ObjectId]]
         val subject: String = rfiMessage.subject[String]
         val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
           s"/#/rfi?rfi_id=$rfiOid"

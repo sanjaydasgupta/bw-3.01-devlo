@@ -40,7 +40,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       setupEssentials(de)
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]].asScala
+      val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
       //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
       val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de.getSuperExecution)

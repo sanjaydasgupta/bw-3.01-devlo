@@ -40,7 +40,7 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
       val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
       val reviewActions: Seq[DynDoc] = actions.filter(_.`type`[String] == "review")
       // Copy review documents to main action's inbox
-      val reviewDocOids: Many[ObjectId] = reviewActions.flatMap(_.outbox[Many[ObjectId]].asScala).asJava
+      val reviewDocOids: Many[ObjectId] = reviewActions.flatMap(_.outbox[Many[ObjectId]]).asJava
       val mainActionIdx: Int = actions.map(_.`type`[String]).indexOf("main")
       for (oid <- reviewDocOids.asScala) {
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),

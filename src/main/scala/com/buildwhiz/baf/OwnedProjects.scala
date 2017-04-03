@@ -18,7 +18,7 @@ class OwnedProjects extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]].asScala
+      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
       writer.print(augmentedProjects.mkString("[", ", ", "]"))
@@ -46,7 +46,7 @@ object OwnedProjects {
     project.can_end = canEnd(project)
     val phaseOids = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
-    val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala).asJava
+    val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]]).asJava
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))

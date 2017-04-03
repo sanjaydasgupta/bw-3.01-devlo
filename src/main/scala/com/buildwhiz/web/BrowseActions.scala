@@ -22,9 +22,9 @@ class BrowseActions extends HttpServlet with HttpUtils {
         "black"
       } else {
         val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectIds)))
-        val phaseIds = projects.flatMap(_.phase_ids[Many[ObjectId]].asScala)
+        val phaseIds = projects.flatMap(_.phase_ids[Many[ObjectId]])
         val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
-        val activityIds = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
+        val activityIds = phases.flatMap(_.activity_ids[Many[ObjectId]])
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
         val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]]).
           filter(_.assignee_person_id[ObjectId] == person._id[ObjectId])

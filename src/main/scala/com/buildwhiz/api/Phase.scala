@@ -51,7 +51,7 @@ class Phase extends HttpServlet with RestUtils {
     val phaseOids = theProject.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
-    val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]].asScala)
+    val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]])
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
@@ -69,7 +69,7 @@ class Phase extends HttpServlet with RestUtils {
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
       val preDeleteParticipantOids = projectParticipantOids(theProject)
-      val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]].asScala
+      val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]]
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),

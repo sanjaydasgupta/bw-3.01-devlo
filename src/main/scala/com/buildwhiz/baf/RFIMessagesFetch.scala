@@ -42,15 +42,15 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      val query = (parameters.get("person_id"), parameters.get("rfi_ids")) match {
-        case (None, Some(rfiIds)) =>
-          Map("project_id" -> project430ForestOid,
-            "_id" -> Map("$in" -> rfiIds.split(",").map(id => new ObjectId(id.trim)).toSeq))
-        case (Some(personId), None) =>
+      val query = (parameters.get("person_id"), parameters.get("document_master_id"), parameters.get("timestamp")) match {
+        case (Some(personId), Some(documentId), Some(timestamp)) =>
+          Map("project_id" -> project430ForestOid, "members" -> new ObjectId(personId),
+            "document" -> Map("document_id" -> new ObjectId(documentId), "version" -> timestamp.toLong))
+        case (Some(personId), None, None) =>
           Map("project_id" -> project430ForestOid, "members" -> new ObjectId(personId))
         case _ => Map.empty[String, AnyRef]
       }
-      val rfiExchanges: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(query)
+      val rfiExchanges: Seq[DynDoc] = if (query.isEmpty) Seq.empty else BWMongoDB3.rfi_messages.find(query)
       val user = getUser(request).get("_id").asInstanceOf[ObjectId]
       val rfiLines: Seq[Document] = rfiExchanges.map(rfi => {
         val messages: Seq[DynDoc] = rfi.messages[Many[Document]]

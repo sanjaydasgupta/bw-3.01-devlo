@@ -7,7 +7,6 @@
 
   self.taskList = [];
   self.selectedTask = null;
-  self.taskSelected = false;
   self.confirmingCompletion = false;
   self.submissionAttachments = [];
   self.currentFilterKey = 'All';
@@ -16,28 +15,27 @@
   self.submissionTitle = '';
   self.submissionMessage = '';
 
-  self.select = function(task) {
+  self.selectTask = function(task) {
     if (task) {
       self.selectedTask = task;
-      self.taskSelected = true;
       var message = 'TasksCtrl: selected ' + task.name + ' (activity: ' + task.activity_id + ') selected';
       $log.log(message)
     } else {
       self.selectedTask = null;
-      self.taskSelected = false;
     }
   }
 
   self.fetchActions = function(filter) {
     var filterKey = filter ? filter : 'All';
     var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filterKey.toLowerCase();
+    //var query = 'baf/OwnedTasksAll?person_id=' + AuthService.data._id + '&filter_key=' + filterKey.toLowerCase();
     $log.log('TasksCtrl: GET ' + query);
     $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
         self.currentFilterKey = filterKey;
         $log.log('OK-TasksCtrl: got ' + self.taskList.length + ' objects');
-        self.select(); // select none
+        self.selectTask(); // select none
       },
       function(errResponse) {alert("TasksCtrl: ERROR(collection-details): " + errResponse);}
     );
@@ -108,17 +106,6 @@
     $log.log('AFTER Camera-Button click: ' + cameraButton);
   }
 
-  self.userNameEmailFromCookie = function() {
-    $log.log('TasksCtrl: userNameEmailFromCookie() Called');
-    $http.get('etc/Environment').then(
-      function(resp) {
-        self.userNameEmail = resp.data;
-        $log.log('TasksCtrl: userNameEmailFromCookie(): ' + self.userNameEmail);
-      },
-      function(errResponse) {alert("TasksCtrl: ERROR(userNameEmailFromCookie()): " + errResponse);}
-    );
-  }
-
   self.actionComplete = function() {
     $log.log('TasksCtrl: taskComplete() Called');
     var query = 'baf/ActionComplete?activity_id=' + self.selectedTask.activity_id +
@@ -137,14 +124,14 @@
   }
 
   self.displayName = function(task) {
-    if (task.type == 'main') {
-      return task.name;
-    } else {
-      return task.name + ':' + task.activity_name;
-    }
+//    if (task.type == 'main') {
+//      return task.name;
+//    } else {
+//      return task.name + ':' + task.activity_name;
+//    }
+    return task.project_name + '/' + task.phase_name + '/' + task.name;
   }
 
   self.fetchActions();
-  self.userNameEmailFromCookie();
 
 }]);

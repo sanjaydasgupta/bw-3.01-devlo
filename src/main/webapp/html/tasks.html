@@ -1,13 +1,13 @@
 <div class="panel panel-primary">
   <div class="panel-heading">
-    Tasks
-    <span data-ng-if="tasksCtrl.taskSelected">
-      <span style="font-weight:bold;">{{tasksCtrl.displayName(tasksCtrl.selectedTask)}}</span>
-      [<a href="javascript:void(0);" data-ng-click="tasksCtrl.select()"
-          style="color:white;"><span class="glyphicon glyphicon-backward"></span> Back</a>]
+    <span style="font-weight:bold;">Tasks</span>
+    <span data-ng-if="tasksCtrl.selectedTask != null">
+      {{tasksCtrl.displayName(tasksCtrl.selectedTask)}}
+      [<a href="javascript:void(0);" data-ng-click="tasksCtrl.selectTask()"
+          style="color:white; font-weight:bold;"><span class="glyphicon glyphicon-arrow-left"></span> Back</a>]
     </span>
 
-    <div class="pull-right" data-ng-if="!tasksCtrl.taskSelected">
+    <div class="pull-right" data-ng-if="tasksCtrl.selectedTask == null">
       Select:&nbsp;
       <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
         <button id="btn-append-to" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
@@ -29,16 +29,20 @@
     </div>
   </div>
 
-  <div data-ng-switch="tasksCtrl.taskSelected" class="panel-body fixed-panel" style="padding:5px">
-    <div data-ng-switch-when="false" data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px;">
-      <h4 style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
-        <a href="javascript:void(0);" data-ng-click="tasksCtrl.select(task)">
-            {{tasksCtrl.displayName(task)}} ({{task.status}})</a>
-      </h4>
+  <div class="panel-body fixed-panel" style="padding:5px">
+    <div data-ng-if="tasksCtrl.selectedTask == null" data-ng-repeat="task in tasksCtrl.taskList" style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px;">
+      <div style="font-weight:bold; margin-top:0px; margin-bottom:5px;">
+        {{task.project_name}}/{{task.phase_name}}
+        <a style="font-size:1.5em;" href="javascript:void(0);" data-ng-click="tasksCtrl.selectTask(task)">
+            {{task.name}}</a> ({{task.status}})
+      </div>
       <p style="margin-bottom:0px">{{task.activity_description}}</p>
     </div>
 
-    <div data-ng-switch-when="true">
+    <div data-ng-if="tasksCtrl.selectedTask != null">
+
+      <h3 align="center">{{tasksCtrl.selectedTask.name}}</h3>
+
       <data-uib-accordion style="width:100%;">
 
         <div data-uib-accordion-group>
@@ -113,11 +117,11 @@
                   <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="submission-type"
                       style="min-width:30px">
                     <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                                                 data-ng-click="tasksCtrl.submissionType = 'Submittals'">Submittals</a></li>
+                        data-ng-click="tasksCtrl.submissionType = 'Submittals'">Submittals</a></li>
                     <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                                                 data-ng-click="tasksCtrl.submissionType = 'RFI'">RFI</a></li>
+                        data-ng-click="tasksCtrl.submissionType = 'RFI'">RFI</a></li>
                     <li class="dropdown-item"><a href="javascript:void(0)" style="padding:3px;"
-                                                 data-ng-click="tasksCtrl.submissionType = 'Progress'">Progress</a></li>
+                        data-ng-click="tasksCtrl.submissionType = 'Progress'">Progress</a></li>
                   </ul>
                 </div>
                 <label class="pull-right" style="margin-top:5px;">Type&nbsp;</label>

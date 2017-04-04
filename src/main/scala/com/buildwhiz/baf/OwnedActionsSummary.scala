@@ -79,7 +79,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
               case "all" => true
               case _ => true // placeholder, to be changed later
             })
-            allActions ++= filteredActions.map(a => getViewObjects(request, a, project, phase, activity))
+            allActions ++= filteredActions.map(action => getViewObjects(request, action, project, phase, activity))
           }
         }
       }

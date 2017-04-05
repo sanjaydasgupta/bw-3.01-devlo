@@ -66,7 +66,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
         val documentOid = new ObjectId(postData.document_id[String])
         val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
         val versions: Seq[DynDoc] = docRecord.versions[Many[Document]]
-        val documentTimestamp = postData.doc_version_timestamp[Long]
+        val documentTimestamp = postData.doc_version_timestamp[String].toLong
         val authorOid = versions.filter(_.timestamp[Long] == documentTimestamp).head.author_person_id[ObjectId]
         val memberOids = Seq(senderOid, projectManagersOid, authorOid).distinct
         val newRfiObject = new Document(Map("members" -> memberOids, "subject" -> subject,

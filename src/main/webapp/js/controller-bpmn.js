@@ -16,6 +16,17 @@ angular.module('BuildWhizApp')
 
   self.bpmnViewer = new BpmnJS({container: '#canvas'});
 
+  var eventBus = self.bpmnViewer.get('eventBus');
+  var events = ['element.hover', 'element.out', 'element.click', 'element.dblclick', 'element.mousedown',
+      'element.mouseup'];
+  events.forEach(function(event) {
+    eventBus.on(event, function(e) {
+      // e.element = the model element
+      // e.gfx = the graphical element
+      $log.log(event + ' on ' + e.element.id);
+    });
+  });
+
   var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName;
   $http.get(q).then(
     function(resp) {

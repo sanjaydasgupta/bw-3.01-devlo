@@ -14,16 +14,19 @@ angular.module('BuildWhizApp')
   $log.log('projectId: ' + self.projectId);
   $log.log('PhaseId: ' + self.phaseId);
 
+  // https://github.com/bpmn-io/bower-bpmn-js
+  // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
+
   self.bpmnViewer = new BpmnJS({container: '#canvas'});
 
   var eventBus = self.bpmnViewer.get('eventBus');
-  var events = ['element.hover', 'element.out', 'element.click', 'element.dblclick', 'element.mousedown',
-      'element.mouseup'];
+  var events = [/*'element.hover', 'element.out', */'element.click', 'element.dblclick', /*'element.mousedown',
+      'element.mouseup'*/];
   events.forEach(function(event) {
     eventBus.on(event, function(e) {
       // e.element = the model element
       // e.gfx = the graphical element
-      $log.log(event + ' on ' + e.element.id);
+      $log.log(event + ' on ' + e.element.id + '/' + e.element.type);
     });
   });
 

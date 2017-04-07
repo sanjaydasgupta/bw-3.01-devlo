@@ -17,15 +17,29 @@ angular.module('BuildWhizApp')
   // https://github.com/bpmn-io/bower-bpmn-js
   // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
 
-  self.bpmnViewer = new BpmnJS({container: '#canvas'});
+  var bpmnViewer = new BpmnJS({container: '#canvas'});
+  var overlayId = null;
+  var overlays = bpmnViewer.get('overlays');
+  var eventBus = bpmnViewer.get('eventBus');
+  var events = [/*'element.hover', 'element.out', */'element.click', 'element.dblclick',
+      /*'element.mousedown', 'element.mouseup'*/];
 
-  var eventBus = self.bpmnViewer.get('eventBus');
-  var events = [/*'element.hover', 'element.out', */'element.click', 'element.dblclick', /*'element.mousedown',
-      'element.mouseup'*/];
+  var overlayHtml = function(width, height) {
+    return '<div style="border:2px solid red;width:' + (parseInt(width) + 10) + 'px;height:' +
+        (parseInt(height) + 10) + 'px;">&nbsp;</div>';
+  }
+
   events.forEach(function(event) {
     eventBus.on(event, function(e) {
       // e.element = the model element
       // e.gfx = the graphical element
+      if (overlayId != null) {
+        overlays.remove(overlayId);
+      }
+      overlayId = overlays.add(e.element.id, {
+        position: {top: -5, left: -5},
+        html: overlayHtml(e.element.width, e.element.height)
+      });
       $log.log(event + ' on ' + e.element.id + '/' + e.element.type);
     });
   });
@@ -33,7 +47,7 @@ angular.module('BuildWhizApp')
   var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName;
   $http.get(q).then(
     function(resp) {
-      self.bpmnViewer.importXML(resp.data, function(err) {
+      bpmnViewer.importXML(resp.data, function(err) {
         if (err) {
           // import failed :-(
           $log.log('FAIL importXML');

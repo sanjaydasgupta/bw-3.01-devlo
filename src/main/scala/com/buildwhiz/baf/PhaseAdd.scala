@@ -53,23 +53,24 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def getTimerDefinitions(processNameAndDocument: (String, dom.Document)): Seq[(String, String, String)] = {
+  private def getTimerDefinitions(processNameAndDocument: (String, dom.Document)): Seq[(String, String, String, String)] = {
     BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
-      def getNameAndVariableName(timerNode: Element, prefix: String): (String, String, String) = {
-        // bpmn, name, process-variable
+      def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String) = {
+        // bpmn, name, process-variable, id
         val name = timerNode.getAttributes.getNamedItem("name").getTextContent
+        val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
           n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
-        (processNameAndDocument._1, name, processVariableName)
+        (processNameAndDocument._1, name, processVariableName, bpmnId)
       }
 
       val prefix = processNameAndDocument._2.getDocumentElement.getTagName.split(":")(0)
       val phaseTimerNodes: Seq[Element] = processNameAndDocument._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
         filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
-      val timerNamesAndVariables = phaseTimerNodes.map(n => getNameAndVariableName(n, prefix))
+      val timerNamesAndVariables = phaseTimerNodes.map(n => getNameVariableNameAndId(n, prefix))
       BWLogger.log(getClass.getName, "getTimerDefinitions", s"""EXIT-OK (${timerNamesAndVariables.mkString(", ")})""")
       timerNamesAndVariables
     } catch {
@@ -80,17 +81,18 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def getActivityNamesRolesAndDescriptions(processNameAndDocument: (String, dom.Document)):
-      Seq[(String, String, String, String)] = {
-    // bpmn, activity-name, role, description
+  private def getActivityNameRoleDescriptionAndId(processNameAndDocument: (String, dom.Document)):
+      Seq[(String, String, String, String, String)] = {
+    // bpmn, activity-name, role, description, id
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
       def sequence(callActivity: Element): Int = callActivity.getElementsByTagName("camunda:property").
         find(_.getAttributes.getNamedItem("name").getTextContent == "bw-sequence").
         map(_.getAttributes.getNamedItem("value").getTextContent).head.toInt
-      def getNameRoleAndDescription(callActivity: Element): (String, String, String, String) = {
+      def getNameRoleAndDescription(callActivity: Element): (String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s]+", " ")
+        val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
         val role = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
           find(_.getAttributes.getNamedItem("name").getTextContent == "bw-role").
           map(_.getAttributes.getNamedItem("value").getTextContent) match {
@@ -103,7 +105,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           case Some(d) => d.replaceAll("\"", "\'")
           case None => s"no description provided ($name)"
         }
-        (processNameAndDocument._1, name, role, description)
+        (processNameAndDocument._1, name, role, description, bpmnId)
       }
       val prefix = processNameAndDocument._2.getDocumentElement.getTagName.split(":")(0)
       val bpmnCallActivities: Seq[Element] = processNameAndDocument._2.getElementsByTagName(s"$prefix:callActivity").
@@ -162,7 +164,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val variables: Many[Document] = processNamesAndDocuments.flatMap(getVariableDefinitions).map(kv =>
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = processNamesAndDocuments.flatMap(getTimerDefinitions).map(kv =>
-        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "duration" -> "00:00:00"); doc}).asJava
+        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4, "duration" -> "00:00:00"); doc}).asJava
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables)
@@ -173,9 +175,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         Map("$push" -> Map("phase_ids" -> phaseOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      val namesRolesAndDescriptions = processNamesAndDocuments.flatMap(getActivityNamesRolesAndDescriptions)
+      val namesRolesAndDescriptions = processNamesAndDocuments.flatMap(getActivityNameRoleDescriptionAndId)
       //BWLogger.log(getClass.getName, "doPost", s"""Activity-Names-n-Roles: ${namesAndRoles.mkString("[", ", ", "]")}""", request)
-      for ((bpmn, activityName, activityRole, activityDescription) <- namesRolesAndDescriptions) {
+      for ((bpmn, activityName, activityRole, activityDescription, bpmnId) <- namesRolesAndDescriptions) {
         // drawings: COVER SHEET, SITE PLAN, BASEMENT FLOOR PLAN
         val availableDocumentList = Seq("57207549d5d8ad331d2ea699", "57207549d5d8ad331d2ea69a",
           "57207549d5d8ad331d2ea69b").map(id => new ObjectId(id))
@@ -186,8 +188,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "assignee_person_id" -> adminPersonOid, "duration" -> "00:00:00")
         val actions = new java.util.ArrayList[Document]
         actions.asScala.append(action)
-        val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions, "status" -> "defined",
-          "role" -> activityRole, "description" -> activityDescription)
+        val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions,
+          "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

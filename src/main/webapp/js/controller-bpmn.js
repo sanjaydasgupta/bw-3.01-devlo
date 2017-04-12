@@ -25,7 +25,7 @@ angular.module('BuildWhizApp')
       /*'element.mousedown', 'element.mouseup'*/];
 
   var overlayHtml = function(width, height) {
-    return '<div style="border:2px solid red;width:' + (parseInt(width) + 10) + 'px;height:' +
+    return '<div style="background-color:blue;opacity:0.2;width:' + (parseInt(width) + 10) + 'px;height:' +
         (parseInt(height) + 10) + 'px;">&nbsp;</div>';
   }
 

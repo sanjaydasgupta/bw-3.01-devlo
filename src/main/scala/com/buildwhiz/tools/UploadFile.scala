@@ -5,6 +5,8 @@ import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.infra.BWMongoDB3
+import BWMongoDB3._
 
 import scala.collection.JavaConverters._
 import scala.sys.process._
@@ -30,6 +32,11 @@ class UploadFile extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost()", s"ENTRY", request)
     val writer = response.getWriter
     try {
+      val user: DynDoc = getUser(request)
+      val rawRoles: Seq[String] = user.roles[Many[String]]
+      if (!rawRoles.contains("BW-File-Uploads")) {
+        throw new IllegalArgumentException("Not permitted")
+      }
       val uploadsDirectory = new File("uploads")
       if (parameters.contains("file_location")) {
         val fileLocation = parameters("file_location")
@@ -48,9 +55,8 @@ class UploadFile extends HttpServlet with HttpUtils {
         BWLogger.log(getClass.getName, "doPost()", s"EXIT-OK Upload-length: $length", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
-        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.24/webapps/buildwhiz-1.01""".!
+        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.24/webapps/bw-responsive-1.01""".!
         val statusMsg = Seq("OK", "ERROR")(status)
-        //writer.println(s"""cp -frl ${files.mkString(" ")} server/apache-tomcat-8.0.24/webapps/buildwhiz-1.01<br/>""")
         writer.println(s"""Update status: $statusMsg, files: ${files.mkString(", ")}""")
         BWLogger.log(getClass.getName, "doPost()", s"""EXIT-OK files: ${files.mkString(", ")}, status: $statusMsg""", request)
       }

@@ -40,7 +40,7 @@ angular.module('BuildWhizApp')
         position: {top: -5, left: -5},
         html: overlayHtml(e.element.width, e.element.height)
       });
-      $log.log(event + ' on ' + e.element.id + '/' + e.element.type);
+      $log.log(JSON.stringify(e.element));
     });
   });
 

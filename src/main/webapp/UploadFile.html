@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>UploadFile</title>
+  </head>
+  <body>
+    <h2>Remember to UPDATE after uploading one or more files</h2><br>
+
+    <form method="post" action="tools/UploadFile?file_location=html/bpmn.html" enctype="multipart/form-data">
+        bpmn.html: <input type="file" accept="text/html" name="file">
+        <input type="submit">
+    </form>
+    <form method="post" action="tools/UploadFile?file_location=js/controller-bpmn.js" enctype="multipart/form-data">
+        controller-bpmn.js: <input type="file" accept="text/js" name="file">
+        <input type="submit">
+    </form>
+
+    <h3>UPDATE</h3>
+    <form method="post" action="tools/UploadFile" enctype="multipart/form-data">
+        <input type="submit" name="file">
+    </form><br/>
+  </body>
+</html>
+

@@ -59,7 +59,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
       def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String) = {
         // bpmn, name, process-variable, id
-        val name = timerNode.getAttributes.getNamedItem("name").getTextContent
+        val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replace("\\s+", " ")
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&

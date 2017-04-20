@@ -17,10 +17,14 @@ class TimerDurationFetch extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val bpmnName = parameters("bpmn_name")
-      val timerBpmnId = parameters("timer_bpmn_id")
-      val timerRecord: DynDoc = thePhase.timers[Many[Document]].
-          filter(t => t.bpmn_name[String] == bpmnName && t.bpmn_id[String] == timerBpmnId).head
-      val duration = timerRecord.duration[String]
+      val timersInBpmn: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
+      val theTimer: DynDoc = (parameters.get("timer_id"), parameters.get("timer_name")) match {
+        case (Some(timerId), _) => timersInBpmn.filter(_.bpmn_id[String] == timerId).head
+        case (_, Some(timerName)) =>
+          timersInBpmn.filter(_.name[String].replace("\\s+", "") == timerName.replace("\\s+", "")).head
+        case _ => throw new IllegalArgumentException("Timer id or name not provided")
+      }
+      val duration = theTimer.duration[String]
       response.getWriter.print(duration)
       response.flushBuffer()
       response.setContentType("text/plain")

@@ -29,11 +29,15 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Bad duration format")
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val timerNamesAndBpmnNames: Seq[(String, String)] = thePhase.timers[Many[Document]].
-        map(t => (t.name[String], t.bpmn_name[String]))
-      val timerName = parameters("timer_name")
       val bpmnName = parameters("bpmn_name")
-      val timerIdx = timerNamesAndBpmnNames.indexOf((timerName, bpmnName))
+      val timersInBpmn: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
+      val timersWithIndex: Seq[(DynDoc, Int)] = timersInBpmn.zipWithIndex
+      val timerIdx: Int = (parameters.get("timer_id"), parameters.get("timer_name")) match {
+        case (Some(timerId), _) => timersWithIndex.filter(_._1.bpmn_id[String] == timerId).head._2
+        case (_, Some(timerName)) =>
+          timersWithIndex.filter(_._1.name[String].replace("\\s+", "") == timerName.replace("\\s+", "")).head._2
+        case _ => throw new IllegalArgumentException("Timer id or name not provided")
+      }
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"timers.$timerIdx.duration" -> formatDuration(duration))))
       if (updateResult.getModifiedCount == 0)

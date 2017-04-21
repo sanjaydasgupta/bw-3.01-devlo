@@ -40,7 +40,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
       }
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"timers.$timerIdx.duration" -> formatDuration(duration))))
-      if (updateResult.getModifiedCount == 0)
+      if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)

@@ -1,7 +1,7 @@
 angular.module('BuildWhizApp')
 
 .controller("BpmnCtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams', '$sce',
-    function ($log, $http, AuthService, $window, $routeParams, $sce) {
+    function ($log, $http, AuthService, $window, $routeParams) {
 
   var self = this;
 
@@ -16,6 +16,7 @@ angular.module('BuildWhizApp')
 
   // https://github.com/bpmn-io/bower-bpmn-js
   // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
+  // https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay
 
   var bpmnViewer = new BpmnJS({container: '#canvas'});
   var overlayId = null;
@@ -29,19 +30,26 @@ angular.module('BuildWhizApp')
         (parseInt(height) + 10) + 'px;">&nbsp;</div>';
   }
 
-  events.forEach(function(event) {
-    eventBus.on(event, function(e) {
-      // e.element = the model element
-      // e.gfx = the graphical element
-      if (overlayId != null) {
-        overlays.remove(overlayId);
-      }
-      overlayId = overlays.add(e.element.id, {
-        position: {top: -5, left: -5},
-        html: overlayHtml(e.element.width, e.element.height)
-      });
-      $log.log(JSON.stringify(e.element));
+  var extraEventHandlingCode = function() {
+    // All additions here
+  }
+
+  var eventHandler = function(e) {
+    // e.element = the model element
+    // e.gfx = the graphical element
+    if (overlayId != null) {
+      overlays.remove(overlayId);
+    }
+    overlayId = overlays.add(e.element.id, {
+      position: {top: -5, left: -5},
+      html: overlayHtml(e.element.width, e.element.height)
     });
+    $log.log(JSON.stringify(e.element));
+    extraEventHandlingCode();
+  }
+
+  events.forEach(function(event) {
+    eventBus.on(event, eventHandler);
   });
 
   var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName;

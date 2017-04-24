@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>UploadFile</title>
   </head>
-  <body>
+  <body data-ng-app="BuildWhizDev" data-ng-controller="DevController as devCtrl">
     <h2>Remember to UPDATE after uploading one or more files</h2><br>
 
     <form method="post" action="tools/UploadFile?file_location=html/bpmn.html" enctype="multipart/form-data">
@@ -20,6 +20,37 @@
     <form method="post" action="tools/UploadFile" enctype="multipart/form-data">
         <input type="submit" name="file">
     </form><br/>
+
+    <h3>Test</h3>
+    <input type="text" size="100" data-ng-model="devCtrl.uri"><br/>
+    <button data-ng-click="devCtrl.post()">Post</button>
+    <h4>Status</h4>
+    <p id="status-paragraph"></p>
+
+    <script src="js/lib/angular.min.js"></script>
+    <script type="text/javascript">
+      var module = angular.module('BuildWhizDev', []);
+
+      module.controller('DevController', ['$http', '$log', '$document',
+          function ($http, $log, $document) {
+        var self = this;
+
+        self.uri = '';
+
+        self.post = function() {
+          $log.log('Called post()');
+          $http.post(self.uri).then(
+            function(resp) {
+              $log.log('OK POST: ' + JSON.stringify(resp));
+            },
+            function(resp) {
+              $document[0].getElementById("status-paragraph").innerHTML = resp.data;
+              $log.log('ERROR POST: ' + JSON.stringify(resp));
+            }
+          );
+        };
+      }]);
+    </script>
   </body>
 </html>
 

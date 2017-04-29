@@ -45,8 +45,10 @@
           <label>Roles</label>
           <div style="border:3px solid #337ab7; height:200px; max-height:200px; min-height:200px; overflow:auto; vertical-align:top;">
             <div data-ng-if="usersCtrl.selectedUser != null" data-ng-repeat="role in usersCtrl.userRoles" style="margin-left:5px;">
-              <input type="checkbox" data-ng-model="role.ok" data-ng-click="usersCtrl.roleToggle(role)"/>
-              {{role.display}}
+              <input type="checkbox" data-ng-model="role.ok" data-ng-click="usersCtrl.roleToggle(role)"/> View,
+              <input type="checkbox" data-ng-model="role.edit" data-ng-click="usersCtrl.roleEditToggle(role)"
+                  data-ng-disabled="!role.ok" /> Edit
+              &nbsp;&nbsp;&nbsp;{{role.display}}
             </div>
           </div>
         </div>

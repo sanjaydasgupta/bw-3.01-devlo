@@ -17,7 +17,8 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     //val lastNameRe = "(last_name)".r
     val emailTypeRe = "email_(work|other)".r
     val phoneTypeRe = "phone_(work|mobile)".r
-    val roleRe = "role:(.+)".r
+    //val roleRe = "role:(.+)".r
+    val role2Re = "(view|edit):(.+)".r
     val setterSpec = property match {
       case emailEnabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
       case enabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
@@ -41,7 +42,10 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         } else {
           Map("$set" -> Map(s"phones.$idx.phone" -> value))
         }
-      case roleRe(roleName) => Map((if (value.toBoolean) "$addToSet" else "$pull") -> Map("roles" -> roleName))
+      //case roleRe(roleName) => Map((if (value.toBoolean) "$addToSet" else "$pull") -> Map("roles" -> roleName))
+      case role2Re(qualifier, roleName) => if (value.toBoolean)
+        Map("$addToSet" -> Map("roles" -> s"$qualifier:$roleName")) else
+        Map("$pullAll" -> Map("roles" -> Seq(s"$qualifier:$roleName", roleName)))
     }
     val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid), setterSpec)
     if (updateResult.getModifiedCount == 0)

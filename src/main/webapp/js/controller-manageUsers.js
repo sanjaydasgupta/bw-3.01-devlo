@@ -101,8 +101,12 @@
       var roleDisplay = role.category + ' / ' + role.name;
       var newRole = {key: roleKey, ok: false, display: roleDisplay}
       user.roles.forEach(function(ur) {
-        if (ur == roleKey) {
+        var rParts = ur.split(':')
+        var theRole = rParts.length == 3 ? (rParts[1] + ':' + rParts[2]) : ur
+        $log.log(theRole)
+        if (theRole == roleKey) {
           newRole.ok = true;
+          newRole.edit = ur.startsWith('edit:');
         }
       })
       self.userRoles.push(newRole);
@@ -125,16 +129,39 @@
   }
 
   self.roleToggle = function(role) {
-    var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=role:' + role.key +
+    if (!role.ok && role.edit) {
+      role.edit = false;
+      self.roleEditToggle(role);
+    }
+    var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=view:' + role.key +
         '&value=' + role.ok;
     $log.log('POST ' + query);
     $http.post(query).then(
       function(res) {
         $log.log('OK POST ' + query);
         if (role.ok) {
-          self.selectedUser.roles.push(role.key);
+          self.selectedUser.roles.push('view:' + role.key);
         } else {
-          self.selectedUser.roles = self.selectedUser.roles.filter(function(r) {return r != role.key})
+          self.selectedUser.roles = self.selectedUser.roles.filter(function(r) {return r != ('view:' + role.key)})
+        }
+      },
+      function(res) {
+        $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
+  self.roleEditToggle = function(role) {
+    var query = 'baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=edit:' + role.key +
+        '&value=' + role.edit;
+    $log.log('POST ' + query);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+        if (role.edit) {
+          self.selectedUser.roles.push('edit:' + role.key);
+        } else {
+          self.selectedUser.roles = self.selectedUser.roles.filter(function(r) {return r != ('edit:' + role.key)})
         }
       },
       function(res) {

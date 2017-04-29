@@ -1,7 +1,7 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ViewDocumentsCtrl2", ['$log', '$http', 'AuthenticationService', '$window', '$sce',
-      function ($log, $http, AuthService, $window, $sce) {
+.controller("ViewDocumentsCtrl2", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams',
+      function ($log, $http, AuthService, $window, $routeParams) {
 
   var self = this;
 
@@ -23,6 +23,7 @@
     startingDay: 1
   };
 
+  self.editableDocumentCategories = [];
   self.documentCategories = [];
   self.documentSubcategories = [];
   self.contentTypes = [];
@@ -58,6 +59,17 @@
     },
     function(resp) {
       $log.log('ERROR GET api/Person')
+    }
+  )
+
+  var query = 'api/DocumentCategory?role=edit';
+  $http.get(query).then(
+    function(resp) {
+      self.editableDocumentCategories = resp.data.map(function(c) {return c.category;});
+      $log.log('OK GET ' + query + ' (' + self.editableDocumentCategories.length + ')');
+    },
+    function(resp) {
+      $log.log('ERROR: ' + query);
     }
   )
 
@@ -176,11 +188,17 @@
   }
 
   self.specialFunctionsDisplayed = function() {
-    return self.displayAllVersions && AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
+    return self.displayAllVersions && self.isPrabhas();
   }
 
   self.isPrabhas = function() {
     return AuthService.data._id == '56f124dfd5d8ad25b1325b3e';
+  }
+
+  self.canUpload = function() {
+    var mayEdit = self.editableDocumentCategories.indexOf(self.currentCategoryKey) != -1;
+    $log.log('mayEdit: ' + mayEdit);
+    return self.isPrabhas() || mayEdit;
   }
 
   self.deleteDocument = function(doc) {
@@ -231,6 +249,11 @@
   self.fetchDocumentsByAuthor = function(author) {
     self.currentAuthor = author;
     $log.log('Called fetchDocumentsByAuthor(' + author.name + ')')
+  }
+
+  self.origin = function() {
+    return 'origin0=documents-view2&origin1=' + self.currentCategoryKey +
+        '&origin2=' + self.currentSubcategoryKey;
   }
 
   self.uploadDocumentVersion = function(doc) {

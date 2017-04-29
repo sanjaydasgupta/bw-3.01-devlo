@@ -104,7 +104,7 @@
           <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
             <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
             <th style="text-align:center;">Download</th><th style="text-align:center;">RFI</th>
-            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.isPrabhas()">Upload</th>
+            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.canUpload()">Upload</th>
             <th style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">Delete</th>
           </tr>
           <tr data-ng-repeat="document in viewDocsCtrl2.documents" style="background-color:{{viewDocsCtrl2.getRowColor(document)}};">
@@ -112,10 +112,9 @@
             <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
             <td style="text-align:center;"><a href="{{document.link}}" target="_blank">download</a></td>
             <td style="text-align:center;">
-              <!--a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.selectDocument(document)">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a-->
-              <a href="#/rfi?document_master_id={{document._id}}&timestamp={{document.timestamp}}">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
+              <a href="#/rfi?document_master_id={{document._id}}&timestamp={{document.timestamp}}&{{viewDocsCtrl2.origin()}}">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
             </td>
-            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.isPrabhas()">
+            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.canUpload()">
               <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.uploadDocumentVersion(document)">
               <span class="glyphicon glyphicon-upload"></span> Upload</a>
             </td>
@@ -134,9 +133,11 @@
       <hr style="margin:1px;" />
       <table>
         <tr>
+          <!-- Version comments -->
           <td>
             &nbsp;<input type="text" data-ng-model="viewDocsCtrl2.versionComments" size="35" style="margin:4px;" placeholder="Version Comments"/>
           </td>
+          <!-- Author -->
           <td>
             <span style="margin-left:25px;">Author</span>&nbsp;<input type="text" data-ng-model="viewDocsCtrl2.authorsMask" size="5" style="height:20px" />
             <button class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.filterAuthorNames()">Filter</button>
@@ -154,6 +155,7 @@
               </ul>
             </div>
           </td>
+          <!-- Date -->
           <td>
             <span class="input-group" style="max-width:150px; vertical-align:middle; margin-left:25px; margin-right:25px;">
               <input type="text" class="form-control" data-uib-datepicker-popup data-ng-model="viewDocsCtrl2.selectedDate"
@@ -165,14 +167,16 @@
               </span>
             </span>
           </td>
+          <!-- Time -->
           <td>
             <span data-uib-timepicker data-ng-model="viewDocsCtrl2.selectedDate" data-show-spinners="false"></span>
           </td>
+          <!-- Buttons -->
           <td>
             <button style="margin-left:25px" class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.documentToUpload = null">
                 Cancel</button>
-            <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="viewDocsCtrl2.startUpload()">
-                Upload</button>
+            <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="viewDocsCtrl2.startUpload()"
+                data-ng-disabled="viewDocsCtrl2.versionComments == ''">Upload</button>
           </td>
         </tr>
       </table>

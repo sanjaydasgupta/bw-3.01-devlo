@@ -3,6 +3,8 @@ package com.buildwhiz.etc
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.api.RestUtils
+import com.buildwhiz.infra.BWMongoDB3
+import BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 
@@ -22,6 +24,12 @@ class Environment extends HttpServlet with RestUtils {
     getUser(request) match {
       case null =>
       case d: Document => environment.put("user", d)
+    }
+    if (BWMongoDB3.collectionNames.contains("instance_info")) {
+      val info: DynDoc = BWMongoDB3.instance_info.find().head
+      environment.put("instance", info.instance[String])
+    } else {
+      environment.put("instance", "???")
     }
     response.getWriter.println(bson2json(environment))
     response.setContentType("application/json")

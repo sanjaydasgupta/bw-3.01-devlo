@@ -7,6 +7,7 @@ angular.module('BuildWhizApp')
   self.loggedIn = false;
   self.tryAgain = false;
   self.username = '';
+  self.instance = '';
 
   $log.log('HTTP GET etc/Environment');
   $http.get('etc/Environment').then(
@@ -14,6 +15,7 @@ angular.module('BuildWhizApp')
       var env = response.data;
       $log.log('Environment: ' + JSON.stringify(env));
       self.username = env.email;
+      self.instance = env.instance;
       if (env.hasOwnProperty('user')) {
         AuthService.setupLoginData(env.user, self);
       }

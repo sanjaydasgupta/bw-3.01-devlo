@@ -20,8 +20,8 @@ class TimerTransitions extends ExecutionListener with BpmnUtils {
       val timers: Seq[DynDoc] = phase.timers[Many[Document]]
       val timerIdx = timers.indexWhere(t => t.bpmn_id[String] == timerId && t.bpmn_name[String] == bpmnName)
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
-          Map("$set" -> Map(s"timers.$timerIdx.status" -> event,
-          "timestamps" -> Map(event -> System.currentTimeMillis))))
+          Map("$set" -> Map(s"timers.$timerIdx.status" -> event),
+          "$addToSet" -> Map(s"timers.$timerIdx.timestamps" -> Map(event -> System.currentTimeMillis))))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       BWLogger.log(getClass.getName, "notify()", "EXIT-OK", de)

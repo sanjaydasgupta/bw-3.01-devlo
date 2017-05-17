@@ -164,7 +164,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val variables: Many[Document] = processNamesAndDocuments.flatMap(getVariableDefinitions).map(kv =>
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = processNamesAndDocuments.flatMap(getTimerDefinitions).map(kv =>
-        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4, "duration" -> "00:00:00"); doc}).asJava
+        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
+          "duration" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables)

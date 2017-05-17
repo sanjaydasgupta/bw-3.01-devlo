@@ -46,6 +46,7 @@ object BWLogger extends HttpUtils {
     val varNames = de.getVariables
     varNames.asScala("CurrentActivityName") = de.getCurrentActivityName
     varNames.asScala("ProcessDefinitionId") = de.getProcessDefinitionId
+    varNames.asScala("EventName") = de.getEventName
     val bpmnAncestors = getAncestors(de)
     if (bpmnAncestors.nonEmpty)
       varNames.asScala("BPMN-Ancestors") = bpmnAncestors.mkString("[", ", ", "]")

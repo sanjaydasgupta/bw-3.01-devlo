@@ -1,7 +1,7 @@
 angular.module('BuildWhizApp')
 
-.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams', '$sce',
-    function ($log, $http, AuthService, $window, $routeParams, $sce) {
+.controller("RFICtrl", ['$log', '$http', 'AuthenticationService', '$window', '$routeParams',
+    function ($log, $http, AuthService, $window, $routeParams) {
 
   var self = this;
 
@@ -16,27 +16,45 @@ angular.module('BuildWhizApp')
 
   self.rfiAttachments = [];
 
+  if ($routeParams.hasOwnProperty('document_master_id') && $routeParams.hasOwnProperty('timestamp')) {
+    self.document_master_id = $routeParams.document_master_id;
+    self.timestamp = $routeParams.timestamp;
+  }
+
   self.toggleInfoDisplay = function() {
     self.showInfo = !self.showInfo;
     $log.log('Calling toggleInfoDisplay: ' + self.showInfo);
   }
 
+  self.displayNewMessage = function() {
+    return !self.showInfo && (self.selectedMessage == null ||
+        (self.selectedMessage != null && self.selectedMessage.status != 'closed'));
+  }
+
   self.submitRFI = function() {
     var query = 'baf/RFIMessageSubmit';
-    var postData = {person_id: AuthService.data._id, text: self.text, rfi_id: self.selectedMessage._id};
+    var postData = {person_id: AuthService.data._id, text: self.text};
     if (self.rfiAttachments.length > 0) {
        postData.attachments = self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#');
+    }
+    if (self.selectedMessage == null) {
+      postData.subject = self.subject;
+      postData.document_id = self.document_master_id;
+      postData.doc_version_timestamp = self.timestamp;
+    } else {
+      postData.rfi_id = self.selectedMessage._id;
     }
     $log.log('Calling POST ' + query);
     self.busy = true;
     $http.post(query, postData).then(
       function(resp) {
+        self.subject = '';
         self.text = '';
         self.rfiAttachments = [];
         $log.log('OK POST ' + query)
         self.busy = false;
         //alert('RFI Sent OK')
-        self.selectMessage(self.selectedMessage);
+        //self.selectMessage(self.selectedMessage);
       },
       function(resp) {
         $log.log('ERROR POST ' + query)
@@ -50,8 +68,11 @@ angular.module('BuildWhizApp')
     return self.subject == '' || self.text == '';
   }
 
-  self.refreshRfiList = function(checkForId) {
+  self.refreshRfiList = function() {
     var query = 'baf/RFIMessagesFetch?person_id=' + AuthService.data._id + '&tz=' + AuthService.data.tz;
+    if ($routeParams.hasOwnProperty('document_master_id')) {
+      query += '&document_master_id=' + self.document_master_id + '&timestamp=' + self.timestamp;
+    }
     $log.log('Calling GET ' + query);
     self.busy = true;
     $http.get(query).then(
@@ -63,13 +84,6 @@ angular.module('BuildWhizApp')
         self.text = '';
         $log.log('OK GET ' + query)
         self.busy = false;
-        if (checkForId && $routeParams.hasOwnProperty('rfi_id')) {
-          var rfi_id = $routeParams.rfi_id;
-          var theMessage = self.messages.filter(function(msg){return msg._id == rfi_id;});
-          if (theMessage.length > 0) {
-            self.selectMessage(theMessage[0]);
-          }
-        }
       },
       function(resp) {
         $log.log('ERROR GET ' + query)
@@ -173,6 +187,6 @@ angular.module('BuildWhizApp')
     return rfi.hasNewMessages ? 'GreenYellow' : (rfi.status == 'closed' ? 'LightGray' : 'white');
   }
 
-  self.refreshRfiList(true);
+  self.refreshRfiList();
 
 }]);

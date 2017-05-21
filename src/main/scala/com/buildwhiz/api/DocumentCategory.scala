@@ -25,6 +25,7 @@ class DocumentCategory extends HttpServlet with RestUtils {
       val theRoles = parameters.get("role") match {
         case Some("edit") => applicableRoles.filter(_.startsWith("edit:")).map(_.substring(5))
         case Some("view") | None => applicableRoles.map(r => if (r.matches("^(view|edit):.+")) r.substring(5) else r)
+        case _ => Nil
       }
       val categories: Seq[Document] = theRoles.flatMap(role => {
         val Array(roleCategory, roleName) =  role.split(":")

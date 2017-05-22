@@ -112,6 +112,13 @@
               <td>Phase-Manager's Part
               </td>
             </tr>
+            <!-- Other Test Parts -->
+            <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isPhaseManager()">
+              <td width="100%">
+                <button class="btn btn-warning btn-xs" data-ng-click="projectsCtrl.traverseBpmn()">TravBpmn</button>
+                <textarea data-ng-model="projectsCtrl.bpmnTraversalData" data-ng-disabled="true"></textarea>
+              </td>
+            </tr>
           </table>
         </div>
       </div>

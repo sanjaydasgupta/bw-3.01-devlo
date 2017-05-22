@@ -22,6 +22,8 @@
   self.phaseManagers = [];
   self.selectedPhaseManager = null;
 
+  self.bpmnTraversalData = '';
+
   $http.get('baf/PhaseBpmnNamesFetch').then(
     function(resp) {
       self.bpmnNames = resp.data;
@@ -301,6 +303,20 @@
         $log.log('ERROR DELETE ' + query);
       }
     );
+  }
+
+  self.traverseBpmn = function() {
+    $log.log('Called traverseBpmn()');
+    var q = 'baf/PhaseBpmnTraverse?bpmn_name=' + self.selectedPhase.bpmn_name + '&phase_id=' + self.selectedPhase._id;
+    $http.get(q).then(
+      function(resp) {
+        self.bpmnTraversalData = JSON.stringify(resp.data);
+        $log.log('OK GET ' + q);
+      },
+      function() {
+        $log.log('ERROR GET ' + q);
+      }
+    )
   }
 
   self.fetchProjects(self.initialProjectId, self.initialPhaseId);

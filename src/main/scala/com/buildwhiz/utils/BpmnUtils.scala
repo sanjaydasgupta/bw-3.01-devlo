@@ -5,6 +5,7 @@ import java.io.InputStream
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.repository.{ProcessDefinition, Resource}
+import org.camunda.bpm.model.bpmn.BpmnModelInstance
 
 import scala.collection.JavaConverters._
 
@@ -34,6 +35,11 @@ trait BpmnUtils {
   def getProcessDiagram(bpmnName: String): InputStream = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     repositoryService.getProcessDiagram(getProcessDefinition(bpmnName).getId)
+  }
+
+  def BpmnModelInstance(bpmnName: String): BpmnModelInstance = {
+    val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
+    repositoryService.getBpmnModelInstance(getProcessDefinition(bpmnName).getId)
   }
 
   def getDeployedResources: Seq[Resource] = {

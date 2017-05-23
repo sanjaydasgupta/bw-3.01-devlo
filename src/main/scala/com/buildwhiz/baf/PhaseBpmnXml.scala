@@ -22,9 +22,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
   private def getTimers(phase: DynDoc, processName: String): Seq[Document] = {
     val timers: Seq[DynDoc] = phase.timers[Many[Document]].filter(_.bpmn_name[String] == processName)
     timers.map(timer => {
-      timer.id = timer.bpmn_name[String]
-      timer.remove("bpmn_name")
-      timer.asDoc
+      new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
+        append("duration", timer.duration[String]).append("name", timer.name[String]).
+        append("status", timer.status[String])
     })
   }
 
@@ -38,7 +38,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
         new Document("type", action.`type`[String]).append("name", action.name[String]).
           append("status", action.status[String]).append("duration", action.duration[String])
       })
-      new Document("id", activity.bpmn_id[String]).append("status", activity.status[String]).append("tasks", tasks)
+      new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
+        append("status", activity.status[String]).append("tasks", tasks).append("duration", "00:00:00")
     })
     returnActivities
   }
@@ -52,12 +53,10 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
       val processModelStream = getProcessModel(bpmnFileName)
       val blockBuffer = new Array[Byte](4096)
       val byteBuffer = mutable.Buffer.empty[Byte]
-      //val printStream = response.getOutputStream
       def copyModelToOutput(): Unit = {
         val len = processModelStream.read(blockBuffer)
         if (len > 0) {
           byteBuffer.append(blockBuffer.take(len): _*)
-          //printStream.write(blockBuffer, 0, len)
           copyModelToOutput()
         }
       }

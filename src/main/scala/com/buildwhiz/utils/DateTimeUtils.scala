@@ -11,4 +11,20 @@ trait DateTimeUtils {
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
+  private val durationRe = "(\\d{2}):(\\d{2}):(\\d{2})".r
+
+  def duration2ms(duration: String): Long = duration match {
+    case durationRe(days, hours, minutes) => ((days.toInt * 24L + hours.toInt) * 60L + minutes.toInt) * 60000L
+  }
+
+  def ms2duration(ms: Long): String = {
+    val seconds = ms / 1000
+    val minutes = seconds / 60
+    val minutesDisplay = minutes % 60
+    val hours = minutes / 60
+    val hoursDisplay = hours % 24
+    val days = hours / 24
+    f"$days%02d:$hoursDisplay%02d:$minutesDisplay%02d"
+  }
+
 }

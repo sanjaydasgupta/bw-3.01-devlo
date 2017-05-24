@@ -2,7 +2,7 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
+import com.buildwhiz.utils._
 import org.bson.types.ObjectId
 import org.bson.Document
 import com.buildwhiz.infra.BWMongoDB3
@@ -10,7 +10,7 @@ import BWMongoDB3._
 
 import scala.collection.mutable
 
-class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
+class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTimeUtils with ProjectUtils {
 
   private def getVariables(phase: DynDoc, processName: String): Seq[Document] = {
     val variables: Seq[DynDoc] = phase.variables[Many[Document]].filter(_.bpmn_name[String] == processName)
@@ -39,7 +39,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils {
           append("status", action.status[String]).append("duration", action.duration[String])
       })
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
-        append("status", activity.status[String]).append("tasks", tasks).append("duration", "00:00:00")
+        append("status", activity.status[String]).append("tasks", tasks).
+        append("duration", getActivityDuration(activity))
     })
     returnActivities
   }

@@ -37,7 +37,7 @@ trait BpmnUtils {
     repositoryService.getProcessDiagram(getProcessDefinition(bpmnName).getId)
   }
 
-  def BpmnModelInstance(bpmnName: String): BpmnModelInstance = {
+  def bpmnModelInstance(bpmnName: String): BpmnModelInstance = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     repositoryService.getBpmnModelInstance(getProcessDefinition(bpmnName).getId)
   }

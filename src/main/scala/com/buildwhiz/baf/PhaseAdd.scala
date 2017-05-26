@@ -165,7 +165,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = processNamesAndDocuments.flatMap(getTimerDefinitions).map(kv =>
         {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
-          "duration" -> "00:00:00", "status" -> "defined"); doc}).asJava
+          "duration" -> "00:00:00", "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables)
@@ -190,7 +190,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val actions = new java.util.ArrayList[Document]
         actions.asScala.append(action)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions,
-          "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription)
+          "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
+          "start" -> "00:00:00", "end" -> "00:00:00")
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

@@ -24,6 +24,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
     timers.map(timer => {
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", timer.duration[String]).append("name", timer.name[String]).
+        append("start", timer.start[String]).append("end", timer.end[String]).
         append("status", timer.status[String])
     })
   }
@@ -40,6 +41,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       })
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", activity.status[String]).append("tasks", tasks).
+        append("start", activity.start[String]).append("end", activity.end[String]).
         append("duration", getActivityDuration(activity))
     })
     returnActivities

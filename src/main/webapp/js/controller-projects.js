@@ -305,13 +305,13 @@
     );
   }
 
-  self.traverseBpmn = function() {
-    $log.log('Called traverseBpmn()');
+  self.redoSchedule = function() {
+    $log.log('Called redoSchedule()');
     var q = 'baf/PhaseBpmnTraverse?bpmn_name=' + self.selectedPhase.bpmn_name + '&phase_id=' + self.selectedPhase._id;
     $http.get(q).then(
       function(resp) {
-        self.bpmnTraversalData = JSON.stringify(resp.data);
-        $log.log('OK GET ' + q);
+        var result = JSON.stringify(resp.data);
+        $log.log('OK GET ' + q + ', ' + result);
       },
       function() {
         $log.log('ERROR GET ' + q);

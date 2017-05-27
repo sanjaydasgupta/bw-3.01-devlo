@@ -105,18 +105,12 @@
                 <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseDelete()"
                     data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
                     <span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                <button class="btn btn-warning btn-xs pull-right" data-ng-click="projectsCtrl.redoSchedule()">Re-Schedule</button>
               </td>
             </tr>
             <!-- Phase Manager's Part -->
             <tr data-ng-if="projectsCtrl.isPhaseManager()">
               <td>Phase-Manager's Part
-              </td>
-            </tr>
-            <!-- Other Test Parts -->
-            <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isPhaseManager()">
-              <td width="100%">
-                <button class="btn btn-warning btn-xs" data-ng-click="projectsCtrl.traverseBpmn()">TravBpmn</button>
-                <textarea data-ng-model="projectsCtrl.bpmnTraversalData" data-ng-disabled="true"></textarea>
               </td>
             </tr>
           </table>

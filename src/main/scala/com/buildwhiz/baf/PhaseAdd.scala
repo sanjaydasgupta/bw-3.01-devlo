@@ -59,7 +59,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
       def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String) = {
         // bpmn, name, process-variable, id
-        val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replace("\\s+", " ")
+        val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
@@ -91,7 +91,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         map(_.getAttributes.getNamedItem("value").getTextContent).head.toInt
       def getNameRoleAndDescription(callActivity: Element): (String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
-        val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s]+", " ")
+        val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
         val role = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
           find(_.getAttributes.getNamedItem("name").getTextContent == "bw-role").

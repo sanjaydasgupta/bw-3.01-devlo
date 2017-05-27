@@ -207,6 +207,7 @@
         self.busy = false;
         $log.log('OK POST ' + query);
         self.selectProject(self.selectedProject._id, resp.data._id);
+        self.newPhaseName = '';
       },
       function() {
         self.busy = false;

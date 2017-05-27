@@ -36,18 +36,49 @@ class PhaseBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
 
 object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils with BpmnUtils {
 
-  private def timerDuration(ted: TimerEventDefinition, phase: DynDoc, bpmnName: String): Long = {
+  private def getTimerDuration(ted: TimerEventDefinition, phase: DynDoc, bpmnName: String): Long = {
     val theTimer: DynDoc = phase.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
       filter(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")).head
     duration2ms(theTimer.duration[String])
   }
 
-  private def activityDuration(bpmnId: String, phase: DynDoc, bpmnName: String): Long = {
+  private def setTimerSchedule(ted: TimerEventDefinition, phase: DynDoc, bpmnName: String, entryOffset: (Long, Long),
+      delay: Long): Unit = {
+    val timers: Seq[DynDoc] = phase.timers[Many[Document]]
+    val idx = timers.indexWhere(t => t.bpmn_name[String] == bpmnName &&
+      t.bpmn_id[String] == ted.getParentElement.getAttributeValue("id"))
+    val averageOffset = (entryOffset._1 + entryOffset._2) / 2
+    val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + delay))
+    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
+      Map("$set" -> Map(s"timers.$idx.offset" -> Map("min" -> entryOffset._1, "max" -> entryOffset._2),
+      s"timers.$idx.start" -> start, s"timers.$idx.end" -> end)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+  }
+
+  private def getActivityDuration(bpmnId: String, phase: DynDoc, bpmnName: String): Long = {
     val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName))
-    val theActivity: DynDoc = activities.filter(_.bpmn_id[String] == bpmnId).head
+    val theActivity: DynDoc = BWMongoDB3.activities.
+      find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)).head
     duration2ms(getActivityDuration(theActivity))
+  }
+
+  private def setActivitySchedule(bpmnId: String, phase: DynDoc, bpmnName: String, entryOffset: (Long, Long),
+      delay: Long): Unit = {
+    val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
+    val theActivity: DynDoc = BWMongoDB3.activities.
+      find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)).head
+    val averageOffset = (entryOffset._1 + entryOffset._2) / 2
+    val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + delay))
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> theActivity._id[ObjectId]),
+      Map("$set" -> Map("offset" -> Map("min" -> entryOffset._1, "max" -> entryOffset._2), "start" -> start, "end" -> end)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+  }
+
+  private def setProcessSchedule(phase: DynDoc, bpmnName: String, processOffset: (Long, Long),
+      processEndOffset: (Long, Long)): Unit = {
+
   }
 
   private def traverse(topLevelBpmnModel: BpmnModelInstance, phase: DynDoc, topLevelBpmnId: String,
@@ -73,34 +104,39 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
         case exclusiveGateway: ExclusiveGateway =>
           minMax(predecessors(exclusiveGateway).map(n => timeOffset(n, processOffset, bpmnId)))
         case endEvent: EndEvent =>
-          minMax(predecessors(endEvent).map(n => timeOffset(n, processOffset, bpmnId)))
+          val exitOffset = minMax(predecessors(endEvent).map(n => timeOffset(n, processOffset, bpmnId)))
+          setProcessSchedule(phase, bpmnId, processOffset, exitOffset)
+          exitOffset
         case callActivity: CallActivity =>
-          val callActivityOffset = minMax(predecessors(callActivity).map(n => timeOffset(n, processOffset, bpmnId)))
+          val entryOffset = minMax(predecessors(callActivity).map(n => timeOffset(n, processOffset, bpmnId)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
-            val delay = activityDuration(callActivity.getId, phase, bpmnId)
-            val offset = (callActivityOffset._1 + delay, callActivityOffset._2 + delay)
-            BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
-            offset
+            val delay = getActivityDuration(callActivity.getId, phase, bpmnId)
+            setActivitySchedule(callActivity.getId, phase, bpmnId, entryOffset, delay)
+            //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
+            val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
+            exitOffset
           } else {
             val bpmnModel2 = bpmnModelInstance(callActivity.getCalledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            val offset = timeOffset(endEvents.head, callActivityOffset, callActivity.getCalledElement)
-            BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
-            offset
+            val exitOffset = timeOffset(endEvents.head, entryOffset, callActivity.getCalledElement)
+            //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
+            exitOffset
           }
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val iceOffset = minMax(predecessors(ice).map(n => timeOffset(n, processOffset, bpmnId)))
+          val entryOffset = minMax(predecessors(ice).map(n => timeOffset(n, processOffset, bpmnId)))
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
-          val delay = timerDuration(ted, phase, bpmnId)
-          val offset = (iceOffset._1 + delay, iceOffset._2 + delay)
-          BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
-          offset
+          val delay = getTimerDuration(ted, phase, bpmnId)
+          setTimerSchedule(ted, phase, bpmnId, entryOffset, delay)
+          //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
+          val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
+          exitOffset
       }
     }
 
     val endEvents: Seq[EndEvent] = topLevelBpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     val offset = timeOffset(endEvents.head, (0, 0), topLevelBpmnId)
-    response.getWriter.println(bson2json(new Document("min", offset._1).append("max", offset._2)))
+    response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
+      append("max", ms2duration(offset._2))))
     response.setContentType("application/json")
   }
 

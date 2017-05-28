@@ -56,12 +56,13 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
           case (_, "running") => "running"
           case _ => b
         })
-      if (myActivities.isEmpty && phase.has("bpmn_timestamps")) {
+      if (myActivities.isEmpty/* && phase.has("bpmn_timestamps")*/) {
         val bpmnTimestamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]]
-        if (bpmnTimestamps.exists(ts => ts.name[String] == bpmnName && ts.event[String] == "end"))
-          p._2.status = "ended"
-        else
-          p._2.status = "running"
+        p._2.status = bpmnTimestamps.find(ts => ts.name[String] == bpmnName && ts.has("event")) match {
+          case Some(ts) if ts.event[String] == "start" => "running"
+          case Some(ts) if ts.event[String] == "end" => "ended"
+          case None => "defined"
+        }
       }
       val actions: Seq[DynDoc] = myActivities.flatMap(_.actions[Many[Document]])
       if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))

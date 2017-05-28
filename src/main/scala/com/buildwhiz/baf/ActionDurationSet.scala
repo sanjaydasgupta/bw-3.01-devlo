@@ -8,8 +8,6 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class ActionDurationSet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -17,9 +15,9 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     def formatDuration(d: String): String = {
       val parts = d.split(":").map(_.toInt) match {
-        case arr3@Array(a, b, c) => arr3
-        case arr2@Array(b, c) => 0 +: arr2
-        case arr1@Array(c) => 0 +: 0 +: arr1
+        case arr3@Array(_, _, _) => arr3
+        case arr2@Array(_, _) => 0 +: arr2
+        case arr1@Array(_) => 0 +: 0 +: arr1
       }
       parts.map(p => f"$p%02d").mkString(":")
     }
@@ -34,8 +32,14 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
       val actionIdx = actionNames.indexOf(actionName)
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
         Map("$set" -> Map(s"actions.$actionIdx.duration" -> formatDuration(duration))))
-      if (updateResult.getModifiedCount == 0)
+      if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      else {
+        val bpmnName = theActivity.bpmn_name[String]
+        val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+        val phaseOid = thePhase._id[ObjectId]
+        PhaseBpmnTraverse.scheduleBpmnElements(bpmnName, phaseOid, request, response)
+      }
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
     } catch {

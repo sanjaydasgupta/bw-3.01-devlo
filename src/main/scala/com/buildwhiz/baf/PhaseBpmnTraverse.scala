@@ -22,7 +22,7 @@ class PhaseBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnModel = bpmnModelInstance(bpmnFileName)
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      PhaseBpmnTraverse.traverse(bpmnModel, phase, bpmnFileName, request, response)
+      PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnFileName, request, response)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {
@@ -76,57 +76,73 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")
   }
 
-  private def setProcessSchedule(phase: DynDoc, bpmnName: String, processOffset: (Long, Long),
-      processEndOffset: (Long, Long)): Unit = {
-
+  private def setSubProcessSchedule(phase: DynDoc, calledElement: String, bpmnName: String, entryOffset: (Long, Long),
+      exitOffset: (Long, Long)): Unit = {
+    val (start, end) = (ms2duration((entryOffset._1 + entryOffset._2) / 2),
+      ms2duration((exitOffset._1 + exitOffset._2) / 2))
+    BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
+      Map("$pullAll" -> Map("name" -> calledElement, "caller" -> bpmnName)))
+    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]), Map("$push" ->
+      Map("name" -> calledElement, "caller" -> bpmnName, "offset" -> Map("start" -> start, "end" -> end))))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
   }
 
-  private def traverse(topLevelBpmnModel: BpmnModelInstance, phase: DynDoc, topLevelBpmnId: String,
-      request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  def scheduleBpmnElements(bpmnName: String, phaseOid: ObjectId, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val bpmnModel = bpmnModelInstance(bpmnName)
+    val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnName, request, response)
+  }
 
-    def predecessors(node: FlowNode): Seq[FlowNode] = {
-      val incomingFlows: Seq[SequenceFlow] = node.getIncoming.asScala.toSeq
-      incomingFlows.map(f => if (f.getTarget == node) f.getSource else f.getTarget)
-    }
+  def scheduleBpmnElements(topLevelBpmnModel: BpmnModelInstance, phase: DynDoc, topLevelBpmnName: String,
+                           request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
-    def minMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).max)
-    def maxMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).max, offsets.map(_._2).max)
+    def getTimeOffset(node: FlowNode, processOffset: (Long, Long), bpmnName: String): (Long, Long) = {
 
-    def timeOffset(node: FlowNode, processOffset: (Long, Long), bpmnId: String): (Long, Long) = {
-      BWLogger.log(getClass.getName, s"timeOffset(ENTRY, ${node.getClass.getSimpleName})", processOffset.toString(), request)
+      def predecessors(node: FlowNode): Seq[FlowNode] = {
+        val incomingFlows: Seq[SequenceFlow] = node.getIncoming.asScala.toSeq
+        incomingFlows.map(f => if (f.getTarget == node) f.getSource else f.getTarget)
+      }
+
+      def minMin(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).min)
+      def minMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).max)
+      def maxMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).max, offsets.map(_._2).max)
+
       node match {
         case serviceTask: ServiceTask =>
-          minMax(predecessors(serviceTask).map(n => timeOffset(n, processOffset, bpmnId)))
+          minMax(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case _: StartEvent =>
           processOffset
         case parallelGateway: ParallelGateway =>
-          maxMax(predecessors(parallelGateway).map(n => timeOffset(n, processOffset, bpmnId)))
+          maxMax(predecessors(parallelGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case exclusiveGateway: ExclusiveGateway =>
-          minMax(predecessors(exclusiveGateway).map(n => timeOffset(n, processOffset, bpmnId)))
+          minMax(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case endEvent: EndEvent =>
-          val exitOffset = minMax(predecessors(endEvent).map(n => timeOffset(n, processOffset, bpmnId)))
-          setProcessSchedule(phase, bpmnId, processOffset, exitOffset)
+          val exitOffset = minMax(predecessors(endEvent).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          //setProcessSchedule(phase, bpmnId, processOffset, exitOffset)
           exitOffset
         case callActivity: CallActivity =>
-          val entryOffset = minMax(predecessors(callActivity).map(n => timeOffset(n, processOffset, bpmnId)))
+          val entryOffset = minMax(predecessors(callActivity).map(n => getTimeOffset(n, processOffset, bpmnName)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
-            val delay = getActivityDuration(callActivity.getId, phase, bpmnId)
-            setActivitySchedule(callActivity.getId, phase, bpmnId, entryOffset, delay)
+            val delay = getActivityDuration(callActivity.getId, phase, bpmnName)
+            setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, delay)
             //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
             val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
             exitOffset
           } else {
-            val bpmnModel2 = bpmnModelInstance(callActivity.getCalledElement)
+            val calledElement = callActivity.getCalledElement
+            val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            val exitOffset = timeOffset(endEvents.head, entryOffset, callActivity.getCalledElement)
+            val exitOffset = getTimeOffset(endEvents.head, entryOffset, calledElement)
+            //setSubProcessSchedule(phase, calledElement, bpmnId, entryOffset, exitOffset)
             //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
             exitOffset
           }
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val entryOffset = minMax(predecessors(ice).map(n => timeOffset(n, processOffset, bpmnId)))
+          val entryOffset = minMax(predecessors(ice).map(n => getTimeOffset(n, processOffset, bpmnName)))
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
-          val delay = getTimerDuration(ted, phase, bpmnId)
-          setTimerSchedule(ted, phase, bpmnId, entryOffset, delay)
+          val delay = getTimerDuration(ted, phase, bpmnName)
+          setTimerSchedule(ted, phase, bpmnName, entryOffset, delay)
           //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
           val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
           exitOffset
@@ -134,7 +150,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
     }
 
     val endEvents: Seq[EndEvent] = topLevelBpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = timeOffset(endEvents.head, (0, 0), topLevelBpmnId)
+    val offset = getTimeOffset(endEvents.head, (0, 0), topLevelBpmnName)
     response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
       append("max", ms2duration(offset._2))))
     response.setContentType("application/json")

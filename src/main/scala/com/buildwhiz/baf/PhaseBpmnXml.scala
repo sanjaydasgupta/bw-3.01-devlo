@@ -29,6 +29,17 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
     })
   }
 
+  private def getSubProcessCalls(phase: DynDoc, processName: String): Seq[Document] = {
+    val bpmnStamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].
+      filter(bt => bt.has("bpmn_name") && bt.bpmn_name[String] == processName)
+    bpmnStamps.map(stamp => {
+      new Document("bpmn_id", stamp.called_element[String]).append("id", stamp.called_element[String]).
+        append("duration", stamp.duration[String]).
+        append("start", stamp.start[String]).append("end", stamp.end[String]).
+        append("status", stamp.status[String])
+    })
+  }
+
   private def getActivities(phase: DynDoc, processName: String): Seq[Document] = {
     val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.

@@ -3,7 +3,7 @@
     Documents Loader
   </div>
 
-  <div class="panel-body fixed-panel container-fluid" style="padding:5px">
+  <div data-ng-if="mainCtrl.isAdmin()" class="panel-body fixed-panel container-fluid" style="padding:5px">
     <!-- Busy overlay -->
     <div data-ng-if="loaderCtrl.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
       <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />

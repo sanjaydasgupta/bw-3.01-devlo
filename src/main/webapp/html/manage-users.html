@@ -1,7 +1,7 @@
 <div class="panel panel-primary">
   <div class="panel-heading">User Management</div>
 
-  <div class="panel-body fixed-panel">
+  <div data-ng-if="mainCtrl.isAdmin()" class="panel-body fixed-panel">
     <div class="container-fluid">
       <div class="row">
         <!-- Names Filter & List -->

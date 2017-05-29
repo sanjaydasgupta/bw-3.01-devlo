@@ -22,6 +22,8 @@ angular.module('BuildWhizApp')
   var processTimers = [];
   var processVariables = [];
   var processActivities = [];
+  var callActivities = [];
+
   var selectedElement = null;
   var bpmnViewer = new BpmnJS({container: '#canvas'});
   var overlayId = null;
@@ -33,6 +35,10 @@ angular.module('BuildWhizApp')
   var overlayHtml = function(width, height) {
     return '<div style="background-color:blue;opacity:0.2;width:' + (parseInt(width) + 10) + 'px;height:' +
         (parseInt(height) + 10) + 'px;">&nbsp;</div>';
+  }
+
+  var AnotationHtml = function(bgColor,start,end) {
+    return '<div style="background-color:'+bgColor+';white-space: nowrap;padding: 3px;border: 1px solid #333; border-radius: 5px; font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
   }
 
   var extraEventHandlingCode = function(element) {
@@ -68,12 +74,81 @@ angular.module('BuildWhizApp')
   var annotateBpmn = function() {
     processTimers.forEach(function(timer) {
       $log.log(JSON.stringify(timer));
+
+	  var bgcolor='transparent';
+
+	  switch(timer.status) {
+		case "defined":
+			bgcolor='yellow';
+			break;
+		case "started":
+			bgcolor='#AED581';
+			break;
+		case "ended":
+			bgcolor='#9E9E9E';
+			break;
+	}
+
+	  overlays.add(timer.bpmn_id, {
+		  position: {
+			top: -40,
+			left: -20
+		  },
+		  html: AnotationHtml(bgcolor,timer.start,timer.end)
+		});
     });
     processVariables.forEach(function(variable) {
       $log.log(JSON.stringify(variable));
     });
+
     processActivities.forEach(function(activity) {
       $log.log(JSON.stringify(activity));
+	  var bgcolor='transparent';
+
+	switch(activity.status) {
+		case "defined":
+			bgcolor='yellow';
+			break;
+		case "started":
+			bgcolor='#AED581';
+			break;
+		case "ended":
+			bgcolor='#9E9E9E';
+			break;
+	}
+
+	  overlays.add(activity.bpmn_id, {
+		  position: {
+			top: -40,
+			left: 9
+		  },
+		  html: AnotationHtml(bgcolor,activity.start,activity.end)
+		});
+    });
+
+    callActivities.forEach(function(activity) {
+      $log.log(JSON.stringify(activity));
+	  var bgcolor='transparent';
+
+	switch(activity.status) {
+		case "defined":
+			bgcolor='yellow';
+			break;
+		case "started":
+			bgcolor='#AED581';
+			break;
+		case "ended":
+			bgcolor='#9E9E9E';
+			break;
+	}
+
+	  overlays.add(activity.bpmn_id, {
+		  position: {
+			top: -40,
+			left: 9
+		  },
+		  html: AnotationHtml(bgcolor,activity.start,activity.end)
+		});
     });
   }
 
@@ -91,8 +166,10 @@ angular.module('BuildWhizApp')
           processTimers = resp.data.timers;
           processVariables = resp.data.variables;
           processActivities = resp.data.activities;
+          callActivities = resp.data.calls;
+
           $log.log('OK importXML, timers: ' + processTimers.length + ', variables: ' + processVariables.length +
-            ', activities: ' + processActivities.length);
+            ', activities: ' + processActivities.length + ', calls: ' + callActivities.length);
           annotateBpmn();
         }
       })

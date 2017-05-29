@@ -223,25 +223,26 @@
 
     $scope.actionCompleteDisabled = function (project, action) {
      
-        var bStatus = true;
-        if (project.status != 'running' || !action.is_ready) {
-            bStatus = true;
-        } else if (action.type == 'prerequisite') {
-            bStatus = (action.status == 'ended' || action.status == 'ready');
-        } else if (action.type == 'main') {
-            bStatus = (action.status != 'waiting');
-        } else if (action.type == 'review') {
-            bStatus = (action.status != 'waiting');
-            if (!bStatus) {
-                if (action.review_ok == '' || action.review_ok =='undefined') {
-                    bStatus = true;
-                }
-            }
-          
-        } else {
-            bStatus = true;
-        }
-        return bStatus;
+//        var bStatus = true;
+//        if (project.status != 'running' || !action.is_ready) {
+//            bStatus = true;
+//        } else if (action.type == 'prerequisite') {
+//            bStatus = (action.status == 'ended' || action.status == 'ready');
+//        } else if (action.type == 'main') {
+//            bStatus = (action.status != 'waiting');
+//        } else if (action.type == 'review') {
+//            bStatus = (action.status != 'waiting');
+//            if (!bStatus) {
+//                if (action.review_ok == '' || action.review_ok =='undefined') {
+//                    bStatus = true;
+//                }
+//            }
+//
+//        } else {
+//            bStatus = true;
+//        }
+//        return bStatus;
+      return false;
     }
   
     //==========================reviewStatusDisabled ()

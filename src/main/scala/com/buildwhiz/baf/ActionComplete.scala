@@ -30,12 +30,14 @@ class ActionComplete extends HttpServlet with HttpUtils {
             BWLogger.log(getClass.getName, "doPost", "calling messageEventReceived()", request)
             rts.messageEventReceived("Action-Complete", action.camunda_execution_id[String])
           }
-          val completionMessage = s"actions.$idx.completion_message" -> parameters("completion_message")
+          val completionMessage = s"actions.$idx.completion_message" ->
+            (if (parameters.contains("completion_message")) parameters("completion_message") else "-")
           val status = s"actions.$idx.status" -> (if (hasId) "ended" else "ready")
           val timestamp = s"actions.$idx.timestamps.end" -> System.currentTimeMillis
           val newValues = action.`type`[String] match {
             case "review" =>
-              val reviewResult = s"actions.$idx.review_ok" -> (parameters("review_ok") == "OK")
+              val reviewResult = s"actions.$idx.review_ok" ->
+                (if (parameters.contains("review_ok")) parameters("review_ok") == "OK" else false)
               Seq(reviewResult, status, completionMessage, timestamp)
             case _ =>
               Seq(status, completionMessage, timestamp)

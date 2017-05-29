@@ -78,12 +78,12 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
 
   private def setSubProcessSchedule(phase: DynDoc, calledElement: String, bpmnName: String, entryOffset: (Long, Long),
       exitOffset: (Long, Long)): Unit = {
-    val (start, end) = (ms2duration((entryOffset._1 + entryOffset._2) / 2),
-      ms2duration((exitOffset._1 + exitOffset._2) / 2))
-    BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
-      Map("$pullAll" -> Map("name" -> calledElement, "caller" -> bpmnName)))
-    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]), Map("$push" ->
-      Map("name" -> calledElement, "caller" -> bpmnName, "offset" -> Map("start" -> start, "end" -> end))))
+    val start = ms2duration((entryOffset._1 + entryOffset._2) / 2)
+    val end = ms2duration((exitOffset._1 + exitOffset._2) / 2)
+    val bpmnTimestamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]]
+    val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == calledElement && ts.parent_name[String] == bpmnName)
+    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]), Map("$set" ->
+      Map(s"bpmn_timestamps.$idx.offset" -> Map("start" -> start, "end" -> end))))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")
   }
@@ -105,24 +105,24 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
       }
 
       def minMin(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).min)
-      def minMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).max)
+      //def minMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).max)
       def maxMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).max, offsets.map(_._2).max)
 
       node match {
         case serviceTask: ServiceTask =>
-          minMax(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          minMin(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case _: StartEvent =>
           processOffset
         case parallelGateway: ParallelGateway =>
           maxMax(predecessors(parallelGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case exclusiveGateway: ExclusiveGateway =>
-          minMax(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          minMin(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case endEvent: EndEvent =>
-          val exitOffset = minMax(predecessors(endEvent).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          val exitOffset = minMin(predecessors(endEvent).map(n => getTimeOffset(n, processOffset, bpmnName)))
           //setProcessSchedule(phase, bpmnId, processOffset, exitOffset)
           exitOffset
         case callActivity: CallActivity =>
-          val entryOffset = minMax(predecessors(callActivity).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          val entryOffset = minMin(predecessors(callActivity).map(n => getTimeOffset(n, processOffset, bpmnName)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
             val delay = getActivityDuration(callActivity.getId, phase, bpmnName)
             setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, delay)
@@ -134,12 +134,13 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
             val exitOffset = getTimeOffset(endEvents.head, entryOffset, calledElement)
-            //setSubProcessSchedule(phase, calledElement, bpmnId, entryOffset, exitOffset)
-            //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
+            //BWLogger.log(getClass.getName, "setSubProcessSchedule",
+            //  s"calledElement: $calledElement, bpmnName: $bpmnName, entryOffset: $entryOffset, exitOffset: $exitOffset", request)
+            setSubProcessSchedule(phase, calledElement, bpmnName, entryOffset, exitOffset)
             exitOffset
           }
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val entryOffset = minMax(predecessors(ice).map(n => getTimeOffset(n, processOffset, bpmnName)))
+          val entryOffset = minMin(predecessors(ice).map(n => getTimeOffset(n, processOffset, bpmnName)))
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
           val delay = getTimerDuration(ted, phase, bpmnName)
           setTimerSchedule(ted, phase, bpmnName, entryOffset, delay)

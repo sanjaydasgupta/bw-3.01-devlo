@@ -3,6 +3,7 @@ package com.buildwhiz.jelly
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
+import org.bson.Document
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 import org.bson.types.ObjectId
 
@@ -12,18 +13,24 @@ class BpmnEnd extends JavaDelegate with BpmnUtils {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val bpmnTimestamps: Seq[DynDoc] = thePhase.bpmn_timestamps[Many[Document]]
       val bpmnName = getBpmnName(de)
       if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {
+        val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName && ts.parent_name[String] == "")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
-          Map("$set" -> Map("status" -> "ended", "timestamps.end" -> System.currentTimeMillis),
-            "$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "event" -> "end",
-              "timestamp" -> System.currentTimeMillis))))
+          Map("$set" -> Map("status" -> "ended", "timestamps.end" -> System.currentTimeMillis,
+          s"bpmn_timestamps.$idx.status" -> "ended",
+          s"bpmn_timestamps.$idx.timestamps.end" -> System.currentTimeMillis)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       } else {
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
-          Map("$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "event" -> "end",
-            "timestamp" -> System.currentTimeMillis))))
+        val callerBpmnName = getBpmnName(de.getSuperExecution)
+        val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName &&
+          ts.parent_name[String] == callerBpmnName)
+        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> thePhase._id[ObjectId]), Map("$set" ->
+          Map(s"bpmn_timestamps.$idx.status" -> "ended",
+          s"bpmn_timestamps.$idx.timestamps.end" -> System.currentTimeMillis)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }

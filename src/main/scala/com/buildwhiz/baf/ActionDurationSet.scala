@@ -38,7 +38,8 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
         val bpmnName = theActivity.bpmn_name[String]
         val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
         val phaseOid = thePhase._id[ObjectId]
-        PhaseBpmnTraverse.scheduleBpmnElements(bpmnName, phaseOid, request, response)
+        val topLevelBpmn = thePhase.bpmn_name[String]
+        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
       }
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)

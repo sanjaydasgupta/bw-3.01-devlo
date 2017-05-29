@@ -40,8 +40,10 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
         Map("$set" -> Map(s"timers.$timerIdx.duration" -> formatDuration(duration))))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      else
-        PhaseBpmnTraverse.scheduleBpmnElements(bpmnName, phaseOid, request, response)
+      else {
+        val topLevelBpmn = thePhase.bpmn_name[String]
+        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
+      }
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
     } catch {

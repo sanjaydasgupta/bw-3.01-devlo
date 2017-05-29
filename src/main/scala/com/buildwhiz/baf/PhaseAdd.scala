@@ -194,7 +194,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "duration" -> "00:00:00", "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val subProcessCalls: Many[Document] = allProcessNameAndDoms.flatMap(getCallDefinitions).map(t => {
         new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
-          append("offset", new Document("start", "00:00:00").append("end", "00:00:00"))
+          append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")
       }).asJava
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,

@@ -30,12 +30,13 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
   }
 
   private def getSubProcessCalls(phase: DynDoc, processName: String): Seq[Document] = {
-    val bpmnStamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].
-      filter(bt => bt.has("bpmn_name") && bt.bpmn_name[String] == processName)
+    val bpmnStamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
-      new Document("bpmn_id", stamp.called_element[String]).append("id", stamp.called_element[String]).
-        append("duration", stamp.duration[String]).
-        append("start", stamp.start[String]).append("end", stamp.end[String]).
+      val offset: DynDoc = stamp.offset[Document]
+      val (start, end) = (offset.start[String], offset.end[String])
+      new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.parent_activity_id[String]).
+        append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
+        append("start", start).append("end", end).
         append("status", stamp.status[String])
     })
   }
@@ -80,8 +81,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val processVariables = getVariables(phase, bpmnFileName)
       val processTimers = getTimers(phase, bpmnFileName)
       val processActivities = getActivities(phase, bpmnFileName)
+      val callActivities = getSubProcessCalls(phase, bpmnFileName)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
-        append("timers", processTimers).append("activities", processActivities)
+        append("timers", processTimers).append("activities", processActivities).append("calls", callActivities)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

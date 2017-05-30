@@ -37,7 +37,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.parent_activity_id[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", start).append("end", end).
-        append("status", stamp.status[String])
+        append("status", stamp.status[String]).append("name", stamp.name[String])
     })
   }
 

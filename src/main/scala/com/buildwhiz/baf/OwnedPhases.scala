@@ -8,8 +8,6 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class OwnedPhases extends HttpServlet with HttpUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
@@ -62,6 +60,9 @@ object OwnedPhases {
       phase.display_status = "waiting2"
     else
       phase.display_status = phase.status[String]
+    val subBpmns: Seq[String] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "").
+      map(_.name[String])
+    phase.sub_bpmns = subBpmns.sorted
     phase.asDoc.remove("activity_ids")
     phase
   }

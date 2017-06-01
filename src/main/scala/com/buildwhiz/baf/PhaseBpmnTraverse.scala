@@ -63,11 +63,35 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
     duration2ms(getActivityDuration(theActivity))
   }
 
+  private def setActionsSchedule(activity: DynDoc, entryOffset: (Long, Long)): Unit = {
+    val actions: Seq[DynDoc] = activity.actions[Many[Document]]
+    val prerequisites = actions.filter(_.`type`[String] == "prerequisite")
+    val prerequisiteStart = ms2duration((entryOffset._1 + entryOffset._2) / 2)
+    for (pr <- prerequisites) {
+      pr.start = prerequisiteStart
+      pr.end = ms2duration(duration2ms(prerequisiteStart) + duration2ms(pr.duration[String]))
+    }
+    val main = actions.find(_.`type`[String] == "main").get
+    main.start = if (prerequisites.isEmpty) prerequisiteStart else prerequisites.map(_.end[String]).max
+    main.end = ms2duration(duration2ms(main.start[String]) + duration2ms(main.duration[String]))
+    val reviews = actions.filter(_.`type`[String] == "review")
+    val revStart = main.end[String]
+    for (rev <- reviews) {
+      rev.start = revStart
+      rev.end = ms2duration(duration2ms(revStart) + duration2ms(rev.duration[String]))
+    }
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]),
+      Map("$set" -> Map("actions" -> actions.map(_.asDoc))))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+  }
+
   private def setActivitySchedule(bpmnId: String, phase: DynDoc, bpmnName: String, entryOffset: (Long, Long),
       delay: Long): Unit = {
     val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
     val theActivity: DynDoc = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)).head
+    setActionsSchedule(theActivity, entryOffset)
     val averageOffset = (entryOffset._1 + entryOffset._2) / 2
     val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + delay))
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> theActivity._id[ObjectId]),

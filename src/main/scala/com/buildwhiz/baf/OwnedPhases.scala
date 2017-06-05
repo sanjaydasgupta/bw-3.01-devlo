@@ -60,10 +60,9 @@ object OwnedPhases {
       phase.display_status = "waiting2"
     else
       phase.display_status = phase.status[String]
-    val subBpmns: Seq[String] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "").
-      map(_.name[String])
-    phase.sub_bpmns = subBpmns.sorted
-    phase.asDoc.remove("activity_ids")
+    val subBpmns: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "")
+    phase.sub_bpmns = subBpmns.sortBy(_.name[String]).map(_.asDoc)
+    phase.remove("activity_ids")
     phase
   }
 

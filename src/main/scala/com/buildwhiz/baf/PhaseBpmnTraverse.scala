@@ -176,6 +176,11 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
 
     val endEvents: Seq[EndEvent] = topLevelBpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     val offset = getTimeOffset(endEvents.head, (0, 0), topLevelBpmnName)
+    val end = ms2duration(duration2ms(phase.start[String]) + (offset._1 + offset._2) / 2)
+    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
+      Map("$set" -> Map("end" -> end)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
     response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
       append("max", ms2duration(offset._2))))
     response.setContentType("application/json")

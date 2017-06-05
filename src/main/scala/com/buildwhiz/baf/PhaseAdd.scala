@@ -199,7 +199,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables,
-        "bpmn_timestamps" -> subProcessCalls)
+        "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00")
       //BWLogger.log(getClass.getName, "doPost", s"""Timers: ${timers.map(_.name[String]).mkString("[", ", ", "]")}""", request)
       BWMongoDB3.phases.insertOne(newPhase)
       val phaseOid = newPhase.y._id[ObjectId]

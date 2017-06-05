@@ -111,11 +111,22 @@
               </td>
             </tr>
             <!-- BPMN Part -->
-            <tr><td>
-              <a href="#/bpmn?process={{projectsCtrl.selectedPhase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
-              <span data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns"><br/>
-                  <a href="#/bpmn?process={{b}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b}}</a></span>
-            </td></tr>
+            <tr><td><table border="1" width="100%">
+              <tr style="text-align:center; font-weight:bold;"><td width="25%">BPMN Name</td><td width="25%">Status</td><td width="25%">Start</td><td width="25%">End</td></tr>
+              <tr style="text-align:center;">
+                <td><a href="#/bpmn?process={{projectsCtrl.selectedPhase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
+                </td>
+                <td>{{projectsCtrl.selectedPhase.status}}</td>
+                <td>{{projectsCtrl.selectedPhase.start}}</td>
+                <td>{{projectsCtrl.selectedPhase.end}}</td>
+              </tr>
+              <tr data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns" style="text-align:center;">
+                <td><a href="#/bpmn?process={{b.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
+                <td>{{b.status}}</td>
+                <td>{{b.offset.start}}</td>
+                <td>{{b.offset.end}}</td>
+              </tr>
+            </table></td></tr>
           </table>
         </div>
       </div>

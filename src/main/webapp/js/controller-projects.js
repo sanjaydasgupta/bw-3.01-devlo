@@ -84,6 +84,10 @@
           $log.log('OK GET ' + query + ' (' + self.phases.length + ') objects');
           self.selectedProject = self.projects.filter(function(p){return p._id == projectId;})[0];
           self.selectedPhase = phaseId ? self.phases.filter(function(p){return p._id == phaseId;})[0] : null;
+          if (phaseId) {
+            self.selectedPhaseManager = self.phaseManagers.
+              filter(function(pm){return pm._id == self.selectedPhase.admin_person_id})[0];
+          }
         },
         function(errResponse) {
           self.busy = false;

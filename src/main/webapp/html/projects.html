@@ -34,10 +34,6 @@
               <td>
                 <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}}</a>
                 ({{phase.status}})
-                <a data-ng-if="projectsCtrl.selectedPhase == phase"
-                   href="#/bpmn?process={{phase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{phase._id}}">BPMN</a>
-                <span data-ng-if="projectsCtrl.selectedPhase == phase" data-ng-repeat="b in phase.sub_bpmns"><br/>
-                  <a href="#/bpmn?process={{b}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{phase._id}}">{{b}}</a></span>
               </td>
             </tr>
           </table>
@@ -101,8 +97,6 @@
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()"
                     data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
                 <label style="width:25px;"></label>
-                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.selectedPhaseLaunch()"
-                    data-ng-disabled="!projectsCtrl.selectedPhaseCanLaunch()"><span class="glyphicon glyphicon-play"></span> Launch</button>
                 <label style="width:25px;"></label>
                 <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseDelete()"
                     data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
@@ -111,9 +105,17 @@
             </tr>
             <!-- Phase Manager's Part -->
             <tr data-ng-if="projectsCtrl.isPhaseManager()">
-              <td>Phase-Manager's Part
+              <td>
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.selectedPhaseLaunch()"
+                        data-ng-disabled="!projectsCtrl.selectedPhaseCanLaunch()"><span class="glyphicon glyphicon-play"></span> Launch</button>
               </td>
             </tr>
+            <!-- BPMN Part -->
+            <tr><td>
+              <a href="#/bpmn?process={{projectsCtrl.selectedPhase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
+              <span data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns"><br/>
+                  <a href="#/bpmn?process={{b}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b}}</a></span>
+            </td></tr>
           </table>
         </div>
       </div>

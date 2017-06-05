@@ -250,6 +250,7 @@
       function(resp) {
         self.busy = false;
         self.selectProject(self.selectedProject._id, self.selectedPhase._id);
+        self.selectedPhase.admin_person_id = self.selectedPhaseManager._id;
         $log.log('OK POST ' + query);
       },
       function(resp) {

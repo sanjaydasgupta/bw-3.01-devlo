@@ -9,8 +9,6 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
-import scala.collection.JavaConverters._
-
 class ActionComplete extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -53,12 +51,17 @@ class ActionComplete extends HttpServlet with HttpUtils {
 
           val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> theActivity._id[ObjectId])).head
           val bpmnName = theActivity.bpmn_name[String]
-          val allActivitiesComplete = thePhase.bpmn_timestamps[Many[Document]].
-            exists(bts => bts.name[String] == bpmnName && bts.event[String] == "end")
-
           val topBpmnName = thePhase.bpmn_name[String]
           val allProcessesComplete = thePhase.bpmn_timestamps[Many[Document]].
-            exists(bts => bts.name[String] == topBpmnName && bts.event[String] == "end")
+            exists(bts => bts.name[String] == topBpmnName && bts.parent_name[String] == "" &&
+              bts.status[String] == "ended")
+
+          val allActivitiesComplete = if (allProcessesComplete)
+            true
+          else
+            thePhase.bpmn_timestamps[Many[Document]].
+            exists(bts => bts.name[String] == bpmnName && bts.parent_name[String] != "" &&
+              bts.status[String] == "ended")
 
           if (this != ActionComplete) {
             response.getWriter.println(s"""{"all_actions_complete": $allActionsComplete, "all_activities_complete": """ +

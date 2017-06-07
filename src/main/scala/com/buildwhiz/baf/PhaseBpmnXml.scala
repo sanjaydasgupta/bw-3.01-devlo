@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.utils._
@@ -65,7 +66,10 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
     try {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val processModelStream = getProcessModel(bpmnFileName)
+      val processModelStream = if (bpmnFileName == "****")
+        new ByteArrayInputStream(placeholder.getBytes)
+      else
+        getProcessModel(bpmnFileName)
       val blockBuffer = new Array[Byte](4096)
       val byteBuffer = mutable.Buffer.empty[Byte]
       def copyModelToOutput(): Unit = {
@@ -95,4 +99,57 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         throw t
     }
   }
+
+  private val placeholder =
+    """<?xml version="1.0" encoding="UTF-8"?>
+      |<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0">
+      |  <bpmn:process id="Process_1" isExecutable="false">
+      |    <bpmn:task id="Placeholder-430-Forest" name="Placeholder 430-Forest ">
+      |      <bpmn:incoming>SequenceFlow_1ev0prc</bpmn:incoming>
+      |      <bpmn:outgoing>SequenceFlow_1ox3c8r</bpmn:outgoing>
+      |    </bpmn:task>
+      |    <bpmn:startEvent id="Start">
+      |      <bpmn:outgoing>SequenceFlow_1ev0prc</bpmn:outgoing>
+      |    </bpmn:startEvent>
+      |    <bpmn:endEvent id="End">
+      |      <bpmn:incoming>SequenceFlow_1ox3c8r</bpmn:incoming>
+      |    </bpmn:endEvent>
+      |    <bpmn:sequenceFlow id="SequenceFlow_1ev0prc" sourceRef="Start" targetRef="Placeholder-430-Forest" />
+      |    <bpmn:sequenceFlow id="SequenceFlow_1ox3c8r" sourceRef="Placeholder-430-Forest" targetRef="End" />
+      |  </bpmn:process>
+      |  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+      |    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      |      <bpmndi:BPMNShape id="Task_0d8635t_di" bpmnElement="Placeholder-430-Forest">
+      |        <dc:Bounds x="441" y="135" width="100" height="80" />
+      |      </bpmndi:BPMNShape>
+      |      <bpmndi:BPMNShape id="StartEvent_08l5a8o_di" bpmnElement="Start">
+      |        <dc:Bounds x="345" y="157" width="36" height="36" />
+      |        <bpmndi:BPMNLabel>
+      |          <dc:Bounds x="363" y="196" width="0" height="13" />
+      |        </bpmndi:BPMNLabel>
+      |      </bpmndi:BPMNShape>
+      |      <bpmndi:BPMNShape id="EndEvent_13f5x8e_di" bpmnElement="End">
+      |        <dc:Bounds x="607" y="157" width="36" height="36" />
+      |        <bpmndi:BPMNLabel>
+      |          <dc:Bounds x="625" y="196" width="0" height="13" />
+      |        </bpmndi:BPMNLabel>
+      |      </bpmndi:BPMNShape>
+      |      <bpmndi:BPMNEdge id="SequenceFlow_1ev0prc_di" bpmnElement="SequenceFlow_1ev0prc">
+      |        <di:waypoint xsi:type="dc:Point" x="381" y="175" />
+      |        <di:waypoint xsi:type="dc:Point" x="441" y="175" />
+      |        <bpmndi:BPMNLabel>
+      |          <dc:Bounds x="411" y="153" width="0" height="13" />
+      |        </bpmndi:BPMNLabel>
+      |      </bpmndi:BPMNEdge>
+      |      <bpmndi:BPMNEdge id="SequenceFlow_1ox3c8r_di" bpmnElement="SequenceFlow_1ox3c8r">
+      |        <di:waypoint xsi:type="dc:Point" x="541" y="175" />
+      |        <di:waypoint xsi:type="dc:Point" x="607" y="175" />
+      |        <bpmndi:BPMNLabel>
+      |          <dc:Bounds x="574" y="153" width="0" height="13" />
+      |        </bpmndi:BPMNLabel>
+      |      </bpmndi:BPMNEdge>
+      |    </bpmndi:BPMNPlane>
+      |  </bpmndi:BPMNDiagram>
+      |</bpmn:definitions>
+      |""".stripMargin
 }

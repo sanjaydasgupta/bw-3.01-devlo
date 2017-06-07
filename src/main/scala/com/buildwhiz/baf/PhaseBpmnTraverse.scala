@@ -87,15 +87,16 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
   }
 
   private def setActivitySchedule(bpmnId: String, phase: DynDoc, bpmnName: String, entryOffset: (Long, Long),
-      delay: Long): Unit = {
+      duration: Long): Unit = {
     val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
     val theActivity: DynDoc = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)).head
     setActionsSchedule(theActivity, entryOffset)
     val averageOffset = (entryOffset._1 + entryOffset._2) / 2
-    val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + delay))
+    val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + duration))
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> theActivity._id[ObjectId]),
-      Map("$set" -> Map("offset" -> Map("min" -> entryOffset._1, "max" -> entryOffset._2), "start" -> start, "end" -> end)))
+      Map("$set" -> Map("offset" -> Map("min" -> entryOffset._1, "max" -> entryOffset._2), "start" -> start,
+        "end" -> end, "duration" -> ms2duration(duration))))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")
   }
@@ -148,10 +149,10 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
         case callActivity: CallActivity =>
           val entryOffset = minMin(predecessors(callActivity).map(n => getTimeOffset(n, processOffset, bpmnName)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
-            val delay = getActivityDuration(callActivity.getId, phase, bpmnName)
-            setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, delay)
+            val duration = getActivityDuration(callActivity.getId, phase, bpmnName)
+            setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, duration)
             //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
-            val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
+            val exitOffset = (entryOffset._1 + duration, entryOffset._2 + duration)
             exitOffset
           } else {
             val calledElement = callActivity.getCalledElement

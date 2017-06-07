@@ -43,10 +43,16 @@ class ActionAdd extends HttpServlet with HttpUtils {
         outbox.asScala.append(getTempDoc(s"$actionName-review-report"))
       val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
         "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> "00:00:00",
-        "assignee_person_id" -> assigneeOid, "bpmn_name" -> bpmnName)
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$push" -> Map("actions" -> action)))
+        "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
+      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        Map("$push" -> Map("actions" -> action)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      else {
+        val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+        val topLevelBpmn = thePhase.bpmn_name[String]
+        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request, response)
+      }
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
     } catch {
       case t: Throwable =>

@@ -217,12 +217,12 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         inbox.addAll(availableDocumentList.asJava)
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
           "inbox" -> inbox, "outbox" -> new java.util.ArrayList[ObjectId],
-          "assignee_person_id" -> adminPersonOid, "duration" -> "00:00:00")
+          "assignee_person_id" -> adminPersonOid, "duration" -> "00:00:00", "start" -> "00:00:00", "end" -> "00:00:00")
         val actions = new java.util.ArrayList[Document]
         actions.asScala.append(action)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions,
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
-          "start" -> "00:00:00", "end" -> "00:00:00")
+          "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> "00:00:00")
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

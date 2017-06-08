@@ -16,7 +16,7 @@ class TimerTransitions extends ExecutionListener with BpmnUtils {
       val bpmnName = getBpmnName(de)
       val timerId = de.getCurrentActivityId
       val (event, status) = de.getEventName match {
-        case "start" => ("start", "started")
+        case "start" => ("start", "running")
         case "end" => ("end", "ended")
       }
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head

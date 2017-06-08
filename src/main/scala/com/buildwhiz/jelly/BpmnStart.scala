@@ -46,7 +46,7 @@ class BpmnStart extends JavaDelegate with BpmnUtils with DateTimeUtils {
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
           Map("$set" -> Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis),
             "$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "parent_name" -> "",
-              "status" -> "started", "timestamps" -> Map("start" -> System.currentTimeMillis)))))
+              "status" -> "running", "timestamps" -> Map("start" -> System.currentTimeMillis)))))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       } else {
@@ -55,7 +55,7 @@ class BpmnStart extends JavaDelegate with BpmnUtils with DateTimeUtils {
         val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName &&
           ts.parent_name[String] == callerBpmnName)
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> thePhase._id[ObjectId]), Map("$set" ->
-          Map(s"bpmn_timestamps.$idx.status" -> "started",
+          Map(s"bpmn_timestamps.$idx.status" -> "running",
           s"bpmn_timestamps.$idx.timestamps.start" -> System.currentTimeMillis)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")

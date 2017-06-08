@@ -50,7 +50,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val tasks = actions.map(action => {
         new Document("type", action.`type`[String]).append("name", action.name[String]).
-          append("status", action.status[String]).append("duration", action.duration[String])
+          append("status", action.status[String]).append("duration", action.duration[String]).
+          append("start", action.start[String]).append("end", action.end[String])
       })
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", activity.status[String]).append("tasks", tasks).

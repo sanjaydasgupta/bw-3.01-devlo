@@ -173,23 +173,24 @@
           <table style="border:3px solid #337ab7; width:100%; vertical-align:top; margin-bottom:5px;">
             <tr><td style="width:100%; vertical-align:top;">
               <textarea class="center-block" data-ng-disabled="tasksCtrl.selectedTask.status != 'waiting'"
-                  style="width:98%; height:100px; margin:3px;"
+                  style="width:95%; height:100px; margin-left:2.5%; margin-top:3px; margin-bottom:3px;"
                   data-ng-model="tasksCtrl.selectedTask.completion_message"></textarea>
             </td></tr>
             <tr data-ng-if="tasksCtrl.selectedTask.status == 'waiting'"><td style="width:100%; horizontal-align:center;">
-              <span data-ng-if="!tasksCtrl.confirmingCompletion" class="pull-left">
-                &nbsp;&nbsp;&nbsp;<label style="color:#337ab7;"> Review OK?</label>
-                <input type="checkbox" data-ng-disabled="{{tasksCtrl.selectedTask.type != 'review'}}"
-                    data-ng-model="tasksCtrl.selectedTask.reviewOk">&nbsp;&nbsp;&nbsp;
+              <span data-ng-if="!tasksCtrl.confirmingCompletion && tasksCtrl.selectedTask.type == 'review'"
+                    class="pull-left" style="margin-left:2.5%;">
+                <label style="color:#337ab7;"> Review OK?</label>
+                <input type="checkbox" data-ng-model="tasksCtrl.selectedTask.reviewOk">
               </span>
               <button class="button btn-warning btn-xs pull-right" data-ng-if="!tasksCtrl.confirmingCompletion"
-                  data-ng-click="tasksCtrl.confirmingCompletion = true;"
-                  style="margin-bottom:3px;">Complete Task</button>
+                  style="margin-right:2.5%; margin-bottom:3px;"
+                  data-ng-disabled="tasksCtrl.selectedTask.completion_message == ''"
+                  data-ng-click="tasksCtrl.confirmingCompletion = true;">Complete</button>
               <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-danger btn-xs pull-right"
-                  style="margin-bottom:3px; margin-right:3px;" data-ng-click="tasksCtrl.actionComplete()">
+                  style="margin-bottom:3px; margin-right:2.5%;" data-ng-click="tasksCtrl.actionComplete()">
                 Confirm</button>
               <button data-ng-if="tasksCtrl.confirmingCompletion" class="button btn-success btn-xs pull-left"
-                      style="margin-bottom:3px; margin-left:3px;" data-ng-click="tasksCtrl.confirmingCompletion = false;">
+                      style="margin-bottom:3px; margin-left:2.5%;" data-ng-click="tasksCtrl.confirmingCompletion = false;">
                 Cancel</button>
             </td></tr>
           </table>

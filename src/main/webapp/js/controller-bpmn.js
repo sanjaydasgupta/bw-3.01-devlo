@@ -15,6 +15,12 @@ angular.module('BuildWhizApp')
   $log.log('Project-Name: ' + self.projectName);
   $log.log('Phase-Id: ' + self.phaseId);
 
+/* SDG */  self.refresh = function() {
+/* SDG */    var refreshLocation = $window.location + '&dt=' + escape(new Date());
+/* SDG */    $log.log('Refresh location: ' + refreshLocation);
+/* SDG */    $window.location = refreshLocation;
+/* SDG */  }
+
   // https://github.com/bpmn-io/bower-bpmn-js
   // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
   // https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay

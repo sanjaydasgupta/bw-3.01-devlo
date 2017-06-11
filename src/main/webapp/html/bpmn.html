@@ -1,8 +1,11 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <div class="panel panel-primary">
   <div class="panel-heading">
     <span style="font-weight:bold;">BPMN ({{bpmnCtrl.projectName}} / {{bpmnCtrl.processName}})</span>
+    <button class="pull-right btn btn-xs btn-info" style="margin-left:10px" data-ng-click="bpmnCtrl.refresh()">
+      <span class="glyphicon glyphicon-refresh"></span> Refresh</button>
     <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&phase_id={{bpmnCtrl.phaseId}}"
-        style="font-weight:bold; color:white;">Back</a>
+       style="font-weight:bold; color:white;">Back</a>
     <span class="pull-right"><span style="color:white;" class="glyphicon glyphicon-arrow-left"></span>&nbsp;</span>
   </div>
 
@@ -15,7 +18,12 @@
         </td>
         <td> </td>
         <td style="width:200px; background-color:yellowgreen; text-align:center;">
-          <!-- All additions here -->
+          Panel Contents Here<br>
+
+          <div id="duration_container" data-ng-show="bpmnCtrl.isVisible">
+            <input  value="{{bpmnCtrl.getduration}}" data-ng-model="bpmnCtrl.getduration" data-type-clicked="" style="border: none;padding: 5px;border-radius: 2px;margin: 5px auto;" type="text">
+            <button id="setDuration"  data-ng-click="bpmnCtrl.setDuration_dt(bpmnCtrl.eltype, bpmnCtrl.getduration)" >Update</button>
+          </div>
         </td>
       </tr>
     </table>

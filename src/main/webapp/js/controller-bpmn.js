@@ -24,8 +24,7 @@ angular.module('BuildWhizApp')
   var processActivities = [];
   var callActivities = [];
 
-  var visualElements = [];
-//  var popupData = [];
+  var popupData = [];
 
   var selectedElement = null;
   var bpmnViewer = new BpmnJS({container: '#canvas'});
@@ -74,11 +73,15 @@ angular.module('BuildWhizApp')
     }
 	
     if (element.type != 'bpmn:Process') {
-		var data = $filter('filter')(visualElements, {bpmn_id: element.id })[0];
+		var data = $filter('filter')(popupData, {bpmn_id: element.id })[0];
 		if (data !== undefined) {
 			 hoverOverlayId = overlays.add(element.id, {
-				position: {top: 25,
-					left: 50},
+//				position: {top: 25,
+//					left: 50},
+                position: { /* SDG */
+                  top: (element.height - 70) / 2, /* SDG */
+                  left: (element.width - 100) / 2 /* SDG */
+                }, /* SDG */
 				html: hoverOverlayHtml(data.start,data.end)
 			});
 		}
@@ -136,13 +139,13 @@ angular.module('BuildWhizApp')
 	    bgcolor='white';
     }
 
-    overlays.add(variable.bpmn_id, {
-      position: {
-        top: -40,
-        left: (variable.width - 80) / 2
-      },
-      html: annotationHtml(bgcolor,variable.start,variable.end)
-    });
+    overlays.add(variable.bpmn_id, { /* SDG */
+      position: { /* SDG */
+        top: -40, /* SDG */
+        left: (variable.width - 80) / 2 /* SDG */
+      }, /* SDG */
+      html: annotationHtml(bgcolor,variable.start,variable.end) /* SDG */
+    }); /* SDG */
 
 //	  if(type == 'typeTimers'){
 //		  overlays.add(variable.bpmn_id, {
@@ -164,9 +167,9 @@ angular.module('BuildWhizApp')
   }
 
   var annotateBpmn = function() {
-    visualElements.forEach(function(e){
-	  annotateGenerate(e);
-    })
+    popupData.forEach(function(e){ /* SDG */
+	  annotateGenerate(e); /* SDG */
+    }) /* SDG */
 //    processTimers.forEach(function(timer) {
 //      $log.log(JSON.stringify(timer));
 //	  var type = 'typeTimers';
@@ -210,22 +213,25 @@ angular.module('BuildWhizApp')
           callActivities = resp.data.calls;
 		  
 		  processTimers.forEach(function(variable) {
-		    variable.width = 36;
-		    visualElements.push(variable);
+            variable.width = 36; /* SDG */
+		    variable.height = 36; /* SDG */
+		    popupData.push(variable);
 		  });
 //		  processVariables.forEach(function(variable) {
-//			 visualElements.push(variable);
+//			 popupData.push(variable);
 //		  });
 		  processActivities.forEach(function(variable) {
-		    variable.width = 100;
-		    visualElements.push(variable);
+		    variable.width = 100; /* SDG */
+		    variable.height = 80; /* SDG */
+		    popupData.push(variable);
 		  });
 		  callActivities.forEach(function(variable) {
-		    variable.width = 100;
-		    visualElements.push(variable);
+		    variable.width = 100; /* SDG */
+		    variable.height = 80; /* SDG */
+		    popupData.push(variable);
 		  });
 		  
-		  $log.log('Popup data:'+ JSON.stringify(visualElements));
+		  $log.log('Popup data:'+ JSON.stringify(popupData));
 		
           $log.log('OK importXML, timers: ' + processTimers.length + ', variables: ' + processVariables.length +
             ', activities: ' + processActivities.length + ', calls: ' + callActivities.length);

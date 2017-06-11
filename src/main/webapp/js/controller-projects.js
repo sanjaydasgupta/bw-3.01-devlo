@@ -1,7 +1,7 @@
 ﻿angular.module('BuildWhizApp')
 
-.controller("ProjectsCtrl", ['$log', '$http', 'AuthenticationService', '$routeParams',
-    function ($log, $http, AuthService, $routeParams) {
+.controller("ProjectsCtrl", ['$log', '$http', 'AuthenticationService', '$routeParams', '$window',
+    function ($log, $http, AuthService, $routeParams, $window) {
 
   var self = this;
   self.busy = false;
@@ -309,6 +309,31 @@
         $log.log('ERROR DELETE ' + query);
       }
     );
+  }
+
+  self.refresh = function() {
+    var href = $window.location.href;
+    var dtIdx = href.indexOf('project_id=');
+    if (dtIdx != -1) {
+      href = href.substring(0, dtIdx - 1);
+    } else {
+      dtIdx = href.indexOf('dt=');
+      if (dtIdx != -1) {
+        href = href.substring(0, dtIdx - 1);
+      }
+    }
+    if (self.selectedProject != null) {
+      href += '?project_id=' + self.selectedProject._id;
+      if (self.selectedPhase != null) {
+        href += '&phase_id=' + self.selectedPhase._id;
+      }
+      href += '&dt=';
+    } else {
+      href += '?dt=';
+    }
+    href += escape(new Date());
+    //$log.log('Refresh location: ' + href);
+    $window.location.href = href;
   }
 
   self.fetchProjects(self.initialProjectId, self.initialPhaseId);

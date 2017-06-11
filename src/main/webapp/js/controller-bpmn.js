@@ -40,9 +40,12 @@ angular.module('BuildWhizApp')
     return '<div style="border-radius: 50%; width: 10px; height: 10px; background-color:green;"></div>';
   }
 
-  var annotationHtml = function(bgColor,start,end) {
-    return '<div style="background-color:'+bgColor+'; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:80px;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
-  }
+//  var anotationHtml = function(bgColor,start,end) {
+//    return '<div style="background-color:'+bgColor+';white-space: nowrap;padding: 3px;border: 1px solid #333; border-radius: 5px; font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
+//  }
+/* SDG */  var annotationHtml = function(bgColor,duration) {
+/* SDG */    return '<div style="background-color:'+bgColor+'; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">'+duration+'</div>';
+/* SDG */  }
 
   var hoverOverlayHtml = function(start,end) {
     return '<div style="width:100px;height:70px; background-color:#84FFFF; padding: 3px; border: 1px solid #333;font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
@@ -78,10 +81,10 @@ angular.module('BuildWhizApp')
 			 hoverOverlayId = overlays.add(element.id, {
 //				position: {top: 25,
 //					left: 50},
-                position: { /* SDG */
-                  top: (element.height - 70) / 2, /* SDG */
-                  left: (element.width - 100) / 2 /* SDG */
-                }, /* SDG */
+/* SDG */                position: {
+/* SDG */                  top: (element.height - 70) / 2,
+/* SDG */                  left: (element.width - 100) / 2
+/* SDG */                },
 				html: hoverOverlayHtml(data.start,data.end)
 			});
 		}
@@ -116,7 +119,7 @@ angular.module('BuildWhizApp')
   });
   
 //  var annotateGenerate = function(variable,type){
-  var annotateGenerate = function(variable){
+/* SDG */  var annotateGenerate = function(variable){
 	var bgcolor='transparent';
 	//$log.log('Type of variable:' + type);
 	switch(variable.status) {
@@ -139,13 +142,13 @@ angular.module('BuildWhizApp')
 	    bgcolor='white';
     }
 
-    overlays.add(variable.bpmn_id, { /* SDG */
-      position: { /* SDG */
-        top: -40, /* SDG */
-        left: (variable.width - 80) / 2 /* SDG */
-      }, /* SDG */
-      html: annotationHtml(bgcolor,variable.start,variable.end) /* SDG */
-    }); /* SDG */
+/* SDG */    overlays.add(variable.bpmn_id, {
+/* SDG */      position: {
+/* SDG */        top: -30,
+/* SDG */        left: (variable.width - 50) / 2
+/* SDG */      },
+/* SDG */      html: annotationHtml(bgcolor,variable.duration)
+/* SDG */    });
 
 //	  if(type == 'typeTimers'){
 //		  overlays.add(variable.bpmn_id, {
@@ -167,9 +170,9 @@ angular.module('BuildWhizApp')
   }
 
   var annotateBpmn = function() {
-    popupData.forEach(function(e){ /* SDG */
-	  annotateGenerate(e); /* SDG */
-    }) /* SDG */
+/* SDG */    popupData.forEach(function(e){
+/* SDG */	  annotateGenerate(e);
+/* SDG */    })
 //    processTimers.forEach(function(timer) {
 //      $log.log(JSON.stringify(timer));
 //	  var type = 'typeTimers';
@@ -213,21 +216,21 @@ angular.module('BuildWhizApp')
           callActivities = resp.data.calls;
 		  
 		  processTimers.forEach(function(variable) {
-            variable.width = 36; /* SDG */
-		    variable.height = 36; /* SDG */
+/* SDG */            variable.width = 36;
+/* SDG */		    variable.height = 36;
 		    popupData.push(variable);
 		  });
 //		  processVariables.forEach(function(variable) {
 //			 popupData.push(variable);
 //		  });
 		  processActivities.forEach(function(variable) {
-		    variable.width = 100; /* SDG */
-		    variable.height = 80; /* SDG */
+/* SDG */		    variable.width = 100;
+/* SDG */		    variable.height = 80;
 		    popupData.push(variable);
 		  });
 		  callActivities.forEach(function(variable) {
-		    variable.width = 100; /* SDG */
-		    variable.height = 80; /* SDG */
+/* SDG */		    variable.width = 100;
+/* SDG */		    variable.height = 80;
 		    popupData.push(variable);
 		  });
 		  

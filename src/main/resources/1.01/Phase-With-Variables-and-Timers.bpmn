@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_Jca3wPjZEeWmaqRPwgIV3w" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-With-Variables-and-Timers" name="Phase With Variables and Timers" isExecutable="true">
+    <bpmn2:extensionElements>
+      <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
+      <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+    </bpmn2:extensionElements>
     <bpmn2:callActivity id="True-Handler" name="True Handler" calledElement="Infra-Activity-Handler">
       <bpmn2:extensionElements>
         <camunda:properties>
@@ -50,6 +54,10 @@
       <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("condition") && execution.getVariable("condition")]]></bpmn2:conditionExpression>
     </bpmn2:sequenceFlow>
     <bpmn2:intermediateCatchEvent id="Initial-Delay" name="Initial Delay">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+      </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
       <bpmn2:timerEventDefinition id="TimerEventDefinition_1">

@@ -6,12 +6,12 @@
   </div>
 
   <div class="panel-body fixed-panel" style="padding:5px">
-    <!-- Busy overlay -->
-    <div data-ng-if="projectsCtrl.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
-      <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
-    </div>
     <div class="container-fluid">
       <div class="row">
+        <!-- Busy overlay -->
+        <div data-ng-if="projectsCtrl.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
+          <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+        </div>
         <!-- Left Margin -->
         <div class="col-xs-12 col-sm-4 col-md-4 col-lg-3 col-xl-3">
           <!-- Projects -->
@@ -19,6 +19,7 @@
             <tr><th class="bg-primary text-center">Projects ({{projectsCtrl.projects.length}})</th></tr>
             <tr data-ng-repeat="project in projectsCtrl.projects" style="background-color:{{projectsCtrl.projectRowColor(project)}};">
               <td class="cursor: pointer;">
+                <span style="width:20px; background-color:{{projectsCtrl.statusColor(project.display_status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
                 <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.status}})</a>
               </td>
             </tr>
@@ -32,10 +33,10 @@
           <!-- Phases -->
           <table class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Phases ({{projectsCtrl.phases.length}})</th></tr>
-            <tr data-ng-repeat="phase in projectsCtrl.phases" style="background-color:{{projectsCtrl.phaseRowColor(phase)}}">
+            <tr data-ng-repeat="phase in projectsCtrl.phases" style="background-color:{{projectsCtrl.phaseRowColor(phase)}};">
               <td>
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}}</a>
-                ({{phase.status}})
+                <span style="width:20px; background-color:{{projectsCtrl.statusColor(phase.display_status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}} ({{phase.status}})</a>
               </td>
             </tr>
           </table>

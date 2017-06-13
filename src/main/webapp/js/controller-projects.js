@@ -336,6 +336,35 @@
     $window.location.href = href;
   }
 
+  self.statusColor = function(displayStatus) {
+    var color = 'white';
+    switch (displayStatus) {
+	  case 'defined':
+		color = 'yellow';
+		break;
+	  case 'waiting':
+		color = 'Red';
+		break;
+	  case 'waiting2':
+		color = 'Pink';
+		break;
+	  case 'started':
+		color = 'Lime';
+		break;
+	  case 'running':
+		color = 'Lime';
+		break;
+	  case 'ended':
+	    color = 'Silver';
+	    break;
+	  default:
+	    color = 'white';
+	    break;
+    }
+    $log.log('statusColor(' + displayStatus + ') = ' + color);
+    return color;
+  }
+
   self.fetchProjects(self.initialProjectId, self.initialPhaseId);
 
 }]);

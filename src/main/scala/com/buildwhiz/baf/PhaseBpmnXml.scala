@@ -42,19 +42,32 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
     })
   }
 
-  private def getActivities(phase: DynDoc, processName: String): Seq[Document] = {
+  private def getActivities(phase: DynDoc, processName: String, userOid: ObjectId): Seq[Document] = {
     val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> processName))
     val returnActivities = activities.map(activity => {
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val tasks = actions.map(action => {
+        val ownTask = userOid == action.assignee_person_id[ObjectId]
+        val status = if (ownTask && action.status[String] == "waiting")
+          "waiting"
+        else if (action.status[String] == "waiting")
+          "waiting2"
+        else
+          action.status[String] == "waiting"
         new Document("type", action.`type`[String]).append("name", action.name[String]).
-          append("status", action.status[String]).append("duration", action.duration[String]).
+          append("status", status).append("duration", action.duration[String]).
           append("start", action.start[String]).append("end", action.end[String])
       })
+      val status = if (tasks.exists(_.get("status") == "waiting"))
+        "waiting"
+      else if (tasks.exists(_.get("status") == "waiting2"))
+        "waiting2"
+      else
+        activity.status[String]
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
-        append("status", activity.status[String]).append("tasks", tasks).
+        append("status", status).append("tasks", tasks).
         append("start", activity.start[String]).append("end", activity.end[String]).
         append("duration", getActivityDuration(activity))
     })
@@ -65,6 +78,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val phaseOid = new ObjectId(parameters("phase_id"))
       val processModelStream = if (bpmnFileName == "****")
@@ -85,7 +100,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val processVariables = getVariables(phase, bpmnFileName)
       val processTimers = getTimers(phase, bpmnFileName)
-      val processActivities = getActivities(phase, bpmnFileName)
+      val processActivities = getActivities(phase, bpmnFileName, userOid)
       val callActivities = getSubProcessCalls(phase, bpmnFileName)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
         append("timers", processTimers).append("activities", processActivities).append("calls", callActivities)

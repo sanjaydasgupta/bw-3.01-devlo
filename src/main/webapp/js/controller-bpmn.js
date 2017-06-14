@@ -133,16 +133,19 @@ angular.module('BuildWhizApp')
 		bgcolor='yellow';
 		break;
 	  case "waiting":
-		bgcolor='#F88017'; // Dark orange
+		bgcolor='Red';
+		break;
+	  case 'waiting2':
+		bgcolor = 'Pink';
 		break;
 	  case "started":
-		bgcolor='#6CC417'; // Alien green
+		bgcolor='Lime';
 		break;
 	  case "running":
-		bgcolor='#6CC417'; // Alien green
+		bgcolor='Lime';
 		break;
 	  case "ended":
-	    bgcolor='#98AFC7'; // Blue gray
+	    bgcolor='Silver';
 	    break;
 	  default:
 	    bgcolor='white';

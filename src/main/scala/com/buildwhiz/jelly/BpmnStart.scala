@@ -1,13 +1,13 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, DateTimeUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
+import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
-class BpmnStart extends JavaDelegate with BpmnUtils with DateTimeUtils {
+class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
 
   private def duration2iso(duration: String): String = {
     val Array(days, hours, minutes) = duration.split(":").map(_.toInt)
@@ -35,7 +35,7 @@ class BpmnStart extends JavaDelegate with BpmnUtils with DateTimeUtils {
     Seq("project_id", "phase_id").foreach(oneVariable)
   }
 
-  def execute(de: DelegateExecution): Unit = {
+  def notify(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       setupEssentials(de)

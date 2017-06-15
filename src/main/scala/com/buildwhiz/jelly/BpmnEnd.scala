@@ -1,15 +1,15 @@
 package com.buildwhiz.jelly
 
 import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
 import org.bson.Document
-import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 import org.bson.types.ObjectId
+import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
-class BpmnEnd extends JavaDelegate with BpmnUtils {
+class BpmnEnd extends ExecutionListener with BpmnUtils {
 
-  def execute(de: DelegateExecution): Unit = {
+  def notify(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
@@ -41,6 +41,5 @@ class BpmnEnd extends JavaDelegate with BpmnUtils {
         BWLogger.log(getClass.getName, "execute()", s"ERROR ${t.getClass.getName}(${t.getMessage})", de)
     }
   }
-
 
 }

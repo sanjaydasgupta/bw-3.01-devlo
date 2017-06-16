@@ -1,30 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="camunda modeler" exporterVersion="2.7.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-Simple" name="Phase Simple" isExecutable="true">
     <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn2:extensionElements>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:startEvent>
-    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="BPMN-Start" />
-    <bpmn2:serviceTask id="BPMN-Start" name="BPMN Start" camunda:class="com.buildwhiz.jelly.BpmnStart">
-      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
-    </bpmn2:serviceTask>
-    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="BPMN-Start" targetRef="An-Activity" />
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="An-Activity" />
     <bpmn2:endEvent id="End" name="End">
-      <bpmn2:incoming>SequenceFlow_4</bpmn2:incoming>
-    </bpmn2:endEvent>
-    <bpmn2:serviceTask id="BPMN-End" name="BPMN End" camunda:class="com.buildwhiz.jelly.BpmnEnd">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_4</bpmn2:outgoing>
-    </bpmn2:serviceTask>
-    <bpmn2:sequenceFlow id="SequenceFlow_4" name="" sourceRef="BPMN-End" targetRef="End" />
+    </bpmn2:endEvent>
     <bpmn2:callActivity id="An-Activity" name="An Activity" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
         </camunda:properties>
       </bpmn2:extensionElements>
-      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
     </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="An-Activity" targetRef="And-Another-One" />
@@ -37,11 +33,7 @@
       <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
     </bpmn2:callActivity>
-    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="And-Another-One" targetRef="BPMN-End" />
-    <bpmn2:textAnnotation id="TextAnnotation_1">    <bpmn2:text><![CDATA[This BPMN is a project phase, the blocks are ativities belonging to the phase.
-
-The activity names are significant, and must match up with activity names defined in the database]]></bpmn2:text>
-</bpmn2:textAnnotation>
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="And-Another-One" targetRef="End" />
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Simple">
@@ -60,24 +52,11 @@ The activity names are significant, and must match up with activity names define
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="An-Activity">
         <dc:Bounds x="324" y="95" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ServiceTask_33">
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_CallActivity_6">
         <di:waypoint xsi:type="dc:Point" x="72" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="151" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="324" y="135" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="103" y="135" width="6" height="6" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_TextAnnotation_55" bpmnElement="TextAnnotation_1">
-        <dc:Bounds x="79" y="12" width="498" height="73" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_28" bpmnElement="BPMN-End">
-        <dc:Bounds x="708" y="95" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="SequenceFlow_4" sourceElement="_BPMNShape_ServiceTask_28" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint xsi:type="dc:Point" x="808" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="852" y="135" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="836" y="135" width="6" height="6" />
+          <dc:Bounds x="153" y="117" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_CallActivity_10">
@@ -87,24 +66,14 @@ The activity names are significant, and must match up with activity names define
           <dc:Bounds x="457" y="135" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_33" bpmnElement="BPMN-Start">
-        <dc:Bounds x="151" y="95" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ServiceTask_33" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint xsi:type="dc:Point" x="251" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="324" y="135" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="311" y="135" width="6" height="6" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_10" bpmnElement="And-Another-One">
         <dc:Bounds x="504" y="95" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_CallActivity_10" targetElement="_BPMNShape_ServiceTask_28">
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_CallActivity_10" targetElement="_BPMNShape_EndEvent_45">
         <di:waypoint xsi:type="dc:Point" x="604" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="708" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="852" y="135" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="647" y="135" width="6" height="6" />
+          <dc:Bounds x="683" y="117" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>

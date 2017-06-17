@@ -55,9 +55,12 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         else if (action.status[String] == "waiting")
           "waiting2"
         else
-          action.status[String] == "waiting"
-        new Document("type", action.`type`[String]).append("name", action.name[String]).
-          append("status", status).append("duration", action.duration[String]).
+          action.status[String]
+        val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
+        val shortAssignee = new Document("_id", assignee._id[ObjectId]).
+          append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
+        new Document("type", action.`type`[String]).append("name", action.name[String]).append("status", status).
+          append("duration", action.duration[String]).append("assignee", shortAssignee).
           append("start", action.start[String]).append("end", action.end[String])
       })
       val status = if (tasks.exists(_.get("status") == "waiting"))

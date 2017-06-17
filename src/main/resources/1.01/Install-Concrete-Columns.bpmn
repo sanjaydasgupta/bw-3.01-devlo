@@ -76,7 +76,7 @@
     <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-in-column-Electrical-Conduits" targetRef="Place-Forms" />
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
-        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="end" />
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0hzh4qr</bpmn:incoming>
     </bpmn:endEvent>

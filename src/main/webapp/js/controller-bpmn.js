@@ -10,16 +10,18 @@ angular.module('BuildWhizApp')
   self.projectName = $routeParams.project_name;
   self.phaseId = $routeParams.phase_id;
 
+  self.visibleElmt = '????'
+  self.heading = '????';
+
   $log.log('Process-Name: ' + self.processName);
   $log.log('Project-Id: ' + self.projectId);
   $log.log('Project-Name: ' + self.projectName);
   $log.log('Phase-Id: ' + self.phaseId);
 
-/* SDG */  self.refresh = function() {
-/* SDG */    var refreshLocation = $window.location + '&dt=' + escape(new Date());
-/* SDG */    $log.log('Refresh location: ' + refreshLocation);
-/* SDG */    $window.location = refreshLocation;
-/* SDG */  }
+  self.refresh = function() {
+    var refreshLocation = $window.location + '&dt=' + escape(new Date());
+    $window.location = refreshLocation;
+  }
 
   // https://github.com/bpmn-io/bower-bpmn-js
   // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
@@ -39,58 +41,89 @@ angular.module('BuildWhizApp')
   var overlays = bpmnViewer.get('overlays');
   var eventBus = bpmnViewer.get('eventBus');
 
-  var events = [/*'element.hover', 'element.out', */'element.click', 'element.dblclick', 'element.hover'
+  var events = [/*'element.out', */'element.click', 'element.dblclick', 'element.hover'
       /*'element.mousedown', 'element.mouseup'*/];
 
   var overlayHtml = function(width, height) {
     return '<div style="border-radius: 50%; width: 10px; height: 10px; background-color:green;"></div>';
   }
 
-//  var anotationHtml = function(bgColor,start,end) {
-//    return '<div style="background-color:'+bgColor+';white-space: nowrap;padding: 3px;border: 1px solid #333; border-radius: 5px; font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
-//  }
-/* SDG */  var annotationHtml = function(bgColor,duration) {
-/* SDG */    return '<div style="background-color:'+bgColor+'; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">'+duration+'</div>';
-/* SDG */  }
+  var annotationHtml = function(bgColor,duration) {
+    return '<div style="background-color:'+bgColor+'; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">'+duration+'</div>';
+  }
 
   var hoverOverlayHtml = function(start,end) {
     return '<div style="width:100px;height:70px; background-color:#84FFFF; padding: 3px; border: 1px solid #333;font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
   }
 
   var extraEventHandlingCode = function(element) {
-    $log.log('Called extraEventHandlingCode()')
+    //$log.log('Called extraEventHandlingCode()')
     // All additions here
   }
 
+//  var enableTimer = function(timerVal) {
+//    var resUrl = 'baf/TimerDurationFetch?phase_id='+self.phaseId+'&bpmn_name='+self.processName+'&timer_id='+timerVal;
+//	 $http.get(resUrl).then(function(resp) {
+//       var timer = resp.data;
+//		if(timer!=''){
+//          self.visibleElmt = 'timer';
+//          self.eltype = timerVal;		// get timer type
+//          self.getduration = timer;
+//        } else {
+//          self.visibleElmt = '';
+//        }
+//      })
+//  }
+
+  /*** update time duraton   ***/
+//   self.setDuration_dt = function(clickedon, updated_time) {
+//    var dataset = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId + "&bpmn_name=" + self.processName + "&timer_id=" + clickedon + "&duration=" + updated_time ;
+//
+//    $http({method: 'POST', url: dataset}).success(function (data){
+//      //$log.log(data);
+//	}).error(function (data, status, headers, config) {
+//	});
+//
+//  }
+
   var selectElement = function(element) {
-    $log.log('Called selectElement()')
-    if (overlayId != null) {
-      overlays.remove(overlayId);
-    }
-    overlayId = overlays.add(element.id, {
-      position: {top: -10, right: 17},
-      html: overlayHtml()
-    });
+    //$log.log('Called selectElement()');
+//    if (overlayId != null) {
+//      overlays.remove(overlayId);
+//    }
+//    overlayId = overlays.add(element.id, {
+//      position: {top: -10, right: 17},
+//      html: overlayHtml()
+//    });
+	 if (element.type  == 'bpmn:CallActivity') {
+		self.visibleElmt = 'activity';
+		self.heading = element.id;
+		$log.log('Selected ACTIVITY: ' + self.visibleElmt + ' Header:' +self.heading);
+	 } else if(element.type  == 'bpmn:IntermediateCatchEvent'){
+		//enableTimer(element.id);
+		self.visibleElmt = 'timer';
+		self.heading = element.id;
+		$log.log('Selected TIMER: ' + self.visibleElmt + ' Header:' +self.heading);
+	  }
+
     selectedElement = element;
   }
 
   var hoverSelectElement = function(element) {
-    $log.log('Called hoverSelectElement(' + JSON.stringify(element) + ')');
+    //$log.log('Called hoverSelectElement(' + JSON.stringify(element) + ')');
     if (hoverOverlayId != null) {
       overlays.remove(hoverOverlayId);
       hoverOverlayId = null;
     }
-	
+
     if (element.type != 'bpmn:Process') {
 		var data = $filter('filter')(popupData, {bpmn_id: element.id })[0];
 		if (data !== undefined) {
 			 hoverOverlayId = overlays.add(element.id, {
-//				position: {top: 25,
-//					left: 50},
-/* SDG */                position: {
-/* SDG */                  top: (element.height - 70) / 2,
-/* SDG */                  left: (element.width - 100) / 2
-/* SDG */                },
+                position: {
+                  top: 10,
+                  left: 25
+                },
 				html: hoverOverlayHtml(data.start,data.end)
 			});
 		}
@@ -98,14 +131,14 @@ angular.module('BuildWhizApp')
   }
 
   var doubleSelectElement = function(element) {
-    $log.log('Called doubleSelectElement()');
+    //$log.log('Called doubleSelectElement()');
   }
 
   var eventHandler = function(event) {
     // e.element = the model element
     // e.gfx = the graphical element
     var element = event.element;
-    $log.log(event.type);
+    //$log.log(event.type);
 	switch(event.type) {
 		case "element.hover":
 			hoverSelectElement(element);
@@ -117,17 +150,15 @@ angular.module('BuildWhizApp')
 			doubleSelectElement(element);
 			break;
 	}
-    extraEventHandlingCode(element);
+    //extraEventHandlingCode(element);
   }
 
   events.forEach(function(event) {
     eventBus.on(event, eventHandler);
   });
-  
-//  var annotateGenerate = function(variable,type){
-/* SDG */  var annotateGenerate = function(variable){
+
+  var annotateGenerate = function(variable){
 	var bgcolor='transparent';
-	//$log.log('Type of variable:' + type);
 	switch(variable.status) {
 	  case "defined":
 		bgcolor='yellow';
@@ -151,60 +182,21 @@ angular.module('BuildWhizApp')
 	    bgcolor='white';
     }
 
-/* SDG */    overlays.add(variable.bpmn_id, {
-/* SDG */      position: {
-/* SDG */        top: -30,
-/* SDG */        left: (variable.width - 50) / 2
-/* SDG */      },
-/* SDG */      html: annotationHtml(bgcolor,variable.duration)
-/* SDG */    });
+    overlays.add(variable.bpmn_id, {
+      position: {
+        top: -30,
+        left: (variable.width - 50) / 2
+      },
+      html: annotationHtml(bgcolor,variable.duration)
+    });
 
-//	  if(type == 'typeTimers'){
-//		  overlays.add(variable.bpmn_id, {
-//			  position: {
-//				top: -40,
-//				left: -20
-//			  },
-//			  html: annotationHtml(bgcolor,variable.start,variable.end)
-//			});
-//	  }else {
-//		  overlays.add(variable.bpmn_id, {
-//			  position: {
-//				top: -40,
-//				left: 9
-//			  },
-//			  html: annotationHtml(bgcolor,variable.start,variable.end)
-//			});
-//	  }
   }
 
   var annotateBpmn = function() {
-/* SDG */    popupData.forEach(function(e){
-/* SDG */	  annotateGenerate(e);
-/* SDG */    })
-//    processTimers.forEach(function(timer) {
-//      $log.log(JSON.stringify(timer));
-//	  var type = 'typeTimers';
-//	  annotateGenerate(timer,type);
-//    });
-//
-//    processVariables.forEach(function(variable) {
-//      $log.log(JSON.stringify(variable));
-//	  var type = 'typeVariables';
-//	  annotateGenerate(variable,type);
-//    });
-//
-//    processActivities.forEach(function(activity) {
-//      $log.log(JSON.stringify(activity));
-//	  var type = 'typeActivities';
-//	  annotateGenerate(activity,type);
-//    });
-//
-//    callActivities.forEach(function(activity) {
-//      $log.log(JSON.stringify(activity));
-//	  var type = 'typeActivities';
-//	  annotateGenerate(activity,type);
-//    });
+    popupData.forEach(function(e){
+	  annotateGenerate(e);
+    })
+
   }
 
   var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName + '&phase_id=' + self.phaseId;
@@ -223,23 +215,21 @@ angular.module('BuildWhizApp')
           processVariables = resp.data.variables;
           processActivities = resp.data.activities;
           callActivities = resp.data.calls;
-		  
+
 		  processTimers.forEach(function(variable) {
-/* SDG */            variable.width = 36;
-/* SDG */		    variable.height = 36;
+            variable.width = 36;
+		    variable.height = 36;
 		    popupData.push(variable);
 		  });
-//		  processVariables.forEach(function(variable) {
-//			 popupData.push(variable);
-//		  });
+
 		  processActivities.forEach(function(variable) {
-/* SDG */		    variable.width = 100;
-/* SDG */		    variable.height = 80;
+		    variable.width = 100;
+		    variable.height = 80;
 		    popupData.push(variable);
 		  });
 		  callActivities.forEach(function(variable) {
-/* SDG */		    variable.width = 100;
-/* SDG */		    variable.height = 80;
+		    variable.width = 100;
+		    variable.height = 80;
 		    popupData.push(variable);
 		  });
 		  

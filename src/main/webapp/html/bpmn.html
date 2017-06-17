@@ -10,22 +10,22 @@
   </div>
 
   <div class="panel-body fixed-panel container-fluid" style="padding:5px">
-    <table width="100%">
-      <tr>
-        <td>
-          <div id="canvas" style="height:500px; max-height:500px; min-height:500px; overflow:auto;">
-          </div>
-        </td>
-        <td> </td>
-        <td style="width:200px; background-color:yellowgreen; text-align:center;">
-          Panel Contents Here<br>
-
-          <div id="duration_container" data-ng-show="bpmnCtrl.isVisible">
-            <input  value="{{bpmnCtrl.getduration}}" data-ng-model="bpmnCtrl.getduration" data-type-clicked="" style="border: none;padding: 5px;border-radius: 2px;margin: 5px auto;" type="text">
-            <button id="setDuration"  data-ng-click="bpmnCtrl.setDuration_dt(bpmnCtrl.eltype, bpmnCtrl.getduration)" >Update</button>
-          </div>
-        </td>
-      </tr>
-    </table>
+  <div class="row">
+	<div class="col-sm-8">
+		<div id="canvas" style="height:500px; max-height:500px; min-height:500px; overflow:auto;">
+        </div>
+	</div>
+    <div class="col-sm-4" style="background-color:yellowgreen; height:500px; max-height:500px; min-height:500px;">
+		<h3>{{bpmnCtrl.heading}}</h3>
+        <!--div data-ng-if="bpmnCtrl.visibleElmt == 'activity'">
+            Activity Info
+        </div>
+		<div data-ng-if="bpmnCtrl.visibleElmt == 'timer'">
+            Timer Info
+			<input  value="{{bpmnCtrl.getduration}}" data-ng-model="bpmnCtrl.getduration" data-type-clicked="" style="border: none;padding: 5px;border-radius: 2px;margin: 5px auto;" type="text">
+			<button class="btn btn-primary" data-ng-click="bpmnCtrl.setDuration_dt(bpmnCtrl.eltype, bpmnCtrl.getduration)" >Update</button>
+		</div-->
+	</div>
+  </div>
   </div>
 </div>

@@ -20,6 +20,41 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
+  private def validatePhase(namesAndDoms: Seq[(String, dom.Document)]): Seq[String] = {
+
+    def validateBpmn(name: String, processDom: dom.Document): Seq[String] = {
+      val prefix = processDom.getDocumentElement.getTagName.split(":")(0)
+
+      val startEvents: Seq[Element] = processDom.getElementsByTagName(s"$prefix:startEvent").map(_.asInstanceOf[Element])
+      val startExtensions: Seq[Element] = startEvents.flatMap(_.getElementsByTagName(s"$prefix:extensionElements")).
+        map(_.asInstanceOf[Element])
+      val startExecutionListeners = startExtensions.flatMap(_.getElementsByTagName("camunda:executionListener")).
+        map(_.asInstanceOf[Element])
+      val startOk = startExecutionListeners.exists(listener => (listener.hasAttribute("class") &&
+        listener.getAttribute("class") == "com.buildwhiz.jelly.BpmnStart") && (listener.hasAttribute("event") &&
+        listener.getAttribute("event") == "end") && startEvents.length == 1 && startExtensions.length == 1 &&
+        startExecutionListeners.length == 1)
+
+      val endEvents: Seq[Element] = processDom.getElementsByTagName(s"$prefix:endEvent").map(_.asInstanceOf[Element])
+      val endExtensions: Seq[Element] = endEvents.flatMap(_.getElementsByTagName(s"$prefix:extensionElements")).
+        map(_.asInstanceOf[Element])
+      val endExecutionListeners = endExtensions.flatMap(_.getElementsByTagName("camunda:executionListener")).
+        map(_.asInstanceOf[Element])
+      val endOk = endExecutionListeners.exists(listener => (listener.hasAttribute("class") &&
+        listener.getAttribute("class") == "com.buildwhiz.jelly.BpmnEnd") && (listener.hasAttribute("event") &&
+        listener.getAttribute("event") == "start") && endEvents.length == 1 && endExtensions.length == 1 &&
+        endExecutionListeners.length == 1)
+
+      (startOk, endOk) match {
+        case (true, true) => Nil
+        case (true, false) => Seq(s"$name: end")
+        case (false, false) => Seq(s"$name: start", s"$name: end")
+        case (false, true) => Seq(s"$name: start")
+      }
+    }
+    namesAndDoms.flatMap(nd => validateBpmn(nd._1, nd._2))
+  }
+
   private def getVariableDefinitions(processNameAndDocument: (String, dom.Document)):
       Seq[(String, String, String, Any, String)] = { // bpmn-name, variable-name, type, default-value, label
     BWLogger.log(getClass.getName, "getVariableDefinitions", "ENTRY")
@@ -187,6 +222,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val adminPersonOid = new ObjectId(parameters("admin_person_id"))
       val allProcessNameAndDoms = getBpmnDomByName(s"Phase-$bpmnName")
+      val validationErrors = validatePhase(allProcessNameAndDoms)
+      val validationMessage = if (validationErrors.isEmpty) "Validation OK" else s"""Validation ERRORS: ${validationErrors.mkString(", ")}"""
+      BWLogger.log(getClass.getName, "doPost", validationMessage, request)
       val variables: Many[Document] = allProcessNameAndDoms.flatMap(getVariableDefinitions).map(kv =>
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = allProcessNameAndDoms.flatMap(getTimerDefinitions).map(kv =>

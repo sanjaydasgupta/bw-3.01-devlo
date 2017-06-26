@@ -24,8 +24,13 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   private def recordLoginTime(person: DynDoc): Unit = {
     if (person.has("timestamps")) {
-      BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
-        Map("$set" -> Map("timestamps.last_login" -> System.currentTimeMillis)))
+      val timestamps: DynDoc = person.timestamps[Document]
+      if (timestamps.has("first_login"))
+        BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+          Map("$set" -> Map("timestamps.last_login" -> System.currentTimeMillis)))
+      else
+        BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+          Map("$set" -> Map("timestamps.first_login" -> System.currentTimeMillis)))
     } else {
       BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
         Map("$set" -> Map("timestamps" -> Map("first_login" -> System.currentTimeMillis))))

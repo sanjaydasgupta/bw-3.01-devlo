@@ -6,6 +6,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
@@ -19,6 +20,16 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
     cookie.setHttpOnly(true)
     cookie.setMaxAge(30 * 24 * 60 * 60)
     response.addCookie(cookie)
+  }
+
+  private def recordLoginTime(person: DynDoc): Unit = {
+    if (person.has("timestamps")) {
+      BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+        Map("$set" -> Map("timestamps.last_login" -> System.currentTimeMillis)))
+    } else {
+      BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+        Map("$set" -> Map("timestamps" -> Map("first_login" -> System.currentTimeMillis))))
+    }
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -42,6 +53,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
               "tz", "email_enabled").filter(f => p.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
+            recordLoginTime(p)
             bson2json(resultPerson)
         }
         response.getWriter.print(result)

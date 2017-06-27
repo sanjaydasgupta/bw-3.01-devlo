@@ -364,7 +364,6 @@
 	    color = 'white';
 	    break;
     }
-    $log.log('statusColor(' + displayStatus + ') = ' + color);
     return color;
   }
 

@@ -45,11 +45,31 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         listener.getAttribute("event") == "start") && endEvents.length == 1 && endExtensions.length == 1 &&
         endExecutionListeners.length == 1)
 
-      (startOk, endOk) match {
-        case (true, true) => Nil
-        case (true, false) => Seq(s"$name: end")
-        case (false, false) => Seq(s"$name: start", s"$name: end")
-        case (false, true) => Seq(s"$name: start")
+      val timerNodes: Seq[Element] = processDom.getElementsByTagName(s"$prefix:intermediateCatchEvent").
+        filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
+      val timerOk = timerNodes.isEmpty || timerNodes.forall(timerNode => {
+        val extensionElements: Seq[Element] = timerNode.getElementsByTagName(s"$prefix:extensionElements").
+          map(_.asInstanceOf[Element])
+        val executionListeners = extensionElements.flatMap(_.getElementsByTagName("camunda:executionListener")).
+          map(_.asInstanceOf[Element])
+        executionListeners.exists(listener => {
+          (listener.hasAttribute("class") && listener.getAttribute("class") == "com.buildwhiz.jelly.TimerTransitions") &&
+          (listener.hasAttribute("event") && listener.getAttribute("event") == "start")
+        }) && executionListeners.exists(listener => {
+          (listener.hasAttribute("class") && listener.getAttribute("class") == "com.buildwhiz.jelly.TimerTransitions") &&
+            (listener.hasAttribute("event") && listener.getAttribute("event") == "end")
+        }) && extensionElements.length == 1 && executionListeners.length == 2
+      })
+
+      (startOk, endOk, timerOk) match {
+        case (true, true, true) => Nil
+        case (true, true, false) => Seq(s"$name: timer")
+        case (true, false, true) => Seq(s"$name: end")
+        case (true, false, false) => Seq(s"$name: end", s"$name: timer")
+        case (false, false, true) => Seq(s"$name: start", s"$name: end")
+        case (false, false, false) => Seq(s"$name: start", s"$name: end", s"$name: timer")
+        case (false, true, true) => Seq(s"$name: start")
+        case (false, true, false) => Seq(s"$name: start", s"$name: timer")
       }
     }
     namesAndDoms.flatMap(nd => validateBpmn(nd._1, nd._2))

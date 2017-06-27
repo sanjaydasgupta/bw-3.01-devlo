@@ -20,7 +20,7 @@
             <tr data-ng-repeat="project in projectsCtrl.projects" style="background-color:{{projectsCtrl.projectRowColor(project)}};">
               <td class="cursor: pointer;">
                 <span style="width:20px; background-color:{{projectsCtrl.statusColor(project.display_status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.status}})</a>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.display_status}})</a>
               </td>
             </tr>
             <tr data-ng-if="projectsCtrl.canCreateProject()">

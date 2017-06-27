@@ -354,6 +354,9 @@
 	  case 'running':
 		color = 'Lime';
 		break;
+	  case 'idle':
+		color = 'DarkGreen';
+		break;
 	  case 'ended':
 	    color = 'Silver';
 	    break;

@@ -53,6 +53,8 @@ object OwnedProjects {
       project.display_status = "waiting"
     else if (actions.exists(action => action.status[String] == "waiting"))
       project.display_status = "waiting2"
+    else if (!phases.exists(_.status[String] == "running") && project.status[String] == "running")
+      project.display_status = "idle"
     else
       project.display_status = project.status[String]
     project.asDoc.remove("phase_ids")

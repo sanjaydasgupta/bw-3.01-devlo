@@ -81,7 +81,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     try {
 
       val converters: Map[String, String => Any] =
-        Map("B" -> (s => s.toBoolean), "L" -> (s => s.toLong), "D" -> (s => s.toDouble))
+        Map("B" -> (s => s.toBoolean), "L" -> (s => s.toLong), "D" -> (s => s.toDouble), "S" -> (s => s))
 
       def getVariableNameAndType(variableNode: Node): (String, String, String, Any, String) = {
         // bpmn-name, variable-name, type, default-value, label

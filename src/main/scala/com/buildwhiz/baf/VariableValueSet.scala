@@ -28,6 +28,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
         case "B" => stringValue.toBoolean
         case "L" => stringValue.toLong
         case "D" => stringValue.toDouble
+        case "S" => stringValue
       }
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"variables.$variableIdx.value" -> newValue)))

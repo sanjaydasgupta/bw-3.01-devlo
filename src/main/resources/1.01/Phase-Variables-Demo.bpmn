@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.2" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="Phase-Variables-Demo" name="Phase Variables Demo" isExecutable="true">
+    <bpmn2:extensionElements>
+      <camunda:properties>
+        <camunda:property name="bw-variable" value="a_boolean:B:false:A Boolean" />
+        <camunda:property name="bw-variable" value="a_long:L:1234567890:A Long" />
+        <camunda:property name="bw-variable" value="a_double:D:3.14:A Double" />
+        <camunda:property name="bw-variable" value="a_string:S:string value!:A String" />
+      </camunda:properties>
+    </bpmn2:extensionElements>
+    <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn2:extensionElements>
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="An-Activity" />
+    <bpmn2:endEvent id="End" name="End">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:callActivity id="An-Activity" name="An Activity" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+      <bpmn2:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="An-Activity" targetRef="End" />
+  </bpmn2:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Variables-Demo">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
+        <dc:Bounds x="52" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="58" y="158" width="24" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
+        <dc:Bounds x="426" y="117" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="435" y="158" width="20" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="An-Activity">
+        <dc:Bounds x="212" y="95" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_CallActivity_6">
+        <di:waypoint xsi:type="dc:Point" x="88" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="212" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="105" y="117" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_EndEvent_45">
+        <di:waypoint xsi:type="dc:Point" x="312" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="426" y="135" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="324" y="117" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

@@ -7,6 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.mongodb.client.MongoCollection
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 import scala.collection.JavaConverters._
@@ -51,6 +52,12 @@ object BWLogger extends HttpUtils {
     if (bpmnAncestors.nonEmpty)
       varNames.asScala("BPMN-Ancestors") = bpmnAncestors.mkString("[", ", ", "]")
     log(className, methodName, eventName, varNames)
+  }
+
+  def audit(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
+    val user: DynDoc = getUser(request)
+    val userNameAndId = f"${user.first_name[String]}%s ${user.last_name[String]}%s (${user._id[ObjectId]}%s)"
+    log(className, methodName, s"AUDIT: $userNameAndId => $eventName", request)
   }
 
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {

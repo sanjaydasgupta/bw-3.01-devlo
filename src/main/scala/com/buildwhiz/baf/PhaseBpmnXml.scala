@@ -104,10 +104,16 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val processVariables = getVariables(phase, bpmnFileName)
       val processTimers = getTimers(phase, bpmnFileName)
       val processActivities = getActivities(phase, bpmnFileName, userOid)
-      val callActivities = getSubProcessCalls(phase, bpmnFileName)
+      val processCalls = getSubProcessCalls(phase, bpmnFileName)
+      val startDateTime = if (phase.has("timestamps.planned_start")) {
+        val timestamps: DynDoc = phase.timestamps[Document]
+        timestamps.planned_start[Long]
+      } else {
+        0
+      }
       val returnValue = new Document("xml", xml).append("variables", processVariables).
-        append("timers", processTimers).append("activities", processActivities).append("calls", callActivities).
-        append("admin_person_id", phase.admin_person_id[ObjectId])
+        append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
+        append("admin_person_id", phase.admin_person_id[ObjectId]).append("start_datetime", startDateTime)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

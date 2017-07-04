@@ -34,11 +34,12 @@ class Phase extends HttpServlet with RestUtils {
       response.setContentType("text/plain")
       response.getWriter.print(s"${request.getRequestURI}/${phaseDocument.getObjectId("_id")}")
       response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.audit(getClass.getName, "doPost", s"""Added Phase '${phaseDocument.get("name")}'""", request)
       BWLogger.log(getClass.getName, "doPost", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -78,6 +79,8 @@ class Phase extends HttpServlet with RestUtils {
       val affectedPersonOids = preDeleteParticipantOids.diff(postDeleteParticipantOids)
       BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> affectedPersonOids)),
         Map("$pull" -> Map("project_ids" -> theProject._id[ObjectId])))
+      val phaseNameAndId = s"""${thePhase.name[String]} (${thePhase._id[ObjectId]})"""
+      BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Phase '$phaseNameAndId'""", request)
       BWLogger.log(getClass.getName, "doDelete", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>

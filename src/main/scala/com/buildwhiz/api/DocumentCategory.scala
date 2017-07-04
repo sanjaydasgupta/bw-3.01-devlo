@@ -4,6 +4,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId
 import org.bson.Document
 
@@ -45,7 +46,9 @@ class DocumentCategory extends HttpServlet with RestUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPost(request, response, "document_category_master")
+    val category: DynDoc = handleRestPost(request, response, "document_category_master")
+    val categoryNameAndId = s"'${category.category[String]}' (${category._id[ObjectId]})"
+    BWLogger.audit(getClass.getName, "handlePost", s"""Added category $categoryNameAndId""", request)
   }
 
 }

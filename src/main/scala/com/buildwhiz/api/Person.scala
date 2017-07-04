@@ -3,8 +3,9 @@ package com.buildwhiz.api
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.utils.CryptoUtils
+import com.buildwhiz.utils.{BWLogger, CryptoUtils}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
@@ -29,7 +30,9 @@ class Person extends HttpServlet with RestUtils with CryptoUtils {
 
     if (!userHasRole(request, "BW-Admin"))
       throw new IllegalArgumentException("Not authorized")
-    handleRestPost(request, response, "persons", Some(duplicateChecker), Some(updater))
+    val person: DynDoc = handleRestPost(request, response, "persons", Some(duplicateChecker), Some(updater))
+    val personNameAndId = s"'${person.first_name[String]} ${person.last_name[String]}' (${person._id[ObjectId]})"
+    BWLogger.audit(getClass.getName, "handlePost", s"""Added Person $personNameAndId""", request)
   }
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {

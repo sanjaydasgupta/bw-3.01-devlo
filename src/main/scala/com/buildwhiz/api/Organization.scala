@@ -2,6 +2,9 @@ package com.buildwhiz.api
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.BWMongoDB3.DynDoc
+import com.buildwhiz.utils.BWLogger
+
 class Organization extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -9,7 +12,8 @@ class Organization extends HttpServlet with RestUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPost(request, response, "Organization")
+    val org: DynDoc = handleRestPost(request, response, "organizations")
+    BWLogger.audit(getClass.getName, "handlePost", s"""Added organization '${org.name[String]}'""", request)
   }
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {

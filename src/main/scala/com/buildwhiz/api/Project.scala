@@ -40,11 +40,12 @@ class Project extends HttpServlet with RestUtils {
       response.getWriter.println(bson2json(OwnedProjects.processProject(project, adminPersonOid).asDoc))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.audit(getClass.getName, "doPost", s"""Added Project '${project.name[String]}'""", request)
       BWLogger.log(getClass.getName, "doPost()", "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -75,11 +76,13 @@ class Project extends HttpServlet with RestUtils {
       for (summary <- objectSummaries) {
         AmazonS3.deleteObject(summary.getKey)
       }
+      val projectNameAndId = s"""${theProject.name[String]} (${theProject._id[ObjectId]})"""
+      BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Project '$projectNameAndId'""", request)
       BWLogger.log(getClass.getName, "doDelete()", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doDelete()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

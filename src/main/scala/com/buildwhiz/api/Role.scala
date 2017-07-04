@@ -3,6 +3,7 @@ package com.buildwhiz.api
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3.DynDoc
+import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 
 class Role extends HttpServlet with RestUtils {
@@ -19,7 +20,9 @@ class Role extends HttpServlet with RestUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    handleRestPost(request, response, "roles_master")
+    val role: DynDoc = handleRestPost(request, response, "roles_master")
+    BWLogger.audit(getClass.getName, "handlePost",
+      s"""Added role '${role.category[String]}/${role.name[String]}'""", request)
   }
 
 }

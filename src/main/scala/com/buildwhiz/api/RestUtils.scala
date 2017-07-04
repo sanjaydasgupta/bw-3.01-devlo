@@ -105,7 +105,7 @@ trait RestUtils extends HttpUtils {
   }
 
   def handleRestPost(request: HttpServletRequest, response: HttpServletResponse, collectionName: String,
-      dupChecker: Option[Document => Document] = None, updater: Option[Document => Document] = None): Unit = {
+      dupChecker: Option[Document => Document] = None, updater: Option[Document => Document] = None): Document = {
     BWLogger.log(getClass.getName, "handlePost", s"ENTRY", request)
     try {
       val data = getStreamData(request)
@@ -127,6 +127,7 @@ trait RestUtils extends HttpUtils {
       response.getWriter.print(s"""${request.getRequestURI}/${document.getObjectId("_id")}\n""")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "handlePost", s"EXIT-OK", request)
+      inDocument
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "handlePost", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

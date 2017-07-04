@@ -32,7 +32,11 @@ class ActionAdd extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
+      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionName = parameters("action_name")
+      if (existingActionNames.contains(actionName))
+        throw new IllegalArgumentException(s"Duplicate action name '$actionName'")
       val typ = parameters("type")
       if (!typ.matches("main|prerequisite|review"))
         throw new IllegalArgumentException(s"Bad type value: '$typ'")

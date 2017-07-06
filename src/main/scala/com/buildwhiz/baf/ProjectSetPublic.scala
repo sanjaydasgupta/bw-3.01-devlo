@@ -18,11 +18,13 @@ class ProjectSetPublic extends HttpServlet with HttpUtils {
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid), Map("$set" -> Map("public" -> public)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val projectLog = s"'${theProject.name[String]}' (${theProject._id[ObjectId]})"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set public project $projectLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

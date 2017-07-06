@@ -32,13 +32,15 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       sendMail(personOid, "Password changed on 430forest.com", mailBody)
       response.setStatus(HttpServletResponse.SC_OK)
+      val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+      val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set password for $personLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 
 }

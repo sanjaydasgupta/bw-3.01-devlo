@@ -23,11 +23,13 @@ class ProjectEnd extends HttpServlet with HttpUtils with BpmnUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val projectLog = s"'${theProject.name[String]}' (${theProject._id[ObjectId]})"
+      BWLogger.audit(getClass.getName, "doPost", s"""Ended project $projectLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

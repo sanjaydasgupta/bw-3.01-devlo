@@ -28,12 +28,13 @@ class PhaseStartDateTimeSet extends HttpServlet with HttpUtils {
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
+      val phaseLog = s"'${thePhase.name[String]}' ($phaseOid)"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set start-date of phase $phaseLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 }

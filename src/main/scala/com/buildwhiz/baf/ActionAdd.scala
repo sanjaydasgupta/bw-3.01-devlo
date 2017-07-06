@@ -57,11 +57,12 @@ class ActionAdd extends HttpServlet with HttpUtils {
         val topLevelBpmn = thePhase.bpmn_name[String]
         PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request, response)
       }
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val actionLog = s"'${action.y.name[String]}' (${action.y.`type`[String]})"
+      BWLogger.audit(getClass.getName, "handlePost", s"""Added action $actionLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

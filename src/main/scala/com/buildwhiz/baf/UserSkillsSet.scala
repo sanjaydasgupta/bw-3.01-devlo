@@ -29,12 +29,14 @@ class UserSkillsSet extends HttpServlet with HttpUtils with CryptoUtils {
       if (updateResult2.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult2")
       response.setStatus(HttpServletResponse.SC_OK)
+      val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+      val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set skills for $personLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 }

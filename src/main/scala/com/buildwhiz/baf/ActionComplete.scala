@@ -71,11 +71,12 @@ class ActionComplete extends HttpServlet with HttpUtils {
         case _ =>
           throw new IllegalArgumentException(s"Action '$actionName' NOT found")
       }
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val actionLog = s"'$actionName'"
+      BWLogger.audit(getClass.getName, "doPost", s"""Completed action $actionLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

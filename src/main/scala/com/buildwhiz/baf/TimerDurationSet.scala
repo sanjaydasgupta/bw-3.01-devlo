@@ -28,8 +28,8 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val bpmnName = parameters("bpmn_name")
-      val timersInBpmn: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
-      val timersWithIndex: Seq[(DynDoc, Int)] = timersInBpmn.zipWithIndex
+      val timers: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
+      val timersWithIndex: Seq[(DynDoc, Int)] = timers.zipWithIndex
       val timerIdx: Int = (parameters.get("timer_id"), parameters.get("timer_name")) match {
         case (Some(timerId), _) => timersWithIndex.filter(_._1.bpmn_id[String] == timerId).head._2
         case (_, Some(timerName)) =>
@@ -45,11 +45,12 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
         PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
       }
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val timerLog = s"'${timers(timerIdx).name[String]}'"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set duration of timer $timerLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

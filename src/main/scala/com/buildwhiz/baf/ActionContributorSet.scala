@@ -81,12 +81,13 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
       adjustPersonsProjectIds(deAssignedPersonOid)
       saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName)
       response.setStatus(HttpServletResponse.SC_OK)
+      val actionLog = s"'$actionName'"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set contributor of action $actionLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 }

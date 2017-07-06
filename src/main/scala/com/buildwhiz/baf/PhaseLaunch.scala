@@ -5,6 +5,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
 class PhaseLaunch extends HttpServlet with HttpUtils {
@@ -25,11 +26,13 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
 //        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> new ObjectId(phaseId))).head
+      val phaseLog = s"'${thePhase.name[String]}' ($phaseId)"
+      BWLogger.audit(getClass.getName, "doPost", s"""Launched phase $phaseLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

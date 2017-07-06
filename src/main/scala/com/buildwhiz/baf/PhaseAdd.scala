@@ -292,11 +292,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       response.getWriter.println(bson2json(newPhaseDocument))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      BWLogger.audit(getClass.getName, "doPost", s"""Added Phase ${newPhase.get("name")}""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

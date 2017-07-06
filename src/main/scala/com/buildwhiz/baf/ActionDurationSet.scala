@@ -42,11 +42,12 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
         PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
       }
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      val actionLog = s"'$actionName'"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set duration of action $actionLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

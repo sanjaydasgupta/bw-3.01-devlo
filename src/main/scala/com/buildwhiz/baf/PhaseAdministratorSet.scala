@@ -78,12 +78,13 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
       saveAndSendMail(request, assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")),
           thePhase.name[String])
       response.setStatus(HttpServletResponse.SC_OK)
+      val phaseLog = s"'${thePhase.name[String]}' ($phaseOid)"
+      BWLogger.audit(getClass.getName, "doPost", s"""Set manager of phase $phaseLog""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
   }
 }

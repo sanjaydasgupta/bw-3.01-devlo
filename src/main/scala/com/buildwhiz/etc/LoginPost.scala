@@ -51,21 +51,22 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         val query = Map("emails" -> Map("type" -> "work", "email" -> email), "password" -> md5(password),
           "enabled" -> true)
         val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
-        val (result, logMessage) = person match {
+        val result = person match {
           case None =>
-            ("""{"_id": "", "first_name": "", "last_name": ""}""", s"Login ERROR: $email")
+            BWLogger.log(getClass.getName, "doPost", s"Login ERROR: $email", request)
+            """{"_id": "", "first_name": "", "last_name": ""}"""
           case Some(p) =>
             cookieSessionSet(email, p, request, response)
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
               "tz", "email_enabled").filter(f => p.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
             recordLoginTime(p)
-            (bson2json(resultPerson), "Login OK")
+            BWLogger.audit(getClass.getName, "doPost", "Login OK", request)
+            bson2json(resultPerson)
         }
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.audit(getClass.getName, "doPost", logMessage, request)
       } else if (request.getSession.getAttribute("bw-user") != null) {
         val user: DynDoc = getUser(request)
         val emails: Seq[DynDoc] = user.emails[Many[Document]]

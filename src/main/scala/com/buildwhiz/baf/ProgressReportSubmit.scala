@@ -25,11 +25,12 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
   private def sendProgressMail(projectManager: ObjectId, title: String, uri: String, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, s"sendProgressMail($projectManager)", "ENTRY", request)
     try {
-      sendMail(projectManager, s"RFI for '$title'", messageBody(title, uri))
+      sendMail(projectManager, s"RFI for '$title'", messageBody(title, uri), Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
+        //t.printStackTrace()
         BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        throw t
     }
     BWLogger.log(getClass.getName, "sendProgressMail()", "EXIT-OK", request)
   }

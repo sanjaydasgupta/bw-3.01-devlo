@@ -52,7 +52,7 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

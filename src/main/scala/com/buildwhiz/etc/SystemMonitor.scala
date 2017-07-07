@@ -127,7 +127,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

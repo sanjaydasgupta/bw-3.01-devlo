@@ -46,7 +46,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -67,7 +67,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doDelete()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

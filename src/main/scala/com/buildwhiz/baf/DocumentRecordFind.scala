@@ -52,7 +52,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

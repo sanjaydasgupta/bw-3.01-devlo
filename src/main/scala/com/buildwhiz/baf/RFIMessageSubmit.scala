@@ -8,8 +8,6 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 import org.bson.Document
 
-import scala.collection.JavaConverters._
-
 class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   private def messageBody(subject: String, uri: String) =
@@ -20,16 +18,17 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
       |
       |This email was sent as you are either a manager or an author.""".stripMargin
 
-  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String): Unit = {
-    BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY")
+  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String, request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY", request)
     try {
-      sendMail(members, s"RFI for '$subject'", messageBody(subject, uri))
+      sendMail(members, s"RFI for '$subject'", messageBody(subject, uri), Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        //t.printStackTrace()
+        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})", request)
+        throw t
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -57,7 +56,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
         val subject: String = rfiMessage.subject[String]
         val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
           s"/#/rfi?rfi_id=$rfiOid"
-        sendRFIMail(members.filterNot(_ == senderOid), subject, url)
+        sendRFIMail(members.filterNot(_ == senderOid), subject, url, request)
       } else {
         val subject = postData.subject[String]
         val projectOid = project430ForestOid //new ObjectId(parameters("project_id"))
@@ -80,7 +79,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
             Map("$push" -> Map(s"versions.$idx.rfi_ids" -> rfiOid)))
         val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
           s"/#/rfi?rfi_id=$rfiOid"
-        sendRFIMail(memberOids.filterNot(_ == senderOid), subject, url)
+        sendRFIMail(memberOids.filterNot(_ == senderOid), subject, url, request)
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -88,7 +87,7 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

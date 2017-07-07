@@ -9,8 +9,6 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
-import scala.collection.JavaConverters._
-
 class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeUtils {
 
   private def saveAndSendMail(action: DynDoc, projectOid: ObjectId): Unit = {
@@ -29,7 +27,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
         s"$targetTime"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientOid, subject, message)
+      sendMail(recipientOid, subject, message, None)
     } catch {
       case t: Throwable =>
         t.printStackTrace()

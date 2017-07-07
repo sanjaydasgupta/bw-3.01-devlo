@@ -103,7 +103,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getVariableDefinitions", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -129,7 +129,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getCallerCalleeAndId", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -157,7 +157,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getTimerDefinitions", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -200,7 +200,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -228,7 +228,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "getInvolvedProcesses", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

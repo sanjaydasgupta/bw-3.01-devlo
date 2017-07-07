@@ -60,6 +60,12 @@ object BWLogger extends HttpUtils {
     log(className, methodName, s"AUDIT: $userNameAndId => $eventName", request)
   }
 
+  def log(className: String, methodName: String, eventName: String, request: Option[HttpServletRequest]): Unit =
+    request match {
+      case Some(req) => log(className, methodName, eventName, req)
+      case None => log(className, methodName, eventName)
+    }
+
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
     val parameters = getParameterMap(request)
     val clientIp = request.getHeader("X-FORWARDED-FOR") match {

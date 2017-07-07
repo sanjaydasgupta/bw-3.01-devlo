@@ -10,8 +10,6 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
-
 class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
 
 
@@ -37,17 +35,18 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
       fileLength = handleBlock()
       AmazonS3.putObject(fileName, file)
       BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "EXIT-OK")
+      try {file.delete()} catch {case t: Throwable => /* No recovery */}
+      (fileName, fileLength)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "storeDocumentAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
-    try {file.delete()} catch {case t: Throwable => /* No recovery */}
-    (fileName, fileLength)
   }
 
-  private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, documentOid: ObjectId): Unit = {
+  private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, documentOid: ObjectId,
+        request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val reqOrResp = if (documentOid == rfiRequestOid) "request" else "response"
@@ -61,11 +60,12 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientPersonOid, subject, message)
+      sendMail(recipientPersonOid, subject, message, Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
+        //t.printStackTrace()
         BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        throw t
     }
     BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
@@ -93,7 +93,8 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
         BWMongoDB3.activities.updateOne(Map("_id" -> activityOid.get),
           Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
         if (documentOid == rfiRequestOid || documentOid == rfiResponseOid) {
-          saveAndSendMail(projectOid, activityOid.get, theActivity.actions[Many[Document]].get(actionIndex), documentOid)
+          saveAndSendMail(projectOid, activityOid.get, theActivity.actions[Many[Document]].get(actionIndex),
+            documentOid, request: HttpServletRequest)
         }
       }
       if (projectsUpdateResult.getModifiedCount == 0)
@@ -105,7 +106,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

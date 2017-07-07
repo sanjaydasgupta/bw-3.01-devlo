@@ -9,11 +9,10 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
 
-  private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, isRequest: Boolean): Unit = {
+  private def saveAndSendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, isRequest: Boolean,
+        request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val reqOrResp = if (isRequest) "request" else "response"
@@ -27,11 +26,12 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientPersonOid, subject, message)
+      sendMail(recipientPersonOid, subject, message, Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
+        //t.printStackTrace()
         BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        throw t
     }
     BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
@@ -48,7 +48,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "storeDocumentAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
     try {file.delete()} catch {case t: Throwable => /* No recovery */}
@@ -76,14 +76,14 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
         Map("$addToSet" -> Map(s"actions.$actionIndex.inbox" -> documentOid)))
       val theAction: DynDoc = theActivity.actions[Many[Document]].get(actionIndex)
-      saveAndSendMail(projectOid, activityOid, theAction, isRequest)
+      saveAndSendMail(projectOid, activityOid, theAction, isRequest, request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

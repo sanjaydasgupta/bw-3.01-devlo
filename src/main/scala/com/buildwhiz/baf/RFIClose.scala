@@ -7,8 +7,6 @@ import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class RFIClose extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   private def messageBody(subject: String, uri: String) =
@@ -19,10 +17,10 @@ class RFIClose extends HttpServlet with HttpUtils with MailUtils with DateTimeUt
       |
       |This email was sent as you are either a manager or an author.""".stripMargin
 
-  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String): Unit = {
-    BWLogger.log(getClass.getName, s"sendRFIMail($members)", "ENTRY")
-    sendMail(members, s"RFI closed '$subject'", messageBody(subject, uri))
-    BWLogger.log(getClass.getName, "sendRFIMail()", "EXIT-OK")
+  private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String, request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getName, s"sendRFIMail($members)", "ENTRY", request)
+    sendMail(members, s"RFI closed '$subject'", messageBody(subject, uri), Some(request))
+    BWLogger.log(getClass.getName, "sendRFIMail()", "EXIT-OK", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -39,13 +37,13 @@ class RFIClose extends HttpServlet with HttpUtils with MailUtils with DateTimeUt
       val originatorOid = getUser(request).get("_id").asInstanceOf[ObjectId]
       val url = request.getRequestURL.toString.split("/").reverse.drop(2).reverse.mkString("/") +
         s"/#/rfi?rfi_id=$rfiOid"
-      sendRFIMail(members.filterNot(_ == originatorOid), rfiRecord.subject[String], url)
+      sendRFIMail(members.filterNot(_ == originatorOid), rfiRecord.subject[String], url, request)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

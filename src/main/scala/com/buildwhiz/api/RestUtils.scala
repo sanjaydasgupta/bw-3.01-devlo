@@ -53,7 +53,7 @@ trait RestUtils extends HttpUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "handleGet", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -77,7 +77,7 @@ trait RestUtils extends HttpUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "handlePut", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -99,7 +99,7 @@ trait RestUtils extends HttpUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "handleDelete", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }
@@ -131,7 +131,7 @@ trait RestUtils extends HttpUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "handlePost", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

@@ -8,8 +8,6 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
 
   private def saveAndSendMail(request: HttpServletRequest, assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId,
@@ -20,16 +18,17 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
       val message1 = s"You have been assigned the role of phase-manager for phase '$phaseName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> assignedPersonOid, "subject" -> subject1, "message" -> message1))
-      sendMail(assignedPersonOid, subject1, message1)
+      sendMail(assignedPersonOid, subject1, message1, Some(request))
       val subject2 = "Manager de-assignment"
       val message2 = s"You have been de-assigned from the role of phase-manager for phase '$phaseName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> deAssignedPersonOid, "subject" -> subject2, "message" -> message2))
-      sendMail(deAssignedPersonOid, subject2, message2)
+      sendMail(deAssignedPersonOid, subject2, message2, Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
+        //t.printStackTrace()
         BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})", request)
+        throw t
     }
     BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK", request)
   }

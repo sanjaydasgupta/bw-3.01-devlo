@@ -30,7 +30,7 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
         Map("$set" -> Map(s"password" -> md5(newPassword))))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      sendMail(personOid, "Password changed on 430forest.com", mailBody)
+      sendMail(personOid, "Password changed on 430forest.com", mailBody, Some(request))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"

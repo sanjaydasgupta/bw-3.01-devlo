@@ -3,13 +3,13 @@ package com.buildwhiz.utils
 import java.util.Properties
 import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
+import javax.servlet.http.HttpServletRequest
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.Failure
 
@@ -21,11 +21,11 @@ trait MailUtils {
       |
       |The 430 Forest project""".stripMargin
 
-  def sendMail(recipientOid: ObjectId, subject: String, body: String): Unit =
-    sendMail(Seq(recipientOid), subject, body)
+  def sendMail(recipientOid: ObjectId, subject: String, body: String, request: Option[HttpServletRequest]): Unit =
+    sendMail(Seq(recipientOid), subject, body, request)
 
-  def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String): Unit = {
-    BWLogger.log(getClass.getName, "sendMail", s"ENTRY")
+  def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
+    BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
     val username = "430forest@gmail.com"
 
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -58,13 +58,13 @@ trait MailUtils {
         message.setContent(multipart)
         message.saveChanges()
         Transport.send(message)
-        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (${recipients.length} recipients)")
+        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (${recipients.length} recipients)", request)
       } else {
-        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (NO RECIPIENTS)")
+        BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK (NO RECIPIENTS)", request)
       }
     } onComplete {
       case Failure(t: Throwable) =>
-        BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "sendMail", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         t.printStackTrace()
       case _ =>
     }

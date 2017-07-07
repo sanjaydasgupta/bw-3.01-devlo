@@ -8,28 +8,27 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
 
   private def saveAndSendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
-        actionName: String): Unit = {
+        actionName: String, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
     try {
       val subject1 = "Action role assignment"
       val message1 = s"You have been assigned the role of contributor for action '$actionName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> assignedPersonOid, "subject" -> subject1, "message" -> message1))
-      sendMail(assignedPersonOid, subject1, message1)
+      sendMail(assignedPersonOid, subject1, message1, Some(request))
       val subject2 = "Action role de-assignment"
       val message2 = s"You have been de-assigned from the role of contributor for action '$actionName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> deAssignedPersonOid, "subject" -> subject2, "message" -> message2))
-      sendMail(deAssignedPersonOid, subject2, message2)
+      sendMail(deAssignedPersonOid, subject2, message2, Some(request))
     } catch {
       case t: Throwable =>
-        t.printStackTrace()
+        //t.printStackTrace()
         BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        throw t
     }
     BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
   }
@@ -79,7 +78,7 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       adjustPersonsProjectIds(assignedPersonOid)
       adjustPersonsProjectIds(deAssignedPersonOid)
-      saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName)
+      saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName, request)
       response.setStatus(HttpServletResponse.SC_OK)
       val actionLog = s"'$actionName'"
       BWLogger.audit(getClass.getName, "doPost", s"""Set contributor of action $actionLog""", request)

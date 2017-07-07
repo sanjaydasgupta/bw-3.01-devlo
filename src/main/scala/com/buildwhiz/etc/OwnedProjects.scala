@@ -1,4 +1,4 @@
-package com.buildwhiz.baf
+package com.buildwhiz.etc
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -20,7 +20,7 @@ class OwnedProjects extends HttpServlet with HttpUtils {
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
-      val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
+      val augmentedProjects = projects.map(project => OwnedProjects.processProject(project, personOid).asDoc.toJson)
       writer.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -53,8 +53,6 @@ object OwnedProjects {
       project.display_status = "waiting"
     else if (actions.exists(action => action.status[String] == "waiting"))
       project.display_status = "waiting2"
-    else if (!phases.exists(_.status[String] == "running") && project.status[String] == "running")
-      project.display_status = "idle"
     else
       project.display_status = project.status[String]
     project.asDoc.remove("phase_ids")

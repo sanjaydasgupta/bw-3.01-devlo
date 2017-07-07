@@ -83,7 +83,7 @@ class Phase extends HttpServlet with RestUtils {
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doDelete", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

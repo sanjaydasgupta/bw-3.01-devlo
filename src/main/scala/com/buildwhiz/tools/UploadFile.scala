@@ -38,6 +38,8 @@ class UploadFile extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
       }
       val uploadsDirectory = new File("uploads")
+        if (!uploadsDirectory.exists)
+          throw new IllegalArgumentException("No \"uploads\" directory")
       if (parameters.contains("file_location")) {
         val fileLocation = parameters("file_location")
         val locationParts = fileLocation.split("/")
@@ -52,19 +54,24 @@ class UploadFile extends HttpServlet with HttpUtils {
         fileOutputStream.close()
         writer.println(s"Received $length bytes for '$fileLocation' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
-        BWLogger.log(getClass.getName, "doPost()", s"EXIT-OK Upload-length: $length", request)
+        BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
         val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.24/webapps/bw-responsive-1.01""".!
-        val statusMsg = Seq("OK", "ERROR")(status)
+        val statusMsg = if (status == 0) {
+          BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
+          "OK"
+        } else {
+          BWLogger.log(getClass.getName, "doPost()", s"""ERROR: Upload failure status: $status""", request)
+          s"ERROR [$status]"
+        }
         writer.println(s"""Update status: $statusMsg, files: ${files.mkString(", ")}""")
-        BWLogger.log(getClass.getName, "doPost()", s"""EXIT-OK files: ${files.mkString(", ")}, status: $statusMsg""", request)
       }
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
+        //t.printStackTrace()
         throw t
     }
   }

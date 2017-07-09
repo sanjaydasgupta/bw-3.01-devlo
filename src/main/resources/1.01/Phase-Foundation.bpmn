@@ -8,7 +8,7 @@
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0lcokuh" sourceRef="ParallelGateway_08yqqu4" targetRef="Install-Concrete-Walls" />
     <bpmn:sequenceFlow id="SequenceFlow_01o2b6s" sourceRef="ParallelGateway_08yqqu4" targetRef="Install-Concrete-Columns" />
-    <bpmn:callActivity id="Install-Slab-0n-grade" name="Install&#10;Slab-0n-grade" calledElement="Install-Slab-on-Grade">
+    <bpmn:callActivity id="Install-Slab-On-Grade" name="Install&#10;Slab on grade" calledElement="Install-Slab-On-Grade">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="3" />
@@ -17,7 +17,7 @@
       <bpmn:incoming>SequenceFlow_1px2phb</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cais9f</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0cais9f" sourceRef="Install-Slab-0n-grade" targetRef="ParallelGateway_08yqqu4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0cais9f" sourceRef="Install-Slab-On-Grade" targetRef="ParallelGateway_08yqqu4" />
     <bpmn:callActivity id="Foundation-Grading" name="Foundation&#10;Grading" calledElement="Foundation-Grading">
       <bpmn:extensionElements>
         <camunda:properties>
@@ -27,7 +27,7 @@
       <bpmn:incoming>SequenceFlow_0cctfkg</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1px2phb</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_1px2phb" sourceRef="Foundation-Grading" targetRef="Install-Slab-0n-grade" />
+    <bpmn:sequenceFlow id="SequenceFlow_1px2phb" sourceRef="Foundation-Grading" targetRef="Install-Slab-On-Grade" />
     <bpmn:callActivity id="De-Construction" name="De Construction" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
@@ -132,7 +132,7 @@
           <dc:Bounds x="481" y="126" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1ufa8jo_di" bpmnElement="Install-Slab-0n-grade" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
+      <bpmndi:BPMNShape id="CallActivity_1ufa8jo_di" bpmnElement="Install-Slab-On-Grade" bioc:stroke="#8E24AA" bioc:fill="#E1BEE7">
         <dc:Bounds x="531" y="96" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0o4vioe_di" bpmnElement="End">

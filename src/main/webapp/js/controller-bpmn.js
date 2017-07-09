@@ -1,7 +1,7 @@
 angular.module('BuildWhizApp')
 
-.controller("BpmnCtrl", ['$log', '$http', '$routeParams', '$sce', '$filter', '$window',
-    function ($log, $http, $routeParams, $sce, $filter, $window) {
+.controller("BpmnCtrl", ['$log', '$http', '$routeParams', '$filter', '$window',
+    function ($log, $http, $routeParams, $filter, $window) {
 
   var self = this;
 
@@ -27,10 +27,11 @@ angular.module('BuildWhizApp')
 	}
 
   self.refresh = function() {
-    var refreshLocation = $window.location + '&dt=' + escape(new Date());
+    var refreshLocation = $window.location + '&dt=' + escape(new Date().getTime());
     $log.log('Refresh location: ' + refreshLocation);
     $window.location = refreshLocation;
   }
+
 /* Date picker option */
   self.dateOptions = {
     dateDisabled: false,
@@ -135,7 +136,7 @@ angular.module('BuildWhizApp')
   }
 
 //--------------ADD ACTIVITY-------------------//
-   self.addAction = function(activity_id,action_name,type,assignee_id) {
+   self.addAction = function(activity_id,action_name,type) {
     
        
         var dataset = 'baf/ActionAdd?' + "method=1&activity_id=" + activity_id + "&action_name=" + action_name + "&type=" + type + "&bpmn_name=" + self.processName + "&assignee_id=" +adminPersonId ;
@@ -346,8 +347,13 @@ angular.module('BuildWhizApp')
 	}
   }
 
-  var doubleSelectElement = function(element) {
-    $log.log('Called doubleSelectElement()');
+  var doubleClickElement = function(element) {
+    var href = $window.location.href;
+    var dtIdx = href.indexOf('bpmn?');
+    var href = href.substring(0, dtIdx + 5);
+    var processName = popupData.filter(function(d){return element.id == d.bpmn_id;})[0].name;
+    var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
+    $window.location.href = newHref;
   }
 
   var eventHandler = function(event) {
@@ -363,7 +369,7 @@ angular.module('BuildWhizApp')
 			selectElement(element);
 			break;
 		case "element.dblclick":
-			doubleSelectElement(element);
+			doubleClickElement(element);
 			break;
 	}
   }

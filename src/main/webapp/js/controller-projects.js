@@ -331,7 +331,7 @@
     } else {
       href += '?dt=';
     }
-    href += escape(new Date());
+    href += escape(new Date().getTime());
     //$log.log('Refresh location: ' + href);
     $window.location.href = href;
   }

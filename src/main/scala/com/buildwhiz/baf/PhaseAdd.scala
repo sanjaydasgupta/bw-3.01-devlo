@@ -20,6 +20,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
+  private def extensionProperties(e: Element, name: String) = e.getElementsByTagName("camunda:property").
+    filter(_.getAttributes.getNamedItem("name").getTextContent == name)
+
   private def validatePhase(namesAndDoms: Seq[(String, dom.Document)]): Seq[String] = {
 
     def validateBpmn(name: String, processDom: dom.Document): Seq[String] = {
@@ -134,18 +137,22 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def getTimerDefinitions(processNameAndDom: (String, dom.Document)): Seq[(String, String, String, String)] = {
+  private def getTimerDefinitions(processNameAndDom: (String, dom.Document)): Seq[(String, String, String, String, String)] = {
     BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
-      def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String) = {
-        // bpmn, name, process-variable, id
+      def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String, String) = {
+        // bpmn, name, process-variable, id, duration
         val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
           n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
-        (processNameAndDom._1, name, processVariableName, bpmnId)
+        val duration = extensionProperties(timerNode, "bw-duration") match {
+          case Nil => "00:00:00"
+          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent
+        }
+        (processNameAndDom._1, name, processVariableName, bpmnId, duration)
       }
 
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
@@ -174,17 +181,13 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
-        val role = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
-          find(_.getAttributes.getNamedItem("name").getTextContent == "bw-role").
-          map(_.getAttributes.getNamedItem("value").getTextContent) match {
-          case Some(r) => r
-          case None => "phase-manager"
+        val role = extensionProperties(callActivity, "bw-role") match {
+          case r +: _ => r.getAttributes.getNamedItem("value").getTextContent
+          case Nil => "phase-manager"
         }
-        val description = callActivity/*.asInstanceOf[Element]*/.getElementsByTagName("camunda:property").
-          find(_.getAttributes.getNamedItem("name").getTextContent == "bw-description").
-          map(_.getAttributes.getNamedItem("value").getTextContent) match {
-          case Some(d) => d.replaceAll("\"", "\'")
-          case None => s"no description provided ($name)"
+        val description = extensionProperties(callActivity, "bw-description") match {
+          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent.replaceAll("\"", "\'")
+          case Nil => s"$name (no description provided)"
         }
         (processNameAndDom._1, name, role, description, bpmnId)
       }
@@ -249,7 +252,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = allProcessNameAndDoms.flatMap(getTimerDefinitions).map(kv =>
         {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
-          "duration" -> "00:00:00", "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
+          "duration" -> kv._5, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val subProcessCalls: Many[Document] = allProcessNameAndDoms.flatMap(getCallDefinitions).map(t => {
         new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
           append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")

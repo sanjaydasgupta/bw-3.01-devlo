@@ -20,6 +20,30 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
+  private def annotatedProperties(procDom: dom.Document, e: Element): Map[String, String] = {
+    def getProps(p: String, acc: Map[String, String] = Map.empty): Map[String, String] = {
+      val propRe = """bw\#([^\=\s]+)\s*=\s*([^\;\s]+)\s*\;\s*(.*)""".r
+      p.trim match {
+        case propRe(a, b, c) => getProps(c, acc ++ Map(a -> b))
+        case _ => acc
+      }
+    }
+    val prefix = procDom.getDocumentElement.getTagName.split(":")(0)
+    val textAnnotations = procDom.getElementsByTagName(s"$prefix:textAnnotation").map(_.asInstanceOf[Element])
+    if (textAnnotations.isEmpty)
+      Map.empty
+    else {
+      val elmtId = e.getAttribute("id")
+      val associations = procDom.getElementsByTagName(s"$prefix:association").map(_.asInstanceOf[Element])
+      textAnnotations.filter(ta => associations.exists(assoc => assoc.getAttribute("sourceRef") == elmtId &&
+        assoc.getAttribute("targetRef") == ta.getAttribute("id"))) match {
+        case Nil => Map.empty
+        case a => val annotations = a.flatMap(_.getElementsByTagName(s"$prefix:text").map(_.getTextContent))
+          getProps(annotations.mkString)
+      }
+    }
+  }
+
   private def extensionProperties(e: Element, name: String) = e.getElementsByTagName("camunda:property").
     filter(_.getAttributes.getNamedItem("name").getTextContent == name)
 
@@ -145,12 +169,12 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         // bpmn, name, process-variable, id, duration
         val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
-        val processVariableName = timerNode/*.asInstanceOf[Element]*/.getElementsByTagName(s"$prefix:timeDuration").
+        val processVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
           n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
-        val duration = extensionProperties(timerNode, "bw-duration") match {
-          case Nil => "00:00:00"
-          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent
+        val duration = annotatedProperties(processNameAndDom._2, timerNode).get("duration") match {
+          case None => "00:00:00"
+          case Some(dur) => dur
         }
         (processNameAndDom._1, name, processVariableName, bpmnId, duration)
       }

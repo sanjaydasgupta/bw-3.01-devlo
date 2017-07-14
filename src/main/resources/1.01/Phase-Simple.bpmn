@@ -26,6 +26,7 @@
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-description" value="This is the [An Activity]. The next one has no description" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
@@ -36,53 +37,74 @@
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-role" value="another-role" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
     </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="And-Another-One" targetRef="End" />
+    <bpmn2:textAnnotation id="TextAnnotation_1vv84zs">    <bpmn2:text>bw#role=electrician; bw#duration=3d12h;</bpmn2:text>
+</bpmn2:textAnnotation>
+    <bpmn2:association id="Association_03m0a4g" sourceRef="An-Activity" targetRef="TextAnnotation_1vv84zs" />
+    <bpmn2:textAnnotation id="TextAnnotation_0vdp07i">    <bpmn2:text>bw#role=plumber; bw#duration=1d12h;</bpmn2:text>
+</bpmn2:textAnnotation>
+    <bpmn2:association id="Association_0kwlnhx" sourceRef="And-Another-One" targetRef="TextAnnotation_0vdp07i" />
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Simple">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
-        <dc:Bounds x="36" y="117" width="36" height="36" />
+        <dc:Bounds x="88" y="129" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="37" y="158" width="34" height="22" />
+          <dc:Bounds x="94" y="170" width="24" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
-        <dc:Bounds x="852" y="117" width="36" height="36" />
+        <dc:Bounds x="601" y="129" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="856" y="158" width="29" height="22" />
+          <dc:Bounds x="610" y="170" width="20" height="12" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="An-Activity">
-        <dc:Bounds x="324" y="95" width="100" height="80" />
+        <dc:Bounds x="210" y="107" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint xsi:type="dc:Point" x="72" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="324" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="124" y="147" />
+        <di:waypoint xsi:type="dc:Point" x="210" y="147" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="153" y="117" width="90" height="6" />
+          <dc:Bounds x="122" y="129" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_CallActivity_10">
-        <di:waypoint xsi:type="dc:Point" x="424" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="504" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="310" y="147" />
+        <di:waypoint xsi:type="dc:Point" x="390" y="147" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="457" y="135" width="6" height="6" />
+          <dc:Bounds x="301" y="147" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_CallActivity_10" bpmnElement="And-Another-One">
-        <dc:Bounds x="504" y="95" width="100" height="80" />
+        <dc:Bounds x="390" y="107" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_CallActivity_10" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint xsi:type="dc:Point" x="604" y="135" />
-        <di:waypoint xsi:type="dc:Point" x="852" y="135" />
+        <di:waypoint xsi:type="dc:Point" x="490" y="147" />
+        <di:waypoint xsi:type="dc:Point" x="601" y="147" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="683" y="117" width="90" height="6" />
+          <dc:Bounds x="500.5" y="129" width="90" height="6" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1vv84zs_di" bpmnElement="TextAnnotation_1vv84zs">
+        <dc:Bounds x="196" y="210" width="128" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_03m0a4g_di" bpmnElement="Association_03m0a4g">
+        <di:waypoint xsi:type="dc:Point" x="260" y="187" />
+        <di:waypoint xsi:type="dc:Point" x="260" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0vdp07i_di" bpmnElement="TextAnnotation_0vdp07i">
+        <dc:Bounds x="380" y="209" width="127" height="34" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0kwlnhx_di" bpmnElement="Association_0kwlnhx">
+        <di:waypoint xsi:type="dc:Point" x="442" y="187" />
+        <di:waypoint xsi:type="dc:Point" x="443" y="209" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

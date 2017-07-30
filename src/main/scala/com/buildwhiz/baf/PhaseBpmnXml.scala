@@ -105,9 +105,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val processTimers = getTimers(phase, bpmnFileName)
       val processActivities = getActivities(phase, bpmnFileName, userOid)
       val processCalls = getSubProcessCalls(phase, bpmnFileName)
-      val startDateTime = if (phase.has("timestamps.planned_start")) {
+      val startDateTime = if (phase.has("timestamps")) {
         val timestamps: DynDoc = phase.timestamps[Document]
-        timestamps.planned_start[Long]
+        if (timestamps.has("planned_start")) timestamps.planned_start[Long] else 0
       } else {
         0
       }

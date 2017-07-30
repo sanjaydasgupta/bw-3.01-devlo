@@ -1,186 +1,208 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <div class="panel panel-primary">
-  <div class="panel-heading">
-    <span style="font-weight:bold;">BPMN ({{bpmnCtrl.projectName}} / {{bpmnCtrl.processName}})</span>
-    <button class="pull-right btn btn-xs btn-info" style="margin-left:10px" data-ng-click="bpmnCtrl.refresh()">
-      <span class="glyphicon glyphicon-refresh"></span> Refresh</button>
-    <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&phase_id={{bpmnCtrl.phaseId}}"
-       style="font-weight:bold; color:white;">Back</a>
-    <span class="pull-right"><span style="color:white;" class="glyphicon glyphicon-arrow-left"></span>&nbsp;</span>
-  </div>
+    <div class="panel-heading">
+        <span style="font-weight: bold;">BPMN ({{bpmnCtrl.projectName}} / {{bpmnCtrl.processName}})</span>
+        <button class="pull-right btn btn-xs btn-info" style="margin-left: 10px" data-ng-click="bpmnCtrl.refresh()">
+            <span class="glyphicon glyphicon-refresh"></span>Refresh</button>
+        <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&phase_id={{bpmnCtrl.phaseId}}"
+            style="font-weight: bold; color: white;">Back</a>
+        <span class="pull-right"><span style="color: white;" class="glyphicon glyphicon-arrow-left"></span>&nbsp;</span>
+    </div>
 
-  <div class="panel-body fixed-panel container-fluid" style="padding:5px">
-  <div class="row">
-	<div class="col-sm-7">
-		<div id="canvas" style="height:500px; max-height:500px; min-height:500px; overflow:auto;">
-        </div>
-	</div>
-    <div class="col-sm-5" style="background-color:yellowgreen; height:500px; max-height:500px; min-height:500px;">
-		<h3>{{bpmnCtrl.panelHeading}}</h3>
-
-		<div data-ng-if="bpmnCtrl.isVisible == 'activity'">
-			<table class="table table-bordered table-fixed">
-            	<thead>
-                	<th>Name</th>
-                    <th>Type</th>
-                    <th>Assignee</th>
-                    <th>Duration</th>
-                </thead>
-                <tbody>
-                	<tr ng-repeat="task in bpmnCtrl.tasks">
-                    	<td>{{task.name}}</td>
-                        <td>{{task.type == "main" ? "M" : task.type == "prerequisite" ? "P" : "R"}}</td>
-                        <td>
-                            <div class="form-group">
-                                <div class="col-xs-8">
-                                   
-                                    <select class="col-sm-4 col-xs-5 form-control" ng-model="task.assignee._id">
-                                        <option ng-repeat="persons in bpmnCtrl.person" value="{{persons._id}}">{{persons.first_name}}</option>
-                                    </select>
-                                </div>
-                                <div class="col-sm-3 col-xs-2">
-                                     <button class="btn btn-primary btn-sm" ng-click="bpmnCtrl.setAssignee(task)">Set</button>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                        	<div class="form-group">
-                            <div class="col-xs-8">
-                            	<input type="text" class="col-sm-4 col-xs-5 form-control"  value="{{task.duration}}" ng-model="task.duration">
-                            </div>
-                                 <div class="col-sm-3 col-xs-2">
-                                     <button class="btn btn-primary btn-sm"
-                                             ng-click="bpmnCtrl.setTaskDuration(task)">Set</button>
-                                  </div>
-							</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div style="height:150px;overflow-y:auto;">
-            <table class="table">
-            <input type="hidden" ng-model="bpmnCtrl.activity_id" class="col-sm-4 col-xs-5 form-control"  value="{{bpmnCtrl.activity_id}}">
-                <tr>
-                    <td>Phase Manager</td>
-                    <td>
-                        <div class="form-group">
-                        <div class="col-xs-8">
-                            <select class="form-control" ng-model="bpmnCtrl.assignee_id">
-                                <option ng-repeat="persons in bpmnCtrl.person" value="{{persons._id}}">{{persons.first_name}}</option>
-                            </select>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Action Name</td>
-                    <td>
-                        <div class="form-group">
-                            <div class="col-xs-8">
-                            	<input type="text" class="col-sm-4 col-xs-5 form-control" ng-model="bpmnCtrl.action_name">
-                            </div>
-				        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Type</td>
-                    <td>
-                        <div class="form-group">
-                            <div class="col-xs-8">
-                                <select class="col-sm-4 col-xs-5 form-control" ng-model="bpmnCtrl.type">
-                                    <option value="prerequisite">Prerequisite</option>
-                                    <option value="review">Review</option>
-                                </select>
-                            </div>
-				        </div>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <td>&nbsp;</td>
-                    <td>
-                        <button type="button" class="btn btn-primary"
-                                ng-click="bpmnCtrl.addAction(bpmnCtrl.activity_id, bpmnCtrl.action_name, bpmnCtrl.type,bpmnCtrl.assignee_id)">Add</button>
-                    </td>
-                </tr>
-            </table>
+    <div class="panel-body fixed-panel container-fluid" style="padding: 5px">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+                <div id="canvas" style="height: 500px; max-height: 500px; min-height: 500px; overflow: auto;">
+                </div>
             </div>
-		</div>
-		
-		<div data-ng-if="bpmnCtrl.isVisible == 'timer'">
-			<input  value="{{bpmnCtrl.getduration}}" ng-model="bpmnCtrl.getduration" data-type-clicked="" style="border: none;padding: 5px;border-radius: 2px;margin: 5px auto;" type="text">
-			<button class="btn btn-primary" ng-click="bpmnCtrl.setDuration_dt(bpmnCtrl.eltype, bpmnCtrl.getduration)" >Update</button>
-		</div>
-        
-    <!-----------BPMN PHASE MANAGER PROCESS---------------->
-        <div data-ng-if="bpmnCtrl.isVisible == 'process'">
-            <table class="table">
-                <tr>
-                    <td>Phase Manager</td>
-                    <td>
-                        
-                        <select class="col-sm-4 col-xs-5 form-control" ng-model="bpmnCtrl.adminPersonId">
-                            <option ng-repeat="persons in bpmnCtrl.person" value="{{persons._id}}">{{persons.first_name}}</option>
-                        </select>
-                    </td>
-                    
-                    <td><button class="btn btn-primary" ng-click="bpmnCtrl.setPhasemanager_dt(bpmnCtrl.adminPersonId)">Set</button></td>
-                </tr>
-                
-                <tr>
-                    <td>Start Date</td>
-                    <td>
-                        <span class="input-group" style="max-width:150px; vertical-align:middle; margin-left:25px; margin-right:25px;">
-						  <input type="text" class="form-control" data-uib-datepicker-popup data-ng-model="bpmnCtrl.selectedDate"
-							 data-is-open="bpmnCtrl.datePickerOpened" data-datepicker-options="bpmnCtrl.dateOptions"
-							 data-ng-required="true" style="max-width:150px;" />
-						  <span class="input-group-btn">
-							<button type="button" class="btn btn-default" data-ng-click="bpmnCtrl.datePickerOpened = true">
-								<i class="glyphicon glyphicon-calendar"></i></button>
-						  </span>
-						</span>   
-                    </td>
-                    <td><button class="btn btn-primary" ng-click="bpmnCtrl.setStartDate(bpmnCtrl.selectedDate)" >Set</button></td>
-                </tr>
-            </table>
-            <table class="table table-bordered table-fixed">
-            	<thead>
-                	<th>Name</th>
-                    <th>Type</th>
-                    <th>Value</th>
-                </thead>
-                <tbody>
-                	<tr ng-repeat="var in bpmnCtrl.processVariables">
-                    	<td>
-                            {{var.name}}
-                            <input type="hidden" value="{{var.name}}" ng-model="var.name"/>
-                        </td>
-                        <td>{{var.type}}</td>
-                        <td>
-                            <div ng-if="var.type == 'S'">
-                                <input type="text" value="{{var.value}}" ng-model="var.value"/>
-                                
-                            </div>
-                            <div ng-if="var.type == 'B'">
-                                <select class="col-sm-4 col-xs-5 form-control" ng-model="var.value" >
-                                    <option value="true" ng-selected="var.value == true">Active</option>
-                                    <option value="false" ng-selected="var.value == false">Inactive</option>
-                                </select>
-                            </div>
-                        </td>
-                        <td>
-                        	<div class="form-group">                               
-                                 <div class="col-sm-3 col-xs-2">
-                                     <button class="btn btn-primary btn-sm" ng-click="bpmnCtrl.setValueAdd(var)">Set</button>
-                                  </div>
-							</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6" style="border: 1px solid #337ab7; height: 500px; width: 670px; max-height: 500px; min-height: 500px; border-radius: 5px;">
+                <h3>{{bpmnCtrl.panelHeading}}</h3>
+
+                <!-----------START TIMER SECTION---------------->
+                <div data-ng-if="bpmnCtrl.isVisible == 'timer'">
+                    <input value="{{bpmnCtrl.timerduration}}" ng-model="bpmnCtrl.timerduration" data-type-clicked="" style="border: none; padding: 5px; border-radius: 2px; margin: 5px auto;" type="text">
+                    <button class="btn btn-primary" ng-click="bpmnCtrl.setTimerDuration(bpmnCtrl.eltype, bpmnCtrl.timerduration)">Update</button>
+                </div>
+                <!-----------END TIMER SECTION---------------->
+
+                <!-----------START ACTIVITY SECTION---------------->
+                <div data-ng-if="bpmnCtrl.isVisible == 'activity'">
+                    <table class="table table-bordered">
+                        <thead class="thead-default" style="background-color: #337ab7; color: #ffffff;">
+                            <tr>
+                                <th>&nbsp;</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Assignee</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="task in bpmnCtrl.tasks">
+                                <td style="width: 5%">
+                                    <span style="width: 20px; background-color: {{bpmnCtrl.statusColor(task.status)}}; border: 2px solid #663300; border-radius: 5px;">&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </span>
+                                </td>
+                                <td style="width: 20%">{{task.name}}</td>
+                                <td style="width: 10%">{{task.type == "main" ? "M" : task.type == "prerequisite" ? "P" : "R"}}</td>
+                                <td style="width: 35%">
+                                    <!-------UI Bootstrap dropdown -------->
+                                    <div class="btn-group" uib-dropdown is-open="status.isopen">
+                                        <button id="single-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle ng-disabled="disabled">
+                                            {{ task.assignee.name || 'Select the person' }}
+							            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button" style="max-height:200px;overflow-y:auto;">
+                                            <li role="menuitem" ng-repeat="persons in bpmnCtrl.person">
+                                                <a href="" ng-if="$index === 0">Select</a>
+                                                <a href="" ng-click="bpmnCtrl.TaskAssignee_SelectedIndexChanged(task,persons._id,persons.first_name,persons.last_name)">{{persons.first_name}} {{persons.last_name}}</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <!-----END UI Bootstrap dropdown---->
+                                    <button class="btn btn-success btn-xs" ng-click="bpmnCtrl.setTaskAssignee(task)">Set</button>
+                                </td>
+                                <td style="width: 25%">
+                                    <input style="width: 70%; float: left" type="text" value="{{task.duration}}" ng-model="task.duration" placeholder="Duration">
+                                    <button style="width: 20%; float: left; margin-left: 5px" class="btn btn-success btn-xs" ng-click="bpmnCtrl.setTaskDuration(task)">Set</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="height: 150px;">
+                        <table class="table">
+
+                            <tr>
+                                <td style="width: 20%">Action Name</td>
+                                <td style="width: 30%">
+                                    <div class="form-group">
+                                        <div class="col-xs-12">
+                                            <input type="hidden" ng-model="bpmnCtrl.activity_id" value="{{bpmnCtrl.activity_id}}" />
+                                            <input type="text" ng-model="bpmnCtrl.action_name" required />
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="width: 10%">Type</td>
+                                <td style="width: 30%">
+                                    <div class="form-group">
+                                        <div class="col-xs-12">
+                                            <div class="btn-group" uib-dropdown is-open="type.isopen">
+                                                <button id="type-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle ng-disabled="disabled">
+                                                    {{ bpmnCtrl.type || 'Select Type'}}<span class="caret"></span>
+                                                </button>
+                                                <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="type-button">
+                                                    <li role="menuitem">
+                                                        <a href="" ng-click="bpmnCtrl.type='prerequisite'" ng-model="bpmnCtrl.type">Prerequisite</a>
+                                                        <a href="" ng-click="bpmnCtrl.type='review'" ng-model="bpmnCtrl.type">Review</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="width: 10%">
+                                    <button type="button" class="btn btn-success btn-xs"
+                                        ng-click="bpmnCtrl.addActivityAction(bpmnCtrl.activity_id, bpmnCtrl.action_name, bpmnCtrl.type)">
+                                        Add</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <!-----------END ACTIVITY SECTION---------------->
+
+
+                <!-----------START PROCESS SECTION---------------->
+                <div data-ng-if="bpmnCtrl.isVisible == 'process'">
+                    <table class="table">
+                        <tr>
+                            <td>Phase Manager</td>
+                            <td>
+                                <div class="btn-group" uib-dropdown is-open="manager.isopen">
+                                    <button id="manager-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle ng-disabled="disabled"
+                                        ng-init="bpmnCtrl.SelectedProcessPhaseManager(bpmnCtrl.adminPersonId);">
+                                        {{ bpmnCtrl.ManagerName || 'Select the Manager' }}
+							<span class="caret"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="manager-button" style="max-height:200px;overflow-y:auto;">
+                                        <li role="menuitem" ng-repeat="manager in bpmnCtrl.person">
+                                            <a href="" ng-if="$index === 0">Select</a>
+                                            <a href="" ng-click="bpmnCtrl.ProcessPhaseManager_SelectedIndexChanged(manager._id,manager.first_name,manager.last_name)">{{manager.first_name}} {{manager.last_name}}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+
+                            <td>
+                                <button class="btn btn-success btn-xs" ng-click="bpmnCtrl.setProcessPhaseManager(bpmnCtrl.adminPersonId)">Set</button></td>
+                        </tr>
+
+                        <tr>
+                            <td>Start Date</td>
+                            <td>
+                                <span class="input-group" style="max-width: 150px; vertical-align: middle; margin-left: 25px; margin-right: 25px;">
+                                    <input type="text" class="form-control" data-uib-datepicker-popup data-ng-model="bpmnCtrl.processStartDatetime"
+                                        data-is-open="bpmnCtrl.datePickerOpened" data-datepicker-options="bpmnCtrl.dateOptions"
+                                        data-ng-required="true" style="max-width: 150px;" />
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default" data-ng-click="bpmnCtrl.datePickerOpened = true">
+                                            <i class="glyphicon glyphicon-calendar"></i>
+                                        </button>
+                                    </span>
+                                </span>
+                            </td>
+                            <td>
+                                <span data-uib-timepicker data-ng-model="bpmnCtrl.processStartDatetime" data-show-spinners="false"></span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success btn-xs" ng-click="bpmnCtrl.setProcessStartDateTime(bpmnCtrl.processStartDatetime)">Set</button></td>
+                        </tr>
+                    </table>
+                    <table class="table table-bordered">
+                        <thead class="thead-default" style="background-color: #337ab7; color: #ffffff;">
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="var in bpmnCtrl.processVariables">
+                                <td>{{var.label}}</td>
+                                <td>{{var.type}}</td>
+                                <td>
+                                    <div ng-if="var.type == 'S' || var.type == 'L' || var.type == 'D'">
+                                        <input type="text" value="{{var.value}}" ng-model="var.value" />
+                                    </div>
+                                    <div ng-if="var.type == 'B'">
+                                        <div class="btn-group" uib-dropdown is-open="vartype.isopen">
+                                            <button id="vartype-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle ng-disabled="disabled">
+                                                {{ var.value == true ? "True " : var.value == false ? "False " : "Select "}}<span class="caret"></span>
+                                            </button>
+                                            <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="vartype-button">
+                                                <li role="menuitem">
+                                                    <a href="" ng-click="var.value=true" ng-model="var.value">True</a>
+                                                    <a href="" ng-click="var.value=false" ng-model="var.value">False</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-group">
+                                        <div class="col-sm-3 col-xs-2">
+                                            <button class="btn btn-success btn-xs" ng-click="bpmnCtrl.setProcessVariableValue(var)">Set</button>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-----------END PROCESS SECTION---------------->
+
+            </div>
         </div>
-        
-	</div>
-  </div>
-  </div>
+    </div>
 </div>

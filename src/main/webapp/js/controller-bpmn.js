@@ -1,476 +1,481 @@
 angular.module('BuildWhizApp')
+    .controller("BpmnCtrl", ['$log', '$http', '$routeParams', '$sce', '$filter', '$window',
+        function ($log, $http, $routeParams, $sce, $filter, $window) {
 
-.controller("BpmnCtrl", ['$log', '$http', '$routeParams', '$filter', '$window',
-    function ($log, $http, $routeParams, $filter, $window) {
+            /* 
+            https://github.com/bpmn-io/bower-bpmn-js
+            https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
+            https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay
+            */
 
-  var self = this;
+            //--------START COMMON VARIABLES -------//
+            var self = this;
 
-  self.panelHeading = '';
+            self.panelHeading = '';
 
-  self.processName = $routeParams.process;
-  self.projectId = $routeParams.project_id;
-  self.projectName = $routeParams.project_name;
-  self.phaseId = $routeParams.phase_id;
+            self.processName = $routeParams.process;
+            self.projectId = $routeParams.project_id;
+            self.projectName = $routeParams.project_name;
+            self.phaseId = $routeParams.phase_id;
+            /*SDG*/ self.processStartDatetime = new Date();
 
-  $log.log('Process-Name: ' + self.processName);
-  $log.log('Project-Id: ' + self.projectId);
-  $log.log('Project-Name: ' + self.projectName);
-  $log.log('Phase-Id: ' + self.phaseId);
-  
-	//--------CREATE NULL OP FUNCTION-------//
-	var nullOp = function() 
-	{
-		$http.get('etc/Environment').then(
-		  function(resp){$log.log('OK Environment')},
-		  function(resp){$log.log('ERROR Environment')}
-		)
-	}
+            var events = [
+                            'element.click',
+                            'element.dblclick',
+                            'element.hover',
+                            /*'element.out', */  
+                            /*'element.mousedown',*/
+                            /*'element.mouseup'*/
+                        ];
 
-  self.refresh = function() {
-    var refreshLocation = $window.location + '&dt=' + escape(new Date().getTime());
-    $log.log('Refresh location: ' + refreshLocation);
-    $window.location = refreshLocation;
-  }
+            var bpmnViewer = new BpmnJS({ container: '#canvas' });
+            var overlays = bpmnViewer.get('overlays');
+            var eventBus = bpmnViewer.get('eventBus');
 
-/* Date picker option */
-  self.dateOptions = {
-    dateDisabled: false,
-    formatYear: 'yy',
-    maxDate: new Date(2018, 11, 31),
-    minDate: new Date(2010, 0, 1),
-    startingDay: 1
-  };
+            //--------END COMMON VARIABLES-------//
 
-  // https://github.com/bpmn-io/bower-bpmn-js
-  // https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
-  // https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay
 
-  var processTimers = [];
-  var processVariables = [];
-  var processActivities = [];
-  var processCalls = [];
-  var adminPersonId = null;
-  /*SDG*/ var startDatetime = 0;
+            $log.log('Process-Name: ' + self.processName);
+            $log.log('Project-Id: ' + self.projectId);
+            $log.log('Project-Name: ' + self.projectName);
+            $log.log('Phase-Id: ' + self.phaseId);
+            
 
-  var popupData = [];
-  var tasks = [];
-  var person=[];
-  var clickableObjects = {};
+            //Date picker options
+            self.dateOptions = {
+                dateDisabled: false,
+                formatYear: 'yy',
+                maxDate: new Date(2018, 11, 31),
+                minDate: new Date(2010, 0, 1),
+                startingDay: 1
+            };
 
-        
-//------------DEFINED VARRIABLES FOR ACTIVITYS----------//
-  var activity_id =null;
-//----------------------//
-        
-        
-  var selectedElement = null;
-  var bpmnViewer = new BpmnJS({container: '#canvas'});
-  var overlayId = null;
-  var hoverOverlayId = null;
-  var overlays = bpmnViewer.get('overlays');
-  var eventBus = bpmnViewer.get('eventBus');
-        
-  //--------------GET PHASE MANAGER LIST-----------//
-   var resUrl = 'api/Person';
-	 $http.get(resUrl).then(function(resp) {
-       person = resp.data;	
-       $log.log('person'+JSON.stringify(person));
-      });
+	        //Create null op function
+	        var nullOp = function() 
+	        {
+		        $http.get('etc/Environment').then(
+		          function(resp){$log.log('OK Environment')},
+		          function(resp){$log.log('ERROR Environment')}
+		        )
+	        }
+
+            //Refresh page
+            self.refresh = function() {
+                var refreshLocation = $window.location + '&dt=' + escape(new Date());
+                //$log.log('Refresh location: ' + refreshLocation);
+                $window.location = refreshLocation;
+            }
+
+            //Get status color
+            self.statusColor = function (status) {
+                var resultColor = 'transparent';
+                switch (status) {
+                    case "defined":
+                        resultColor = 'yellow';
+                        break;
+                    case "waiting":
+                        resultColor = 'Red';
+                        break;
+                    case 'waiting2':
+                        resultColor = 'Pink';
+                        break;
+                    case "started":
+                        resultColor = 'Lime';
+                        break;
+                    case "running":
+                        resultColor = 'Lime';
+                        break;
+                    case "ended":
+                        resultColor = 'Silver';
+                        break;
+                    default:
+                        resultColor = 'white';
+                        break;
+                }
+
+                return resultColor;
+            }
+
+            //Get person list
+            var person = [];
+            var requestUrl = 'api/Person';
+            $http.get(requestUrl).then(function (response) {
+                person = response.data;
+                //$log.log('person' + JSON.stringify(person));
+            });
+
+
+            var processTimers = [];
+            var processVariables = [];
+            var processActivities = [];
+            var processCalls = [];
+            var adminPersonId = null;
+            //SDG var startDatetime = 0;
+            var bpmnElements = [];
+            var clickableObjects = {};
+
+            //Generte div to display duration on initialize
+            var annotationOverlayHtml = function (bgColor, duration) {
+                return '<div style="background-color:' + bgColor + '; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">' + duration + '</div>';
+            }
+
+            //Initialize bpmn
+            var initUrl = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName + '&phase_id=' + self.phaseId;
+            $http.get(initUrl).then(
+              function (response) {
+                  bpmnViewer.importXML(response.data.xml, function (err) {
+                      if (err) {
+                          // import failed :-(
+                          $log.log('FAIL importXML: ' + err);
+                      } else {
+                          // we did well!
+                          var canvas = bpmnViewer.get('canvas');
+                          canvas.zoom('fit-viewport');
+
+                          processTimers = response.data.timers;
+                          processVariables = response.data.variables;
+                          processActivities = response.data.activities;
+                          processCalls = response.data.calls;
+                          adminPersonId = response.data.admin_person_id;
+                          $log.log("START_DATETIME: " + response.data.start_datetime);
+                          self.processStartDatetime = new Date(response.data.start_datetime);
+
+                          //timers loop
+                          processTimers.forEach(function (processTimer) {
+                              processTimer.width = 36;
+                              processTimer.height = 36;
+                              bpmnElements.push(processTimer);
+                              clickableObjects[processTimer.bpmn_id] = processTimer;
+                          });
+
+                          //activities loop
+                          processActivities.forEach(function (processActivity) {
+                              processActivity.width = 100;
+                              processActivity.height = 80;
+                              bpmnElements.push(processActivity);
+                              clickableObjects[processActivity.bpmn_id] = processActivity;
+                          });
+
+                          //calls loop
+                          processCalls.forEach(function (processCall) {
+                              processCall.width = 100;
+                              processCall.height = 80;
+                              bpmnElements.push(processCall);
+                          });
+
+                          //$log.log('Popup data:' + JSON.stringify(popupData));
+
+                          $log.log('OK importXML.\n'+
+                                    'timers: ' + processTimers.length + '\n' +
+                                    'variables: ' + processVariables.length + '\n' +
+                                    'activities: ' + processActivities.length + '\n' +
+                                    'calls: ' + processCalls.length);
+
+                          annotateBPMN();
+                      }
+                  })
+                  $log.log('OK GET ' + initUrl);
+              },
+              function () {
+                  $log.log('ERROR GET ' + initUrl);
+              }
+            );
+
+            var annotateBPMN = function () {
+                bpmnElements.forEach(function (bpmnElement) {
+                    var bgcolor = self.statusColor(bpmnElement.status);
+
+                    overlays.add(bpmnElement.bpmn_id, {
+                        position: {
+                            top: -30,
+                            left: (bpmnElement.width - 50) / 2
+                        },
+                        html: annotationOverlayHtml(bgcolor, bpmnElement.duration)
+                    });
+                });
+            }
+
+            //--------------START EVENT BINDING-----------//            
+            var hoverOverlayId = null;
+            //Generte div to display information on hover
+            var hoverOverlayHtml = function (start, end) {
+                return '<div style="width:100px;height:70px; background-color:#84FFFF; padding: 3px; border: 1px solid #333;font-size: x-small;"><b>Start: </b>' + start + '<br /><b>End: </b>' + end + '</div>';
+            }
+            //hover event
+            var hoverElement = function (element) {
+                if (hoverOverlayId != null) {
+                    overlays.remove(hoverOverlayId);
+                    hoverOverlayId = null;
+                }
+
+                if (element.type != 'bpmn:Process') {
+                    var data = $filter('filter')(bpmnElements, { bpmn_id: element.id })[0];
+                    if (data !== undefined) {
+                        hoverOverlayId = overlays.add(element.id, {
+                            position: {
+                                top: 10,
+                                left: 25
+                            },
+                            html: hoverOverlayHtml(data.start, data.end)
+                        });
+                    }
+                }
+            }
+
+            
+            var activity_id = null;
+            var selectOverlayId = null;
+            var tasks = [];
+            //Generte div to indicate selected element on select
+            var selectOverlayHtml = function (width, height) {
+                return '<div style="width: 0; height: 0; border-top: 30px solid green; border-right: 30px solid transparent;"></div>';
+            }
+            //Click Event
+            var selectElement = function (element) {
+                if (selectOverlayId != null) {
+                    overlays.remove(selectOverlayId);
+                    selectOverlayId = null;/*SDG*/
+                }
+
+                if (element.type == 'bpmn:CallActivity' && clickableObjects[element.id]) {
+
+                    nullOp();
+
+                    self.isVisible = 'activity';
+                    self.panelHeading = element.id;
+                    self.processVariables = processVariables;
+
+                    var data = $filter('filter')(bpmnElements, { bpmn_id: element.id })[0];
+                    self.activity_id = data.id;
+                    self.person = person;
+                    self.tasks = data.tasks;
+
+                    //$log.log('data:' + JSON.stringify(self.tasks));
+                    //$log.log('Activity Selected with:' + self.isVisible + ' Header:' + self.panelHeading);
+
+                    selectOverlayId = overlays.add(element.id, {
+                        position: { top: 2, left: 2 },
+                        html: selectOverlayHtml()
+                    });
+                }
+                else if (element.type == 'bpmn:IntermediateCatchEvent') {
+
+                    nullOp();
+
+                    getTimerDuration(element.id);
+
+                    self.isVisible = 'timer';
+                    self.panelHeading = element.id;
+
+                    //$log.log('Activity Selected with:' + self.isVisible + ' Header:' + self.panelHeading);
+
+                    selectOverlayId = overlays.add(element.id, {
+                        position: { top: -10, right: 17 },
+                        html: selectOverlayHtml()
+                    });
+                }
+                else if (element.type == 'bpmn:Process') {
+                    nullOp();
+
+                    self.isVisible = 'process';
+                    self.adminPersonId = adminPersonId;
+                    //SDG self.selectedDate = new Date();
+                    self.panelHeading = '';/*SDG*/
+                    self.person = person;
+                    self.processVariables = processVariables;
+
+                    //$log.log(JSON.stringify(processVariables));
+                    //$log.log('person_drop:' + JSON.stringify(self.person));
+                }
+                else {
+                    self.isVisible = '';
+                    self.panelHeading = '';
+
+                    nullOp();
+                }
+            }
+
+
+            //Double Click Event
+            var doubleClickElement = function (element) {
+                $log.log('Called doubleClickElement()');
+				var href = $window.location.href;
+				var dtIdx = href.indexOf('bpmn?');
+				var href = href.substring(0, dtIdx + 5);
+				
+				var selectedProcesses =$filter('filter')(bpmnElements, { bpmn_id: element.id });// bpmnElements.filter(function(d){return element.id == d.bpmn_id;})[0].name;
+				if (selectedProcesses.length>0)
+				{
+					var selectedProcess=selectedProcesses[0];
+				
+					if(selectedProcess.hasOwnProperty('name'))
+					{
+						var processName=selectedProcess.name;
+						var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
+						$window.location.href = newHref;
+					}
+				}
+            }
+
+            //Event Handler
+            var eventHandler = function (event) {
+                // e.element = the model element
+                // e.gfx = the graphical element
+                var element = event.element;
+                switch (event.type) {
+                    case "element.hover":
+                        hoverElement(element);
+                        break;
+                    case "element.click":
+                        selectElement(element);
+                        break;
+                    case "element.dblclick":
+                        doubleClickElement(element);
+                        break;
+                }
+            }
+
+            events.forEach(function (event) {
+                eventBus.on(event, eventHandler);
+            });
+            //--------------END EVENT BINDING-----------//
+
     
+            //----------START TIMERS FUNCTIONALITY---------//
 
-  var events = [/*'element.out', */'element.click', 'element.dblclick', 'element.hover'
-      /*'element.mousedown', 'element.mouseup'*/];
+            //Get Timer Duration
+            var getTimerDuration = function (timerVal) {
+                var requestUrl = 'baf/TimerDurationFetch?phase_id=' + self.phaseId + '&bpmn_name=' + self.processName + '&timer_id=' + timerVal;
+                $http.get(requestUrl).then(function (response) {
+                    var timer = response.data;
+                    if (timer != '') {
+                        self.isVisible = 'timer';
+                        self.eltype = timerVal;		// get timer type
+                        self.timerduration = timer;
+                    } else {
+                        self.isVisible = '';
+                    }
+                })
+            }
 
-  var overlayHtml = function(width, height) {
-    return '<div style="border-radius: 50%; width: 10px; height: 10px; background-color:green;"></div>';
-  }
+            //Set Timer Duration
+            self.setTimerDuration = function (clickedOn, updatedTime) {
+                var requestUrl = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId + "&bpmn_name=" + self.processName + "&timer_id=" + clickedOn + "&duration=" + updatedTime;
 
-  var annotationHtml = function(bgColor,duration) {
-    return '<div style="background-color:'+bgColor+'; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">'+duration+'</div>';
-  }
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-  var hoverOverlayHtml = function(start,end) {
-    return '<div style="width:100px;height:70px; background-color:#84FFFF; padding: 3px; border: 1px solid #333;font-size: x-small;"><b>Start: </b>'+start+'<br /><b>End: </b>'+end+'</div>';
-  }
+            }
 
-  var enableTimer = function(timerVal) {
-    var resUrl = 'baf/TimerDurationFetch?phase_id='+self.phaseId+'&bpmn_name='+self.processName+'&timer_id='+timerVal;
-	 $http.get(resUrl).then(function(resp) {
-       var timer = resp.data;
-		if(timer!=''){
-          self.isVisible = 'timer';
-          self.eltype = timerVal;		// get timer type
-          self.getduration = timer;
-        } else {
-          self.isVisible = '';
-        }
-      })
-  }
+            //----------END TIMERS FUNCTIONALITY---------//
 
-  /*** update time duraton   ***/
-   self.setDuration_dt = function(clickedon, updated_time) {
-    var dataset = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId + "&bpmn_name=" + self.processName + "&timer_id=" + clickedon + "&duration=" + updated_time ;
-    var objData='{\'method\':\'1\',\'phase_id\':\''+self.phaseId+'\',\'bpmn_name\':\''+self.processName+'\',\'timer_id\':\''+clickedon+'\',\'duration\':\''+updated_time+'\'}';
-                 
-       $log.log(dataset);
-    $http({method: 'POST', url: dataset}).success(function (data){
-      $log.log(data);
-      $log.log('Success....');
-	}).error(function (data, status, headers, config) {
-        $log.log('Error....');
-	});
 
-  }
+            //----------START ACTIVITY FUNCTIONALITY---------//
 
-  self.setTaskDuration = function(task) {
-    var q = 'baf/ActionDurationSet?activity_id=' + self.activity_id + '&duration=' + task.duration +
-      '&action_name=' + task.name;
-    $http.post(q).then(
-      function(resp) {
-        $log.log('OK POST: ' + q);
-      },
-      function(resp) {
-        $log.log('ERROR POST: ' + q);
-      }
-    )
-  }
+            //Set Selected Assignee To Dropdown on change
+            self.TaskAssignee_SelectedIndexChanged = function (task, assigneeid, assigneefirstname, assigneelastname) {
+                task.assignee._id = assigneeid;
+                task.assignee.name = assigneefirstname + ' ' + assigneelastname;
+            }
 
-//--------------ADD ACTIVITY-------------------//
-   self.addAction = function(activity_id,action_name,type) {
-    
-       
-        var dataset = 'baf/ActionAdd?' + "method=1&activity_id=" + activity_id + "&action_name=" + action_name + "&type=" + type + "&bpmn_name=" + self.processName + "&assignee_id=" +adminPersonId ;
-    
-       var objData='{\'method\':\'1\',\'activity_id\':\''+activity_id+'\',\'action_name\':\''+action_name+'\',\'type\':\''+type+'\',\'bpmn_name\':\''+self.processName+'\',\'assignee_id\':\''+adminPersonId+'\'}';
-    
-       
-    /*var _url='baf/ActionAdd/';
-       
-    var objData={
-        'method':'1',
-        'activity_id':activity_id,
-        'action_name':action_name,
-        'type':type,
-        'bpmn_name':bpmn_name
-    };   
-      */ 
-    $log.log(objData);   
-    $log.log(dataset);
-    $http({method: 'POST', url: dataset,data:objData}).success(function (data){
-      $log.log(data);
-      $log.log('Success....');
-	}).error(function (data, status, headers, config) {
-        $log.log('Error..................');
-        $log.log('-----------------------------------');
-        $log.log(headers);
-        $log.log('-----------------------------------');
-        $log.log(status);
-	});
+            //Set Assignee
+            self.setTaskAssignee = function (task) {
+                var requestUrl = 'baf/ActionContributorSet?' + "method=1&person_id=" + task.assignee._id + "&activity_id=" + self.activity_id + "&action_name=" + task.name + "&project_id=" + self.projectId;
 
-  }
-//---------------------------------------------//
-   
-//-----------ADD PHASE MANAGER-----------------//
-    self.setPhasemanager_dt = function(person_id) 
-    {
-        
-        var dataset = 'baf/PhaseAdministratorSet?' + "method=1&phase_id=" + self.phaseId + "&person_id=" + person_id+ "&project_id="+self.projectId;    
-       var objData='{\'method\':\'1\',\'phase_id\':\''+self.phaseId+'\',\'person_id\':\''+self.person_id+'\',\'project_id\':\''+self.projectId+'\'}';
+                $http({ method: 'POST', url: requestUrl}).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-        $log.log(objData);   
-        $log.log(dataset);
-        $http({method: 'POST', url: dataset,data:objData}).success(function (data){
-          $log.log(data);
-          $log.log('Success....');
-        }).error(function (data, status, headers, config) {
-            $log.log('Error..................');
-            $log.log('-----------------------------------');
-            $log.log(headers);
-            $log.log('-----------------------------------');
-            $log.log(status);
-        });
+            }
 
-  }
-   
-//--------------------------------------------//
-//------------------SET VALUE-------------------//
-     self.setValueAdd = function(variable) 
-    {
-        var label=variable.label;
-        var value=variable.value;
-               
-        var dataset = 'baf/VariableValueSet/?' + "method=1&phase_id=" + self.phaseId + "&label=" + label + "&bpmn_name=" + self.processName  + "&value=" +value ;
-    
-       var objData='{\'method\':\'1\',\'phase_id\':\''+self.phaseId+'\',\'label\':\''+label+'\',\'bpmn_name\':\''+self.processName+'\',\'value\':\''+value+'\'}';
+            //Update Task Duration
+            self.setTaskDuration = function (task) {
+                var requestUrl = 'baf/ActionDurationSet?activity_id=' + self.activity_id + '&duration=' + task.duration +
+                  '&action_name=' + task.name;
 
-        $log.log(objData);   
-        $log.log(dataset);
-        $http({method: 'POST', url: dataset,data:objData}).success(function (data){
-          $log.log(data);
-          $log.log('Success....');
-        }).error(function (data, status, headers, config) {
-            $log.log('Error..................');
-            $log.log('-----------------------------------');
-            $log.log(headers);
-            $log.log('-----------------------------------');
-            $log.log(status);
-        });
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
+            }
 
-  }
-//----------------------------------------------//
-//--------------SET ASSIGNEE-------------------//
-     self.setAssignee = function(task) 
-    {
-        
-        var dataset = 'baf/ActionContributorSet?' + "method=1&person_id=" + task.assignee + "&activity_id=" + self.activity_id+ "&action_name="+task.name+ "&project_id="+self.projectId;   
-       var objData='{\'method\':\'1\',\'person_id\':\''+task.assignee._id+'\',\'activity_id\':\''+self.activity_id+'\',\'action_name\':\''+task.name+'\',\'project_id\':\''+self.projectId+'\'}';
-         $log.log(dataset);
-       
-        $http({method: 'POST', url: dataset,data:objData}).success(function (data){
-          $log.log(data);
-          $log.log('Success....');
-        }).error(function (data, status, headers, config) {
-            $log.log('Error..................');
-            $log.log('-----------------------------------');
-            $log.log(headers);
-            $log.log('-----------------------------------');
-            $log.log(status);
-        });
+            //Add New Task/Action
+            self.addActivityAction = function (activity_id, action_name, type) {
+                var requestUrl = 'baf/ActionAdd?' + "method=1&activity_id=" + activity_id + "&action_name=" + action_name + "&type=" + type + "&bpmn_name=" + self.processName + "&assignee_id=" + adminPersonId;
 
-  }
-//--------------------------------------------//
-//--------------SET START DATE-------------------//
-     
-     self.setStartDate = function(dt) 
-    {
-        var timestamp = self.selectedDate.getTime(dt);
-        //alert(new Date(timestamp).getTime());
-        var dataset = 'baf/PhaseStartDateTimeSet/?' + "method=1&phase_id=" + self.phaseId + "&datetime=" + timestamp;
-    
-       var objData='{\'method\':\'1\',\'phase_id\':\''+self.phaseId+'\',\'datetime\':\''+timestamp+'\'}';
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-        $log.log(objData);   
-        $log.log(dataset);
-        $http({method: 'POST', url: dataset,data:objData}).success(function (data){
-          $log.log(data);
-          $log.log('Success....');
-        }).error(function (data, status, headers, config) {
-            $log.log('Error..................');
-            $log.log('-----------------------------------');
-            $log.log(headers);
-            $log.log('-----------------------------------');
-            $log.log(status);
-        });
+            }
 
-  }
-//----------------------------------------------//
+            //----------END ACTIVITY FUNCTIONALITY---------//
 
-  var selectElement = function(element) {
-      $log.log('Called selectElement(' + JSON.stringify(element) + ')');
-    $log.log('Called selectElement()');
-    if (overlayId != null) {
-      overlays.remove(overlayId);
-      /*SDG*/overlayId = null;
-    }
 
-	 if(element.type  == 'bpmn:CallActivity' && clickableObjects[element.id])
-	 {
-        nullOp();
-		self.isVisible = 'activity';
-		self.panelHeading = element.id;
-        self.processVariables=processVariables;
-		var data = $filter('filter')(popupData, {bpmn_id: element.id })[0];
-         self.activity_id=data.id;
-         
-         self.person=person;
-        //$log.log('person_drop:' + JSON.stringify(self.person));
-         
-		//$log.log('data:'+ JSON.stringify(data));
-		self.tasks = data.tasks;
-        $log.log('data:'+ JSON.stringify(self.tasks));
-		$log.log('Activity Selected with:' + self.isVisible + ' Header:' +self.panelHeading);
-        overlayId = overlays.add(element.id, {
-           position: {top: -10, right: 17},
-           html: overlayHtml()
-        });
-	 }
-	else if(element.type  == 'bpmn:IntermediateCatchEvent'){
-		nullOp();
-		enableTimer(element.id);
-		self.isVisible = 'timer';
-		self.panelHeading = element.id;
-		$log.log('Activity Selected with:' + self.isVisible + ' Header:' +self.panelHeading);
-        overlayId = overlays.add(element.id, {
-          position: {top: -10, right: 17},
-          html: overlayHtml()
-        });
-	  }
-	
-	else if(element.type  == 'bpmn:Process')
-    {
-        nullOp();
-        self.isVisible = 'process';
-        self.adminPersonId=adminPersonId;
-		self.selectedDate = new Date();
-        /*SDG*/self.panelHeading = '';
-        self.person=person;
-        self.processVariables=processVariables;
-        $log.log(JSON.stringify(processVariables));
-        //$log.log('person_drop:' + JSON.stringify(self.person));
-    } else {
-      self.isVisible = '';
-      self.panelHeading = '';
-      nullOp();
-    }
+            //----------START PROCESS FUNCTIONALITY---------//
+            var ManagerName = null;
 
-    //selectedElement = element;
-  }
+            //Set Selected Phase Manager to dropdown on bind
+            self.SelectedProcessPhaseManager = function (id) {
+                var managerdata = $filter('filter')(person, { _id: id })[0];
+                self.ManagerName = managerdata.first_name + ' ' + managerdata.last_name;
+            }
+            
+            //Set Selected Phase Manager To Dropdown on change
+            self.ProcessPhaseManager_SelectedIndexChanged = function (id, firstname, lastname) {
+                self.adminPersonId = id;
+                self.ManagerName = firstname + ' ' + lastname;
+            }
 
-  var hoverSelectElement = function(element) {
-    //$log.log('Called hoverSelectElement(' + JSON.stringify(element) + ')');
-    if (hoverOverlayId != null) {
-      overlays.remove(hoverOverlayId);
-      hoverOverlayId = null;
-    }
+            //Udate Phase Manager
+            self.setProcessPhaseManager = function (person_id) {
 
-    if (element.type != 'bpmn:Process') {
-		var data = $filter('filter')(popupData, {bpmn_id: element.id })[0];
-		if (data !== undefined) {
-			 hoverOverlayId = overlays.add(element.id, {
-                position: {
-                  top: 10,
-                  left: 25
-                },
-				html: hoverOverlayHtml(data.start,data.end)
-			});
-		}
-	}
-  }
+                var requestUrl = 'baf/PhaseAdministratorSet?' + "method=1&phase_id=" + self.phaseId + "&person_id=" + person_id + "&project_id=" + self.projectId;
 
-  var doubleClickElement = function(element) {
-    var href = $window.location.href;
-    var dtIdx = href.indexOf('bpmn?');
-    var href = href.substring(0, dtIdx + 5);
-    var processName = popupData.filter(function(d){return element.id == d.bpmn_id;})[0].name;
-    var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
-    $window.location.href = newHref;
-  }
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-  var eventHandler = function(event) {
-    // e.element = the model element
-    // e.gfx = the graphical element
-    var element = event.element;
-    //$log.log(event.type);
-	switch(event.type) {
-		case "element.hover":
-			hoverSelectElement(element);
-			break;
-		case "element.click":
-			selectElement(element);
-			break;
-		case "element.dblclick":
-			doubleClickElement(element);
-			break;
-	}
-  }
+            }
 
-  events.forEach(function(event) {
-    eventBus.on(event, eventHandler);
-  });
+            //Udate Start Date & Time
+            self.setProcessStartDateTime = function (dt) {
+                //SDG var timestamp = self.selectedDate.getTime(dt);
+                /*SDG*/ var timestamp = self.processStartDatetime.getTime();
+                var requestUrl = 'baf/PhaseStartDateTimeSet/?' + "method=1&phase_id=" + self.phaseId + "&datetime=" + timestamp;
+                $log.log(requestUrl);
 
-  var annotateGenerate = function(variable){
-	var bgcolor='transparent';
-	switch(variable.status) {
-	  case "defined":
-		bgcolor='yellow';
-		break;
-	  case "waiting":
-		bgcolor='Red';
-		break;
-	  case 'waiting2':
-		bgcolor = 'Pink';
-		break;
-	  case "started":
-		bgcolor='Lime';
-		break;
-	  case "running":
-		bgcolor='Lime';
-		break;
-	  case "ended":
-	    bgcolor='Silver';
-	    break;
-	  default:
-	    bgcolor='white';
-    }
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-    overlays.add(variable.bpmn_id, {
-      position: {
-        top: -30,
-        left: (variable.width - 50) / 2
-      },
-      html: annotationHtml(bgcolor,variable.duration)
-    });
+            }
 
-  }
+            //Update Variable Value
+            self.setProcessVariableValue = function (variable) {
+                var requestUrl = 'baf/VariableValueSet/?' + "method=1&phase_id=" + self.phaseId + "&label=" + variable.label + "&bpmn_name=" + self.processName + "&value=" + variable.value;
 
-  var annotateBpmn = function() {
-    popupData.forEach(function(e){
-	  annotateGenerate(e);
-    })
+                $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    $log.log('Success....');
+                }).error(function (data, status, headers, config) {
+                    $log.log('Error....');
+                });
 
-  }
+            }
 
-  var q = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName + '&phase_id=' + self.phaseId;
-  $http.get(q).then(
-    function(resp) {
-      bpmnViewer.importXML(resp.data.xml, function(err) {
-        if (err) {
-          // import failed :-(
-          $log.log('FAIL importXML: ' + err);
-        } else {
-          // we did well!
-          var canvas = bpmnViewer.get('canvas');
-          canvas.zoom('fit-viewport');
-
-          processTimers = resp.data.timers;
-          processVariables = resp.data.variables;
-          processActivities = resp.data.activities;
-          processCalls = resp.data.calls;
-          adminPersonId = resp.data.admin_person_id;
-          startDatetime = resp.data.start_datetime;
-
-		  processTimers.forEach(function(variable) {
-            variable.width = 36;
-		    variable.height = 36;
-		    popupData.push(variable);
-		    clickableObjects[variable.bpmn_id] = variable;
-		  });
-
-		  processActivities.forEach(function(variable) {
-		    variable.width = 100;
-		    variable.height = 80;
-		    popupData.push(variable);
-		    clickableObjects[variable.bpmn_id] = variable;
-		  });
-
-		  processCalls.forEach(function(variable) {
-		    variable.width = 100;
-		    variable.height = 80;
-		    popupData.push(variable);
-		  });
-		  
-		  $log.log('Popup data:'+ JSON.stringify(popupData));
-		
-          $log.log('OK importXML, timers: ' + processTimers.length + ', variables: ' + processVariables.length +
-            ', activities: ' + processActivities.length + ', calls: ' + processCalls.length);
-          annotateBpmn();
-        }
-      })
-      $log.log('OK GET ' + q);
-    },
-    function() {
-      $log.log('ERROR GET ' + q);
-    }
-  );
-
+            //----------END PROCESS FUNCTIONALITY---------//
+            
+/*                          END                     */
 }]);

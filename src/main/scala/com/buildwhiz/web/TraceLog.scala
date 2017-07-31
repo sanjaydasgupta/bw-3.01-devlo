@@ -83,7 +83,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
             writer.println(s"<tr>$htmlRowData</tr>")
         }
         writer.println("</table></body></html>")
-        val links = Seq(100, 500, 2000).map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
+        val links = Seq(100, 200, 500, 1000, 2000).dropWhile(_ <= count).
+          map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
         writer.println(s"""<h3 align=\"center\">$links</h3>""")
         response.setStatus(HttpServletResponse.SC_OK)
       }

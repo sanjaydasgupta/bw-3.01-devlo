@@ -5,16 +5,15 @@ import java.time.format.DateTimeFormatter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import com.mongodb.client.FindIterable
-
-import scala.sys.process._
-import scala.languageFeature.{implicitConversions, postfixOps}
-import scala.collection.JavaConverters._
 import org.bson.Document
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.languageFeature.{implicitConversions, postfixOps}
+import scala.sys.process._
 
 class MongoDBView extends HttpServlet with HttpUtils {
 
@@ -68,28 +67,35 @@ class MongoDBView extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     val writer = response.getWriter
     try {
-      parameters.get("collection_name") match {
-        case None =>
+      (parameters.get("collection_name"), parameters.get("query"), parameters.get("fields")) match {
+        case (None, _, _) =>
           val names: Seq[String] = BWMongoDB3.collectionNames
           val counts: Seq[Long] = names.map(BWMongoDB3(_).count())
           val nameAndCounts = names.zip(counts).sortWith(_._1 < _._1)
           val jsonStrings = nameAndCounts.map(nc => s"""{"name": "${nc._1}", "count": ${nc._2}}""")
           writer.print(jsonStrings.mkString("[", ", ", "]"))
-        case Some("*") =>
+        case (Some("*"), _, _) =>
           writer.println(archive(request))
-        case Some(command) =>
-          if (command.endsWith("*")) {
-            collectionSchema(request, response, command.substring(0, command.length - 1))
-          } else if (command.contains("#")) {
-            val Array(collection, query) = command.split("#")
-            val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
-            val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
-            writer.print(jsonStrings.mkString("[", ", ", "]"))
+        case (Some(collection), None, None) =>
+          if (collection.endsWith("*")) {
+            collectionSchema(request, response, collection.substring(0, collection.length - 1))
           } else {
-            val docs: Seq[DynDoc] = BWMongoDB3(command).find().limit(100)
+            val docs: Seq[DynDoc] = BWMongoDB3(collection).find().limit(100)
             val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
             writer.print(jsonStrings.mkString("[", ", ", "]"))
           }
+        case (Some(collection), Some(query), None) =>
+          val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
+          val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
+          writer.print(jsonStrings.mkString("[", ", ", "]"))
+        case (Some(collection), Some(query), Some(fields)) =>
+          val fieldsToKeep: Set[String] = Document.parse(s"{$fields}").asScala.toSeq.
+            filter(p => p._2.toString == "true").map(_._1).toSet
+          val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
+          val trimmedDocs = docs.
+            map(d => {val keys = d.asDoc.keySet().asScala -- fieldsToKeep; keys.foreach(k => d.remove(k)); d})
+          val jsonStrings: Seq[String] = trimmedDocs.map(d => d.asDoc.toJson)
+          writer.print(jsonStrings.mkString("[", ", ", "]"))
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

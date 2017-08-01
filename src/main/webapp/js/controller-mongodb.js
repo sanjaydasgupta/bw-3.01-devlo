@@ -9,6 +9,7 @@
   self.displayingSchema = false;
 
   self.query = '';
+  self.fields = '';
 
   $log.log('MongodbCtrl: calling GET baf/MongoDBView');
   $http.get('baf/MongoDBView').then(
@@ -25,9 +26,9 @@
   );
 
   self.displayCollection = function(name) {
-    query = '?collection_name=' + name;
-    $log.log('MongodbCtrl: GET baf/MongoDBView' + query);
-    $http.get('baf/MongoDBView' + query).then(
+    var q = 'baf/MongoDBView?collection_name=' + name;
+    $log.log('MongodbCtrl: GET baf/MongoDBView' + q);
+    $http.get(q).then(
       function(resp) {
         self.details = resp.data.map(function(d){return JSON.stringify(d, null, 1);});
         self.name = name;
@@ -38,9 +39,9 @@
   }
 
   self.displaySchema = function(name) {
-    query = 'baf/MongoDBView?collection_name=' + name + '*';
-    $log.log('MongodbCtrl: GET ' + query);
-    $http.get(query).then(
+    var q = 'baf/MongoDBView?collection_name=' + name + '*';
+    $log.log('MongodbCtrl: GET ' + q);
+    $http.get(q).then(
       function(resp) {
         self.details = resp.data;
         self.name = name;
@@ -51,9 +52,9 @@
   }
 
   self.archive = function() {
-    query = 'baf/MongoDBView?collection_name=*';
-    $log.log('MongodbCtrl: GET ' + query);
-    $http.get(query).then(
+    var q = 'baf/MongoDBView?collection_name=*';
+    $log.log('MongodbCtrl: GET ' + q);
+    $http.get(q).then(
       function(resp) {
         $log.log('MongoDB archive status: ' + JSON.stringify(resp.data));
         self.archiveStatus = resp.data;
@@ -64,9 +65,12 @@
 
   self.runQuery = function() {
     $log.log('Called runQuery()');
-    query = 'baf/MongoDBView?collection_name=' + escape(self.name + '#' + self.query);
-    $log.log('MongodbCtrl: GET ' + query);
-    $http.get(query).then(
+    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&query=' + escape(self.query);
+    if (self.fields != '') {
+      q += '&fields=' + escape(self.fields);
+    }
+    $log.log('MongodbCtrl: GET ' + q);
+    $http.get(q).then(
       function(resp) {
         self.details = resp.data;
         self.displayingSchema = false;

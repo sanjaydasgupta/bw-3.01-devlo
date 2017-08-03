@@ -36,6 +36,8 @@
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
     );
+    self.name = '';
+    self.query = '';
   }
 
   self.displaySchema = function(name) {
@@ -49,6 +51,8 @@
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
     );
+    self.name = '';
+    self.query = '';
   }
 
   self.archive = function() {
@@ -61,6 +65,8 @@
       },
       function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
     );
+    self.name = '';
+    self.query = '';
   }
 
   self.runQuery = function() {

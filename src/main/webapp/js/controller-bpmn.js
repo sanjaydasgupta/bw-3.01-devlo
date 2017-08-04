@@ -11,7 +11,9 @@ angular.module('BuildWhizApp')
             //--------START COMMON VARIABLES -------//
             var self = this;
 
-            self.panelHeading = '';
+            self.panelHeadingType = '';
+            self.panelHeadingName = '';
+            self.selectedItemType = '';
 
             self.processName = $routeParams.process;
             self.projectId = $routeParams.project_id;
@@ -50,9 +52,7 @@ angular.module('BuildWhizApp')
                 startingDay: 1
             };
 
-	        //Create null op function
-	        var nullOp = function() 
-	        {
+	        var nullOp = function() {
 		        $http.get('etc/Environment').then(
 		          function(resp){$log.log('OK Environment')},
 		          function(resp){$log.log('ERROR Environment')}
@@ -137,7 +137,6 @@ angular.module('BuildWhizApp')
                           processActivities = response.data.activities;
                           processCalls = response.data.calls;
                           adminPersonId = response.data.admin_person_id;
-                          $log.log("START_DATETIME: " + response.data.start_datetime);
                           self.processStartDatetime = new Date(response.data.start_datetime);
 
                           //timers loop
@@ -161,6 +160,7 @@ angular.module('BuildWhizApp')
                               processCall.width = 100;
                               processCall.height = 80;
                               bpmnElements.push(processCall);
+                              clickableObjects[processCall.bpmn_id] = processCall;
                           });
 
                           //$log.log('Popup data:' + JSON.stringify(popupData));
@@ -237,12 +237,14 @@ angular.module('BuildWhizApp')
                     selectOverlayId = null;/*SDG*/
                 }
 
-                if (element.type == 'bpmn:CallActivity' && clickableObjects[element.id]) {
+                if (element.type == 'bpmn:CallActivity' && clickableObjects[element.id] &&
+                    clickableObjects[element.id].elementType == 'activity') {
 
                     nullOp();
 
-                    self.isVisible = 'activity';
-                    self.panelHeading = element.id;
+                    self.selectedItemType = 'activity';
+                    self.panelHeadingType = 'Activity';
+                    self.panelHeadingName = element.id;
                     self.processVariables = processVariables;
 
                     var data = $filter('filter')(bpmnElements, { bpmn_id: element.id })[0];
@@ -251,45 +253,53 @@ angular.module('BuildWhizApp')
                     self.tasks = data.tasks;
 
                     //$log.log('data:' + JSON.stringify(self.tasks));
-                    //$log.log('Activity Selected with:' + self.isVisible + ' Header:' + self.panelHeading);
+                    //$log.log('Activity Selected with:' + self.selectedItemType + ' Header:' + self.panelHeading);
 
                     selectOverlayId = overlays.add(element.id, {
                         position: { top: 2, left: 2 },
                         html: selectOverlayHtml()
                     });
-                }
-                else if (element.type == 'bpmn:IntermediateCatchEvent') {
+                } else if (element.type == 'bpmn:IntermediateCatchEvent' && clickableObjects[element.id] &&
+                        clickableObjects[element.id].elementType == 'timer') {
 
                     nullOp();
 
                     getTimerDuration(element.id);
 
-                    self.isVisible = 'timer';
-                    self.panelHeading = element.id;
+                    self.selectedItemType = 'timer';
+                    //self.panelHeading = element.id;
+                    self.panelHeadingType = 'Timer';
+                    self.panelHeadingName = element.id;
 
-                    //$log.log('Activity Selected with:' + self.isVisible + ' Header:' + self.panelHeading);
+                    //$log.log('Activity Selected with:' + self.selectedItemType + ' Header:' + self.panelHeading);
 
                     selectOverlayId = overlays.add(element.id, {
                         position: { top: -10, right: 17 },
                         html: selectOverlayHtml()
                     });
-                }
-                else if (element.type == 'bpmn:Process') {
+                } else if (element.type == 'bpmn:Process') {
                     nullOp();
 
-                    self.isVisible = 'process';
+                    self.selectedItemType = 'process';
                     self.adminPersonId = adminPersonId;
                     //SDG self.selectedDate = new Date();
-                    self.panelHeading = '';/*SDG*/
+                    //self.panelHeading = '';/*SDG*/
+                    self.panelHeadingType = 'Process';
+                    self.panelHeadingName = element.id;
                     self.person = person;
                     self.processVariables = processVariables;
 
                     //$log.log(JSON.stringify(processVariables));
                     //$log.log('person_drop:' + JSON.stringify(self.person));
-                }
-                else {
-                    self.isVisible = '';
-                    self.panelHeading = '';
+                } else if (element.type == 'bpmn:CallActivity' && clickableObjects[element.id] &&
+                        clickableObjects[element.id].elementType == 'subprocessCall') {
+                    nullOp();
+                    self.selectedItemType = 'subprocessCall';
+                    self.panelHeadingType = 'Sub-Process Call';
+                    self.panelHeadingName = element.id;
+                } else {
+                    self.selectedItemType = '';
+                    self.panelHeadingType = '';
 
                     nullOp();
                 }
@@ -304,12 +314,10 @@ angular.module('BuildWhizApp')
 				var href = href.substring(0, dtIdx + 5);
 				
 				var selectedProcesses =$filter('filter')(bpmnElements, { bpmn_id: element.id });// bpmnElements.filter(function(d){return element.id == d.bpmn_id;})[0].name;
-				if (selectedProcesses.length>0)
-				{
+				if (selectedProcesses.length > 0) {
 					var selectedProcess=selectedProcesses[0];
 				
-					if(selectedProcess.hasOwnProperty('name'))
-					{
+					if(selectedProcess.hasOwnProperty('name')) {
 						var processName=selectedProcess.name;
 						var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
 						$window.location.href = newHref;
@@ -349,11 +357,11 @@ angular.module('BuildWhizApp')
                 $http.get(requestUrl).then(function (response) {
                     var timer = response.data;
                     if (timer != '') {
-                        self.isVisible = 'timer';
+                        self.selectedItemType = 'timer';
                         self.eltype = timerVal;		// get timer type
                         self.timerduration = timer;
                     } else {
-                        self.isVisible = '';
+                        self.selectedItemType = '';
                     }
                 })
             }

@@ -14,11 +14,15 @@ angular.module('BuildWhizApp')
             self.panelHeadingType = '';
             self.panelHeadingName = '';
             self.selectedItemType = '';
+            self.selectedItem = null;
 
             self.processName = $routeParams.process;
             self.projectId = $routeParams.project_id;
             self.projectName = $routeParams.project_name;
             self.phaseId = $routeParams.phase_id;
+
+            self.newActionName = '';
+            self.newActionType = null;
 
             self.processStartDatetime = new Date();
             self.timerId = null;
@@ -243,13 +247,13 @@ angular.module('BuildWhizApp')
                     clickableObjects[element.id].elementType == 'activity') {
 
                     nullOp();
-
                     self.selectedItemType = 'activity';
                     self.panelHeadingType = 'Activity';
                     self.panelHeadingName = element.id;
                     self.processVariables = processVariables;
 
                     var data = $filter('filter')(bpmnElements, { bpmn_id: element.id })[0];
+                    self.selectedItem = data;
                     self.activity_id = data.id;
                     self.person = person;
                     self.tasks = data.tasks;
@@ -267,7 +271,6 @@ angular.module('BuildWhizApp')
                     nullOp();
 
                     getTimerDuration(element.id);
-
                     self.selectedItemType = 'timer';
                     //self.panelHeading = element.id;
                     self.panelHeadingType = 'Timer';
@@ -284,8 +287,6 @@ angular.module('BuildWhizApp')
 
                     self.selectedItemType = 'process';
                     self.adminPersonId = adminPersonId;
-                    //SDG self.selectedDate = new Date();
-                    //self.panelHeading = '';/*SDG*/
                     self.panelHeadingType = 'Process';
                     self.panelHeadingName = element.id;
                     self.person = person;
@@ -420,15 +421,22 @@ angular.module('BuildWhizApp')
             }
 
             //Add New Task/Action
-            self.addActivityAction = function (activity_id, action_name, type) {
-                var requestUrl = 'baf/ActionAdd?' + "method=1&activity_id=" + activity_id + "&action_name=" + action_name + "&type=" + type + "&bpmn_name=" + self.processName + "&assignee_id=" + adminPersonId;
+            self.addActivityAction = function () {
+                var requestUrl = 'baf/ActionAdd?' + "method=1&activity_id=" + self.activity_id +
+                    "&action_name=" + self.newActionName + "&type=" + self.newActionType.toLowerCase() +
+                    "&bpmn_name=" + self.processName + "&assignee_id=" + adminPersonId;
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
+                    self.newActionName = '';
+                    self.newActionType = null;
                     $log.log('Success....');
                 }).error(function (data, status, headers, config) {
                     $log.log('Error....');
                 });
+            }
 
+            self.addActivityActionDisabled = function() {
+                return self.selectedItem.status != 'defined';
             }
 
             //----------END ACTIVITY FUNCTIONALITY---------//

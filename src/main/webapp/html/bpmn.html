@@ -49,7 +49,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="task in bpmnCtrl.tasks">
+                            <tr data-ng-repeat="task in bpmnCtrl.tasks">
                                 <td style="width: 30%">
                                     <span style="width: 20px; background-color: {{bpmnCtrl.statusColor(task.status)}}; border: 2px solid #663300; border-radius: 5px;">&nbsp;&nbsp;&nbsp;&nbsp;
                                     </span>
@@ -78,47 +78,32 @@
                                     <button style="width: 20%; float: left; margin-left: 5px" class="btn btn-success btn-xs" ng-click="bpmnCtrl.setTaskDuration(task)">Set</button>
                                 </td>
                             </tr>
-                        </tbody>
-                    </table>
-                    <div style="height: 150px;">
-                        <table class="table">
-
                             <tr>
-                                <td style="width: 20%">Action Name</td>
-                                <td style="width: 30%">
-                                    <div class="form-group">
-                                        <div class="col-xs-12">
-                                            <input type="hidden" ng-model="bpmnCtrl.activity_id" value="{{bpmnCtrl.activity_id}}" />
-                                            <input type="text" ng-model="bpmnCtrl.action_name" required />
-                                        </div>
+                                <td colspan="4" align="center">
+                                    <input data-ng-model="bpmnCtrl.newActionName" placeholder="Action name"
+                                        data-ng-disabled="bpmnCtrl.addActivityActionDisabled()" />
+                                    <div class="btn-group" uib-dropdown>
+                                        <button id="type-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle
+                                                data-ng-disabled="bpmnCtrl.addActivityActionDisabled()">
+                                            {{ bpmnCtrl.newActionType || 'Select Type'}}&nbsp;<span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="type-button">
+                                            <li role="menuitem">
+                                                <a href="javascript:void(0)" data-ng-click="bpmnCtrl.newActionType = 'Prerequisite'" data-ng-model="bpmnCtrl.newActionType">Prerequisite</a>
+                                            </li>
+                                            <li role="menuitem">
+                                                <a href="javascript:void(0)" data-ng-click="bpmnCtrl.newActionType = 'Review'" data-ng-model="bpmnCtrl.newActionType">Review</a>
+                                            </li>
+                                        </ul>
                                     </div>
-                                </td>
-                                <td style="width: 10%">Type</td>
-                                <td style="width: 30%">
-                                    <div class="form-group">
-                                        <div class="col-xs-12">
-                                            <div class="btn-group" uib-dropdown is-open="type.isopen">
-                                                <button id="type-button" type="button" class="btn btn-primary btn-xs" uib-dropdown-toggle ng-disabled="disabled">
-                                                    {{ bpmnCtrl.type || 'Select Type'}}<span class="caret"></span>
-                                                </button>
-                                                <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="type-button">
-                                                    <li role="menuitem">
-                                                        <a href="" ng-click="bpmnCtrl.type='prerequisite'" ng-model="bpmnCtrl.type">Prerequisite</a>
-                                                        <a href="" ng-click="bpmnCtrl.type='review'" ng-model="bpmnCtrl.type">Review</a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td style="width: 10%">
                                     <button type="button" class="btn btn-success btn-xs"
-                                        ng-click="bpmnCtrl.addActivityAction(bpmnCtrl.activity_id, bpmnCtrl.action_name, bpmnCtrl.type)">
+                                            data-ng-disabled="!bpmnCtrl.newActionName || !bpmnCtrl.newActionType"
+                                            data-ng-click="bpmnCtrl.addActivityAction()">
                                         Add</button>
                                 </td>
                             </tr>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
                 <!----------- END ACTIVITY SECTION ---------------->
 

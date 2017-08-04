@@ -26,7 +26,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", timer.duration[String]).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).
-        append("status", timer.status[String])
+        append("status", timer.status[String]).append("elementType", "timer")
     })
   }
 
@@ -37,8 +37,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       val (start, end) = (offset.start[String], offset.end[String])
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
-        append("start", start).append("end", end).
-        append("status", stamp.status[String]).append("name", stamp.name[String])
+        append("start", start).append("end", end).append("status", stamp.status[String]).
+        append("name", stamp.name[String]).append("elementType", "subprocessCall")
     })
   }
 
@@ -72,7 +72,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).
         append("start", activity.start[String]).append("end", activity.end[String]).
-        append("duration", getActivityDuration(activity))
+        append("duration", getActivityDuration(activity)).append("elementType", "activity")
     })
     returnActivities
   }

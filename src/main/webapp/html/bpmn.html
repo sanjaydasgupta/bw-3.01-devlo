@@ -16,26 +16,33 @@
                 </div>
             </div>
             <div class="col-xs-12 col-sm-12 col-md-6 col-lg-5 col-xl-5" style="border: 1px solid #337ab7; height: 500px; width: 670px; max-height: 500px; min-height: 500px; border-radius: 5px;">
-                <h3 data-ng-if="bpmnCtrl.selectedItemType != ''">{{bpmnCtrl.panelHeadingType}} '<i>{{bpmnCtrl.panelHeadingName}}</i>'</h3>
+                <!----------- START TITLE BAR ---------------->
+                <h3 style="background-color:yellow;" data-ng-if="bpmnCtrl.selectedItemType != ''">
+                    {{bpmnCtrl.panelHeadingType}} '<i>{{bpmnCtrl.panelHeadingName}}</i>'</h3>
+                <h3 style="background-color:yellow; text-align:center;" data-ng-if="bpmnCtrl.selectedItemType == ''">
+                    Click an Element</h3>
+                <!----------- END TITLE BAR ---------------->
 
-                <!-----------SUB-PROCESS CALL SECTION---------------->
+                <!----------- START SUB-PROCESS CALL SECTION ---------------->
                 <div data-ng-if="bpmnCtrl.selectedItemType == 'subprocessCall'">
-                    (empty)
+                    (double-click to display called process)
                 </div>
-                <!-----------START TIMER SECTION---------------->
-                <div data-ng-if="bpmnCtrl.selectedItemType == 'timer'">
-                    <input value="{{bpmnCtrl.timerduration}}" ng-model="bpmnCtrl.timerduration" data-type-clicked="" style="border: none; padding: 5px; border-radius: 2px; margin: 5px auto;" type="text">
-                    <button class="btn btn-primary" ng-click="bpmnCtrl.setTimerDuration(bpmnCtrl.eltype, bpmnCtrl.timerduration)">Update</button>
-                </div>
-                <!-----------END TIMER SECTION---------------->
+                <!----------- END SUB-PROCESS CALL SECTION ---------------->
 
-                <!-----------START ACTIVITY SECTION---------------->
+                <!----------- START TIMER SECTION ---------------->
+                <div data-ng-if="bpmnCtrl.selectedItemType == 'timer'">
+                    Duration <input value="{{bpmnCtrl.timerDuration}}" data-ng-model="bpmnCtrl.timerDuration"
+                           style="border-radius: 2px; margin: 5px auto;" size="10" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}">
+                    <button class="btn btn-primary btn-xs" data-ng-click="bpmnCtrl.setTimerDuration()">Set</button>
+                </div>
+                <!----------- END TIMER SECTION ---------------->
+
+                <!----------- START ACTIVITY SECTION ---------------->
                 <div data-ng-if="bpmnCtrl.selectedItemType == 'activity'">
                     <table class="table table-bordered">
                         <thead class="thead-default" style="background-color: #337ab7; color: #ffffff;">
                             <tr>
-                                <th>&nbsp;</th>
-                                <th>Name</th>
+                                <th>Task Name</th>
                                 <th>Type</th>
                                 <th>Assignee</th>
                                 <th>Duration</th>
@@ -43,11 +50,11 @@
                         </thead>
                         <tbody>
                             <tr ng-repeat="task in bpmnCtrl.tasks">
-                                <td style="width: 5%">
+                                <td style="width: 30%">
                                     <span style="width: 20px; background-color: {{bpmnCtrl.statusColor(task.status)}}; border: 2px solid #663300; border-radius: 5px;">&nbsp;&nbsp;&nbsp;&nbsp;
                                     </span>
+                                    &nbsp;&nbsp;{{task.name}}
                                 </td>
-                                <td style="width: 20%">{{task.name}}</td>
                                 <td style="width: 10%">{{task.type == "main" ? "M" : task.type == "prerequisite" ? "P" : "R"}}</td>
                                 <td style="width: 35%">
                                     <!-------UI Bootstrap dropdown -------->
@@ -67,7 +74,7 @@
                                     <button class="btn btn-success btn-xs" ng-click="bpmnCtrl.setTaskAssignee(task)">Set</button>
                                 </td>
                                 <td style="width: 25%">
-                                    <input style="width: 70%; float: left" type="text" value="{{task.duration}}" ng-model="task.duration" placeholder="Duration">
+                                    <input style="width: 70%; float: left" type="text" value="{{task.duration}}" ng-model="task.duration" size="10">
                                     <button style="width: 20%; float: left; margin-left: 5px" class="btn btn-success btn-xs" ng-click="bpmnCtrl.setTaskDuration(task)">Set</button>
                                 </td>
                             </tr>
@@ -113,10 +120,9 @@
                         </table>
                     </div>
                 </div>
-                <!-----------END ACTIVITY SECTION---------------->
+                <!----------- END ACTIVITY SECTION ---------------->
 
-
-                <!-----------START PROCESS SECTION---------------->
+                <!----------- START PROCESS SECTION ---------------->
                 <div data-ng-if="bpmnCtrl.selectedItemType == 'process'">
                     <table class="table">
                         <tr>
@@ -204,8 +210,7 @@
                         </tbody>
                     </table>
                 </div>
-                <!-----------END PROCESS SECTION---------------->
-
+                <!----------- END PROCESS SECTION ---------------->
             </div>
         </div>
     </div>

@@ -19,7 +19,10 @@ angular.module('BuildWhizApp')
             self.projectId = $routeParams.project_id;
             self.projectName = $routeParams.project_name;
             self.phaseId = $routeParams.phase_id;
-            /*SDG*/ self.processStartDatetime = new Date();
+
+            self.processStartDatetime = new Date();
+            self.timerId = null;
+            self.timerDuration = '00:00:00';
 
             var events = [
                             'element.click',
@@ -110,11 +113,10 @@ angular.module('BuildWhizApp')
             var processActivities = [];
             var processCalls = [];
             var adminPersonId = null;
-            //SDG var startDatetime = 0;
+
             var bpmnElements = [];
             var clickableObjects = {};
 
-            //Generte div to display duration on initialize
             var annotationOverlayHtml = function (bgColor, duration) {
                 return '<div style="background-color:' + bgColor + '; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">' + duration + '</div>';
             }
@@ -297,6 +299,10 @@ angular.module('BuildWhizApp')
                     self.selectedItemType = 'subprocessCall';
                     self.panelHeadingType = 'Sub-Process Call';
                     self.panelHeadingName = element.id;
+                    selectOverlayId = overlays.add(element.id, {
+                        position: { top: 2, left: 2 },
+                        html: selectOverlayHtml()
+                    });
                 } else {
                     self.selectedItemType = '';
                     self.panelHeadingType = '';
@@ -305,20 +311,18 @@ angular.module('BuildWhizApp')
                 }
             }
 
-
             //Double Click Event
             var doubleClickElement = function (element) {
                 $log.log('Called doubleClickElement()');
-				var href = $window.location.href;
-				var dtIdx = href.indexOf('bpmn?');
-				var href = href.substring(0, dtIdx + 5);
-				
-				var selectedProcesses =$filter('filter')(bpmnElements, { bpmn_id: element.id });// bpmnElements.filter(function(d){return element.id == d.bpmn_id;})[0].name;
+
+				var selectedProcesses = bpmnElements.filter(function(d){return element.id == d.bpmn_id;});
 				if (selectedProcesses.length > 0) {
-					var selectedProcess=selectedProcesses[0];
-				
-					if(selectedProcess.hasOwnProperty('name')) {
-						var processName=selectedProcess.name;
+					var selectedProcess = selectedProcesses[0];
+
+					if(selectedProcess.hasOwnProperty('name') && selectedProcess.elementType == 'subprocessCall') {
+						var processName = selectedProcess.name;
+				        var dtIdx = $window.location.href.indexOf('bpmn?');
+				        var href = $window.location.href.substring(0, dtIdx + 5);
 						var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
 						$window.location.href = newHref;
 					}
@@ -352,14 +356,15 @@ angular.module('BuildWhizApp')
             //----------START TIMERS FUNCTIONALITY---------//
 
             //Get Timer Duration
-            var getTimerDuration = function (timerVal) {
-                var requestUrl = 'baf/TimerDurationFetch?phase_id=' + self.phaseId + '&bpmn_name=' + self.processName + '&timer_id=' + timerVal;
+            var getTimerDuration = function (timerId) {
+                var requestUrl = 'baf/TimerDurationFetch?phase_id=' + self.phaseId + '&bpmn_name=' + self.processName +
+                '&timer_id=' + timerId;
                 $http.get(requestUrl).then(function (response) {
                     var timer = response.data;
                     if (timer != '') {
                         self.selectedItemType = 'timer';
-                        self.eltype = timerVal;		// get timer type
-                        self.timerduration = timer;
+                        self.timerId = timerId;		// get timer type
+                        self.timerDuration = timer;
                     } else {
                         self.selectedItemType = '';
                     }
@@ -367,8 +372,9 @@ angular.module('BuildWhizApp')
             }
 
             //Set Timer Duration
-            self.setTimerDuration = function (clickedOn, updatedTime) {
-                var requestUrl = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId + "&bpmn_name=" + self.processName + "&timer_id=" + clickedOn + "&duration=" + updatedTime;
+            self.setTimerDuration = function () {
+                var requestUrl = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId +
+                "&bpmn_name=" + self.processName + "&timer_id=" + self.timerId + "&duration=" + self.timerDuration;
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
                     $log.log('Success....');

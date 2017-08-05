@@ -25,7 +25,7 @@
             </tr>
             <tr data-ng-if="projectsCtrl.canCreateProject()">
               <td>
-                <input type="text" data-ng-model="projectsCtrl.newProjectName" placeholder="New project name"/>
+                <input data-ng-model="projectsCtrl.newProjectName" placeholder="New project name"/>
                 <button data-ng-disabled="projectsCtrl.newProjectName == ''" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.createNewProject()">Create</button>
               </td>
             </tr>
@@ -41,7 +41,7 @@
             </tr>
           </table>
         </div>
-        <!-- Detail -->
+        <!-- Detail Pane -->
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
           <!-- Project Selected -->
           <table data-ng-if="projectsCtrl.selectedProject != null"
@@ -63,7 +63,7 @@
                     </li>
                   </ul>
                 </div>
-                <input type="text" data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
+                <input data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
                     data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> New Phase</button>
                 <label style="width:25px;"></label>
@@ -117,14 +117,14 @@
             <tr><td><table border="1" width="100%">
               <tr style="text-align:center; font-weight:bold;"><td width="25%">BPMN Name</td><td width="25%">Status</td><td width="25%">Start</td><td width="25%">End</td></tr>
               <tr style="text-align:center;">
-                <td><a href="#/bpmn?process={{projectsCtrl.selectedPhase.bpmn_name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{projectsCtrl.selectedPhase.bpmn_name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
                 </td>
                 <td>{{projectsCtrl.selectedPhase.status}}</td>
                 <td>{{projectsCtrl.selectedPhase.start}}</td>
                 <td>{{projectsCtrl.selectedPhase.end}}</td>
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns" style="text-align:center;">
-                <td><a href="#/bpmn?process={{b.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
                 <td>{{b.status}}</td>
                 <td>{{b.offset.start}}</td>
                 <td>{{b.offset.end}}</td>

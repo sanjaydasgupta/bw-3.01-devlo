@@ -2,11 +2,9 @@ angular.module('BuildWhizApp')
     .controller("BpmnCtrl", ['$log', '$http', '$routeParams', '$sce', '$filter', '$window',
         function ($log, $http, $routeParams, $sce, $filter, $window) {
 
-            /* 
-            https://github.com/bpmn-io/bower-bpmn-js
-            https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
-            https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay
-            */
+//          https://github.com/bpmn-io/bower-bpmn-js
+//          https://github.com/bpmn-io/bpmn-js-examples/tree/master/interaction
+//          https://github.com/bpmn-io/bpmn-js-examples/tree/master/overlay
 
             //--------START COMMON VARIABLES -------//
             var self = this;
@@ -20,6 +18,9 @@ angular.module('BuildWhizApp')
             self.projectId = $routeParams.project_id;
             self.projectName = $routeParams.project_name;
             self.phaseId = $routeParams.phase_id;
+            self.phaseName = $routeParams.phase_name;
+            self.isProjectManager = $routeParams.project_manager;
+            self.isPhaseManager = $routeParams.phase_manager;
 
             self.newActionName = '';
             self.newActionType = null;
@@ -41,14 +42,14 @@ angular.module('BuildWhizApp')
             var overlays = bpmnViewer.get('overlays');
             var eventBus = bpmnViewer.get('eventBus');
 
-            //--------END COMMON VARIABLES-------//
-
-
             $log.log('Process-Name: ' + self.processName);
             $log.log('Project-Id: ' + self.projectId);
             $log.log('Project-Name: ' + self.projectName);
             $log.log('Phase-Id: ' + self.phaseId);
-            
+            $log.log('Phase-Name: ' + self.phaseName);
+            $log.log('Is-Project-Manager: ' + self.isProjectManager);
+            $log.log('Is-Phase-Manager: ' + self.isPhaseManager);
+            //--------END COMMON VARIABLES-------//
 
             //Date picker options
             self.dateOptions = {
@@ -435,8 +436,8 @@ angular.module('BuildWhizApp')
                 });
             }
 
-            self.addActivityActionDisabled = function() {
-                return self.selectedItem.status != 'defined';
+            self.activityActionsDisabled = function() {
+                return !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
             }
 
             //----------END ACTIVITY FUNCTIONALITY---------//
@@ -461,13 +462,11 @@ angular.module('BuildWhizApp')
             self.setProcessPhaseManager = function (person_id) {
 
                 var requestUrl = 'baf/PhaseAdministratorSet?' + "method=1&phase_id=" + self.phaseId + "&person_id=" + person_id + "&project_id=" + self.projectId;
-
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
                     $log.log('Success....');
                 }).error(function (data, status, headers, config) {
                     $log.log('Error....');
                 });
-
             }
 
             //Udate Start Date & Time

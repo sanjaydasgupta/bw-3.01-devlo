@@ -19,8 +19,8 @@ angular.module('BuildWhizApp')
             self.projectName = $routeParams.project_name;
             self.phaseId = $routeParams.phase_id;
             self.phaseName = $routeParams.phase_name;
-            self.isProjectManager = $routeParams.project_manager;
-            self.isPhaseManager = $routeParams.phase_manager;
+            self.isProjectManager = $routeParams.project_manager == 'true';
+            self.isPhaseManager = $routeParams.phase_manager == 'true';
 
             self.newActionName = '';
             self.newActionType = null;
@@ -437,7 +437,12 @@ angular.module('BuildWhizApp')
             }
 
             self.activityActionsDisabled = function() {
-                return !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
+                $log.log('selectedItem.status: ' + self.selectedItem.status);
+                $log.log('isPhaseManager: ' + self.isPhaseManager);
+                $log.log('isProjectManager: ' + self.isProjectManager);
+                var rv = !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
+                $log.log('returns: ' + rv);
+                return rv;
             }
 
             //----------END ACTIVITY FUNCTIONALITY---------//

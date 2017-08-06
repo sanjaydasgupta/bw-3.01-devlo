@@ -26,8 +26,6 @@ angular.module('BuildWhizApp')
             self.newActionType = null;
 
             self.processStartDatetime = new Date();
-            self.timerId = null;
-            self.timerDuration = '00:00:00';
 
             var events = [
                             'element.click',
@@ -105,13 +103,12 @@ angular.module('BuildWhizApp')
             }
 
             //Get person list
-            var person = [];
+            self.persons = [];
             var requestUrl = 'api/Person';
             $http.get(requestUrl).then(function (response) {
-                person = response.data;
+                self.persons = response.data;
                 //$log.log('person' + JSON.stringify(person));
             });
-
 
             var processTimers = [];
             var processVariables = [];
@@ -244,20 +241,14 @@ angular.module('BuildWhizApp')
                     selectOverlayId = null;/*SDG*/
                 }
 
-                if (element.type == 'bpmn:CallActivity' && clickableObjects[element.id] &&
-                    clickableObjects[element.id].elementType == 'activity') {
+                if (clickableObjects[element.id] && clickableObjects[element.id].elementType == 'activity') {
 
                     nullOp();
                     self.selectedItemType = 'activity';
                     self.panelHeadingType = 'Activity';
                     self.panelHeadingName = element.id;
-                    self.processVariables = processVariables;
 
-                    var data = $filter('filter')(bpmnElements, { bpmn_id: element.id })[0];
-                    self.selectedItem = data;
-                    self.activity_id = data.id;
-                    self.person = person;
-                    self.tasks = data.tasks;
+                    self.selectedItem = clickableObjects[element.id];
 
                     //$log.log('data:' + JSON.stringify(self.tasks));
                     //$log.log('Activity Selected with:' + self.selectedItemType + ' Header:' + self.panelHeading);
@@ -266,21 +257,18 @@ angular.module('BuildWhizApp')
                         position: { top: 2, left: 2 },
                         html: selectOverlayHtml()
                     });
-                } else if (element.type == 'bpmn:IntermediateCatchEvent' && clickableObjects[element.id] &&
-                        clickableObjects[element.id].elementType == 'timer') {
+                } else if (clickableObjects[element.id] && clickableObjects[element.id].elementType == 'timer') {
 
                     nullOp();
 
-                    getTimerDuration(element.id);
                     self.selectedItemType = 'timer';
-                    //self.panelHeading = element.id;
                     self.panelHeadingType = 'Timer';
                     self.panelHeadingName = element.id;
 
-                    //$log.log('Activity Selected with:' + self.selectedItemType + ' Header:' + self.panelHeading);
+                    self.selectedItem = clickableObjects[element.id];
 
                     selectOverlayId = overlays.add(element.id, {
-                        position: { top: -10, right: 17 },
+                        position: { top: 2, left: 2 },
                         html: selectOverlayHtml()
                     });
                 } else if (element.type == 'bpmn:Process') {
@@ -290,7 +278,7 @@ angular.module('BuildWhizApp')
                     self.adminPersonId = adminPersonId;
                     self.panelHeadingType = 'Process';
                     self.panelHeadingName = element.id;
-                    self.person = person;
+                    //self.person = person;
                     self.processVariables = processVariables;
 
                     //$log.log(JSON.stringify(processVariables));
@@ -357,26 +345,11 @@ angular.module('BuildWhizApp')
     
             //----------START TIMERS FUNCTIONALITY---------//
 
-            //Get Timer Duration
-            var getTimerDuration = function (timerId) {
-                var requestUrl = 'baf/TimerDurationFetch?phase_id=' + self.phaseId + '&bpmn_name=' + self.processName +
-                '&timer_id=' + timerId;
-                $http.get(requestUrl).then(function (response) {
-                    var timer = response.data;
-                    if (timer != '') {
-                        self.selectedItemType = 'timer';
-                        self.timerId = timerId;		// get timer type
-                        self.timerDuration = timer;
-                    } else {
-                        self.selectedItemType = '';
-                    }
-                })
-            }
-
             //Set Timer Duration
             self.setTimerDuration = function () {
-                var requestUrl = 'baf/TimerDurationSet/?' + "method=1&phase_id=" + self.phaseId +
-                "&bpmn_name=" + self.processName + "&timer_id=" + self.timerId + "&duration=" + self.timerDuration;
+                var requestUrl = 'baf/TimerDurationSet/?' + 'phase_id=' + self.phaseId +
+                '&bpmn_name=' + self.processName + '&timer_id=' + self.selectedItem.id +
+                "&duration=" + self.selectedItem.duration;
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
                     $log.log('Success....');
@@ -399,7 +372,8 @@ angular.module('BuildWhizApp')
 
             //Set Assignee
             self.setTaskAssignee = function (task) {
-                var requestUrl = 'baf/ActionContributorSet?' + "method=1&person_id=" + task.assignee._id + "&activity_id=" + self.activity_id + "&action_name=" + task.name + "&project_id=" + self.projectId;
+                var requestUrl = 'baf/ActionContributorSet?' + "method=1&person_id=" + task.assignee._id +
+                    "&activity_id=" + self.selectedItem.id + "&action_name=" + task.name + "&project_id=" + self.projectId;
 
                 $http({ method: 'POST', url: requestUrl}).success(function (data) {
                     $log.log('Success....');
@@ -411,7 +385,7 @@ angular.module('BuildWhizApp')
 
             //Update Task Duration
             self.setTaskDuration = function (task) {
-                var requestUrl = 'baf/ActionDurationSet?activity_id=' + self.activity_id + '&duration=' + task.duration +
+                var requestUrl = 'baf/ActionDurationSet?activity_id=' + self.selectedItem.id + '&duration=' + task.duration +
                   '&action_name=' + task.name;
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
@@ -423,7 +397,7 @@ angular.module('BuildWhizApp')
 
             //Add New Task/Action
             self.addActivityAction = function () {
-                var requestUrl = 'baf/ActionAdd?' + "method=1&activity_id=" + self.activity_id +
+                var requestUrl = 'baf/ActionAdd?' + "method=1&activity_id=" + self.selectedItem.id +
                     "&action_name=" + self.newActionName + "&type=" + self.newActionType.toLowerCase() +
                     "&bpmn_name=" + self.processName + "&assignee_id=" + adminPersonId;
 
@@ -436,10 +410,7 @@ angular.module('BuildWhizApp')
                 });
             }
 
-            self.activityActionsDisabled = function() {
-                $log.log('selectedItem.status: ' + self.selectedItem.status);
-                $log.log('isPhaseManager: ' + self.isPhaseManager);
-                $log.log('isProjectManager: ' + self.isProjectManager);
+            self.actionsDisabled = function() {
                 var rv = !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
                 $log.log('returns: ' + rv);
                 return rv;
@@ -453,7 +424,7 @@ angular.module('BuildWhizApp')
 
             //Set Selected Phase Manager to dropdown on bind
             self.SelectedProcessPhaseManager = function (id) {
-                var managerdata = $filter('filter')(person, { _id: id })[0];
+                var managerdata = $filter('filter')(self.persons, { _id: id })[0];
                 self.ManagerName = managerdata.first_name + ' ' + managerdata.last_name;
             }
             

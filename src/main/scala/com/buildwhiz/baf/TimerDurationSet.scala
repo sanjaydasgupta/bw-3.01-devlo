@@ -28,12 +28,13 @@ class TimerDurationSet extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val bpmnName = parameters("bpmn_name")
-      val timers: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
-      val timersWithIndex: Seq[(DynDoc, Int)] = timers.zipWithIndex
+      val timers: Seq[DynDoc] = thePhase.timers[Many[Document]]
       val timerIdx: Int = (parameters.get("timer_id"), parameters.get("timer_name")) match {
-        case (Some(timerId), _) => timersWithIndex.filter(_._1.bpmn_id[String] == timerId).head._2
+        case (Some(timerId), _) => timers.indexWhere(t => t.bpmn_id[String] == timerId &&
+          t.bpmn_name[String] == bpmnName)
         case (_, Some(timerName)) =>
-          timersWithIndex.filter(_._1.name[String].replace("\\s+", "") == timerName.replace("\\s+", "")).head._2
+          timers.indexWhere(t => t.name[String].replace("\\s+", "") == timerName.replace("\\s+", "") &&
+            t.bpmn_name[String] == bpmnName)
         case _ => throw new IllegalArgumentException("Timer id or name not provided")
       }
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

@@ -220,6 +220,21 @@
     )
   }
 
+  self.selectedPhaseEnd = function(name) {
+    var query = 'baf/PhaseEnd?phase_id=' + self.selectedPhase._id;
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK POST ' + query);
+      },
+      function() {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
   self.bpmnNameSet = function(name) {
     self.selectedBpmnName = name;
     $log.log('Called bpmnNameSet(' + name + ')');

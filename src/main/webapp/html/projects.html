@@ -104,8 +104,11 @@
                         data-ng-disabled="!projectsCtrl.selectedPhaseCanLaunch()"><span class="glyphicon glyphicon-play"></span> Launch</button>
                 <label style="width:25px;"></label>
                 <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseDelete()"
-                    data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
-                    <span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                        data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
+                  <span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseEnd()"
+                        data-ng-disabled="projectsCtrl.selectedPhase.healthy">
+                  <span class="glyphicon glyphicon-remove-circle"></span> End</button>
               </td>
             </tr>
             <!-- Phase Manager's Part -->

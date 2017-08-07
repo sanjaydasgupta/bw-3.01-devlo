@@ -7,6 +7,7 @@ import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.camunda.bpm.engine.{ProcessEngineException, ProcessEngines}
 
 class OwnedPhases extends HttpServlet with HttpUtils {
 
@@ -46,6 +47,19 @@ class OwnedPhases extends HttpServlet with HttpUtils {
 
 object OwnedPhases {
 
+  def healthy(phase: DynDoc): Boolean = {
+    if (phase.status[String] == "running") {
+      val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
+      try {
+        rts.getVariables(phase.process_instance_id[String])
+        true
+      } catch {
+        case _: ProcessEngineException => false
+      }
+    } else
+      true
+  }
+
   def processPhase(phase: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> phase.activity_ids[Many[ObjectId]])))
@@ -62,6 +76,7 @@ object OwnedPhases {
       phase.display_status = phase.status[String]
     val subBpmns: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "")
     phase.sub_bpmns = subBpmns.sortBy(_.name[String]).map(_.asDoc)
+    phase.healthy = healthy(phase)
     phase.remove("activity_ids")
     phase
   }

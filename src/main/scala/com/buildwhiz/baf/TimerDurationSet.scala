@@ -4,17 +4,12 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
-class TimerDurationSet extends HttpServlet with HttpUtils {
-
-  private def duration2iso(duration: String): String = {
-    val Array(days, hours, minutes) = duration.split(":").map(_.toInt)
-    s"P${days}DT${hours}H${minutes}M"
-  }
+class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def formatDuration(d: String): String = {
     val parts = d.split(":").map(_.toInt) match {

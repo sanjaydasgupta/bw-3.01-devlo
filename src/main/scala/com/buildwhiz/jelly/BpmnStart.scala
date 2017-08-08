@@ -9,24 +9,19 @@ import org.camunda.bpm.engine.delegate.{DelegateExecution, ExecutionListener}
 
 class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
 
-  private def duration2iso(duration: String): String = {
-    val Array(days, hours, minutes) = duration.split(":").map(_.toInt)
-    s"P${days}DT${hours}H${minutes}M"
-  }
-
   private def setupEssentials(de: DelegateExecution): Unit = {
     def oneVariable(v: String): Unit = {
       if (!de.hasVariable(v)) {
         de.getSuperExecution match {
           case null =>
             val msg = s"ERROR: Failed to find SuperExecution. Searching value of '$v'"
-            BWLogger.log(getClass.getName, "setupVariables()", msg, de)
+            BWLogger.log(getClass.getName, "setupEssentials()", msg, de)
             throw new IllegalArgumentException(msg)
           case superExec => if (superExec.hasVariable(v)) {
               de.setVariable(v, superExec.getVariable(v))
             } else {
               val msg = s"ERROR: Failed to find value of '$v' in SuperExecution"
-              BWLogger.log(getClass.getName, "setupVariables()", msg, de)
+              BWLogger.log(getClass.getName, "setupEssentials()", msg, de)
               throw new IllegalArgumentException(msg)
             }
         }
@@ -36,7 +31,7 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
   }
 
   def notify(de: DelegateExecution): Unit = {
-    BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
+    BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       setupEssentials(de)
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
@@ -68,11 +63,11 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
         val variables: Seq[DynDoc] = thePhase.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         variables.foreach(t => de.setVariable(t.name[String], t.value[Any]))
       }
-      BWLogger.log(getClass.getName, "execute()", "EXIT-OK", de)
+      BWLogger.log(getClass.getName, "notify()", "EXIT-OK", de)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
-        BWLogger.log(getClass.getName, "execute()", s"ERROR ${t.getClass.getName}(${t.getMessage})", de)
+        BWLogger.log(getClass.getName, "notify()", s"ERROR ${t.getClass.getName}(${t.getMessage})", de)
     }
   }
 

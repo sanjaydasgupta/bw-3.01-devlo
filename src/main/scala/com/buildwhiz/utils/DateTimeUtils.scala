@@ -27,4 +27,9 @@ trait DateTimeUtils {
     f"$days%02d:$hoursDisplay%02d:$minutesDisplay%02d"
   }
 
+  def duration2iso(duration: String): String = {
+    val Array(days, hours, minutes) = duration.split(":").map(_.toInt)
+    s"P${days}DT${hours}H${minutes}M"
+  }
+
 }

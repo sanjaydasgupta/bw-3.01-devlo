@@ -115,6 +115,7 @@ angular.module('BuildWhizApp')
             var processActivities = [];
             var processCalls = [];
             var adminPersonId = null;
+            var phaseStatus = null;
 
             var bpmnElements = [];
             var clickableObjects = {};
@@ -142,6 +143,7 @@ angular.module('BuildWhizApp')
                           processCalls = response.data.calls;
                           adminPersonId = response.data.admin_person_id;
                           self.processStartDatetime = new Date(response.data.start_datetime);
+                          phaseStatus = response.data.phase_status;
 
                           //timers loop
                           processTimers.forEach(function (processTimer) {
@@ -410,7 +412,7 @@ angular.module('BuildWhizApp')
                 });
             }
 
-            self.actionsDisabled = function() {
+            self.actionControlsDisabled = function() {
                 var rv = !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
                 $log.log('returns: ' + rv);
                 return rv;
@@ -421,6 +423,12 @@ angular.module('BuildWhizApp')
 
             //----------START PROCESS FUNCTIONALITY---------//
             var ManagerName = null;
+
+            self.processControlsDisabled = function() {
+                var rv = !((phaseStatus == 'defined') && (self.isPhaseManager || self.isProjectManager));
+                $log.log('returns: ' + rv);
+                return rv;
+            }
 
             //Set Selected Phase Manager to dropdown on bind
             self.SelectedProcessPhaseManager = function (id) {

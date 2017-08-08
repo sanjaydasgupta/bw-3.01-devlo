@@ -7,6 +7,7 @@ import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.camunda.bpm.engine.ProcessEngines
 
 class VariableValueSet extends HttpServlet with HttpUtils {
 
@@ -28,13 +29,20 @@ class VariableValueSet extends HttpServlet with HttpUtils {
         case "D" => stringValue.toDouble
         case "S" => stringValue
       }
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
-        Map("$set" -> Map(s"variables.$variableIdx.value" -> newValue)))
-      if (updateResult.getModifiedCount == 0)
-        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      response.setStatus(HttpServletResponse.SC_OK)
-      val variableLog = s"'${variables(variableIdx).label[String]}'"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set value of variable $variableLog""", request)
+      if (thePhase.status[String] != "ended") {
+        if (thePhase.has("process_instance_id")) {
+          val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
+          val processInstanceId = thePhase.process_instance_id[String]
+          rts.setVariable(processInstanceId, variables(variableIdx).name[String], newValue)
+        }
+        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+          Map("$set" -> Map(s"variables.$variableIdx.value" -> newValue)))
+        if (updateResult.getModifiedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        response.setStatus(HttpServletResponse.SC_OK)
+        val variableLog = s"'${variables(variableIdx).label[String]}'"
+        BWLogger.audit(getClass.getName, "doPost", s"""Set value of variable $variableLog""", request)
+      }
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

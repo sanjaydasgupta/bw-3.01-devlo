@@ -33,9 +33,9 @@
                 <div data-ng-if="bpmnCtrl.selectedItemType == 'timer'">
                     Duration <input value="{{bpmnCtrl.selectedItem.duration}}" size="8" maxlength="8"
                             data-ng-model="bpmnCtrl.selectedItem.duration" style="border-radius: 2px; margin: 5px auto;"
-                            data-ng-disabled="bpmnCtrl.actionsDisabled()">
+                            data-ng-disabled="bpmnCtrl.actionControlsDisabled()">
                     &nbsp;&nbsp;<button class="btn btn-primary btn-xs" data-ng-click="bpmnCtrl.setTimerDuration()"
-                                        data-ng-disabled="bpmnCtrl.actionsDisabled()">Set</button>
+                                        data-ng-disabled="bpmnCtrl.actionControlsDisabled()">Set</button>
                 </div>
                 <!----------- END TIMER SECTION ---------------->
 
@@ -66,7 +66,7 @@
                                     <!-------UI Bootstrap dropdown -------->
                                     <div class="btn-group" data-uib-dropdown data-is-open="status.isopen">
                                         <button id="single-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle
-                                                data-ng-disabled="bpmnCtrl.actionsDisabled()">
+                                                data-ng-disabled="bpmnCtrl.actionControlsDisabled()">
                                             {{ task.assignee.name || 'Select the person' }}
 							            <span class="caret"></span>
                                         </button>
@@ -79,24 +79,24 @@
                                     </div>
                                     <!-----END UI Bootstrap dropdown---->
                                     <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setTaskAssignee(task)"
-                                            data-ng-disabled="bpmnCtrl.actionsDisabled()">Set</button>
+                                            data-ng-disabled="bpmnCtrl.actionControlsDisabled()">Set</button>
                                 </td>
                                 <!-- Duration -->
                                 <td style="width: 25%">
                                     <input style="float: left" value="{{task.duration}}" data-ng-model="task.duration" size="8" maxlength="8"
-                                           data-ng-disabled="bpmnCtrl.actionsDisabled()">
+                                           data-ng-disabled="bpmnCtrl.actionControlsDisabled()">
                                     <button style="float: left; margin-left: 5px" class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setTaskDuration(task)"
-                                            data-ng-disabled="bpmnCtrl.actionsDisabled()">Set</button>
+                                            data-ng-disabled="bpmnCtrl.actionControlsDisabled()">Set</button>
                                 </td>
                             </tr>
                             <!-- New task addition -->
                             <tr>
                                 <td colspan="4" align="center">
                                     <input data-ng-model="bpmnCtrl.newActionName" placeholder="New action name"
-                                        data-ng-disabled="bpmnCtrl.actionsDisabled()" />
+                                        data-ng-disabled="bpmnCtrl.actionControlsDisabled()" />
                                     <div class="btn-group" data-uib-dropdown>
                                         <button id="type-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle
-                                                data-ng-disabled="bpmnCtrl.actionsDisabled()">
+                                                data-ng-disabled="bpmnCtrl.actionControlsDisabled()">
                                             {{ bpmnCtrl.newActionType || 'Task Type'}}&nbsp;<span class="caret"></span>
                                         </button>
                                         <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="type-button">
@@ -126,8 +126,9 @@
                             <td>Phase Manager</td>
                             <td>
                                 <div class="btn-group" data-uib-dropdown data-is-open="manager.isopen">
-                                    <button id="manager-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle data-ng-disabled="disabled"
-                                            data-ng-init="bpmnCtrl.SelectedProcessPhaseManager(bpmnCtrl.adminPersonId);">
+                                    <button id="manager-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle
+                                            data-ng-init="bpmnCtrl.SelectedProcessPhaseManager(bpmnCtrl.adminPersonId);"
+                                            data-ng-disabled="bpmnCtrl.processControlsDisabled()">
                                         {{ bpmnCtrl.ManagerName || 'Select the Manager' }}
 							<span class="caret"></span>
                                     </button>
@@ -141,7 +142,8 @@
                             </td>
 
                             <td>
-                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessPhaseManager(bpmnCtrl.adminPersonId)">Set</button></td>
+                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessPhaseManager(bpmnCtrl.adminPersonId)"
+                                        data-ng-disabled="bpmnCtrl.processControlsDisabled()">Set</button></td>
                         </tr>
 
                         <tr>
@@ -150,19 +152,23 @@
                                 <span class="input-group" style="max-width: 150px; vertical-align: middle; margin-left: 25px; margin-right: 25px;">
                                     <input class="form-control" data-uib-datepicker-popup data-ng-model="bpmnCtrl.processStartDatetime"
                                         data-is-open="bpmnCtrl.datePickerOpened" data-datepicker-options="bpmnCtrl.dateOptions"
-                                        data-ng-required="true" style="max-width: 150px;" />
+                                        data-ng-required="true" style="max-width: 150px;"
+                                           data-ng-disabled="bpmnCtrl.processControlsDisabled()"/>
                                     <span class="input-group-btn">
-                                        <button type="button" class="btn btn-default" data-ng-click="bpmnCtrl.datePickerOpened = true">
+                                        <button type="button" class="btn btn-default" data-ng-click="bpmnCtrl.datePickerOpened = true"
+                                                data-ng-disabled="bpmnCtrl.processControlsDisabled()">
                                             <i class="glyphicon glyphicon-calendar"></i>
                                         </button>
                                     </span>
                                 </span>
                             </td>
                             <td>
-                                <span data-uib-timepicker data-ng-model="bpmnCtrl.processStartDatetime" data-show-spinners="false"></span>
+                                <span data-uib-timepicker data-ng-model="bpmnCtrl.processStartDatetime"
+                                      data-show-spinners="false" data-ng-disabled="bpmnCtrl.processControlsDisabled()"></span>
                             </td>
                             <td>
-                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessStartDateTime(bpmnCtrl.processStartDatetime)">Set</button></td>
+                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessStartDateTime(bpmnCtrl.processStartDatetime)"
+                                        data-ng-disabled="bpmnCtrl.processControlsDisabled()">Set</button></td>
                         </tr>
                     </table>
                     <table class="table table-bordered">
@@ -180,11 +186,13 @@
                                 <td>{{var.type}}</td>
                                 <td>
                                     <div data-ng-if="var.type == 'S' || var.type == 'L' || var.type == 'D'">
-                                        <input value="{{var.value}}" data-ng-model="var.value" />
+                                        <input value="{{var.value}}" data-ng-model="var.value"
+                                               data-ng-disabled="bpmnCtrl.processControlsDisabled()"/>
                                     </div>
                                     <div data-ng-if="var.type == 'B'">
                                         <div class="btn-group" data-uib-dropdown data-is-open="vartype.isopen">
-                                            <button id="vartype-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle data-ng-disabled="disabled">
+                                            <button id="vartype-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle
+                                                    data-ng-disabled="bpmnCtrl.processControlsDisabled()">
                                                 {{ var.value == true ? "True " : var.value == false ? "False " : "Select "}}<span class="caret"></span>
                                             </button>
                                             <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="vartype-button">
@@ -199,7 +207,8 @@
                                 <td>
                                     <div class="form-group">
                                         <div class="col-sm-3 col-xs-2">
-                                            <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessVariableValue(var)">Set</button>
+                                            <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessVariableValue(var)"
+                                                    data-ng-disabled="bpmnCtrl.processControlsDisabled()">Set</button>
                                         </div>
                                     </div>
                                 </td>

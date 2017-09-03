@@ -9,7 +9,7 @@
   self.displayingSchema = false;
 
   self.query = '';
-  self.fields = '';
+  self.projection = '';
 
   $log.log('MongodbCtrl: calling GET baf/MongoDBView');
   $http.get('baf/MongoDBView').then(
@@ -72,8 +72,8 @@
   self.runQuery = function() {
     $log.log('Called runQuery()');
     var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&query=' + escape(self.query);
-    if (self.fields != '') {
-      q += '&fields=' + escape(self.fields);
+    if (self.projection != '') {
+      q += '&fields=' + escape(self.projection);
     }
     $log.log('MongodbCtrl: GET ' + q);
     $http.get(q).then(

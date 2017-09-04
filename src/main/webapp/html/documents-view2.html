@@ -112,7 +112,8 @@
             <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
             <td style="text-align:center;"><a href="{{document.link}}" target="_blank">download</a></td>
             <td style="text-align:center;">
-              <a href="#/rfi?document_master_id={{document._id}}&timestamp={{document.timestamp}}&{{viewDocsCtrl2.origin()}}">=&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
+              <a href="#/rfi?document_master_id={{document._id}}&timestamp={{document.timestamp}}&{{viewDocsCtrl2.origin(document.name)}}">
+                =&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
             </td>
             <td style="text-align:center;" data-ng-if="viewDocsCtrl2.canUpload()">
               <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.uploadDocumentVersion(document)">

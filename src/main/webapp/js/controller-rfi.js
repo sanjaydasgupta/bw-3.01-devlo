@@ -16,9 +16,24 @@ angular.module('BuildWhizApp')
 
   self.rfiAttachments = [];
 
+//http://localhost:8080/bw-responsive-1.01/#/rfi?document_master_id=586ba72d92982d0a52ca267f&timestamp=1483498823235&
+//origin0=documents-view2&origin1=Architecture&origin2=Sections&origin3=Sheet-4F
+
   if ($routeParams.hasOwnProperty('document_master_id') && $routeParams.hasOwnProperty('timestamp')) {
     self.document_master_id = $routeParams.document_master_id;
     self.timestamp = $routeParams.timestamp;
+    if ($routeParams.hasOwnProperty('origin0')) {
+      self.origin0 = $routeParams.origin0;
+      if ($routeParams.hasOwnProperty('origin1')) {
+        self.origin1 = $routeParams.origin1;
+        if ($routeParams.hasOwnProperty('origin2')) {
+          self.origin2 = $routeParams.origin2;
+          if ($routeParams.hasOwnProperty('origin3')) {
+            self.origin3 = $routeParams.origin3;
+          }
+        }
+      }
+    }
   }
 
   self.toggleInfoDisplay = function() {
@@ -185,6 +200,10 @@ angular.module('BuildWhizApp')
 
   self.rfiColor = function(rfi) {
     return rfi.hasNewMessages ? 'GreenYellow' : (rfi.status == 'closed' ? 'LightGray' : 'white');
+  }
+
+  self.returnLink = function() {
+    return '#/' + self.origin0 + '?origin1=' + self.origin1 + '&origin2=' + self.origin2 + '&origin3=' + self.origin3;
   }
 
   self.refreshRfiList();

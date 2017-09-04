@@ -48,6 +48,16 @@
   self.documentToDelete = null;
   self.documentToUpload = null;
 
+  if ($routeParams.hasOwnProperty('origin1')) {
+    self.initialCategoryKey = $routeParams.origin1;
+    if ($routeParams.hasOwnProperty('origin2')) {
+      self.initialSubcategoryKey = $routeParams.origin2;
+      if ($routeParams.hasOwnProperty('origin3')) {
+        self.initialDocumentName = $routeParams.origin3;
+      }
+    }
+  }
+
   $http.get('api/Person').then(
     function(resp) {
       self.authors = resp.data.map(function(p) {
@@ -116,7 +126,7 @@
     self.documentToUpload = null;
   }
 
-  self.fetchDocumentsByCategory = function(categoryKey) {
+  self.fetchDocumentsByCategory = function(categoryKey, subcategoryKey) {
     var query = 'baf/DocumentSubcategoriesFetch?category=' + categoryKey;
     $log.log('calling GET ' + query);
     self.busy = true;
@@ -129,6 +139,9 @@
         self.busy = false;
         self.documentToDelete = null;
         self.documentToDelete = null;
+        if (subcategoryKey) {
+          self.fetchDocumentsBySubcategory(subcategoryKey, true);
+        }
       },
       function(resp) {
         $log.log('ERROR GET ' + query);
@@ -138,10 +151,13 @@
     self.currentCategoryKey = categoryKey;
   }
 
-  self.fetchDocumentsBySubcategory = function(subcategoryKey) {
+  self.fetchDocumentsBySubcategory = function(subcategoryKey, fetch) {
     $log.log('Setting subcategory=' + subcategoryKey);
     self.currentSubcategoryKey = subcategoryKey;
     self.resetDisplay();
+    if (fetch) {
+      self.findDocuments();
+    }
   }
 
   self.fetchDocumentsByContent = function(contentKey) {
@@ -251,9 +267,9 @@
     $log.log('Called fetchDocumentsByAuthor(' + author.name + ')')
   }
 
-  self.origin = function() {
+  self.origin = function(documentName) {
     return 'origin0=documents-view2&origin1=' + self.currentCategoryKey +
-        '&origin2=' + self.currentSubcategoryKey;
+        '&origin2=' + self.currentSubcategoryKey + '&origin3=' + documentName;
   }
 
   self.uploadDocumentVersion = function(doc) {
@@ -302,6 +318,10 @@
       )
     }
     $log.log('Exiting performUpload()');
+  }
+
+  if (self.initialDocumentName) {
+    self.fetchDocumentsByCategory(self.initialCategoryKey, self.initialSubcategoryKey);
   }
 
 }]);

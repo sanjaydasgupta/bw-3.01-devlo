@@ -4,9 +4,60 @@
 
   var self = this;
 
-  self.emailEnabled = false;
-  if (AuthService.data.email_enabled) {
-    self.emailEnabled = true;
+  self.emailEnabled = AuthService.data.email_enabled;
+
+  self.labels = [];
+  self.selectedLabel = null;
+  self.newLabelName = '';
+
+  self.fetchLabels = function() {
+    var query = 'baf/DocLabelsFetch';
+    $log.log('GET ' + query);
+    $http.get(query).then(
+      function(res) {
+        self.labels = res.data;
+        $log.log('OK GET ' + query + ' (' + self.labels.length + ' labels)');
+      },
+      function(res) {
+        alert('ERROR GET ' + query);
+      }
+    )
+  }
+
+  self.addNewLabelName = function() {
+    var query = 'baf/DocLabelAdd?label_name=' + self.newLabelName;
+    $log.log('ENTRY addNewLabelName() labelName =' + self.newLabelName);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+        self.newLabelName = '';
+        self.fetchLabels();
+      },
+      function(res) {
+        alert('ERROR POST ' + query);
+      }
+    )
+  }
+
+  self.appendLabelName = function() {
+    $log.log('Called appendLabelName() labelName =' + self.newLabelName);
+  }
+
+  self.deleteLabelName = function() {
+    $log.log('Called deleteLabelName() labelName =' + self.selectedLabel.name);
+  }
+
+  self.addNewLabelNameDisabled = function() {
+    return self.newLabelName == '';
+  }
+
+  self.selectLabel = function(label) {
+    self.selectedLabel = label;
+    $log.log('Called selectLabel(' + label.name + ')');
+  }
+
+  self.labelRowColor = function(label) {
+    return label == self.selectedLabel ? "yellow" : "white";
   }
 
   self.userPasswordSetDisabled = function() {
@@ -45,5 +96,7 @@
       }
     )
   }
+
+  self.fetchLabels();
 
 }]);

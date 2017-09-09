@@ -11,7 +11,7 @@
   self.newLabelName = '';
 
   self.fetchLabels = function() {
-    var query = 'baf/DocLabelsFetch';
+    var query = 'baf/DocumentLabelsFetch';
     $log.log('GET ' + query);
     $http.get(query).then(
       function(res) {
@@ -25,7 +25,7 @@
   }
 
   self.addNewLabelName = function() {
-    var query = 'baf/DocLabelAdd?label_name=' + self.newLabelName;
+    var query = 'baf/DocumentLabelAdd?label_name=' + self.newLabelName;
     $log.log('ENTRY addNewLabelName() labelName =' + self.newLabelName);
     $http.post(query).then(
       function(res) {
@@ -44,7 +44,18 @@
   }
 
   self.deleteLabelName = function() {
-    $log.log('Called deleteLabelName() labelName =' + self.selectedLabel.name);
+    var query = 'baf/DocumentLabelDelete?label_name=' + self.selectedLabel;
+    $log.log('ENTRY deleteLabelName() labelName =' + self.selectedLabel);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+        self.selectedLabel = null;
+        self.fetchLabels();
+      },
+      function(res) {
+        alert('ERROR POST ' + query);
+      }
+    )
   }
 
   self.addNewLabelNameDisabled = function() {

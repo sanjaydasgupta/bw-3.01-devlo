@@ -6,16 +6,17 @@ import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
+import org.bson.Document
 
-class DocLabelsFetch extends HttpServlet with HttpUtils {
+class DocumentLabelsFetch extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val labels: Seq[String] = if (person.has("labels")) person.labels[Many[String]] else Seq.empty[String]
-      val sortedLabels: Seq[String] = labels.sorted
+      val labels: Seq[DynDoc] = if (person.has("labels")) person.labels[Many[Document]] else Seq.empty[Document]
+      val sortedLabels: Seq[String] = labels.map(_.name[String]).sorted
       response.getWriter.println(sortedLabels.map(label => s""""$label"""").mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

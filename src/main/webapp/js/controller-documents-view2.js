@@ -42,6 +42,8 @@
   self.documents = [];
   self.selectedDocument = null;
 
+  self.selectedDocumentLabels = [];
+
   self.newSubject = '';
   self.newText = '';
 
@@ -318,6 +320,38 @@
       )
     }
     $log.log('Exiting performUpload()');
+  }
+
+  self.displayDetail = function(document) {
+    var query = 'baf/DocumentLabelsFetch';
+    $log.log('GET ' + query);
+    $http.get(query).then(
+      function(res) {
+        self.selectedDocumentLabels = res.data.map(function(label) {
+          var ok = label.document_ids.includes(self.selectedDocument._id);
+          return {name: label.name, contained: ok};
+        });
+        $log.log('OK GET ' + query + ' (' + self.selectedDocumentLabels.length + ' labels)');
+      },
+      function(res) {
+        alert('ERROR GET ' + query);
+      }
+    )
+    self.selectedDocument = document;
+  }
+
+  self.labelToggle = function(label) {
+    var query = 'baf/DocumentLabelManage?label_name=' + label.name + '&document_id=' + self.selectedDocument._id +
+        '&op=' + (label.contained ? 'add' : 'remove');
+    $log.log('POST ' + query);
+    $http.post(query).then(
+      function(res) {
+        $log.log('OK POST ' + query);
+      },
+      function(res) {
+        alert('ERROR POST ' + query);
+      }
+    )
   }
 
   if (self.initialDocumentName) {

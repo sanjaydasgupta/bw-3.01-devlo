@@ -99,7 +99,7 @@
       <table width="100%">
         <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{viewDocsCtrl2.documents.length}})</th></tr>
       </table>
-      <div style="height:200px; max-height:200px; min-height:200px; overflow:auto;">
+      <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
         <table border="1" width="100%">
           <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
             <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
@@ -108,7 +108,8 @@
             <th style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">Delete</th>
           </tr>
           <tr data-ng-repeat="document in viewDocsCtrl2.documents" style="background-color:{{viewDocsCtrl2.getRowColor(document)}};">
-            <td style="text-align:center;">{{document.name}}</td><td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
+            <td style="text-align:center;"><a href="javascript:void(0)" data-ng-click="viewDocsCtrl2.displayDetail(document)">{{document.name}}</a></td>
+            <td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
             <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
             <td style="text-align:center;"><a href="{{document.link}}" target="_blank">download</a></td>
             <td style="text-align:center;">
@@ -125,6 +126,22 @@
             </td>
           </tr>
         </table>
+      </div>
+    </div>
+    <!-- Labels -->
+    <div data-ng-if="viewDocsCtrl2.selectedDocument != null" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="100%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Label Management</th></tr>
+        <tr><td>
+          <table>
+            <tr data-ng-repeat="label in viewDocsCtrl2.selectedDocumentLabels">
+              <td><input type="checkbox" data-ng-model="label.contained" data-ng-change="viewDocsCtrl2.labelToggle(label)"/>&nbsp;</td>
+              <td>{{label.name}}</td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+      <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
       </div>
     </div>
     <!-- Uplolad Document -->

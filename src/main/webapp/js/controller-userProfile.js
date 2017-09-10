@@ -15,7 +15,7 @@
     $log.log('GET ' + query);
     $http.get(query).then(
       function(res) {
-        self.labels = res.data;
+        self.labels = res.data.map(function(label) {return label.name;});
         $log.log('OK GET ' + query + ' (' + self.labels.length + ' labels)');
       },
       function(res) {

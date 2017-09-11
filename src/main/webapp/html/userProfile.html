@@ -54,7 +54,7 @@
           <div align="left" style="border:3px solid #337ab7; height:150px; max-height:150px; min-height:150px; overflow:auto; vertical-align:top; margin-bottom:5px;">
             <span data-ng-repeat="label in profileCtrl.labels" style="margin-left:5px; background-color:{{profileCtrl.labelRowColor(label)}}; cursor:pointer;"
                   data-ng-click="profileCtrl.selectLabel(label)">
-              {{label}}<br/>
+              {{label.name}} ({{label.document_ids.length}})<br/>
             </span>
           </div>
           <input type="text" size="10" data-ng-model="profileCtrl.newLabelName" />

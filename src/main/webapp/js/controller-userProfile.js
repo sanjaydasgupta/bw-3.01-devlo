@@ -15,7 +15,7 @@
     $log.log('GET ' + query);
     $http.get(query).then(
       function(res) {
-        self.labels = res.data.map(function(label) {return label.name;});
+        self.labels = res.data;
         $log.log('OK GET ' + query + ' (' + self.labels.length + ' labels)');
       },
       function(res) {
@@ -44,8 +44,8 @@
   }
 
   self.deleteLabelName = function() {
-    var query = 'baf/DocumentLabelDelete?label_name=' + self.selectedLabel;
-    $log.log('ENTRY deleteLabelName() labelName =' + self.selectedLabel);
+    var query = 'baf/DocumentLabelDelete?label_name=' + self.selectedLabel.name;
+    $log.log('ENTRY deleteLabelName() labelName =' + self.selectedLabel.name);
     $http.post(query).then(
       function(res) {
         $log.log('OK POST ' + query);

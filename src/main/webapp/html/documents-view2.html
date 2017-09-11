@@ -128,21 +128,21 @@
         </table>
       </div>
     </div>
-    <!-- Labels -->
+    <!-- Labels and Other Details -->
     <div data-ng-if="viewDocsCtrl2.selectedDocument != null" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
-      <table width="100%">
-        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Label Management</th></tr>
+      <table width="25%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Label Assignment</th></tr>
         <tr><td>
-          <table>
-            <tr data-ng-repeat="label in viewDocsCtrl2.selectedDocumentLabels">
-              <td><input type="checkbox" data-ng-model="label.contained" data-ng-change="viewDocsCtrl2.labelToggle(label)"/>&nbsp;</td>
-              <td>{{label.name}}</td>
-            </tr>
-          </table>
+          <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
+            <table>
+              <tr data-ng-repeat="label in viewDocsCtrl2.selectedDocumentLabels">
+                <td style="padding:0px;"><input type="checkbox" data-ng-model="label.contained" data-ng-change="viewDocsCtrl2.labelToggle(label)"/>&nbsp;</td>
+                <td style="padding:0px;">{{label.name}}</td>
+              </tr>
+            </table>
+          </div>
         </td></tr>
       </table>
-      <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
-      </div>
     </div>
     <!-- Uplolad Document -->
     <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToUpload != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid green; width:100% vertical-align:top;">

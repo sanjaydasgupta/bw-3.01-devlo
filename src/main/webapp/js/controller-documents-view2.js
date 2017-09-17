@@ -27,12 +27,14 @@
   self.documentCategories = [];
   self.documentSubcategories = [];
   self.contentTypes = [];
+  self.labelObjects = [];
 
   self.findModeActive = false;
   self.newModeActive = false;
 
   self.documentCount = 0;
   self.currentContentKey = "Any";
+  self.currentLabelKey = "Any";
   self.currentCategoryKey = "[Select]";
   self.currentSubcategoryKey = "Any";
   self.documentName = '';
@@ -41,8 +43,6 @@
   self.displayAllVersions = false;
   self.documents = [];
   self.selectedDocument = null;
-
-  self.selectedDocumentLabels = [];
 
   self.newSubject = '';
   self.newText = '';
@@ -59,6 +59,18 @@
       }
     }
   }
+
+  var query = 'baf/DocumentLabelsFetch';
+  $log.log('GET ' + query);
+  $http.get(query).then(
+    function(res) {
+      self.labelObjects = res.data;
+      $log.log('OK GET ' + query + ' (' + self.labelObjects.length + ' labels)');
+    },
+    function(res) {
+      alert('ERROR GET ' + query);
+    }
+  )
 
   $http.get('api/Person').then(
     function(resp) {
@@ -168,6 +180,12 @@
     self.resetDisplay();
   }
 
+  self.fetchDocumentsByLabel = function(labelKey) {
+    $log.log('Setting label=' + labelKey);
+    self.currentLabelKey = labelKey;
+    self.resetDisplay();
+  }
+
   self.allVersionsChanged = function() {
     self.resetDisplay();
   }
@@ -177,6 +195,7 @@
     self.newModeActive = false;
     var q = 'baf/DocumentSearch?category=' + self.currentCategoryKey +
         '&subcategory=' + self.currentSubcategoryKey + '&content=' + self.currentContentKey +
+        '&labels=' + self.currentLabelKey +
         '&name=' + self.documentName + '&description=' + self.documentDescription;
     q += self.displayAllVersions ? '&versions=all' : '&versions=latest'
     $log.log('GET ' + q);
@@ -323,21 +342,12 @@
   }
 
   self.displayDetail = function(document) {
-    var query = 'baf/DocumentLabelsFetch';
-    $log.log('GET ' + query);
-    $http.get(query).then(
-      function(res) {
-        self.selectedDocumentLabels = res.data.map(function(label) {
-          var ok = label.document_ids.includes(self.selectedDocument._id);
-          return {name: label.name, contained: ok};
-        });
-        $log.log('OK GET ' + query + ' (' + self.selectedDocumentLabels.length + ' labels)');
-      },
-      function(res) {
-        alert('ERROR GET ' + query);
-      }
-    )
+    $log.log('Called displayDetail(' + document + ')');
     self.selectedDocument = document;
+    self.labelObjects.forEach(function(label) {
+      var ok = label.document_ids.includes(self.selectedDocument._id);
+      label.contained = ok;
+    });
   }
 
   self.labelToggle = function(label) {
@@ -347,6 +357,11 @@
     $http.post(query).then(
       function(res) {
         $log.log('OK POST ' + query);
+        if (label.contained) {
+          label.document_ids.push(self.selectedDocument._id);
+        } else {
+          label.document_ids = label.document_ids.filter(function(id) {return id != self.selectedDocument._id;});
+        }
       },
       function(res) {
         alert('ERROR POST ' + query);

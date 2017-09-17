@@ -17,7 +17,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val tz = getUser(request).get("tz").asInstanceOf[String]
-      val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id")
+      val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id", "label")
       val query = (("project_id" -> project430ForestOid) +:
           parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).
             filter(kv => kv._2.nonEmpty && kv._2 != "Any" && kv._1 != "author_person_id")).map {

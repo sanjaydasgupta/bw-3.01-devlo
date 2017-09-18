@@ -14,7 +14,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     val cachedUser: DynDoc = getUser(request)
     val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> cachedUser._id[ObjectId])).head
 
@@ -34,23 +34,20 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             case p => p
           }.toMap
 
-      val labelDocumentIds: Seq[ObjectId] = if (parameters.contains("labels") && parameters("labels") != "Any") {
-        val labelObjects: Seq[DynDoc] = if (user.has("labels"))
-          user.labels[Many[Document]]
-        else
-          Seq.empty[Document]
+      val fullQuery = if (parameters.contains("labels") && parameters("labels") != "Any") {
+        val labelObjects: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[Document]
         labelObjects.find(_.name[String] == parameters("labels")) match {
-          case Some(labelObject) => labelObject.document_ids[Many[ObjectId]]
-          case None => Seq.empty[ObjectId]
+          case Some(labelObject) =>
+            val docIds = labelObject.document_ids[Many[ObjectId]]
+            query ++ Map("_id" -> Map("$in" -> docIds))
+          case None =>
+            throw new IllegalArgumentException(s"label ${parameters("labels")} not found")
+            //query ++ Map("_id" -> Map("$in" -> Seq.empty[ObjectId]))
         }
       } else
-        Seq.empty[ObjectId]
+        query
 
-      val fullQuery = labelDocumentIds match {
-        case Nil => query
-        case docIds => query ++ Map("_id" -> Map("$in" -> docIds))
-      }
-
+      BWLogger.log(getClass.getName, "doGet", s"query: ${fullQuery.toSeq}", request)
       val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(fullQuery)
 
       val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
@@ -98,10 +95,10 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getOutputStream.println(jsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

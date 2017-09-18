@@ -140,7 +140,7 @@
     self.documentToUpload = null;
   }
 
-  self.fetchDocumentsByCategory = function(categoryKey, subcategoryKey) {
+  self.fetchDocumentsByCategory = function(categoryKey, subcategoryKey, search) {
     var query = 'baf/DocumentSubcategoriesFetch?category=' + categoryKey;
     $log.log('calling GET ' + query);
     self.busy = true;
@@ -154,7 +154,7 @@
         self.documentToDelete = null;
         self.documentToDelete = null;
         if (subcategoryKey) {
-          self.fetchDocumentsBySubcategory(subcategoryKey, true);
+          self.fetchDocumentsBySubcategory(subcategoryKey, search);
         }
       },
       function(resp) {
@@ -183,6 +183,9 @@
   self.fetchDocumentsByLabel = function(labelKey) {
     $log.log('Setting label=' + labelKey);
     self.currentLabelKey = labelKey;
+    if (labelKey != 'Any') {
+      self.fetchDocumentsByCategory('Any', 'Any', false);
+    }
     self.resetDisplay();
   }
 
@@ -370,7 +373,7 @@
   }
 
   if (self.initialDocumentName) {
-    self.fetchDocumentsByCategory(self.initialCategoryKey, self.initialSubcategoryKey);
+    self.fetchDocumentsByCategory(self.initialCategoryKey, self.initialSubcategoryKey, true);
   }
 
 }]);

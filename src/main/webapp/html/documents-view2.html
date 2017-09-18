@@ -34,10 +34,10 @@
           <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-label"
               style="min-width:50px">
             <li class="dropdown-item" data-ng-repeat="label in viewDocsCtrl2.labelObjects"><a href="javascript:void(0)"
-                                                                                              data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel(label.name)" style="padding:3px;">{{label.name}}</a></li>
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel(label.name)" style="padding:3px;">{{label.name}}</a></li>
             <li class="divider" style="margin:1px;"></li>
             <li class="dropdown-item"><a href="javascript:void(0)"
-                                         data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel('Any')" style="padding:3px;">Any</a></li>
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel('Any')" style="padding:3px;">Any</a></li>
           </ul>
         </div>
       </div>
@@ -54,8 +54,10 @@
               <a href="javascript:void(0)" style="padding:3px;"
                  data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory(category)">{{category}}</a>
             </li>
-            <li data-ng-if="viewDocsCtrl2.isDataAdmin()" class="divider" style="margin:1px;"></li>
-            <li data-ng-if="viewDocsCtrl2.isDataAdmin()" class="dropdown-item"><a href="javascript:void(0)"
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin() || viewDocsCtrl2.currentLabelKey != 'Any'"
+                class="divider" style="margin:1px;"></li>
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin() || viewDocsCtrl2.currentLabelKey != 'Any'"
+                class="dropdown-item"><a href="javascript:void(0)"
                 data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory('Any')" style="padding:3px;">Any</a></li>
           </ul>
         </div>

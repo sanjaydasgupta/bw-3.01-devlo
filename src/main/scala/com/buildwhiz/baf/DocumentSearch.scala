@@ -15,9 +15,11 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    val cachedUser: DynDoc = getUser(request)
+    val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> cachedUser._id[ObjectId])).head
+
     try {
-      val tz = getUser(request).get("tz").asInstanceOf[String]
-      val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id", "label")
+      val queryPropertyNames = Set("category", "subcategory", "content", "name", "description", "author_person_id")
       val query = (("project_id" -> project430ForestOid) +:
           parameters.toSeq.filter(p => queryPropertyNames.contains(p._1)).
             filter(kv => kv._2.nonEmpty && kv._2 != "Any" && kv._1 != "author_person_id")).map {
@@ -31,7 +33,26 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
             //case ("author_person_id", value: String) => ("versions.0.author_person_id", new ObjectId(value))
             case p => p
           }.toMap
-      val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
+
+      val labelDocumentIds: Seq[ObjectId] = if (parameters.contains("labels") && parameters("labels") != "Any") {
+        val labelObjects: Seq[DynDoc] = if (user.has("labels"))
+          user.labels[Many[Document]]
+        else
+          Seq.empty[Document]
+        labelObjects.find(_.name[String] == parameters("labels")) match {
+          case Some(labelObject) => labelObject.document_ids[Many[ObjectId]]
+          case None => Seq.empty[ObjectId]
+        }
+      } else
+        Seq.empty[ObjectId]
+
+      val fullQuery = labelDocumentIds match {
+        case Nil => query
+        case docIds => query ++ Map("_id" -> Map("$in" -> docIds))
+      }
+
+      val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(fullQuery)
+
       val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
       val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
         val allVersions: Seq[DynDoc] = docRec.versions[Many[Document]].sortBy(d => -d.timestamp[Long]).
@@ -48,6 +69,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
           if (!version.has("rfi_ids")) {
             version.rfi_ids = Seq.empty[ObjectId]
           }
+          val tz = user.tz[String]
           Map(
             "rfi_ids" -> (if (!version.has("rfi_ids")) Seq.empty[ObjectId] else version.rfi_ids[Many[ObjectId]]),
             "_id" -> docRec._id[ObjectId],

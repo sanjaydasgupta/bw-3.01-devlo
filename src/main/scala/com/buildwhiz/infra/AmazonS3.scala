@@ -12,8 +12,9 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConverters._
 
 object AmazonS3 {
-  private def s3Client = new AmazonS3Client(new BasicAWSCredentials(
-      "AKIAIM4CBPTFFQOLEA5Q", "9D+yOuDwHnAt2TLyot+2Mtm/4pC/bQiIdsFNe2Mu"))
+  private val instanceInfo: DynDoc = BWMongoDB3.instance_info.find().head
+  private val awsSecret = instanceInfo.aws_secret[String]
+  private def s3Client = new AmazonS3Client(new BasicAWSCredentials("AKIAIM4CBPTFFQOLEA5Q", awsSecret))
 
   private val bucketName = "buildwhiz"
 

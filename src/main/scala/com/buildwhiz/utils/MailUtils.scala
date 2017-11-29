@@ -92,7 +92,7 @@ object MailUtils {
   lazy val session: Session = Session.getInstance(props,
     new javax.mail.Authenticator() {
       override def getPasswordAuthentication: PasswordAuthentication = {
-        val emailPass = MailUtils.instanceInfo.email_pass[String]
+        val emailPass = instanceInfo.email_pass[String]
 
         new PasswordAuthentication(username,
           s"sdg${emailPass.length - 7}${username.substring(3, emailPass.length - 1)}")

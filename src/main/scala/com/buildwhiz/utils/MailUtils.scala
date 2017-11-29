@@ -5,8 +5,8 @@ import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 import javax.servlet.http.HttpServletRequest
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -27,8 +27,7 @@ trait MailUtils {
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
 
-    val instanceInfo: DynDoc = BWMongoDB3.instance_info.find().head
-    val emailsEnabled = instanceInfo.has("emails_enabled") && instanceInfo.emails_enabled[Boolean]
+    val emailsEnabled = MailUtils.instanceInfo.has("emails_enabled") && MailUtils.instanceInfo.emails_enabled[Boolean]
 
     if (emailsEnabled) {
       import scala.concurrent.ExecutionContext.Implicits.global
@@ -86,13 +85,17 @@ object MailUtils {
   props.put("mail.smtp.socketFactory.fallback", "false")
 
   val username = "430forest@gmail.com"
-  val password = "rapid-Fire"
+  //val password = "rapid-Fire"
+
+  val instanceInfo: DynDoc = BWMongoDB3.instance_info.find().head
 
   lazy val session: Session = Session.getInstance(props,
     new javax.mail.Authenticator() {
       override def getPasswordAuthentication: PasswordAuthentication = {
+        val emailPass = MailUtils.instanceInfo.email_pass[String]
+
         new PasswordAuthentication(username,
-          s"sdg${password.length - 7}${username.substring(3, password.length - 1)}")
+          s"sdg${emailPass.length - 7}${username.substring(3, emailPass.length - 1)}")
       }
     }
   )

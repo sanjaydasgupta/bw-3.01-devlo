@@ -57,7 +57,7 @@ class UploadFile extends HttpServlet with HttpUtils {
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
-        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.24/webapps/bw-responsive-1.01""".!
+        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.47/webapps/bw-responsive-1.01""".!
         val statusMsg = if (status == 0) {
           BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
           "OK"

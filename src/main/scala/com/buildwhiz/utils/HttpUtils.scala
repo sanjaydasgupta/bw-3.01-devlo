@@ -2,7 +2,7 @@ package com.buildwhiz.utils
 
 import javax.servlet.http.HttpServletRequest
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
 import org.bson.Document
 import org.bson.types.ObjectId
 

@@ -3,8 +3,8 @@ package com.buildwhiz.web
 import java.util.{ArrayList => JArrayList}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.BWMongoDB3
-import com.buildwhiz.infra.BWMongoDB3._
 import com.mongodb.client.FindIterable
 import org.bson.Document
 

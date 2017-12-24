@@ -2,9 +2,6 @@ package com.buildwhiz.api
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3.DynDoc
-import org.bson.Document
-
 class RFIDestination extends HttpServlet with RestUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

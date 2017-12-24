@@ -2,6 +2,7 @@ package com.buildwhiz.infra
 
 import java.io.File
 
+import com.buildwhiz.infra.DynDoc._
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model._

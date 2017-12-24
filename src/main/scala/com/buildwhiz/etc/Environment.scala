@@ -2,6 +2,7 @@ package com.buildwhiz.etc
 
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.api.RestUtils
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._

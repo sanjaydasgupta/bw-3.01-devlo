@@ -2,8 +2,10 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
+import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId

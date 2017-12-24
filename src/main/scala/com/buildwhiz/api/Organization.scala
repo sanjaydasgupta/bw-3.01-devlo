@@ -2,7 +2,8 @@ package com.buildwhiz.api
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.BWMongoDB3.DynDoc
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 
 class Organization extends HttpServlet with RestUtils {

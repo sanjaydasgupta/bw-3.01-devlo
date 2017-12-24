@@ -5,6 +5,8 @@ import javax.mail._
 import javax.mail.internet.{InternetAddress, MimeBodyPart, MimeMessage, MimeMultipart}
 import javax.servlet.http.HttpServletRequest
 
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document

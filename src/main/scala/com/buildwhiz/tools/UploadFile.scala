@@ -4,9 +4,9 @@ import java.io.{File, FileOutputStream, InputStream}
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
 
 import scala.collection.JavaConverters._
 import scala.sys.process._

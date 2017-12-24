@@ -3,6 +3,8 @@ package com.buildwhiz.baf
 import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils._
 import org.bson.types.ObjectId
 import org.bson.Document

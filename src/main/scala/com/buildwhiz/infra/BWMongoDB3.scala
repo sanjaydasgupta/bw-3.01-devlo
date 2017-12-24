@@ -1,6 +1,7 @@
 package com.buildwhiz.infra
 
-import com.mongodb.MongoClient
+import com.buildwhiz.infra.DynDoc.document2DynDoc
+import com.mongodb.{MongoClient, MongoClientURI}
 import com.mongodb.client.{FindIterable, MongoCollection}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -18,50 +19,7 @@ object BWMongoDB3 extends Dynamic {
 
   private lazy val db = mongoClient.getDatabase("BuildWhiz")
 
-  type Many[T] = java.util.List[T]
-
-  class DynDoc(d: Document) extends Dynamic {
-    def y: DynDoc = this
-    def selectDynamic[T](fieldName: String): T = if (has(fieldName))
-      d.get(fieldName).asInstanceOf[T]
-    else
-      throw new IllegalArgumentException(s"No field named '$fieldName'")
-    def updateDynamic[T](fieldName: String)(value: T): AnyRef = d.put(fieldName, value.asInstanceOf[AnyRef])
-    def asDoc: Document = d
-    def has(key: String): Boolean = d.containsKey(key)
-    def remove(fieldName: String): Unit = d.remove(fieldName)
-  }
-
-  implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
   implicit def findIterable2DynDocSeq(fi: FindIterable[Document]): Seq[DynDoc] = fi.asScala.map(document2DynDoc).toSeq
-  implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
-  implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala
-  implicit def javaDocList2DynDocSeq(ds: Many[Document]): Seq[DynDoc] = {
-    val sd: Seq[Document] = ds.asScala
-    sd.map(new DynDoc(_))
-  }
-
-  implicit def mapToDocument(map: Map[String, Any]): Document = {
-
-    def seq2javaList(seq: Seq[_]): java.util.List[_] = seq.map({
-      case m: Map[String, Any] @unchecked => mapToDocument(m)
-      case s: Seq[_] => seq2javaList(s)
-      case other => other
-    }).asJava
-
-    def pairs2document(seq: Seq[(String, Any)], document: Document = new Document()): Document = seq match {
-      case Nil => document
-      case head +: tail =>
-        document.append(head._1, head._2 match {
-          case m: Map[String, Any] @unchecked => mapToDocument(m)
-          case seq: Seq[_] => seq2javaList(seq)
-          case other => other
-        })
-        pairs2document(tail, document)
-    }
-
-    pairs2document(map.toSeq)
-  }
 
   def selectDynamic(cn: String): MongoCollection[Document] = db.getCollection(cn)
 
@@ -69,5 +27,9 @@ object BWMongoDB3 extends Dynamic {
 
   def collectionNames: Seq[String] = db.listCollectionNames().asScala.toSeq
 
+  // Switch from local MongoDB to cloud MongoDB ...
   private lazy val mongoClient = new MongoClient()
+  //private lazy val mongoClient = new MongoClient(new MongoClientURI("""mongodb://buildwhiz-free:bw2#mongofree@cluster0-shard-00-00-cxymj.mongodb.net:27017,cluster0-shard-00-01-cxymj.mongodb.net:27017,cluster0-shard-00-02-cxymj.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin"""))
+
+  def databases: Seq[Document] = mongoClient.listDatabases.asScala.toSeq
 }

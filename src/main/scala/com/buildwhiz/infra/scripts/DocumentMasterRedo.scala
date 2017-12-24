@@ -1,7 +1,7 @@
 package com.buildwhiz.infra.scripts
 
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 

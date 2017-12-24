@@ -1,6 +1,6 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId

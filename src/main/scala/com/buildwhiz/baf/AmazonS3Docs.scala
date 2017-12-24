@@ -3,6 +3,8 @@ package com.buildwhiz.baf
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.amazonaws.services.s3.model.S3ObjectSummary
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}

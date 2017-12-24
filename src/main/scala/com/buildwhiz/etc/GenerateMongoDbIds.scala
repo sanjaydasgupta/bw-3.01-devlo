@@ -1,7 +1,8 @@
 package com.buildwhiz.etc
 
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
 import org.bson.types.ObjectId
 import org.bson.Document
 import scala.collection.JavaConverters._

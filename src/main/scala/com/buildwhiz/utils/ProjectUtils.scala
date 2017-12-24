@@ -1,7 +1,8 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.infra.BWMongoDB3
-import BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
+
 import org.bson.Document
 
 trait ProjectUtils extends DateTimeUtils {

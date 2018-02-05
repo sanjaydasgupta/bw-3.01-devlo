@@ -18,7 +18,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       "bpmn_name" -> bpmnName))
     val taskSheet = workbook.createSheet("Tasks")
     val headerRow = taskSheet.createRow(0)
-    val headerInfo = Seq(("Task", 60), ("Type", 20), ("Parent", 40), ("Duration", 20), ("Assignee", 50), ("Description", 100))
+    val headerInfo = Seq(("Task", 60), ("Type", 20), ("Parent", 60), ("Duration", 20), ("Assignee", 50), ("Description", 100))
     for (hdrInfo <- headerInfo.zipWithIndex) {
       val cell = headerRow.createCell(hdrInfo._2)
       cell.setCellValue(hdrInfo._1._1)
@@ -27,15 +27,15 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     val projectName = project.name[String]
     val phaseName = phase.name[String]
     for (activity <- activities) {
-      val activityName = activity.name[String]
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
-      for (task <- actions) {
-        val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
+      val actionRowPairs = actions.map(a => (a, taskSheet.createRow(taskSheet.getLastRowNum + 1)))
+      val parentRow = actionRowPairs.find(_._1.`type`[String] == "main").get._2
+      for ((task, row) <- actionRowPairs) {
         val taskName = task.name[String]
         row.createCell(0).setCellValue(s"$taskName ($projectName/$phaseName)")
         val aType = task.`type`[String]
         row.createCell(1).setCellValue(aType)
-        row.createCell(2).setCellValue(activityName)
+        row.createCell(2).setCellFormula(s"A${parentRow.getRowNum + 1}")
         val duration = task.duration[String]
         row.createCell(3).setCellValue(duration)
         val assignee = task.assignee_person_id[ObjectId]

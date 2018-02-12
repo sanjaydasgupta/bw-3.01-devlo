@@ -127,7 +127,8 @@
                 <td>{{projectsCtrl.selectedPhase.start}}</td>
                 <td>{{projectsCtrl.selectedPhase.end}}</td>
                 <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
-                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{projectsCtrl.selectedPhase.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;upload</td>
+                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{projectsCtrl.selectedPhase.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
+                       <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.startUpload()">Upload</button></td>
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns" style="text-align:center;">
                 <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
@@ -135,7 +136,8 @@
                 <td>{{b.offset.start}}</td>
                 <td>{{b.offset.end}}</td>
                 <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{b.name}}"
-                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{b.name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;upload</td>
+                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{b.name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
+                       <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.startUpload()">Upload</button></td>
               </tr>
             </table></td></tr>
           </table>

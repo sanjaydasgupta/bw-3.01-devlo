@@ -44,7 +44,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       val parentRow = actionRowPairs.find(_._1.`type`[String] == "main").get._2
       for ((task, row) <- actionRowPairs) {
         val taskName = task.name[String]
-        row.createCell(0).setCellValue(s"$taskName ($projectName/$phaseName)")
+        row.createCell(0).setCellValue(s"$taskName")
         val aType = task.`type`[String]
         row.createCell(1).setCellValue(aType)
         row.createCell(2).setCellFormula(s"A${parentRow.getRowNum + 1}")
@@ -69,7 +69,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     for (variable <- variables) {
       val row = variablesSheet.createRow(variablesSheet.getLastRowNum + 1)
       val variableName = variable.label[String]
-      row.createCell(0).setCellValue(s"$variableName ($projectName/$phaseName)")
+      row.createCell(0).setCellValue(s"$variableName")
       val vType = variable.`type`[String]
       row.createCell(1).setCellValue(s"$vType")
       val value = variable.value[AnyRef].toString
@@ -89,10 +89,9 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     for (timer <- timers) {
       val row = timersSheet.createRow(timersSheet.getLastRowNum + 1)
       val timerName = timer.name[String]
-      row.createCell(0).setCellValue(s"$timerName ($projectName/$phaseName)")
+      row.createCell(0).setCellValue(s"$timerName")
       row.createCell(1).setCellValue("DURATION")
-      val duration = timer.duration[String]
-      row.createCell(2).setCellValue(duration)
+      row.createCell(2).setCellValue(timer.duration[String])
     }
     timersSheet.getLastRowNum + 1
   }

@@ -3,7 +3,7 @@ package com.buildwhiz.baf
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
-import org.apache.poi.ss.usermodel.{Cell, Row, Sheet}
+import org.apache.poi.ss.usermodel.{Row, Sheet}
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.bson.types.ObjectId
 
@@ -16,14 +16,15 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     val rows: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val cellCount = header.getPhysicalNumberOfCells
-    if (cellCount != 0)
-      throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+    if (cellCount != 6)
+      throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row}")
     for (row <- rows) {
-      val cells: Seq[Cell] = row.cellIterator.asScala.toSeq
-      if (cells.length != 0)
-        throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+      row.cellIterator.asScala.toSeq match {
+        case Seq(name, typ, parent, duration, assignee, description) =>
+        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+      }
     }
-    BWLogger.log(getClass.getName, "processTasks", s"EXIT-OK (${taskSheet.getPhysicalNumberOfRows} rows)")
+    BWLogger.log(getClass.getName, "processTasks", s"EXIT-OK (${taskSheet.getPhysicalNumberOfRows -1} tasks)")
   }
 
   private def processVariables(variableSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
@@ -31,14 +32,15 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     val rows: Iterator[Row] = variableSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val cellCount = header.getPhysicalNumberOfCells
-    if (cellCount != 0)
-      throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+    if (cellCount != 3)
+      throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row")
     for (row <- rows) {
-      val cells: Seq[Cell] = row.cellIterator.asScala.toSeq
-      if (cells.length != 0)
-        throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+      row.cellIterator.asScala.toSeq match {
+        case Seq(name, typ, value) =>
+        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+      }
     }
-    BWLogger.log(getClass.getName, "processVariables", s"EXIT-OK (${variableSheet.getPhysicalNumberOfRows} rows)")
+    BWLogger.log(getClass.getName, "processVariables", s"EXIT-OK (${variableSheet.getPhysicalNumberOfRows - 1} variables)")
   }
 
   private def processTimers(timersSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
@@ -46,14 +48,15 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val cellCount = header.getPhysicalNumberOfCells
-    if (cellCount != 0)
-      throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+    if (cellCount != 3)
+      throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row")
     for (row <- rows) {
-      val cells: Seq[Cell] = row.cellIterator.asScala.toSeq
-      if (cells.length != 0)
-        throw new IllegalArgumentException(s"unexpected cell column count $cellCount in row ${header.getRowNum + 1}")
+      row.cellIterator.asScala.toSeq match {
+        case Seq(name, typ, duration) =>
+        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+      }
     }
-    BWLogger.log(getClass.getName, "processTimers", s"EXIT-OK (${timersSheet.getPhysicalNumberOfRows} rows)")
+    BWLogger.log(getClass.getName, "processTimers", s"EXIT-OK (${timersSheet.getPhysicalNumberOfRows - 1} timers)")
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -63,7 +66,10 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       val projectOid = new ObjectId(parameters("project_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
       val bpmnName = parameters("bpmn_name")
-      val workbook = new XSSFWorkbook(request.getInputStream)
+      val parts = request.getParts
+      if (parts.size != 1)
+        throw new IllegalArgumentException(s"Unexpected number of files ${parts.size}")
+      val workbook = new XSSFWorkbook(parts.asScala.head.getInputStream)
       val nbrOfSheets = workbook.getNumberOfSheets
       if (nbrOfSheets != 3)
         throw new IllegalArgumentException(s"unexpected number of sheets: $nbrOfSheets")

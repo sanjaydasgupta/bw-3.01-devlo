@@ -36,7 +36,8 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     BWLogger.log(getClass.getName, "processTasks", s"EXIT-OK (${taskSheet.getPhysicalNumberOfRows -1} tasks)")
   }
 
-  private def processVariables(variableSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+  private def processVariables(request: HttpServletRequest, response: HttpServletResponse, variableSheet: Sheet,
+        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
     def setVariable(name: String, typ: String, value: String): Unit = {
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val variables: Option[DynDoc] = phase.variables[Many[Document]].
@@ -59,13 +60,15 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     BWLogger.log(getClass.getName, "processVariables", s"EXIT-OK (${variableSheet.getPhysicalNumberOfRows - 1} variables)")
   }
 
-  private def processTimers(timersSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+  private def processTimers(request: HttpServletRequest, response: HttpServletResponse, timersSheet: Sheet,
+        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
     def setTimer(name: String, typ: String, duration: String): Unit = {
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val timers: Option[DynDoc] = phase.timers[Many[Document]].
         find(t => t.bpmn_name[String] == bpmnName && t.name[String] == name)
       if (timers.isEmpty)
         throw new IllegalArgumentException(s"no such timer: $name")
+      TimerDurationSet.set(request, response, phaseOid, None, Some(name), bpmnName, duration)
     }
     BWLogger.log(getClass.getName, "processTimers", "ENTRY")
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
@@ -99,8 +102,8 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       val sheets: Iterator[Sheet] = workbook.sheetIterator.asScala
       sheets.map(s => (s.getSheetName, s)).foreach {
         case ("Tasks", sheet) => processTasks(sheet, projectOid, phaseOid, bpmnName)
-        case ("Variables", sheet) => processVariables(sheet, projectOid, phaseOid, bpmnName)
-        case ("Timers", sheet) => processTimers(sheet, projectOid, phaseOid, bpmnName)
+        case ("Variables", sheet) => processVariables(request, response, sheet, projectOid, phaseOid, bpmnName)
+        case ("Timers", sheet) => processTimers(request, response, sheet, projectOid, phaseOid, bpmnName)
         case (other, _) => throw new IllegalArgumentException(s"unexpected sheet name: $other")
       }
       response.setContentType("application/json")

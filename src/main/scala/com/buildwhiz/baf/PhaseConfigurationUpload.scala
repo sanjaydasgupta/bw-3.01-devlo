@@ -2,9 +2,13 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.apache.poi.ss.usermodel.{Row, Sheet}
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
@@ -12,6 +16,9 @@ import scala.collection.JavaConverters._
 class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils {
 
   private def processTasks(taskSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+    def setTask(name: String, typ: String, parent: String, duration: String, assignee: String, description: String): Unit = {
+
+    }
     BWLogger.log(getClass.getName, "processTasks", "ENTRY")
     val rows: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
@@ -20,7 +27,9 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row}")
     for (row <- rows) {
       row.cellIterator.asScala.toSeq match {
-        case Seq(name, typ, parent, duration, assignee, description) =>
+        case Seq(name, typ, parent, duration, assignee, description) => setTask(name.getStringCellValue,
+          typ.getStringCellValue, parent.getStringCellValue, duration.getStringCellValue, assignee.getStringCellValue,
+          description.getStringCellValue)
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }
@@ -28,6 +37,13 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
   }
 
   private def processVariables(variableSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+    def setVariable(name: String, typ: String, value: String): Unit = {
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val variables: Option[DynDoc] = phase.variables[Many[Document]].
+        find(v => v.bpmn_name[String] == bpmnName && v.label[String] == name)
+      if (variables.isEmpty)
+        throw new IllegalArgumentException(s"no such variable: $name")
+    }
     BWLogger.log(getClass.getName, "processVariables", "ENTRY")
     val rows: Iterator[Row] = variableSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
@@ -36,7 +52,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row")
     for (row <- rows) {
       row.cellIterator.asScala.toSeq match {
-        case Seq(name, typ, value) =>
+        case Seq(name, typ, value) => setVariable(name.getStringCellValue, typ.getStringCellValue, value.getStringCellValue)
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }
@@ -44,6 +60,13 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
   }
 
   private def processTimers(timersSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+    def setTimer(name: String, typ: String, duration: String): Unit = {
+      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val timers: Option[DynDoc] = phase.timers[Many[Document]].
+        find(t => t.bpmn_name[String] == bpmnName && t.name[String] == name)
+      if (timers.isEmpty)
+        throw new IllegalArgumentException(s"no such timer: $name")
+    }
     BWLogger.log(getClass.getName, "processTimers", "ENTRY")
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
@@ -52,7 +75,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in header row")
     for (row <- rows) {
       row.cellIterator.asScala.toSeq match {
-        case Seq(name, typ, duration) =>
+        case Seq(name, typ, duration) => setTimer(name.getStringCellValue, typ.getStringCellValue, duration.getStringCellValue)
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }

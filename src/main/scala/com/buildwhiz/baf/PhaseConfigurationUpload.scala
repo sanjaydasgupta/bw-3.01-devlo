@@ -44,6 +44,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
         find(v => v.bpmn_name[String] == bpmnName && v.label[String] == name)
       if (variables.isEmpty)
         throw new IllegalArgumentException(s"no such variable: $name")
+      VariableValueSet.set(request, response, phaseOid, name, bpmnName, value)
     }
     BWLogger.log(getClass.getName, "processVariables", "ENTRY")
     val rows: Iterator[Row] = variableSheet.rowIterator.asScala
@@ -108,7 +109,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK ($nbrOfSheets sheets)", request)
+      BWLogger.audit(getClass.getName, "doPost", s"Uploaded phase configuration Excel ($nbrOfSheets sheets)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

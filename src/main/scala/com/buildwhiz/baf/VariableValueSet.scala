@@ -54,7 +54,7 @@ object VariableValueSet {
       }
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
-      if (updateResult.getModifiedCount == 0)
+      if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       val variableLog = s"'${variables(variableIdx).label[String]}'"

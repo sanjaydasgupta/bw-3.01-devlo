@@ -72,7 +72,7 @@ object TimerDurationSet extends DateTimeUtils {
         PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
       }
       val timerLog = s"'${timers(timerIdx).name[String]}'"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set duration of timer $timerLog""", request)
+      BWLogger.audit(getClass.getName, "doPost", s"""Set duration of timer '$timerLog' to '$duration'""", request)
     } else
       BWLogger.log(getClass.getName, "doPost", "EXIT-OK (Process already ended, no changes)", request)
   }

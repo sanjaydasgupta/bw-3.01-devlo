@@ -15,9 +15,11 @@ import scala.collection.JavaConverters._
 
 class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils {
 
-  private def processTasks(taskSheet: Sheet, projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+  private def processTasks(request: HttpServletRequest, response: HttpServletResponse, taskSheet: Sheet,
+        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
     def setTask(name: String, typ: String, parent: String, duration: String, assignee: String, description: String): Unit = {
-
+      val activityOid = new ObjectId(parent)
+      ActionDurationSet.set(request, response, activityOid, name, duration)
     }
     BWLogger.log(getClass.getName, "processTasks", "ENTRY")
     val rows: Iterator[Row] = taskSheet.rowIterator.asScala
@@ -102,7 +104,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
         throw new IllegalArgumentException(s"unexpected number of sheets: $nbrOfSheets")
       val sheets: Iterator[Sheet] = workbook.sheetIterator.asScala
       sheets.map(s => (s.getSheetName, s)).foreach {
-        case ("Tasks", sheet) => processTasks(sheet, projectOid, phaseOid, bpmnName)
+        case ("Tasks", sheet) => processTasks(request, response, sheet, projectOid, phaseOid, bpmnName)
         case ("Variables", sheet) => processVariables(request, response, sheet, projectOid, phaseOid, bpmnName)
         case ("Timers", sheet) => processTimers(request, response, sheet, projectOid, phaseOid, bpmnName)
         case (other, _) => throw new IllegalArgumentException(s"unexpected sheet name: $other")

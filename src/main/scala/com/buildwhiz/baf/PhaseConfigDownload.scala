@@ -36,18 +36,16 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     val taskSheet = workbook.createSheet("Tasks")
     val headerInfo = Seq(("Task-Name", 60), ("Type", 20), ("Parent", 60), ("Duration", 20), ("Assignee", 50), ("Description", 100))
     makeHeaderRow(taskSheet, headerInfo)
-    val projectName = project.name[String]
-    val phaseName = phase.name[String]
     for (activity <- activities) {
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionRowPairs = actions.map(a => (a, taskSheet.createRow(taskSheet.getLastRowNum + 1)))
-      val parentRow = actionRowPairs.find(_._1.`type`[String] == "main").get._2
       for ((task, row) <- actionRowPairs) {
         val taskName = task.name[String]
         row.createCell(0).setCellValue(s"$taskName")
         val aType = task.`type`[String]
         row.createCell(1).setCellValue(aType)
-        row.createCell(2).setCellFormula(s"A${parentRow.getRowNum + 1}")
+        // parent's _id ...
+        row.createCell(2).setCellValue(activity._id[ObjectId].toString)
         val duration = task.duration[String]
         row.createCell(3).setCellValue(duration)
         val assignee = task.assignee_person_id[ObjectId]
@@ -63,8 +61,6 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     val variablesSheet = workbook.createSheet("Variables")
     val headerInfo = Seq(("Variable-Name", 60), ("Type", 20), ("Value", 20))
     makeHeaderRow(variablesSheet, headerInfo)
-    val projectName = project.name[String]
-    val phaseName = phase.name[String]
     val variables: Seq[DynDoc] = phase.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
     for (variable <- variables) {
       val row = variablesSheet.createRow(variablesSheet.getLastRowNum + 1)
@@ -83,8 +79,6 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     val timersSheet = workbook.createSheet("Timers")
     val headerInfo = Seq(("Timer-Name", 60), ("Type", 20), ("Value", 20))
     makeHeaderRow(timersSheet, headerInfo)
-    val projectName = project.name[String]
-    val phaseName = phase.name[String]
     val timers: Seq[DynDoc] = phase.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
     for (timer <- timers) {
       val row = timersSheet.createRow(timersSheet.getLastRowNum + 1)

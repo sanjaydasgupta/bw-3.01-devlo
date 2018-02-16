@@ -14,6 +14,28 @@ import scala.collection.JavaConverters._
 
 class ActionAdd extends HttpServlet with HttpUtils {
 
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val parameters = getParameterMap(request)
+    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    try {
+      val activityOid = new ObjectId(parameters("activity_id"))
+      val actionName = parameters("action_name")
+      val typ = parameters("type")
+      val assigneeOid = new ObjectId(parameters("assignee_id"))
+      val bpmnName = parameters("bpmn_name")
+      val duration = parameters.getOrElse("duration", "00:00:00")
+      ActionAdd.add(request, response, activityOid, actionName, typ, bpmnName, assigneeOid, duration)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+}
+
+object ActionAdd {
+
   private def getTempDoc(name: String): ObjectId = {
     BWMongoDB3.document_master.find(Map("name" -> name)).asScala.headOption match {
       case Some(doc) => doc.getObjectId("_id")
@@ -29,44 +51,30 @@ class ActionAdd extends HttpServlet with HttpUtils {
     mainAction.inbox[Many[ObjectId]]
   }
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
-    try {
-      val activityOid = new ObjectId(parameters("activity_id"))
-      val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
-      val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
-      val actionName = parameters("action_name")
-      if (existingActionNames.contains(actionName))
-        throw new IllegalArgumentException(s"Duplicate action name '$actionName'")
-      val typ = parameters("type")
-      if (!typ.matches("main|prerequisite|review"))
-        throw new IllegalArgumentException(s"Bad type value: '$typ'")
-      val bpmnName = parameters("bpmn_name")
-      val assigneeOid = new ObjectId(parameters("assignee_id"))
-      val outbox = new java.util.ArrayList[ObjectId]
-      if (typ == "review")
-        outbox.asScala.append(getTempDoc(s"$actionName-review-report"))
-      val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
-        "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> "00:00:00",
-        "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-        Map("$push" -> Map("actions" -> action)))
-      if (updateResult.getModifiedCount == 0)
-        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      else {
-        val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
-        val topLevelBpmn = thePhase.bpmn_name[String]
-        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request, response)
-      }
-      val actionLog = s"'${action.y.name[String]}' (${action.y.`type`[String]})"
-      BWLogger.audit(getClass.getName, "handlePost", s"""Added action $actionLog""", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+  def add(request: HttpServletRequest, response: HttpServletResponse, activityOid: ObjectId,
+          actionName: String, typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
+    val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
+    if (existingActionNames.contains(actionName))
+      throw new IllegalArgumentException(s"Duplicate action name '$actionName'")
+    if (!typ.matches("main|prerequisite|review"))
+      throw new IllegalArgumentException(s"Bad type value: '$typ'")
+    val outbox = new java.util.ArrayList[ObjectId]
+    if (typ == "review")
+      outbox.asScala.append(getTempDoc(s"$actionName-review-report"))
+    val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
+      "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> duration,
+      "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+      Map("$push" -> Map("actions" -> action)))
+    if (updateResult.getModifiedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    else {
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+      val (phaseOid, topLevelBpmn) = (thePhase._id[ObjectId], thePhase.bpmn_name[String])
+      PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
     }
+    val actionNameType = s"'${action.y.name[String]}' (${action.y.`type`[String]})"
+    BWLogger.audit(getClass.getName, "handlePost", s"Added action $actionNameType", request)
   }
-
 }

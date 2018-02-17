@@ -384,15 +384,15 @@
 
   self.startUpload = function() {
     $log.log('Called startUpload()');
-    var uploadButton = $window.document.getElementById('document-upload-button');
+    var uploadButton = $window.document.getElementById('configuration-upload-button');
     uploadButton.addEventListener('change', self.uploadBegin, false);
     uploadButton.click();
-    $log.log('Exiting upload()');
+    $log.log('Exiting startUpload()');
   }
 
   self.uploadBegin = function(evt) {
     $log.log('Called uploadBegin()');
-    var uploadButton = $window.document.getElementById('document-upload-button');
+    var uploadButton = $window.document.getElementById('configuration-upload-button');
     uploadButton.removeEventListener('change', self.uploadBegin, false);
     var files = evt.target.files; // FileList of File objects
     if (files.length > 0) {
@@ -404,15 +404,15 @@
       var query = 'baf/PhaseConfigurationUpload?project_id=' + self.selectedProject._id +
           '&phase_id=' + self.selectedPhase._id + '&bpmn_name=' + self.selectedPhase.bpmn_name;
       $log.log("POST: " + query);
-//      self.busy = true;
+      self.busy = true;
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(
-        function() {
-          $log.log('OK ' + query);
+        function(resp) {
+          $log.log('OK-function: ' + query);
           self.busy = false;
           alert('OK: Uploading ' + files.length + ' files completed');
         },
-        function() {
-          $log.log('ERROR ' + query);
+        function(resp) {
+          $log.log('ERROR-function: ' + query);
           self.busy = false;
           alert('ERROR: Uploading ' + files.length + ' files failed');
         }

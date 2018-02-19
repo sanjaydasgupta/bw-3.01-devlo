@@ -19,7 +19,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
       val actionName = parameters("action_name")
       val duration = parameters("duration")
       val activityOid = new ObjectId(parameters("activity_id"))
-      ActionDurationSet.set(request, response, activityOid, actionName, duration)
+      ActionDurationSet.set(request, activityOid, actionName, duration)
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
@@ -41,7 +41,7 @@ object ActionDurationSet {
     parts.map(p => f"$p%02d").mkString(":")
   }
 
-  def set(request: HttpServletRequest, response: HttpServletResponse, activityOid: ObjectId, actionName: String, duration: String): Unit = {
+  def set(request: HttpServletRequest, activityOid: ObjectId, actionName: String, duration: String): Unit = {
     if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
       throw new IllegalArgumentException(s"Bad duration format: '$duration'")
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
@@ -55,7 +55,7 @@ object ActionDurationSet {
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
       val phaseOid = thePhase._id[ObjectId]
       val topLevelBpmn = thePhase.bpmn_name[String]
-      PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
+      PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)
     }
     BWLogger.audit(getClass.getName, "doPost", s"Set duration of action '$actionName' to '$duration'", request)
   }

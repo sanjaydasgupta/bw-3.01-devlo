@@ -17,7 +17,7 @@ class ActionDelete extends HttpServlet with HttpUtils {
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
-      ActionDelete.delete(request, response, activityOid, actionName)
+      ActionDelete.delete(request, activityOid, actionName)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -28,8 +28,7 @@ class ActionDelete extends HttpServlet with HttpUtils {
 }
 
 object ActionDelete {
-  def delete(request: HttpServletRequest, response: HttpServletResponse, activityOid: ObjectId,
-         actionName: String): Unit = {
+  def delete(request: HttpServletRequest, activityOid: ObjectId, actionName: String): Unit = {
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
     val actionIdx = actions.indexWhere(_.name[String] == actionName)
@@ -39,11 +38,9 @@ object ActionDelete {
       Map("$pull" -> Map("actions" -> Map("name" -> actionName))))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    else {
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
-      val topLevelBpmn = thePhase.bpmn_name[String]
-      PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request, response)
-    }
-    BWLogger.audit(getClass.getName, "handlePost", s"Deleted action '$actionName'", request)
+    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val topLevelBpmn = thePhase.bpmn_name[String]
+    PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request)
+    BWLogger.audit(getClass.getName, "delete", s"Deleted action '$actionName'", request)
   }
 }

@@ -20,8 +20,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))
       val (timerId, timerName) = (parameters.get("timer_id"), parameters.get("timer_name"))
-      TimerDurationSet.set(request, response, phaseOid, timerId, timerName, bpmnName, duration)
-      response.setStatus(HttpServletResponse.SC_OK)
+      TimerDurationSet.set(request, phaseOid, timerId, timerName, bpmnName, duration)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -42,8 +41,8 @@ object TimerDurationSet extends DateTimeUtils {
     parts.map(p => f"$p%02d").mkString(":")
   }
 
-  def set(request: HttpServletRequest, response: HttpServletResponse, phaseOid: ObjectId, timerId: Option[String],
-          timerName: Option[String], bpmnName: String, inDuration: String): Unit = {
+  def set(request: HttpServletRequest, phaseOid: ObjectId, timerId: Option[String], timerName: Option[String],
+          bpmnName: String, inDuration: String): Unit = {
     val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
     val timers: Seq[DynDoc] = thePhase.timers[Many[Document]]
     val timerIdx: Int = (timerId, timerName) match {
@@ -69,7 +68,7 @@ object TimerDurationSet extends DateTimeUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       else {
         val topLevelBpmn = thePhase.bpmn_name[String]
-        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
+        PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)
       }
       val timerLog = s"'${timers(timerIdx).name[String]}'"
       BWLogger.audit(getClass.getName, "doPost", s"""Set duration of timer '$timerLog' to '$duration'""", request)

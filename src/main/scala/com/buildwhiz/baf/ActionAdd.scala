@@ -24,7 +24,7 @@ class ActionAdd extends HttpServlet with HttpUtils {
       val assigneeOid = new ObjectId(parameters("assignee_id"))
       val bpmnName = parameters("bpmn_name")
       val duration = parameters.getOrElse("duration", "00:00:00")
-      ActionAdd.add(request, response, activityOid, actionName, typ, bpmnName, assigneeOid, duration)
+      ActionAdd.add(request, activityOid, actionName, typ, bpmnName, assigneeOid, duration)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -51,8 +51,8 @@ object ActionAdd {
     mainAction.inbox[Many[ObjectId]]
   }
 
-  def add(request: HttpServletRequest, response: HttpServletResponse, activityOid: ObjectId,
-          actionName: String, typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
+  def add(request: HttpServletRequest, activityOid: ObjectId, actionName: String, typ: String,
+          bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
     if (existingActionNames.contains(actionName))
@@ -69,12 +69,10 @@ object ActionAdd {
       Map("$push" -> Map("actions" -> action)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    else {
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
-      val (phaseOid, topLevelBpmn) = (thePhase._id[ObjectId], thePhase.bpmn_name[String])
-      PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request, response)
-    }
+    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val (phaseOid, topLevelBpmn) = (thePhase._id[ObjectId], thePhase.bpmn_name[String])
+    PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)
     val actionNameType = s"'${action.y.name[String]}' (${action.y.`type`[String]})"
-    BWLogger.audit(getClass.getName, "handlePost", s"Added action $actionNameType", request)
+    BWLogger.audit(getClass.getName, "add", s"Added action $actionNameType", request)
   }
 }

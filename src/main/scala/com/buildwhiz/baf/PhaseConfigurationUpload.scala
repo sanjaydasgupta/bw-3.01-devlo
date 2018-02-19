@@ -16,18 +16,18 @@ import scala.collection.JavaConverters._
 class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils {
 
   private def processTasks(request: HttpServletRequest, response: HttpServletResponse, taskSheet: Sheet,
-        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+        bpmnName: String): String = {
     def setTask(name: String, typ: String, parent: String, duration: String, assignee: String, description: String): Unit = {
       val activityOid = new ObjectId(parent)
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
       if (actions.exists(_.name[String] == name)) {
         if (typ == "#")
-          ActionDelete.delete(request, response, activityOid, name)
+          ActionDelete.delete(request, activityOid, name)
         else
-          ActionDurationSet.set(request, response, activityOid, name, duration)
+          ActionDurationSet.set(request, activityOid, name, duration)
       } else
-        ActionAdd.add(request, response, activityOid, name, typ, bpmnName, new ObjectId(assignee), duration)
+        ActionAdd.add(request, activityOid, name, typ, bpmnName, new ObjectId(assignee), duration)
     }
     BWLogger.log(getClass.getName, "processTasks", "ENTRY", request)
     val rows: Iterator[Row] = taskSheet.rowIterator.asScala
@@ -42,11 +42,11 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }
-    BWLogger.log(getClass.getName, "processTasks", s"EXIT-OK (${taskSheet.getPhysicalNumberOfRows -1} tasks)", request)
+    s"${taskSheet.getPhysicalNumberOfRows -1} task(s)"
   }
 
   private def processVariables(request: HttpServletRequest, response: HttpServletResponse, variableSheet: Sheet,
-        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+        phaseOid: ObjectId, bpmnName: String): String = {
     def setVariable(name: String, typ: String, value: String): Unit = {
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val variables: Option[DynDoc] = phase.variables[Many[Document]].
@@ -67,18 +67,18 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }
-    BWLogger.log(getClass.getName, "processVariables", s"EXIT-OK (${variableSheet.getPhysicalNumberOfRows - 1} variables)", request)
+    s"${variableSheet.getPhysicalNumberOfRows - 1} variable(s)"
   }
 
   private def processTimers(request: HttpServletRequest, response: HttpServletResponse, timersSheet: Sheet,
-        projectOid: ObjectId, phaseOid: ObjectId, bpmnName: String): Unit = {
+        phaseOid: ObjectId, bpmnName: String): String = {
     def setTimer(name: String, typ: String, duration: String): Unit = {
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val timers: Option[DynDoc] = phase.timers[Many[Document]].
         find(t => t.bpmn_name[String] == bpmnName && t.name[String] == name)
       if (timers.isEmpty)
         throw new IllegalArgumentException(s"no such timer: $name")
-      TimerDurationSet.set(request, response, phaseOid, None, Some(name), bpmnName, duration)
+      TimerDurationSet.set(request, phaseOid, None, Some(name), bpmnName, duration)
     }
     BWLogger.log(getClass.getName, "processTimers", "ENTRY", request)
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
@@ -92,14 +92,13 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
         case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
       }
     }
-    BWLogger.log(getClass.getName, "processTimers", s"EXIT-OK (${timersSheet.getPhysicalNumberOfRows - 1} timers)", request)
+    s"${timersSheet.getPhysicalNumberOfRows - 1} timer(s)"
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val projectOid = new ObjectId(parameters("project_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
       val bpmnName = parameters("bpmn_name")
       val parts = request.getParts
@@ -110,14 +109,14 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       if (nbrOfSheets != 3)
         throw new IllegalArgumentException(s"unexpected number of sheets: $nbrOfSheets")
       val sheets: Iterator[Sheet] = workbook.sheetIterator.asScala
-      sheets.map(s => (s.getSheetName, s)).foreach {
-        case ("Tasks", sheet) => processTasks(request, response, sheet, projectOid, phaseOid, bpmnName)
-        case ("Variables", sheet) => processVariables(request, response, sheet, projectOid, phaseOid, bpmnName)
-        case ("Timers", sheet) => processTimers(request, response, sheet, projectOid, phaseOid, bpmnName)
+      val itemsUploaded: String = sheets.map(s => (s.getSheetName, s)).map({
+        case ("Tasks", sheet) => processTasks(request, response, sheet, bpmnName)
+        case ("Variables", sheet) => processVariables(request, response, sheet, phaseOid, bpmnName)
+        case ("Timers", sheet) => processTimers(request, response, sheet, phaseOid, bpmnName)
         case (other, _) => throw new IllegalArgumentException(s"unexpected sheet name: $other")
-      }
-      response.getWriter.print(s"""{"nbrOfSheets": "$nbrOfSheets"}""")
-      BWLogger.audit(getClass.getName, "doPost", s"Uploaded phase configuration Excel ($nbrOfSheets sheets)", request)
+      }).mkString(", ")
+      BWLogger.audit(getClass.getName, "doPost", s"Uploaded phase configuration Excel ($nbrOfSheets sheets: $itemsUploaded)", request)
+      response.getWriter.print(s"""{"nbrOfSheets": "$nbrOfSheets", "items": "$itemsUploaded"}""")
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {

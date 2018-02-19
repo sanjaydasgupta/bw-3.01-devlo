@@ -6,6 +6,7 @@ import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.baf.PhaseBpmnTraverse.ms2duration
 import com.buildwhiz.utils._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -24,7 +25,10 @@ class PhaseBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnModel = bpmnModelInstance(bpmnFileName)
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnFileName, request, response)
+      val offset = PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnFileName, request)
+      response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
+        append("max", ms2duration(offset._2))))
+      response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {
@@ -115,14 +119,14 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")
   }
 
-  def scheduleBpmnElements(bpmnName: String, phaseOid: ObjectId, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  def scheduleBpmnElements(bpmnName: String, phaseOid: ObjectId, request: HttpServletRequest): (Long, Long) = {
     val bpmnModel = bpmnModelInstance(bpmnName)
     val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-    PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnName, request, response)
+    PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnName, request)
   }
 
   def scheduleBpmnElements(topLevelBpmnModel: BpmnModelInstance, phase: DynDoc, topLevelBpmnName: String,
-                           request: HttpServletRequest, response: HttpServletResponse): Unit = {
+                           request: HttpServletRequest): (Long, Long) = {
 
     def getTimeOffset(node: FlowNode, processOffset: (Long, Long), bpmnName: String): (Long, Long) = {
 
@@ -146,14 +150,12 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
           minMin(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName)))
         case endEvent: EndEvent =>
           val exitOffset = minMin(predecessors(endEvent).map(n => getTimeOffset(n, processOffset, bpmnName)))
-          //setProcessSchedule(phase, bpmnId, processOffset, exitOffset)
           exitOffset
         case callActivity: CallActivity =>
           val entryOffset = minMin(predecessors(callActivity).map(n => getTimeOffset(n, processOffset, bpmnName)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
             val duration = getActivityDuration(callActivity.getId, phase, bpmnName)
             setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, duration)
-            //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
             val exitOffset = (entryOffset._1 + duration, entryOffset._2 + duration)
             exitOffset
           } else {
@@ -161,8 +163,6 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
             val exitOffset = getTimeOffset(endEvents.head, entryOffset, calledElement)
-            //BWLogger.log(getClass.getName, "setSubProcessSchedule",
-            //  s"calledElement: $calledElement, bpmnName: $bpmnName, entryOffset: $entryOffset, exitOffset: $exitOffset", request)
             setSubProcessSchedule(phase, calledElement, bpmnName, entryOffset, exitOffset)
             exitOffset
           }
@@ -171,7 +171,6 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
           val delay = getTimerDuration(ted, phase, bpmnName)
           setTimerSchedule(ted, phase, bpmnName, entryOffset, delay)
-          //BWLogger.log(getClass.getName, s"timeOffset(${node.getClass.getSimpleName})", offset.toString(), request)
           val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
           exitOffset
       }
@@ -184,9 +183,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
       Map("$set" -> Map("end" -> end)))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")
-    response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
-      append("max", ms2duration(offset._2))))
-    response.setContentType("application/json")
+    offset
   }
 
 }

@@ -128,7 +128,7 @@
                 <td>{{projectsCtrl.selectedPhase.end}}</td>
                 <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
                        download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{projectsCtrl.selectedPhase.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
-                       <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload()">Upload</button></td>
+                       <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(projectsCtrl.selectedPhase.bpmn_name)">Upload</button></td>
                 <input id="configuration-upload-button" type="file" style="display:none;" />
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns" style="text-align:center;">
@@ -138,7 +138,7 @@
                 <td>{{b.offset.end}}</td>
                 <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{b.name}}"
                        download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{b.name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
-                       <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload()">Upload</button></td>
+                       <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(b.name)">Upload</button></td>
               </tr>
             </table></td></tr>
           </table>

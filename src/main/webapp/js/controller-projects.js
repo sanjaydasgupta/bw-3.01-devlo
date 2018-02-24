@@ -382,15 +382,15 @@
     return color;
   }
 
-  self.startUpload = function() {
+  self.startUpload = function(bpmn_name) {
     $log.log('Called startUpload()');
     var uploadButton = $window.document.getElementById('configuration-upload-button');
-    uploadButton.addEventListener('change', self.uploadBegin, false);
+    uploadButton.addEventListener('change', function(evt) {self.uploadBegin(evt, bpmn_name)}, false);
     uploadButton.click();
     $log.log('Exiting startUpload()');
   }
 
-  self.uploadBegin = function(evt) {
+  self.uploadBegin = function(evt, bpmn_name) {
     $log.log('Called uploadBegin()');
     var uploadButton = $window.document.getElementById('configuration-upload-button');
     uploadButton.removeEventListener('change', self.uploadBegin, false);
@@ -402,7 +402,7 @@
         $log.log('formData.append(' + file.name + ')');
       });
       var query = 'baf/PhaseConfigurationUpload?project_id=' + self.selectedProject._id +
-          '&phase_id=' + self.selectedPhase._id + '&bpmn_name=' + self.selectedPhase.bpmn_name;
+          '&phase_id=' + self.selectedPhase._id + '&bpmn_name=' + bpmn_name;
       $log.log("POST: " + query);
       self.busy = true;
       $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(

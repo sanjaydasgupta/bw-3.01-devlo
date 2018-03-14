@@ -17,12 +17,6 @@ import scala.util.Failure
 
 trait MailUtils {
 
-  val emailSignature: String =
-    """
-      |Please do not reply to this email, this mailbox is not monitored.
-      |
-      |The 430 Forest project""".stripMargin
-
   def sendMail(recipientOid: ObjectId, subject: String, body: String, request: Option[HttpServletRequest]): Unit =
     sendMail(Seq(recipientOid), subject, body, request)
 
@@ -49,6 +43,14 @@ trait MailUtils {
           message.setSubject(subject)
           val multipart = new MimeMultipart("alternative")
           val textPart = new MimeBodyPart()
+          val info: DynDoc = BWMongoDB3.instance_info.find().head
+          val instanceName = info.instance[String]
+          val emailSignature: String =
+            s"""
+              |Please do not reply to this email, this mailbox is not monitored.
+              |
+              |The '$instanceName' project""".stripMargin
+
           val bodyText = body + (if (body.endsWith("\n")) "" else "\n") + emailSignature
           textPart.setText(bodyText, "utf-8")
           multipart.addBodyPart(textPart)

@@ -12,11 +12,6 @@ import org.bson.types.ObjectId
 
 class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with MailUtils {
 
-  private val mailBody =
-    """Your password on '430forest.com' has just been changed.
-      |If you have not changed it, please notify your contact person.
-    """.stripMargin
-
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
@@ -32,7 +27,13 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
         Map("$set" -> Map(s"password" -> md5(newPassword))))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      sendMail(personOid, "Password changed on 430forest.com", mailBody, Some(request))
+      val info: DynDoc = BWMongoDB3.instance_info.find().head
+      val instanceName = info.instance[String]
+      val mailBody =
+        s"""Your password on '$instanceName' has just been changed.
+          |If you have not changed it, please notify your contact person.
+        """.stripMargin
+      sendMail(personOid, s"Password changed on '$instanceName'", mailBody, Some(request))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"

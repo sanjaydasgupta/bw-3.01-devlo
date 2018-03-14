@@ -14,7 +14,7 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
 
   private def saveAndSendMail(assignedPersonOid: ObjectId, deAssignedPersonOid: ObjectId, projectOid: ObjectId,
         actionName: String, request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY", request)
     try {
       val subject1 = "Action role assignment"
       val message1 = s"You have been assigned the role of contributor for action '$actionName'"
@@ -29,13 +29,13 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
     } catch {
       case t: Throwable =>
         //t.printStackTrace()
-        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})", request)
         throw t
     }
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK", request)
   }
 
-  private def adjustPersonsProjectIds(personOid: ObjectId): Unit = {
+  private def adjustPersonsProjectIds(personOid: ObjectId, request: HttpServletRequest): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
       val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
@@ -51,13 +51,13 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
           Map("$addToSet" -> Map("project_ids" -> project._id[ObjectId])))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
       } else {
         val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
           Map("$pull" -> Map("project_ids" -> project._id[ObjectId])))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult")
+        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
       }
     }
   }
@@ -78,8 +78,8 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
         Map("$set" -> Map(s"actions.$actionIdx.assignee_person_id" -> assignedPersonOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      adjustPersonsProjectIds(assignedPersonOid)
-      adjustPersonsProjectIds(deAssignedPersonOid)
+      adjustPersonsProjectIds(assignedPersonOid, request)
+      adjustPersonsProjectIds(deAssignedPersonOid, request)
       saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName, request)
       response.setStatus(HttpServletResponse.SC_OK)
       val actionLog = s"'$actionName'"

@@ -38,6 +38,14 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
     }
   }
 
+  /*
+
+    curl -H "Content-Type: application/json" -X POST
+    -d '{"email":"sanjay.dasgupta@buildwhiz.com","password":"Sanjay"}'
+    http://54.82.1.60:8080/bw-responsive-1.01/etc/LoginPost
+
+  */
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")

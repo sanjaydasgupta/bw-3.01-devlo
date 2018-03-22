@@ -69,8 +69,8 @@ class MongoDBView extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     val writer = response.getWriter
     try {
-      (parameters.get("collection_name"), parameters.get("query"), parameters.get("fields")) match {
-        case (Some(collection), Some(query), Some(fields)) =>
+      (parameters.get("collection_name"), parameters.get("find_query"), parameters.get("fields"), parameters.get("update_query")) match {
+        case (Some(collection), Some(query), Some(fields), None) =>
           val fieldsToKeep: Set[String] = Document.parse(s"{$fields}").asScala.toSeq.
             filter(p => p._2.toString == "true").map(_._1).toSet
           val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
@@ -78,13 +78,13 @@ class MongoDBView extends HttpServlet with HttpUtils {
             map(d => {val keys = d.asDoc.keySet().asScala -- fieldsToKeep; keys.foreach(k => d.remove(k)); d})
           val jsonStrings: Seq[String] = trimmedDocs.map(d => d.asDoc.toJson)
           writer.print(jsonStrings.mkString("[", ", ", "]"))
-        case (Some(collection), Some(query), None) =>
+        case (Some(collection), Some(query), None, None) =>
           val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
           val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
           writer.print(jsonStrings.mkString("[", ", ", "]"))
-        case (Some("*"), None, None) =>
+        case (Some("*"), None, None, None) =>
           writer.println(archive(request))
-        case (Some(collection), None, None) =>
+        case (Some(collection), None, None, None) =>
           if (collection.endsWith("*")) {
             collectionSchema(request, response, collection.substring(0, collection.length - 1))
           } else {
@@ -92,7 +92,11 @@ class MongoDBView extends HttpServlet with HttpUtils {
             val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
             writer.print(jsonStrings.mkString("[", ", ", "]"))
           }
-        case (_, _, _) =>
+        case (Some(collection), None, Some(update), Some(query)) =>
+          val updateResult = BWMongoDB3(collection).updateMany(Document.parse(s"{$query}"), Document.parse(s"{$update}"))
+          if (updateResult.getMatchedCount == 0)
+            throw new IllegalArgumentException(s"No match found")
+        case _ =>
           val names: Seq[String] = BWMongoDB3.collectionNames
           val counts: Seq[Long] = names.map(BWMongoDB3(_).count())
           val nameAndCounts = names.zip(counts).sortWith(_._1 < _._1)

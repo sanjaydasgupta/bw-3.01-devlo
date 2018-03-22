@@ -38,9 +38,12 @@
           </table>
           <table class="table table-condensed table-bordered">
             <tr data-ng-if="mongoCtrl.name != ''"><td class="bg-info text-center">
-              db.{{mongoCtrl.name}}.find({&nbsp;<input data-ng-model="mongoCtrl.query" placeholder="query">&nbsp;},&nbsp;
-              {&nbsp;<input data-ng-model="mongoCtrl.projection" placeholder="projection">&nbsp;})
-              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runQuery()"><span class="glyphicon glyphicon-play"></span> Run</button>
+              db.{{mongoCtrl.name}}
+              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runQuery()"><span class="glyphicon glyphicon-search"></span> Find</button>
+              ({&nbsp;<input data-ng-model="mongoCtrl.query" placeholder="query">&nbsp;},&nbsp;
+              {&nbsp;<input data-ng-model="mongoCtrl.projection" placeholder="projection/update">&nbsp;})
+              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runUpdate()" data-ng-disabled="mongoCtrl.updateDisabled()">
+                <span class="glyphicon glyphicon-edit"></span> Update</button>
             </td></tr>
           </table>
         </div>

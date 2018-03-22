@@ -10,6 +10,7 @@
 
   self.query = '';
   self.projection = '';
+  self.queryOk = false;
 
   $log.log('MongodbCtrl: calling GET baf/MongoDBView');
   $http.get('baf/MongoDBView').then(
@@ -71,7 +72,27 @@
 
   self.runQuery = function() {
     $log.log('Called runQuery()');
-    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&query=' + escape(self.query);
+    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&find_query=' + escape(self.query);
+    if (self.projection != '') {
+      q += '&fields=' + escape(self.projection);
+    }
+    $log.log('MongodbCtrl: GET ' + q);
+    $http.get(q).then(
+      function(resp) {
+        self.details = resp.data;
+        self.displayingSchema = false;
+        self.queryOk = true;
+      },
+      function(errResponse) {
+        self.queryOk = false;
+        alert("MongodbCtrl: ERROR(collection-details): " + errResponse);
+      }
+    );
+  }
+
+  self.runUpdate = function() {
+    $log.log('Called runUpdate()');
+    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&update_query=' + escape(self.query);
     if (self.projection != '') {
       q += '&fields=' + escape(self.projection);
     }
@@ -81,8 +102,15 @@
         self.details = resp.data;
         self.displayingSchema = false;
       },
-      function(errResponse) {alert("MongodbCtrl: ERROR(collection-details): " + errResponse);}
+      function(errResponse) {
+        self.queryOk = false;
+        alert("MongodbCtrl: ERROR(collection-details): " + errResponse);
+      }
     );
+  }
+
+  self.updateDisabled = function() {
+    return !self.queryOk || self.projection == "";
   }
 
 }]);

@@ -1,10 +1,10 @@
 <div class="panel panel-primary">
-  <div class="panel-heading">
+  <div class="panel-heading" data-ng-if="!homeCtrl.uiHidden()">
     <span style="font-weight:bold;">Home</span>
     <button class="btn btn-xs btn-info pull-right" data-ng-click="homeCtrl.refresh()">Refresh</button>
   </div>
 
-  <div class="panel-body fixed-panel">
+  <div class="panel-body fixed-panel" data-ng-if="!homeCtrl.uiHidden()">
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2">

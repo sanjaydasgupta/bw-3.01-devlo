@@ -62,6 +62,15 @@
     self.fetchTasksStatus();
   }
 
+  self.uiHidden = function() {
+    $log.log('Called uiHidden()');
+    var exists = AuthService.data.hasOwnProperty("ui_hidden");
+    var hidden =  exists && AuthService.data.ui_hidden == true;
+    $log.log('uiHidden() Exists -> ' + exists);
+    $log.log('uiHidden() -> ' + hidden);
+    return hidden;
+  }
+
   self.refresh();
 
 }]);

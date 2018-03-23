@@ -48,9 +48,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
-    parameters("User-Agent") = request.getHeader("User-Agent")
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", parameters.toSeq: _*)
+    BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
     try {
       val postData = getStreamData(request)
       val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()

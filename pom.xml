@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.buildwhiz.wfe.camunda</groupId>
-	<artifactId>bw-responsive</artifactId>
+	<artifactId>bw-dot</artifactId>
 	<version>1.01</version>
 	<packaging>war</packaging>
 

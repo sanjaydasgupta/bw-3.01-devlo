@@ -39,25 +39,33 @@ class UploadFile extends HttpServlet with HttpUtils {
       }
       val uploadsDirectory = new File("uploads")
         if (!uploadsDirectory.exists)
-          throw new IllegalArgumentException("No \"uploads\" directory")
+          throw new IllegalArgumentException("No 'uploads' directory")
       if (parameters.contains("file_location")) {
         val fileLocation = parameters("file_location")
-        val locationParts = fileLocation.split("/")
-        val theFile = locationParts.foldLeft(uploadsDirectory)((dir, name) => new File(dir, name))
-        val fileOutputStream = new FileOutputStream(theFile)
-        val parts = request.getParts
+        //val locationParts = fileLocation.split("/")
+        //val theFile = locationParts.foldLeft(uploadsDirectory)((dir, name) => new File(dir, name))
+        //val fileOutputStream = new FileOutputStream(theFile)
+        val directory = new File(uploadsDirectory, fileLocation)
+        if (!directory.exists()) {
+          val cwd = uploadsDirectory.getCanonicalPath
+          throw new IllegalArgumentException(s"No directory '$fileLocation' in '$cwd'")
+        }
+        val parts = request.getParts.asScala
         if (parts.isEmpty)
           throw new IllegalArgumentException("No file uploaded")
-        val inputStream = request.getParts.asScala.head.getInputStream
+        val fileName = parts.head.getSubmittedFileName
+        val inputStream = parts.head.getInputStream
+        val relativeFileName = fileLocation + "/" + fileName
+        val fileOutputStream = new FileOutputStream(new File(uploadsDirectory, relativeFileName))
         val length = copyStream(inputStream, fileOutputStream)
         fileOutputStream.flush()
         fileOutputStream.close()
-        writer.println(s"Received $length bytes for '$fileLocation' from ${request.getRemoteAddr}")
+        writer.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
-        BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation' ($length)", request)
+        BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
-        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.47/webapps/bw-responsive-1.01""".!
+        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.47/webapps/bw-dot-1.01""".!
         val statusMsg = if (status == 0) {
           BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
           "OK"

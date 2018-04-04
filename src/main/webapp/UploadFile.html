@@ -5,20 +5,50 @@
     <title>UploadFile</title>
   </head>
   <body data-ng-app="BuildWhizDev" data-ng-controller="DevController as devCtrl">
-    <h2>Remember to UPDATE after uploading one or more files</h2><br>
+    <h2>Remember to click COMMIT after uploading each group of files</h2><br>
 
-    <form method="post" action="tools/UploadFile?file_location=html/bpmn.html" enctype="multipart/form-data">
-        bpmn.html: <input type="file" accept="text/html" name="file">
-        <input type="submit">
-    </form>
-    <form method="post" action="tools/UploadFile?file_location=js/controller-bpmn.js" enctype="multipart/form-data">
-        controller-bpmn.js: <input type="file" accept="text/js" name="file">
-        <input type="submit">
-    </form>
+    <table border="1">
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=." enctype="multipart/form-data">
+          BASE: <input type="file" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=assets" enctype="multipart/form-data">
+          assets: <input type="file" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=css" enctype="multipart/form-data">
+          css: <input type="file" accept="text/css" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=images" enctype="multipart/form-data">
+          images: <input type="file" accept="image" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=html" enctype="multipart/form-data">
+          html: <input type="file" accept="text/html" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+      <tr><td>
+        <form method="post" action="tools/UploadFile?file_location=js" enctype="multipart/form-data">
+          js: <input type="file" accept="text/js" name="file">
+          <input type="submit" value="Upload">
+        </form>
+      </td></tr>
+    </table>
 
-    <h3>UPDATE</h3>
+    <h3>COMMIT</h3>
     <form method="post" action="tools/UploadFile" enctype="multipart/form-data">
-        <input type="submit" name="file">
+        <input type="submit" name="file" value="Commit">
     </form><br/>
 
     <h3>Test</h3>
@@ -27,7 +57,7 @@
     <h4>Status</h4>
     <p id="status-paragraph"></p>
 
-    <script src="js/lib/angular.min.js"></script>
+    <script src="bw/angular.min.js"></script>
     <script type="text/javascript">
       var module = angular.module('BuildWhizDev', []);
 

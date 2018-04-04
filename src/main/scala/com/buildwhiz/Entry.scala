@@ -11,7 +11,7 @@ import scala.language.reflectiveCalls
 @MultipartConfig()
 class Entry extends HttpServlet {
 
-  private def authenticated(request: HttpServletRequest): Boolean = {
+  private def permitted(request: HttpServletRequest): Boolean = {
     val session = request.getSession(true)
     val uriParts = request.getRequestURI.split("/")
     val loggingIn = uriParts.last.matches("LoginPost|Environment") && uriParts.init.last == "etc"
@@ -24,7 +24,7 @@ class Entry extends HttpServlet {
 
   private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
         delegateTo: Entry.BWServlet => Unit): Unit = {
-    if (authenticated(request)) {
+    if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
       val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|etc|tools|web")).head._2
       val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
@@ -43,6 +43,9 @@ class Entry extends HttpServlet {
         }
       }
     } else {
+      val cookies = request.getCookies.map(c => s"n:${c.getName} d:${c.getDomain} p:${c.getPath} v:${c.getValue}").
+        mkString(", ")
+      log(s"ERROR: Authentication failed (cookies: $cookies)", request)
       val uri = request.getRequestURI
       response.sendRedirect("/" + uri.split("/")(1))
     }

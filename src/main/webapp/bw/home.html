@@ -1,0 +1,75 @@
+<div class="panel panel-primary">
+  <div class="panel-heading" data-ng-if="!homeCtrl.uiHidden()">
+    <span style="font-weight:bold;">Home</span>
+    <button class="btn btn-xs btn-info pull-right" data-ng-click="homeCtrl.refresh()">Refresh</button>
+  </div>
+
+  <div class="panel-body fixed-panel" data-ng-if="!homeCtrl.uiHidden()">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2">
+          <a href="#/documents-view2"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-inbox"></span> Documents
+            <!--span class="badge">{{homeCtrl.documentList.length}}</span-->
+          </p></a>
+          <a href="#/rfi"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-question-sign"></span> RFI
+            <span class="badge">{{homeCtrl.rfiStatus}}</span>
+          </p></a>
+          <a href="#/tasks"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-th-list"></span> Tasks
+            <span class="badge">{{homeCtrl.tasksStatus}}</span>
+          </p></a>
+          <a href="#/status-update"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-upload"></span> Status Update
+          </p></a>
+          <a href="#/projects"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-briefcase"></span> Projects
+          </p></a>
+          <a href="#/userProfile"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-user"></span> Profile
+          </p></a>
+          <a href="#/help"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+            <span class="glyphicon glyphicon-info-sign"></span> Help
+            <!--span class="badge">{{homeCtrl.rfiList.length}}</span-->
+          </p></a>
+          <hr style="margin:10px;" />
+          <a href="javascript:void(0)" data-ng-click="homeCtrl.logout()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:mistyrose;">
+            <span class="glyphicon glyphicon-log-out"></span> Logout
+          </p></a>
+        </div>
+        <!-- Brief documentation -->
+        <div class="col-xs-12 col-sm-8 col-md-9 col-lg-10 col-xl-10">
+          <p style="font-weight:bold;">
+            Welcome to the <i>BuildWhiz New Multifamily Project</i> document center
+          </p>
+          <p>
+            Your documents can be viewed by clicking <span class="badge">Documents</span> in the left margin.
+            The documents page allows you to find and download the help you need, and to upload new
+            versions of documents you create if applicable.
+          </p>
+          <p>
+            RFIs may be initiated and RFI responses viewed by clicking <span class="badge">RFI</span> in the left margin.
+            The two numbers in the blurb are (a) count of unread messages, and (b) total messages respectively.
+          </p>
+          <p>
+            The <span class="badge">Status Update</span> page enables you to report progress and file submittals.
+          </p>
+          <p>
+            To change your password or other personal information click on <span class="badge">Profile</span> in the
+            left margin.
+          </p>
+          <p>
+            More information can be obtained by clicking <span class="badge">Help</span> in the left margin.
+            Page-specific help can be obtained by clicking on the <button class="btn btn-xs btn-warning">
+            <span class="glyphicon glyphicon-info-sign"></span> Help</button> button near the top-right corner of
+            any page. You can return to this home page by clicking on your name at the top-left corner.
+          </p>
+          <p>
+            You can log-out by clicking <span class="badge">Logout</span> in the left margin or at the top-right corner.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,34 +4,37 @@
     <button class="btn btn-xs btn-info pull-right" data-ng-click="homeCtrl.refresh()">Refresh</button>
   </div>
 
-  <div class="panel-body fixed-panel" data-ng-if="!homeCtrl.uiHidden()">
+  <div class="panel-body fixed-panel">
     <div class="container-fluid">
       <div class="row">
         <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2">
-          <a href="#/documents-view2"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/documents-view2" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-inbox"></span> Documents
             <!--span class="badge">{{homeCtrl.documentList.length}}</span-->
           </p></a>
-          <a href="#/rfi"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/rfi" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-question-sign"></span> RFI
             <span class="badge">{{homeCtrl.rfiStatus}}</span>
           </p></a>
-          <a href="#/tasks"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/tasks" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-th-list"></span> Tasks
             <span class="badge">{{homeCtrl.tasksStatus}}</span>
           </p></a>
-          <a href="#/status-update"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/status-update" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-upload"></span> Status Update
           </p></a>
-          <a href="#/projects"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/projects" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-briefcase"></span> Projects
           </p></a>
-          <a href="#/userProfile"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/userProfile" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-user"></span> Profile
           </p></a>
-          <a href="#/help"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
+          <a href="#/help" data-ng-if="!homeCtrl.uiHidden()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:lavender;">
             <span class="glyphicon glyphicon-info-sign"></span> Help
             <!--span class="badge">{{homeCtrl.rfiList.length}}</span-->
+          </p></a>
+          <a href="#/systemMonitor"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:mistyrose;">
+            <span class="glyphicon glyphicon-dashboard"></span> System Monitor
           </p></a>
           <hr style="margin:10px;" />
           <a href="javascript:void(0)" data-ng-click="homeCtrl.logout()"><p style="padding: 5px; border: 2px solid #337ab7; margin-bottom:5px; background-color:mistyrose;">
@@ -39,7 +42,7 @@
           </p></a>
         </div>
         <!-- Brief documentation -->
-        <div class="col-xs-12 col-sm-8 col-md-9 col-lg-10 col-xl-10">
+        <div class="col-xs-12 col-sm-8 col-md-9 col-lg-10 col-xl-10" data-ng-if="!homeCtrl.uiHidden()">
           <p style="font-weight:bold;">
             Welcome to the <i>BuildWhiz New Multifamily Project</i> document center
           </p>

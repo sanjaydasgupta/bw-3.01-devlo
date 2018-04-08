@@ -4,6 +4,12 @@ angular.module('BuildWhizApp', ['ngRoute', 'ui.bootstrap'])
     $routeProvider.when('/', {
         templateUrl: 'bw/home.html',
         controller: 'HomeCtrl as homeCtrl'
+    }).when('/systemMonitor', {
+        templateUrl: 'bw/system-monitor.html',
+        controller: 'SystemMonitorCtrl as sysMonCtrl'
+    }).when('/mongodb', {
+        templateUrl: 'bw/mongodb.html',
+        controller: 'MongodbCtrl as mongoCtrl'
     /*}).when('/documents-loader', {
         templateUrl: 'html/documents-loader.html',
         controller: 'LoaderDocumentsCtrl as loaderCtrl'

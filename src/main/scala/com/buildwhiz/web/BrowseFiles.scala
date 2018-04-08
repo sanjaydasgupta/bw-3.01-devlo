@@ -35,9 +35,9 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
            |<td align="center">$length</td><td align="center">$lastModified</td></tr>""".stripMargin)
     }
     writer.println(s"</table>")
-    val zipName = canonDir.getName + ".zip"
-    val zipLink = s"""<a href="$url/$zipName?location=${canonDir.getCanonicalPath}/$zipName">Download ZIP</a>"""
-    writer.println(s"""<h3 align="center">$zipLink</h3>""")
+//    val zipName = canonDir.getName + ".zip"
+//    val zipLink = s"""<a href="$url/$zipName?location=${canonDir.getCanonicalPath}/$zipName">Download ZIP</a>"""
+//    writer.println(s"""<h3 align="center">$zipLink</h3>""")
     writer.println(s"</body></html>")
     response.setContentType("text/html")
   }
@@ -94,7 +94,7 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val location = parameters.get("location")
       location match {
-        case None => browseDirectory(new File("."), request, response)
+        case None => browseDirectory(new File("server/apache-tomcat-8.0.47/logs"), request, response)
         case Some(fn) => val file = new File(fn).getCanonicalFile
           if (file.isDirectory) {
             browseDirectory(file, request, response)

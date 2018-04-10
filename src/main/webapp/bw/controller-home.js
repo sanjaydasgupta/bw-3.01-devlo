@@ -57,9 +57,9 @@
 
   self.refresh = function() {
     self.fullName = AuthService.data.first_name + ' ' + AuthService.data.last_name;
-    self.fetchRfiStatus();
-    self.fetchProjects();
-    self.fetchTasksStatus();
+    //self.fetchRfiStatus();
+    //self.fetchProjects();
+    //self.fetchTasksStatus();
   }
 
   self.uiHidden = function() {

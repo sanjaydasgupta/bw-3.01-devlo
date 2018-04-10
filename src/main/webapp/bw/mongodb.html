@@ -1,0 +1,53 @@
+<div class="panel panel-primary">
+  <div class="panel-heading">MongoDB View
+    <span class="pull-right">&nbsp;&nbsp;{{mongoCtrl.archiveStatus.status == 0 ? 'OK' : '?'}}</span>
+    <button data-ng-if="mainCtrl.isAdmin()" data-ng-click="mongoCtrl.archive()" class="btn btn-xs btn-warning pull-right"
+        style="padding:0px; margin:0px;">Archive</button>
+  </div>
+
+  <div data-ng-if="mainCtrl.isAdmin()" class="row panel-body fixed-panel">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Collections -->
+        <div class="col-xs-12 col-sm-4 col-md-4 col-lg-3 col-xl-3">
+          <table class="table table-condensed table-bordered table-hover">
+            <tr><th class="bg-primary text-center">Collections</th></tr>
+            <tr data-ng-repeat="collection in mongoCtrl.collections">
+              <td class="cursor: pointer;">
+                <a href="javascript:void(0);" data-ng-click="mongoCtrl.displayCollection(collection.name)">{{collection.name}}</a>
+                <span class="badge">{{collection.count}}</span>
+                <a href="javascript:void(0);" data-ng-click="mongoCtrl.displaySchema(collection.name)">[schema]</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <!-- Details -->
+        <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
+          <table data-ng-if="!mongoCtrl.displayingSchema" class="table table-condensed table-bordered">
+            <tr><th class="bg-primary text-center">{{mongoCtrl.name}}</th></tr>
+            <tr data-ng-repeat="detail in mongoCtrl.details"><td>{{detail}}</td></tr>
+          </table>
+          <table data-ng-if="mongoCtrl.displayingSchema" class="table table-condensed table-bordered">
+            <tr><th class="bg-primary text-center" colspan="3">Schema: {{mongoCtrl.name}}</th></tr>
+            <tr style="background-color:#66ccff; text-align:center; font-weight:bold;">
+              <td width="20%">Field Name</td><td width="75%">Type</td><td width="5%">Occurrences</td>
+            </tr>
+            <tr data-ng-repeat="detail in mongoCtrl.details">
+              <td>{{detail[0]}}</td><td>{{detail[1]}}</td><td>{{detail[2]}}</td>
+            </tr>
+          </table>
+          <table class="table table-condensed table-bordered">
+            <tr data-ng-if="mongoCtrl.name != ''"><td class="bg-info text-center">
+              db.{{mongoCtrl.name}}
+              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runQuery()"><span class="glyphicon glyphicon-search"></span> Find</button>
+              ({&nbsp;<input data-ng-model="mongoCtrl.query" placeholder="query">&nbsp;},&nbsp;
+              {&nbsp;<input data-ng-model="mongoCtrl.projection" placeholder="projection/update">&nbsp;})
+              <button class="btn btn-xs btn-primary" data-ng-click="mongoCtrl.runUpdate()" data-ng-disabled="mongoCtrl.updateDisabled()">
+                <span class="glyphicon glyphicon-edit"></span> Update</button>
+            </td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,8 @@
 package com.buildwhiz.etc
 
 import java.io.File
+import java.net.InetAddress
+
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import scala.sys.process._
@@ -50,6 +52,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     import java.lang.management._
     val startTime = ManagementFactory.getRuntimeMXBean.getStartTime
     val systemLoadAverage = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
+  val hostname = InetAddress.getLocalHost.getHostName
     //val memBean = ManagementFactory.getMemoryMXBean
     //val heapMemoryUsage = memBean.getHeapMemoryUsage
     //val nonHeapMemoryUsage = memBean.getNonHeapMemoryUsage
@@ -58,8 +61,8 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val freeMemory = runtime.freeMemory()
     val maxMemory = runtime.maxMemory()
     val threadCount = Thread.activeCount()
-    val lines = Seq(Seq("Start Time", "Sys Avg Load", "Max Memory", "Free Memory", "Thread Count", "Processors"),
-      Seq(dateTimeString(startTime, Some(tz)), systemLoadAverage, by3(maxMemory), by3(freeMemory), threadCount, processors))
+  val lines = Seq(Seq("Host Name", "Start Time", "Sys Avg Load", "Max Memory", "Free Memory", "Thread Count", "Processors"),
+    Seq(hostname, dateTimeString(startTime, Some(tz)), systemLoadAverage, by3(maxMemory), by3(freeMemory), threadCount, processors))
     val json = lines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
     response.setContentType("application/json")

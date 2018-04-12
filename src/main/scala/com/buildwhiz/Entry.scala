@@ -26,7 +26,7 @@ class Entry extends HttpServlet {
         delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
-      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|etc|tools|web")).head._2
+      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|dot|etc|tools|web")).head._2
       val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
       Entry.cache.get(className) match {
         case Some(httpServlet) => delegateTo(httpServlet)

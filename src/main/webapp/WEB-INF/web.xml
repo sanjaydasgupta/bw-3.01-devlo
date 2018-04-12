@@ -17,6 +17,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>Entry</servlet-name>
+    <url-pattern>/dot/*</url-pattern>
     <url-pattern>/baf/*</url-pattern>
     <url-pattern>/api/*</url-pattern>
     <url-pattern>/web/*</url-pattern>

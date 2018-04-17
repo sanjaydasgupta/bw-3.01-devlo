@@ -12,27 +12,8 @@ import scala.collection.mutable
 
 class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def getDocuments2(user: DynDoc): Seq[Document] = {
-    val count = user.first_name[String] match {
-      case "Tester2" => 5
-      case _ => 1
-    }
-    val docs: Seq[Document] = Seq(
-      Map("_id" -> "a123456789012", "name" -> "Foundation Drawings", "phase" -> "School Foundation",
-        "labels" -> Map("system" -> Seq("architecture", "design"), "user" -> Seq("environment", "water")),
-        "author" -> "Winston Chang", "type" -> "pdf", "date" -> "2017-11-12 13:15 PT"),
-      Map("_id" -> "b123456789012", "name" -> "Front Garden Landscape", "phase" -> "School Landscaping",
-        "labels" -> Map("system" -> Seq("design"), "user" -> Seq("landscape", "garden")),
-        "author" -> "Bhoomi Chugh", "type" -> "pdf", "date" -> "2017-07-09 09:10 PT"),
-      Map("_id" -> "c123456789012", "name" -> "Roofing Special Materials", "phase" -> "School Roofing",
-        "labels" -> Map("system" -> Seq("construction", "materials"), "user" -> Seq("plastics", "environment", "rain")),
-        "author" -> "Kelly Heath", "type" -> "pdf", "date" -> "2017-11-22 10:31 PT")
-    )
-    (1 to count).map(_ => docs).reduce((a, b) => a ++ b)
-  }
-
   private def getDocuments(user: DynDoc): Seq[Document] = {
-    val userLabels: Seq[DynDoc] = user.labels[Many[Document]]
+    val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
     val docOid2labels = mutable.Map.empty[ObjectId, mutable.Buffer[String]]
     for (label <- userLabels) {
       val labelName = label.name[String]
@@ -70,7 +51,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     try {
       val user: DynDoc = getUser(request)
 
-      val allDocuments = if (user.first_name[String] == "Tester3") getDocuments(user) else getDocuments2(user)
+      val allDocuments = getDocuments(user)
       writer.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

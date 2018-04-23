@@ -36,9 +36,10 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
       val systemLabels = Seq(d.category[String], d.subcategory[String])
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
+      val allLabelsCsv = (systemLabels ++ userLabels).mkString(",")
       val prop: Document = Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
-        "labels" -> Map("system" -> systemLabels, "user" -> userLabels), "type" -> fileType,
-        "author" -> authorName, "date" -> date)
+        "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
+        "type" -> fileType, "author" -> authorName, "date" -> date)
       prop
     })
     docProperties

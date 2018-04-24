@@ -45,9 +45,16 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         writer.println(s"""<body><h2 align="center">Exported $length bytes from 'catalina.out' to S3</h2>""")
       } else {
         val urlName = request.getRequestURL.toString.split("/").last
-        val count = parameters.get("count") match {
-          case None => 50
-          case Some(c) => c.toInt
+        val (count, isDays) = parameters.get("count") match {
+          case None => (52, false)
+          case Some(cnt) =>
+            val daysPattern = "([0-9]+)([dD])".r
+            val countPattern = "([0-9]+)".r
+            cnt match {
+              case daysPattern(d, _) => (d.toInt, true)
+              case countPattern(d) => (d.toInt, false)
+              case _ => (51, false)
+            }
         }
         val clientIp = request.getHeader("X-FORWARDED-FOR") match {
           case null => request.getRemoteAddr
@@ -58,7 +65,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           case Some("audit") => (Map("event_name" -> Map("$regex" -> ".*AUDIT.+")), "Audit")
           case Some(_) | None => (Map.empty[String, AnyRef], "Full")
         }
-        writer.println(s"""<body><h2 align="center">$logType Log</h2>""")
+        val units = if (isDays) "days" else "rows"
+        writer.println(s"""<body><h2 align="center">$logType Log ($count $units)</h2>""")
         writer.println("<table border=\"1\" style=\"width: 100%;\">")
         val widths = Seq(10, 10, 10, 35, 35)
         writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
@@ -66,7 +74,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
         val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
         val traceLogCollection = BWMongoDB3.trace_log
-        val traceLogDocs: Seq[DynDoc] = traceLogCollection.find(query).sort(Map("milliseconds" -> -1)).limit(count)
+        val traceLogDocs: Seq[DynDoc] = if (isDays) {
+          val ms = System.currentTimeMillis
+          val timeSince = ms - 86400L * 1000L * count.asInstanceOf[Long]
+          traceLogCollection.find(Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
+        } else {
+          traceLogCollection.find(query).sort(Map("milliseconds" -> -1)).limit(count)
+        }
+
         for (doc <- traceLogDocs) {
           val fields = labels.map(doc.asDoc.get).toBuffer
           fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
@@ -85,7 +100,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
             writer.println(s"<tr>$htmlRowData</tr>")
         }
         writer.println("</table></body></html>")
-        val links = Seq(100, 200, 500, 1000, 2000).dropWhile(_ <= count).
+        val links = Seq(50, 100, 200, 500, 1000, 2000).filter(_ != count).
           map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
         writer.println(s"""<h3 align=\"center\">$links</h3>""")
         response.setStatus(HttpServletResponse.SC_OK)

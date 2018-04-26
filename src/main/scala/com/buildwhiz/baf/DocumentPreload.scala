@@ -27,6 +27,10 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
         throw new IllegalArgumentException(s"Provided parts.length > 1 and 'document_master_id'")
       val storageResults = mutable.Buffer.empty[Document]
       for (part <- parts) {
+        val projectOid = if (parameters.contains("project_id"))
+          new ObjectId(parameters("project_id"))
+        else
+          project430ForestOid
         val fileName = part.getSubmittedFileName
         if (parts.length > 1)
           parameters.put("name", fileName.split("\\.").init.mkString("."))
@@ -43,12 +47,12 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
           docOid
         } else {
           createDocRecord(parameters.get("category"), parameters.get("subcategory"), parameters.get("name"),
-            parameters.get("description"), project430ForestOid)
+            parameters.get("description"), projectOid)
         }
         val inputStream = part.getInputStream
         val comments = if (parameters.contains("comments")) parameters("comments") else "-"
         val authorOid = new ObjectId(parameters("author_person_id"))
-        storeAmazonS3(fileName, inputStream, project430ForestOid.toString, documentOid, timestamp, comments,
+        storeAmazonS3(fileName, inputStream, projectOid.toString, documentOid, timestamp, comments,
           authorOid, request)
         storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp, "file_name" -> fileName))
       }

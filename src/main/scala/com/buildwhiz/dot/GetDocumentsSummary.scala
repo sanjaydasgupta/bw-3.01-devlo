@@ -29,7 +29,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         "project_id" -> Map("$exists" -> true), "subcategory" -> Map("$exists" -> true),
         "versions.0.file_name" -> Map("$exists" -> true)))
     val docProperties: Seq[Document] = docs.map(d => {
-      val lastVersion: DynDoc = d.versions[Many[Document]].sortWith(_.timestamp[Long] < _.timestamp[Long]).last
+      val versions: Seq[DynDoc] = d.versions[Many[Document]]
+      val lastVersion: DynDoc = versions.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
       val fileType = lastVersion.file_name[String].split("\\.").last
       val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
       val authorOid = lastVersion.author_person_id[ObjectId]
@@ -41,7 +42,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       val prop: Document = Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
         "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
         "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
-        "timestamp" -> lastVersion.timestamp[Long])
+        "timestamp" -> lastVersion.timestamp[Long], "has_versions" -> (versions.length > 1))
       prop
     })
     docProperties

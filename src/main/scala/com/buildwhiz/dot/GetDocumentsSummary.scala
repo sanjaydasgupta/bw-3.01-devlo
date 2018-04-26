@@ -26,7 +26,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     }
     val docs: Seq[DynDoc] = BWMongoDB3.document_master.
       find(Map("category" -> Map("$exists" -> true), "category" -> Map("$ne" -> "SYSTEM"),
-        "subcategory" -> Map("$exists" -> true), "versions.0.file_name" -> Map("$exists" -> true)))
+        "project_id" -> Map("$exists" -> true), "subcategory" -> Map("$exists" -> true),
+        "versions.0.file_name" -> Map("$exists" -> true)))
     val docProperties: Seq[Document] = docs.map(d => {
       val lastVersion: DynDoc = d.versions[Many[Document]].head
       val fileType = lastVersion.file_name[String].split("\\.").last
@@ -39,7 +40,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       val allLabelsCsv = (systemLabels ++ userLabels).mkString(",")
       val prop: Document = Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
         "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
-        "type" -> fileType, "author" -> authorName, "date" -> date)
+        "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString)
       prop
     })
     docProperties

@@ -30,7 +30,10 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
         val fileName = part.getSubmittedFileName
         if (parts.length > 1)
           parameters.put("name", fileName.split("\\.").init.mkString("."))
-        val timestamp = parameters("timestamp").toLong
+        val timestamp = if (parameters.contains("timestamp"))
+          parameters("timestamp").toLong
+        else
+          System.currentTimeMillis
         val documentOid = if (parameters.contains("document_master_id")) {
           val docOid = new ObjectId(parameters("document_master_id"))
           val tsExists = BWMongoDB3.document_master.find(Map("$and" -> Seq(Map("_id" -> docOid),

@@ -91,7 +91,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
               val text = addSpaces(p._1.toString)
               val color = if (text.toLowerCase.contains("error")) "red" else "black"
               s"""<td style="width: ${p._2}%; color:$color" align="center">$text</td>"""
-            }).mkString
+            }).mkString.replaceAll("\n+", " ")
           val user: DynDoc = getUser(request)
           val fullName = s"${user.first_name[String]} ${user.last_name[String]}"
           if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
@@ -99,10 +99,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           else
             writer.println(s"<tr>$htmlRowData</tr>")
         }
-        writer.println("</table></body></html>")
-        val links = Seq(50, 100, 200, 500, 1000, 2000).filter(_ != count).
+        writer.println("</table>")
+        val rowCountLinks = Seq(50, 100, 200, 500, 1000, 2000).filter(_ != count).
           map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
-        writer.println(s"""<h3 align=\"center\">$links</h3>""")
+        writer.println(s"""<h3 align=\"center\">rows:&nbsp;&nbsp;&nbsp;&nbsp;$rowCountLinks</h3>""")
+        val dayCountLinks = Seq(1, 2, 5, 10).
+          map(n => s"""<a href="$urlName?count=${n}d&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
+        writer.println(s"""<h3 align=\"center\">days:&nbsp;&nbsp;&nbsp;&nbsp;$dayCountLinks</h3>""")
+        writer.println("</body></html>")
         response.setStatus(HttpServletResponse.SC_OK)
       }
     } catch {

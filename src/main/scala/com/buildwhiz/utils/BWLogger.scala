@@ -74,9 +74,14 @@ object BWLogger extends HttpUtils {
       case null => request.getRemoteAddr
       case ip => ip
     }
+    if (request.getSession(false) == null) {
+      parameters("BW-Session-ID") = "None"
+    } else {
+      parameters("BW-Session-ID") = request.getSession.getId
+    }
     if (isLogin) {
-      parameters("X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
-      parameters("User-Agent") = request.getHeader("User-Agent")
+      parameters("BW-X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
+      parameters("BW-User-Agent") = request.getHeader("User-Agent")
     }
     val paramsWithName = getUser(request) match {
       case null => parameters

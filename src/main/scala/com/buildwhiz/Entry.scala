@@ -2,7 +2,6 @@ package com.buildwhiz
 
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.utils.BWLogger
 
 import scala.util.{Failure, Success, Try}
@@ -39,13 +38,17 @@ class Entry extends HttpServlet {
               case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
               case Failure(t) => throw t
             }
-          case Failure(classNotFound) => throw classNotFound
+          case Failure(t) => throw t
         }
       }
     } else {
-      val cookies = request.getCookies.map(c => s"n:${c.getName} d:${c.getDomain} p:${c.getPath} v:${c.getValue}").
-        mkString(", ")
-      log(s"ERROR: Authentication failed (cookies: $cookies)", request)
+      if (request.getCookies == null)
+        log(s"ERROR: Authentication failed (No cookies)", request)
+      else {
+        val cookies = request.getCookies.
+          map(c => s"[name:${c.getName} domain:${c.getDomain} path:${c.getPath} value:${c.getValue}]").mkString(", ")
+        log(s"ERROR: Authentication failed (cookies: $cookies)", request)
+      }
       val uri = request.getRequestURI
       response.sendRedirect("/" + uri.split("/")(1))
     }

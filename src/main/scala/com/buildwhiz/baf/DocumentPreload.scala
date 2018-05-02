@@ -51,7 +51,10 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
         }
         val inputStream = part.getInputStream
         val comments = if (parameters.contains("comments")) parameters("comments") else "-"
-        val authorOid = new ObjectId(parameters("author_person_id"))
+        val authorOid = if (parameters.contains("author_person_id"))
+          new ObjectId(parameters("author_person_id"))
+        else
+          getUser(request).get("_id").asInstanceOf[ObjectId]
         storeAmazonS3(fileName, inputStream, projectOid.toString, documentOid, timestamp, comments,
           authorOid, request)
         storageResults.append(Map("document_id" -> documentOid, "timestamp" -> timestamp, "file_name" -> fileName))

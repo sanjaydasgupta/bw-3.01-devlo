@@ -64,8 +64,10 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
             """{"_id": "", "first_name": "", "last_name": ""}"""
           case Some(p) =>
             cookieSessionSet(email, p, request, response)
+            if (!p.containsKey("document_filter_labels"))
+              p.put("document_filter_labels", Seq.empty[String])
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
-              "tz", "email_enabled", "ui_hidden").filter(f => p.containsKey(f))
+              "tz", "email_enabled", "ui_hidden", "document_filter_labels").filter(f => p.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
             recordLoginTime(p)
             BWLogger.audit(getClass.getName, "doPost", "Login OK", request)

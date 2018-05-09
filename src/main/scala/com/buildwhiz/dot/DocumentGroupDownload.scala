@@ -24,7 +24,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     (fileName, inputStream)
   }
 
-  private def zipMultipleDocuments(documentAndProjectIds: Seq[(String, String)], outStream: OutputStream) = {
+  private def zipMultipleDocuments(documentAndProjectIds: Seq[(String, String)], outStream: OutputStream): Unit = {
     val zipOutputStream = new ZipOutputStream(outStream)
     for (docId <- documentAndProjectIds) {
       val (fileName, inputStream) = documentNameAndStream(docId._1, docId._2)

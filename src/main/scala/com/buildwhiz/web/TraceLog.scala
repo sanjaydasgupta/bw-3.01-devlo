@@ -45,28 +45,29 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         writer.println(s"""<body><h2 align="center">Exported $length bytes from 'catalina.out' to S3</h2>""")
       } else {
         val urlName = request.getRequestURL.toString.split("/").last
-        val (count, isDays) = parameters.get("count") match {
-          case None => (52, false)
-          case Some(cnt) =>
-            val daysPattern = "([0-9]+)([dD])".r
-            val countPattern = "([0-9]+)".r
-            cnt match {
-              case daysPattern(d, _) => (d.toInt, true)
-              case countPattern(d) => (d.toInt, false)
-              case _ => (51, false)
+        val (count, unit) = parameters.get("count") match {
+          case None => (52, "rows")
+          case Some(theCount) =>
+            val withUnitPattern = "([0-9]+)(hours|days|rows)".r
+            val withoutUnitPattern = "([0-9]+)".r
+            theCount match {
+              case withUnitPattern(d, u) => (d.toInt, u)
+              case withoutUnitPattern(d) => (d.toInt, "rows")
+              case _ => (51, "rows")
             }
         }
         val clientIp = request.getHeader("X-FORWARDED-FOR") match {
           case null => request.getRemoteAddr
           case ip => ip
         }
-        val (query, logType) = parameters.get("type").map(_.toLowerCase) match {
-          case Some("error") => (Map("event_name" -> Map("$regex" -> ".*ERROR.+")), "Error")
-          case Some("audit") => (Map("event_name" -> Map("$regex" -> ".*AUDIT.+")), "Audit")
-          case Some(_) | None => (Map.empty[String, AnyRef], "Full")
+        val logType = parameters.getOrElse("type", "full")
+        val (typeQuery, logTypeName) = logType.toLowerCase match {
+          case "error" => (Map("event_name" -> Map("$regex" -> ".*ERROR.+")), "Error")
+          case "audit" => (Map("event_name" -> Map("$regex" -> ".*AUDIT.+")), "Audit")
+          case "check" => (Map("event_name" -> Map("$regex" -> ".*(AUDIT|ERROR).+")), "Check")
+          case _ => (Map.empty[String, AnyRef], "Full")
         }
-        val units = if (isDays) "days" else "rows"
-        writer.println(s"""<body><h2 align="center">$logType Log ($count $units)</h2>""")
+        writer.println(s"""<body><h2 align="center">$logTypeName Log ($count $unit)</h2>""")
         writer.println("<table border=\"1\" style=\"width: 100%;\">")
         val widths = Seq(10, 10, 10, 35, 35)
         writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
@@ -74,12 +75,19 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
         val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
         val traceLogCollection = BWMongoDB3.trace_log
-        val traceLogDocs: Seq[DynDoc] = if (isDays) {
-          val ms = System.currentTimeMillis
-          val timeSince = ms - 86400L * 1000L * count.asInstanceOf[Long]
-          traceLogCollection.find(Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
-        } else {
-          traceLogCollection.find(query).sort(Map("milliseconds" -> -1)).limit(count)
+        val traceLogDocs: Seq[DynDoc] = unit match {
+          case "hours" =>
+            val ms = System.currentTimeMillis
+            val timeSince = ms - 3600L * 1000L * count.asInstanceOf[Long]
+            traceLogCollection.find(typeQuery ++
+              Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
+          case "days" =>
+            val ms = System.currentTimeMillis
+            val timeSince = ms - 86400L * 1000L * count.asInstanceOf[Long]
+            traceLogCollection.find(typeQuery ++
+              Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
+          case _ =>
+            traceLogCollection.find(typeQuery).sort(Map("milliseconds" -> -1)).limit(count)
         }
 
         for (doc <- traceLogDocs) {
@@ -99,12 +107,17 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           else
             writer.println(s"<tr>$htmlRowData</tr>")
         }
+        if (traceLogDocs.isEmpty)
+          writer.println(s"""<tr><td colspan="5" align="center">No such rows!</td></tr>""")
         writer.println("</table>")
         val rowCountLinks = Seq(50, 100, 200, 500, 1000, 2000).filter(_ != count).
-          map(n => s"""<a href="$urlName?count=$n&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
+          map(n => s"""<a href="$urlName?count=${n}rows&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
         writer.println(s"""<h3 align=\"center\">rows:&nbsp;&nbsp;&nbsp;&nbsp;$rowCountLinks</h3>""")
+        val hourCountLinks = Seq(1, 2, 6, 12).
+          map(n => s"""<a href="$urlName?count=${n}hours&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
+        writer.println(s"""<h3 align=\"center\">hours:&nbsp;&nbsp;&nbsp;&nbsp;$hourCountLinks</h3>""")
         val dayCountLinks = Seq(1, 2, 5, 10).
-          map(n => s"""<a href="$urlName?count=${n}d&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
+          map(n => s"""<a href="$urlName?count=${n}days&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
         writer.println(s"""<h3 align=\"center\">days:&nbsp;&nbsp;&nbsp;&nbsp;$dayCountLinks</h3>""")
         writer.println("</body></html>")
         response.setStatus(HttpServletResponse.SC_OK)

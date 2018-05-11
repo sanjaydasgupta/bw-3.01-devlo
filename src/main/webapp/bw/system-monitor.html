@@ -48,6 +48,7 @@
                   <a href="web/TraceLog" target="_blank">All</a>
                   <a href="web/TraceLog?type=audit" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">Audit</a>
                   <a href="web/TraceLog?type=error" target="_blank">Error</a>
+                  <a href="web/TraceLog?type=check" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">Check</a>
                 </td>
               </tr>
             </table>

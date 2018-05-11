@@ -16,7 +16,7 @@ class DocGroupLabelManage extends HttpServlet with HttpUtils {
     try {
       val user: DynDoc = getUser(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val usersLabelNames: Seq[DynDoc] =
+      val usersLabelRecords: Seq[DynDoc] =
           if (person.has("labels")) person.labels[Many[Document]] else Seq.empty[Document]
       val labelDataStream = getStreamData(request)
       val labelData: DynDoc = if (labelDataStream.nonEmpty) Document.parse(labelDataStream) else new Document()
@@ -24,7 +24,7 @@ class DocGroupLabelManage extends HttpServlet with HttpUtils {
       val labels: Seq[String] = labelData.labels[Many[String]]
       val op = labelData.op[String]
       //val labelName = parameters("label_name")
-      val labelIndices = labels.map(label => usersLabelNames.indexWhere(_.name[String] == label))
+      val labelIndices = labels.map(label => usersLabelRecords.indexWhere(_.name[String] == label))
       val unknownLabels = labelIndices.zip(labels).filter(_._1 == -1).map(_._2).mkString(", ")
       if (unknownLabels.nonEmpty)
         throw new IllegalArgumentException(s"labels '$unknownLabels' not found")
@@ -44,7 +44,7 @@ class DocGroupLabelManage extends HttpServlet with HttpUtils {
       }
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, "doPost",
-        s"""$opName document '${docOids.mkString(",")}' to label '${labels.mkString(",")}'""", request)
+        s"""$opName document '${docOids.mkString(",")}' to label '${labels.mkString(",")}' [$modifiedCount Ok]""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

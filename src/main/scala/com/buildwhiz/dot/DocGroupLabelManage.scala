@@ -38,7 +38,7 @@ class DocGroupLabelManage extends HttpServlet with HttpUtils {
         case "remove" =>
           val updateResults = docOids.flatMap(docOid =>
             labelIndices.map(labelIndex => BWMongoDB3.persons.updateOne(Map("_id" -> user._id[ObjectId]),
-            Map("$pull" -> Map(s"labels.$labelIndices.document_ids" -> docOid)))))
+            Map("$pull" -> Map(s"labels.$labelIndex.document_ids" -> docOid)))))
           (updateResults.map(_.getModifiedCount).sum, "Removed")
         case unknown => throw new IllegalArgumentException(s"operation '$unknown' not recognized")
       }

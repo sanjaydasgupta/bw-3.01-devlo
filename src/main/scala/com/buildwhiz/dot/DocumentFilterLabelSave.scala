@@ -14,7 +14,7 @@ class DocumentFilterLabelSave extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val filterLabels: Array[String] = parameters("labels").split(",")
+      val filterLabels: Array[String] = parameters("labels").split(",").map(_.trim)
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
       val usersLabelNames: Seq[DynDoc] = if (freshUserRecord.has("labels"))
@@ -24,7 +24,7 @@ class DocumentFilterLabelSave extends HttpServlet with HttpUtils {
       if (unknownLabels.nonEmpty)
         throw new IllegalArgumentException(s"labels '$unknownLabels' not found")
       val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> user._id[ObjectId]),
-        Map("$set" -> Map("document_filter_labels" -> filterLabels)))
+        Map("$set" -> Map("document_filter_labels" -> filterLabels.toSeq)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)

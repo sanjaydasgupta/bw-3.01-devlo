@@ -1,6 +1,7 @@
 package com.buildwhiz.dot
 
 import java.io.{InputStream, OutputStream}
+import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.buildwhiz.infra.BWMongoDB3._
@@ -13,7 +14,7 @@ import org.bson.Document
 
 class DocumentGroupDownload extends HttpServlet with HttpUtils {
 
-  private def documentNameAndStream(documentId: String, projectId: String): (String, InputStream) = {
+  private def documentNameTimestampAndStream(documentId: String, projectId: String): (String, Long, InputStream) = {
     val documentOid = new ObjectId(documentId)
     val documentRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
     val version: DynDoc = documentRecord.versions[Many[Document]].head
@@ -21,17 +22,19 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     val timestamp = version.timestamp[Long]
     val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
     val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
-    (fileName, inputStream)
+    (fileName, timestamp, inputStream)
   }
 
   private def zipMultipleDocuments(documentAndProjectIds: Seq[(String, String)], outStream: OutputStream,
         request: HttpServletRequest): Unit = {
     val zipOutputStream = new ZipOutputStream(outStream)
     for (idPair <- documentAndProjectIds) {
-      val (fileName, inputStream) = documentNameAndStream(idPair._1, idPair._2)
+      val (fileName, timestamp, inputStream) = documentNameTimestampAndStream(idPair._1, idPair._2)
       val zipEntry = new ZipEntry(fileName)
+      zipEntry.setCreationTime(FileTime.fromMillis(timestamp))
+      zipEntry.setLastModifiedTime(FileTime.fromMillis(timestamp))
       zipOutputStream.putNextEntry(zipEntry)
-      val bytes = Array.ofDim[Byte](1024)
+      val bytes = Array.ofDim[Byte](4096)
       var length, totalLength = 0
       while ({length = inputStream.read(bytes); length} > 0) {
         zipOutputStream.write(bytes, 0, length)
@@ -43,7 +46,6 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
       inputStream.close()
     }
     zipOutputStream.close()
-    //outStream.close()
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

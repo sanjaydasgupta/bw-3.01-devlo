@@ -29,7 +29,7 @@ class DocumentFilterLabelSave extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, "doPost",
-        s"""Added document-label(s) ${filterLabels.mkString(", ")}""", request)
+        s"""Saved document-filter label(s) [${filterLabels.mkString(", ")}]""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

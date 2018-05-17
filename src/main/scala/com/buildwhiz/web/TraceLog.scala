@@ -46,14 +46,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       } else {
         val urlName = request.getRequestURL.toString.split("/").last
         val (count, unit) = parameters.get("count") match {
-          case None => (52, "rows")
+          case None => (50, "rows")
           case Some(theCount) =>
             val withUnitPattern = "([0-9]+)(hours|days|rows)".r
             val withoutUnitPattern = "([0-9]+)".r
             theCount match {
               case withUnitPattern(d, u) => (d.toInt, u)
               case withoutUnitPattern(d) => (d.toInt, "rows")
-              case _ => (51, "rows")
+              case _ => (50, "rows")
             }
         }
         val clientIp = request.getHeader("X-FORWARDED-FOR") match {
@@ -110,15 +110,23 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         if (traceLogDocs.isEmpty)
           writer.println(s"""<tr><td colspan="5" align="center">No such rows!</td></tr>""")
         writer.println("</table>")
-        val rowCountLinks = Seq(50, 100, 200, 500, 1000, 2000).filter(_ != count).
-          map(n => s"""<a href="$urlName?count=${n}rows&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
-        writer.println(s"""<h3 align=\"center\">rows:&nbsp;&nbsp;&nbsp;&nbsp;$rowCountLinks</h3>""")
-        val hourCountLinks = Seq(1, 2, 6, 12).
-          map(n => s"""<a href="$urlName?count=${n}hours&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
-        writer.println(s"""<h3 align=\"center\">hours:&nbsp;&nbsp;&nbsp;&nbsp;$hourCountLinks</h3>""")
-        val dayCountLinks = Seq(1, 2, 5, 10).
-          map(n => s"""<a href="$urlName?count=${n}days&type=$logType">$n</a>""").mkString("&nbsp;" * 5)
-        writer.println(s"""<h3 align=\"center\">days:&nbsp;&nbsp;&nbsp;&nbsp;$dayCountLinks</h3>""")
+
+        val hourCountLinks = Seq(1, 2, 6, 18).
+          map(n => if (unit == "hours" && count == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}hours&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+        val dayCountLinks = Seq(1, 2, 7, 14, 28).
+          map(n => if (unit == "days" && count == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}days&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+        val rowCountLinks = Seq(50, 100, 200, 500).
+          map(n => if (unit == "rows" && count == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}rows&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+        val typeLinks = Seq("all", "audit", "error", "check").
+          map(t => if (logType == t) s"($t)" else t).
+          map(t => s"""<a href="$urlName?count=$count$unit&type=$t">$t</a>""").mkString("&nbsp;&nbsp;")
+
+        writer.println(s"""<h3 align=\"center\">hours: $hourCountLinks, &nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
+        &nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks, &nbsp;&nbsp;&nbsp;&nbsp;days: $typeLinks, </h3>""")
+
         writer.println("</body></html>")
         response.setStatus(HttpServletResponse.SC_OK)
       }

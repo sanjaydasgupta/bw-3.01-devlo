@@ -17,7 +17,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
   private def documentNameTimestampAndStream(documentId: String, projectId: String): (String, Long, InputStream) = {
     val documentOid = new ObjectId(documentId)
     val documentRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
-    val version: DynDoc = documentRecord.versions[Many[Document]].head
+    val version: DynDoc = documentRecord.versions[Many[Document]].last
     val fileName = version.file_name[String]
     val timestamp = version.timestamp[Long]
     val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"

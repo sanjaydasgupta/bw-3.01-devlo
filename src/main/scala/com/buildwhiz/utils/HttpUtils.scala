@@ -1,8 +1,6 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import javax.servlet.http.HttpServletRequest
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -13,10 +11,8 @@ import scala.io.Source
 
 trait HttpUtils {
 
-  def getUser(request: HttpServletRequest): Document = {
-    val user: DynDoc = request.getSession.getAttribute("bw-user").asInstanceOf[Document]
-    BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head.asDoc
-  }
+  def getUser(request: HttpServletRequest): Document =
+    request.getSession.getAttribute("bw-user").asInstanceOf[Document]
 
   def getParameterMap(request: HttpServletRequest): mutable.Map[String, String] =
     request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))

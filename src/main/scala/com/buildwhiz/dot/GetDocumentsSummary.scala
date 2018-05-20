@@ -54,8 +54,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
-
-      val allDocuments = getDocuments(user)
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
+      val allDocuments = getDocuments(freshUserRecord)
       writer.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

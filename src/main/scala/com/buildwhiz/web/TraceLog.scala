@@ -45,15 +45,15 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         writer.println(s"""<body><h2 align="center">Exported $length bytes from 'catalina.out' to S3</h2>""")
       } else {
         val urlName = request.getRequestURL.toString.split("/").last
-        val (count, unit) = parameters.get("count") match {
-          case None => (50, "rows")
+        val (duration, durationUnit) = parameters.get("count") match {
+          case None => (10, "rows")
           case Some(theCount) =>
-            val withUnitPattern = "([0-9]+)(hours|days|rows)".r
-            val withoutUnitPattern = "([0-9]+)".r
+            val withUnitPattern = "([0-9\\.]+)(hours|days|rows)".r
+            val withoutUnitPattern = "([0-9\\.]+)".r
             theCount match {
               case withUnitPattern(d, u) => (d.toInt, u)
               case withoutUnitPattern(d) => (d.toInt, "rows")
-              case _ => (50, "rows")
+              case _ => (10, "rows")
             }
         }
         val clientIp = request.getHeader("X-FORWARDED-FOR") match {
@@ -67,27 +67,42 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           case "check" => (Map("event_name" -> Map("$regex" -> ".*(AUDIT|ERROR).+")), "Check")
           case _ => (Map.empty[String, AnyRef], "Full")
         }
-        writer.println(s"""<body><h2 align="center">$logTypeName Log ($count $unit)</h2>""")
+        writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
         writer.println("<table border=\"1\" style=\"width: 100%;\">")
         val widths = Seq(10, 10, 10, 35, 35)
         writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
           map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
+
         val labels = List("milliseconds", "process_id", "activity_name", "event_name", "variables")
+
+        val millisNow = System.currentTimeMillis
+        val (untilStr, untilMs, untilUnit, untilNum) = parameters.get("until") match {
+          case None => ("now", millisNow, "", millisNow)
+          case Some(input) =>
+            val withHourPattern = "([0-9]+)hours".r
+            val withDayPattern = "([0-9]+)days".r
+            val withMsPattern = "([0-9]{10,})".r
+            input match {
+              case withHourPattern(hrs) => (s"${hrs}hours", millisNow - 3600L * 1000L * hrs.toLong, "hours", hrs.toLong)
+              case withDayPattern(dys) => (s"${dys}days", millisNow - 86400L * 1000L * dys.toLong, "days", dys.toLong)
+              case withMsPattern(d) => (d, d.toLong, "ms", d)
+              case _ => ("now", millisNow, "", millisNow)
+            }
+        }
         val traceLogCollection = BWMongoDB3.trace_log
-        val traceLogDocs: Seq[DynDoc] = unit match {
+        val traceLogDocs: Seq[DynDoc] = durationUnit match {
           case "hours" =>
-            val ms = System.currentTimeMillis
-            val timeSince = ms - 3600L * 1000L * count.asInstanceOf[Long]
+            val startMs = untilMs - 3600L * 1000L * duration.toInt
             traceLogCollection.find(typeQuery ++
-              Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
+              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).sort(Map("milliseconds" -> -1))
           case "days" =>
-            val ms = System.currentTimeMillis
-            val timeSince = ms - 86400L * 1000L * count.asInstanceOf[Long]
+            val startMs = untilMs - 86400L * 1000L * duration.toInt
             traceLogCollection.find(typeQuery ++
-              Map("milliseconds" -> Map("$gte" -> timeSince))).sort(Map("milliseconds" -> -1))
+              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).sort(Map("milliseconds" -> -1))
           case _ =>
-            traceLogCollection.find(typeQuery).sort(Map("milliseconds" -> -1)).limit(count)
+            traceLogCollection.find(typeQuery ++
+              Map("milliseconds" -> Map("$lte" -> untilMs))).limit(duration.toInt).sort(Map("milliseconds" -> -1))
         }
 
         for (doc <- traceLogDocs) {
@@ -112,20 +127,38 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         writer.println("</table>")
 
         val hourCountLinks = Seq(1, 2, 6, 18).
-          map(n => if (unit == "hours" && count == n) s"($n)" else n).
-          map(n => s"""<a href="$urlName?count=${n}hours&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+          map(n => if (durationUnit == "hours" && duration == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}hours&type=$logType&until=$untilStr">$n</a>""").
+          mkString("&nbsp;&nbsp;")
         val dayCountLinks = Seq(1, 2, 7, 14, 28).
-          map(n => if (unit == "days" && count == n) s"($n)" else n).
-          map(n => s"""<a href="$urlName?count=${n}days&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+          map(n => if (durationUnit == "days" && duration == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}days&type=$logType&until=$untilStr">$n</a>""").
+          mkString("&nbsp;&nbsp;")
         val rowCountLinks = Seq(50, 100, 200, 500).
-          map(n => if (unit == "rows" && count == n) s"($n)" else n).
-          map(n => s"""<a href="$urlName?count=${n}rows&type=$logType">$n</a>""").mkString("&nbsp;&nbsp;")
+          map(n => if (durationUnit == "rows" && duration == n) s"($n)" else n).
+          map(n => s"""<a href="$urlName?count=${n}rows&type=$logType&until=$untilStr">$n</a>""").
+          mkString("&nbsp;&nbsp;")
+
+        writer.println(s"""<h3 align=\"center\">DURATION: &nbsp;&nbsp;&nbsp;&nbsp;hours: $hourCountLinks,
+            |&nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
+            |&nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks</h3>""".stripMargin)
+
         val typeLinks = Seq("all", "audit", "error", "check").
           map(t => if (logType == t) s"($t)" else t).
-          map(t => s"""<a href="$urlName?count=$count$unit&type=$t">$t</a>""").mkString("&nbsp;&nbsp;")
+          map(t => s"""<a href="$urlName?count=$duration$durationUnit&type=$t&until=$untilStr">$t</a>""").
+          mkString("&nbsp;&nbsp;")
+        writer.println(s"""<h3 align=\"center\">Log-type: $typeLinks</h3>""")
 
-        writer.println(s"""<h3 align=\"center\">hours: $hourCountLinks, &nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
-        &nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks, &nbsp;&nbsp;&nbsp;&nbsp;days: $typeLinks, </h3>""")
+        val hoursUntilLinks = Seq(1, 2, 3, 6, 12, 18).
+          map(hr => if (untilUnit == "hours" && untilNum == hr) s"($hr)" else hr).
+          map(hr => s"""<a href="$urlName?count=$duration$durationUnit&type=$logType&until=${hr}hours">$hr</a>""").
+          mkString("&nbsp;&nbsp;")
+        val daysUntilLinks = Seq(1, 2, 3, 7, 14, 28).
+          map(dy => if (untilUnit == "days" && untilNum == dy) s"($dy)" else dy).
+          map(days => s"""<a href="$urlName?count=$duration$durationUnit&type=$logType&until=${days}days">$days</a>""").
+          mkString("&nbsp;&nbsp;")
+        writer.println(s"""<h3 align=\"center\">UNTIL: &nbsp;&nbsp;&nbsp;&nbsp;hours: $hoursUntilLinks,
+            |&nbsp;&nbsp;&nbsp;&nbsp;days: $daysUntilLinks</h3>""".stripMargin)
 
         writer.println("</body></html>")
         response.setStatus(HttpServletResponse.SC_OK)

@@ -39,10 +39,12 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       val systemLabels = Seq(d.category[String], d.subcategory[String])
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
       val allLabelsCsv = (systemLabels ++ userLabels).mkString(",")
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
       val prop: Document = Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
         "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
         "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
-        "timestamp" -> lastVersion.timestamp[Long], "has_versions" -> (versions.length > 1))
+        "project_name" -> project.name[String], "timestamp" -> lastVersion.timestamp[Long],
+        "has_versions" -> (versions.length > 1))
       prop
     })
     docProperties

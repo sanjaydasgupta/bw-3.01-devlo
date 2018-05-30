@@ -1,18 +1,18 @@
 package com.buildwhiz.tools
 
-import java.io.{File, FileOutputStream, InputStream}
+import java.io._
+
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 
 import scala.collection.JavaConverters._
 import scala.sys.process._
 
 @MultipartConfig()
-class UploadFile extends HttpServlet with HttpUtils {
+class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def copyStream(in: InputStream, out: FileOutputStream, length: Int = 0,
         buffer: Array[Byte] = new Array[Byte](1024)): Int = {
@@ -24,6 +24,28 @@ class UploadFile extends HttpServlet with HttpUtils {
       case len =>
         out.write(buffer, 0, len)
         length + len
+    }
+  }
+
+  private def purgeOldFiles(directory: File, fileName: String): Unit = {
+    val versionPattern = "[0-9a-z]{20}"
+    val fileNamePattern = s"(.+)($versionPattern)(.+)".r
+    val fileNameRegex = fileName match {
+      case fileNamePattern(prefix, _, suffix) => s"$prefix$versionPattern$suffix"
+      case _ => fileName
+    }
+    val files = directory.listFiles().filter(_.getName.matches(fileNameRegex))
+    if (files.length > 1) {
+      val latest = files.last.getCanonicalPath
+      val previous = files.init.last.getCanonicalPath
+      val diffMsg = s"""diff $latest $previous""".!!
+      val pw = new FileWriter("diff.txt", true)
+      val time = dateTimeString(System.currentTimeMillis)
+      pw.write(s"$time - $fileName\n")
+      pw.write(s"$diffMsg\n")
+      pw.flush()
+      pw.close()
+      files.init.foreach(_.delete())
     }
   }
 
@@ -60,6 +82,7 @@ class UploadFile extends HttpServlet with HttpUtils {
         val length = copyStream(inputStream, fileOutputStream)
         fileOutputStream.flush()
         fileOutputStream.close()
+        purgeOldFiles(directory, fileName)
         writer.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)

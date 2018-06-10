@@ -20,8 +20,10 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
       val projectOid = new ObjectId(parameters("project_id"))
       val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid,
           "project_id" -> projectOid)).head
-      val versions: Seq[DynDoc] = docRecord.versions[Many[Document]]
-      val versionProperties: Seq[Document] = versions.map(version => {
+      val allVersions: Seq[DynDoc] =
+        if (docRecord.has("versions")) docRecord.versions[Many[Document]] else Seq.empty[DynDoc]
+      val goodVersions = allVersions.filter(v => Seq("author_person_id", "file_name", "timestamp").forall(f => v.has(f)))
+      val versionProperties: Seq[Document] = goodVersions.map(version => {
         val authorOid = version.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
         val authorName = s"${author.first_name[String]} ${author.last_name[String]}"

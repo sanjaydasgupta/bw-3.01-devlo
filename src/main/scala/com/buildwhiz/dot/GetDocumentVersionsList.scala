@@ -20,9 +20,7 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
       val projectOid = new ObjectId(parameters("project_id"))
       val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid,
           "project_id" -> projectOid)).head
-      val allVersions: Seq[DynDoc] =
-        if (docRecord.has("versions")) docRecord.versions[Many[Document]] else Seq.empty[DynDoc]
-      val goodVersions = allVersions.filter(v => Seq("author_person_id", "file_name", "timestamp").forall(f => v.has(f)))
+      val goodVersions = GetDocumentVersionsList.versions(docRecord).sortWith(_.timestamp[Long] < _.timestamp[Long])
       val versionProperties: Seq[Document] = goodVersions.map(version => {
         val authorOid = version.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
@@ -42,6 +40,17 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
         //t.printStackTrace()
         throw t
     }
+  }
+
+}
+
+object GetDocumentVersionsList {
+
+  def versions(doc: DynDoc): Seq[DynDoc] = {
+    val allVersions: Seq[DynDoc] =
+      if (doc.has("versions")) doc.versions[Many[Document]] else Seq.empty[DynDoc]
+    val requiredFields = Seq("author_person_id", "file_name", "timestamp")
+    allVersions.filter(version => requiredFields.forall(field => version.has(field)))
   }
 
 }

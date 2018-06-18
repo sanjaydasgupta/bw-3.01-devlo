@@ -13,12 +13,17 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
   private def getRfis(request: HttpServletRequest): Seq[Document] = {
     val parameters = getParameterMap(request)
     val user: DynDoc = getUser(request)
-    val documentOid = parameters.get("document_id").map(id => new ObjectId(id))
-    val rfis: Seq[DynDoc] = documentOid match {
-      case None => BWMongoDB3.rfi_messages.find()
-      case Some(oid) => BWMongoDB3.rfi_messages.find(Map("document_id" -> oid))
-    }
-    val rfiProperties: Seq[Document] = rfis.map(rfi => {
+    val mongoQuery = Seq(
+      ("document_id", "document.document_id", (id: String) => new ObjectId(id)),
+      ("project_id", "project_id", (id: String) => new ObjectId(id)),
+      ("doc_version_timestamp", "document.version", (ts: String) => ts.toLong)
+    ).filter(t => parameters.contains(t._1)).map(t =>
+      (t._2, t._3(parameters(t._1)))).toMap
+    val allRfi: Seq[DynDoc] = if (mongoQuery.nonEmpty)
+      BWMongoDB3.rfi_messages.find(mongoQuery)
+    else
+      BWMongoDB3.rfi_messages.find()
+    val rfiProperties: Seq[Document] = allRfi.map(rfi => {
       val messages: Seq[DynDoc] = rfi.messages[Many[Document]]
       val rfiProps: Document = {
         val lastMessage: DynDoc = messages.sortWith(_.timestamp[Long] < _.timestamp[Long]).last

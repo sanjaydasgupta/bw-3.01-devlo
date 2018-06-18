@@ -6,6 +6,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
+import org.bson.Document
 
 class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
 
@@ -44,13 +45,13 @@ class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val rfiText = parameters("rfi_text")
       val subject = parameters("subject")
-      val recipientRoles = parameters("recipient_roles").split(",").map(_.trim)
+      val recipientRoles = parameters("recipient_roles").split(",").map(_.trim).toSeq
       val millisNow = System.currentTimeMillis
       val message = Map("text" -> rfiText, "sender" -> user._id[ObjectId], "recipient_roles" -> recipientRoles,
-          "read_person_ids" -> Seq.empty[String], "attachments" -> Seq.empty[String], "timestamp" -> millisNow)
-      BWMongoDB3.rfi_messages.insertOne(Map("timestamps" -> Map("start" -> millisNow),
-        "document" -> Map("document_id" -> documentOid, "version" -> documentTimestamp), "subject" -> subject,
-        "status" -> "open", "project_id" -> projectOid, "messages" -> Seq(message)))
+          "read_person_ids" -> Seq.empty[ObjectId], "attachments" -> Seq.empty[Document], "timestamp" -> millisNow)
+      BWMongoDB3.rfi_messages.insertOne(Map("timestamps" -> Map("start" -> millisNow), "subject" -> subject,
+        "document" -> Map("document_id" -> documentOid, "version" -> documentTimestamp), "project_id" -> projectOid,
+        "status" -> "open", "messages" -> Seq(message)))
       //saveAndSendMail(projectOid, activityOid, theAction, isRequest, request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

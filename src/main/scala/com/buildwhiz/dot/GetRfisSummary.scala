@@ -32,8 +32,8 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
         val authorOid = lastMessage.sender[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
         val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
-        Map("subject" -> rfi.subject[String], "text" -> lastMessage.text[String], "documents" -> "???",
-          "author" -> authorName, "date" -> date, "closeable" -> closeable)
+        Map("_id" -> rfi._id[ObjectId].toString, "subject" -> rfi.subject[String], "text" -> lastMessage.text[String],
+          "documents" -> "???", "author" -> authorName, "date" -> date, "closeable" -> closeable)
       }
       rfiProps
     })

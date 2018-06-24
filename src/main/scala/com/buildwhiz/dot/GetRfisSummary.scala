@@ -26,16 +26,14 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
       val messages: Seq[DynDoc] = rfi.messages[Many[Document]]
       val ownerOid: ObjectId = messages.head.sender[ObjectId]
       val closeable: Boolean = user._id[ObjectId] == ownerOid
-      val rfiProps: Document = {
-        val lastMessage: DynDoc = messages.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
-        val date = dateTimeString(lastMessage.timestamp[Long], Some(user.tz[String]))
-        val authorOid = lastMessage.sender[ObjectId]
-        val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-        val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
-        Map("_id" -> rfi._id[ObjectId].toString, "subject" -> rfi.subject[String], "text" -> lastMessage.text[String],
-          "documents" -> "???", "author" -> authorName, "date" -> date, "closeable" -> closeable)
-      }
-      rfiProps
+      val lastMessage: DynDoc = messages.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
+      val date = dateTimeString(lastMessage.timestamp[Long], Some(user.tz[String]))
+      val authorOid = lastMessage.sender[ObjectId]
+      val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
+      val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+      new Document(Map("_id" -> rfi._id[ObjectId].toString, "subject" -> rfi.subject[String],
+        "text" -> lastMessage.text[String], "documents" -> "???", "author" -> authorName, "date" -> date,
+        "closeable" -> closeable, "closed" -> (rfi.status[String] == "closed")))
     })
     rfiProperties
   }

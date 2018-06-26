@@ -10,8 +10,6 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
-
 class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   private def getAttachments(message: DynDoc): Seq[Document] = {
@@ -32,14 +30,14 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
       val rfiOid = new ObjectId(parameters("rfi_id"))
       val rfiExchange: DynDoc = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).head
       val messages: Seq[DynDoc] = rfiExchange.messages[Many[Document]]
+      val user: DynDoc = getUser(request)
       val messageLines: Seq[Document] = messages.sortBy(m => -m.timestamp[Long]).map(message => {
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
-        val clientTimezone = parameters("tz")
+        val clientTimezone = user.tz[String]
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),
           "text" -> message.text[String], "sender" -> senderName, "attachments" -> getAttachments(message)))
       })
-      val user: DynDoc = getUser(request)
       for (idx <- messages.indices) {
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid),
           Map("$addToSet" -> Map(s"messages.$idx.read_person_ids" -> user._id[ObjectId])))

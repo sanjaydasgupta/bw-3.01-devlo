@@ -27,25 +27,33 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
-  private def purgeOldFiles(directory: File, fileName: String): Unit = {
+  private def archiveOldFiles(directory: File, fileName: String, request: HttpServletRequest): Unit = {
     val versionPattern = "[0-9a-z]{20}"
     val fileNamePattern = s"(.+)($versionPattern)(.+)".r
     val fileNameRegex = fileName match {
       case fileNamePattern(prefix, _, suffix) => s"$prefix$versionPattern$suffix"
       case _ => fileName
     }
-    val files = directory.listFiles().filter(_.getName.matches(fileNameRegex))
+    val files = directory.listFiles().filter(_.getName.matches(fileNameRegex)).sortBy(_.lastModified)
     if (files.length > 1) {
-      val latest = files.last.getCanonicalPath
-      val previous = files.init.last.getCanonicalPath
-      val diffMsg = s"""diff $latest $previous""".!!
-      val pw = new FileWriter("diff.txt", true)
+      val newestFile = files.last
+      val previousFile = files.init.last
+      val newestPath = newestFile.getAbsolutePath
+      val previousPath = previousFile.getAbsolutePath
+      val cmpStatus: Int = s"""cmp "$previousPath" "$newestPath" """.!
+      val pw = new FileWriter("uploaded-files-diff.txt", true)
       val time = dateTimeString(System.currentTimeMillis)
-      pw.write(s"$time - $fileName\n")
-      pw.write(s"$diffMsg\n")
+      pw.write(s"\n$time - cmp(${previousFile.getName} ${newestFile.getName}) = $cmpStatus\n")
       pw.flush()
       pw.close()
-      files.init.foreach(_.delete())
+      for (file <- files.init) {
+        val path = file.getAbsolutePath
+        val status = s"""mv "$path" server/apache-tomcat-8.0.47/backups""".!
+        if (status != 0) {
+          BWLogger.log(getClass.getName, "purgeOldFiles()", s"ERROR: backup $status $path", request)
+        }
+      }
+      BWLogger.audit(getClass.getName, "purgeOldFiles()", s"""Files-Purged: ${files.length - 1}""", request)
     }
   }
 
@@ -60,8 +68,11 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         throw new IllegalArgumentException("Not permitted")
       }
       val uploadsDirectory = new File("uploads")
-        if (!uploadsDirectory.exists)
-          throw new IllegalArgumentException("No 'uploads' directory")
+      if (!uploadsDirectory.exists)
+        throw new IllegalArgumentException("No 'uploads' directory")
+      val backupsDirectory = new File("backups")
+      if (!backupsDirectory.exists)
+        throw new IllegalArgumentException("No 'backups' directory")
       if (parameters.contains("file_location")) {
         val fileLocation = parameters("file_location")
         //val locationParts = fileLocation.split("/")
@@ -82,7 +93,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         val length = copyStream(inputStream, fileOutputStream)
         fileOutputStream.flush()
         fileOutputStream.close()
-        purgeOldFiles(directory, fileName)
+        archiveOldFiles(directory, fileName, request)
         writer.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)

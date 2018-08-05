@@ -27,7 +27,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
-  private def archiveOldFiles(directory: File, fileName: String, request: HttpServletRequest): Unit = {
+  private def archiveOldFiles(directory: File, fileName: String, tomcatDirName: String, request: HttpServletRequest): Unit = {
     val versionPattern = "[0-9a-z]{20}"
     val fileNamePattern = s"(.+)($versionPattern)(.+)".r
     val fileNameRegex = fileName match {
@@ -48,7 +48,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
       pw.close()
       for (file <- files.init) {
         val path = file.getAbsolutePath
-        val status = s"""mv "$path" server/apache-tomcat-8.0.47/backups""".!
+        val status = s"""mv "$path" server/$tomcatDirName/backups""".!
         if (status != 0) {
           BWLogger.log(getClass.getName, "purgeOldFiles()", s"ERROR: backup $status $path", request)
         }
@@ -67,6 +67,8 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
       if (!rawRoles.contains("BW-File-Uploads")) {
         throw new IllegalArgumentException("Not permitted")
       }
+      val serverDir = new File("server")
+      val tomcatDirName = serverDir.listFiles().find(_.getName.startsWith("apache-tomcat-")).get.getName
       val uploadsDirectory = new File("uploads")
       if (!uploadsDirectory.exists)
         throw new IllegalArgumentException("No 'uploads' directory")
@@ -93,13 +95,13 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         val length = copyStream(inputStream, fileOutputStream)
         fileOutputStream.flush()
         fileOutputStream.close()
-        archiveOldFiles(directory, fileName, request)
+        archiveOldFiles(directory, fileName, tomcatDirName, request)
         writer.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
-        val status = s"""cp -fr ${files.mkString(" ")} server/apache-tomcat-8.0.47/webapps/bw-dot-1.01""".!
+        val status = s"""cp -fr ${files.mkString(" ")} server/$tomcatDirName/webapps/bw-dot-1.01""".!
         val statusMsg = if (status == 0) {
           BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
           "OK"

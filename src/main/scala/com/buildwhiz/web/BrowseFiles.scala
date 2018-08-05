@@ -15,9 +15,7 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
     writer.println(
       s"""<tr><td align="center">Name</td><td align="center">Directory</td>
          |<td align="center">Size</td><td align="center">Last Modified</td></tr>""".stripMargin)
-    val canonDir = directory.getCanonicalFile
-    val allFiles = (new File(canonDir, "..") +: canonDir.listFiles).
-      sortWith((a, b) => a.getName.toLowerCase < b.getName.toLowerCase)
+    val allFiles = new File(directory, "..") +: directory.listFiles.sortBy(f => -f.lastModified)
     val url = request.getRequestURL.toString
     for (file <- allFiles) {
       val linkedName = file.getCanonicalPath
@@ -35,9 +33,10 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
            |<td align="center">$length</td><td align="center">$lastModified</td></tr>""".stripMargin)
     }
     writer.println(s"</table>")
-//    val zipName = canonDir.getName + ".zip"
-//    val zipLink = s"""<a href="$url/$zipName?location=${canonDir.getCanonicalPath}/$zipName">Download ZIP</a>"""
-//    writer.println(s"""<h3 align="center">$zipLink</h3>""")
+    val canonicalDir = directory.getCanonicalFile
+    val zipName = canonicalDir.getName + ".zip"
+    val zipLink = s"""<a href="$url/$zipName?location=${canonicalDir.getCanonicalPath}/$zipName">Download ZIP</a>"""
+    writer.println(s"""<h3 align="center">$zipLink</h3>""")
     writer.println(s"</body></html>")
     response.setContentType("text/html")
   }
@@ -94,7 +93,12 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val location = parameters.get("location")
       location match {
-        case None => browseDirectory(new File("server/apache-tomcat-8.0.47/logs"), request, response)
+        case None =>
+          val serverDir = new File("server")
+          serverDir.listFiles().find(_.getName.startsWith("apache-tomcat-")) match {
+            case Some(tomcatDir) => browseDirectory(new File(tomcatDir, "logs"), request, response)
+            case None =>
+          }
         case Some(fn) => val file = new File(fn).getCanonicalFile
           if (file.isDirectory) {
             browseDirectory(file, request, response)

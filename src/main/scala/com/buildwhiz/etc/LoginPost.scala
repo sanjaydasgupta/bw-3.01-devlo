@@ -46,6 +46,17 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   */
 
+  private def addMenuItems(person: Document): Unit = {
+    val menuItems: Seq[Document] = Seq(
+      Map("name" -> "Documents", "url" -> "/docs"),
+      Map("name" -> "RFIs", "url" -> "/rfi"),
+      Map("name" -> "Projects", "url" -> "/projects"),
+      Map("name" -> "Tasks", "url" -> "/tasks"),
+      Map("name" -> "Help", "url" -> "/help")
+    )
+    person.put("menu_items", menuItems)
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
@@ -64,10 +75,11 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
             """{"_id": "", "first_name": "", "last_name": ""}"""
           case Some(p) =>
             cookieSessionSet(email, p, request, response)
+            addMenuItems(p)
             if (!p.containsKey("document_filter_labels"))
               p.put("document_filter_labels", Seq.empty[String])
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
-              "tz", "email_enabled", "ui_hidden", "document_filter_labels").filter(f => p.containsKey(f))
+              "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => p.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
             recordLoginTime(p)
             BWLogger.audit(getClass.getName, "doPost", "Login OK", request)

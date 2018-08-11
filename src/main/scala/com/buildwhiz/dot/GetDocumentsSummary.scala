@@ -16,7 +16,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     val labels1 = Seq("category", "subcategory", "keywords").
         map(doc.getOrDefault(_, "").asInstanceOf[String]).flatMap(_.split(",")).
         map(_.trim).filter(_.nonEmpty)
-    (doc.getOrDefault("labels", Seq.empty[String]).asInstanceOf[Seq[String]] ++ labels1).distinct
+    val labels: Seq[String] = if (doc.has("labels")) doc.y.labels[Many[String]] else Seq.empty[String]
+    (labels ++ labels1).distinct
   }
 
   private def getDocuments(user: DynDoc): Seq[Document] = {

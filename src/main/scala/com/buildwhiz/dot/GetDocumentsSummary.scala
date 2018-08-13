@@ -20,6 +20,39 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     (labels ++ labels1).distinct
   }
 
+  private def findDocuments(user: DynDoc): Seq[DynDoc] = {
+    val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
+
+    val (managedProjects, nonManagedProjects) = projects.partition(_.admin_person_id[ObjectId] == user._id[ObjectId])
+    val managedProjectIds: Seq[ObjectId] = managedProjects.map(_._id[ObjectId])
+    val docsInManagedProjects: Seq[DynDoc] = BWMongoDB3.document_master.
+        find(Map("project_id" -> Map("$in" -> managedProjectIds)))
+
+    val idsOfPhasesInNonManagedProjects: Seq[ObjectId] = nonManagedProjects.flatMap(_.phase_ids[Many[ObjectId]])
+    val phasesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.phases.
+        find(Map("_id" -> Map("$in" -> idsOfPhasesInNonManagedProjects)))
+    val (managedPhases, nonManagedPhases) = phasesInNonManagedProjects.
+        partition(_.admin_person_id[ObjectId] == user._id[ObjectId])
+    val managedPhaseIds: Seq[ObjectId] = managedPhases.map(_._id[ObjectId])
+    val docsInManagedPhases: Seq[DynDoc] = BWMongoDB3.document_master.
+      find(Map("phase_id" -> Map("$in" -> managedPhaseIds)))
+
+    val idsOfActivitiesInNonManagedPhases = nonManagedPhases.flatMap(_.activity_ids[Many[ObjectId]])
+    val activitiesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.activities.
+      find(Map("_id" -> Map("$in" -> idsOfActivitiesInNonManagedPhases)))
+    val activityActionPairs: Seq[(DynDoc, DynDoc)] = activitiesInNonManagedProjects.
+        flatMap(activity => activity.actions[Many[Document]].map(action => (activity, action)))
+    val assignedActivityActionPairs = activityActionPairs.filter(_._2.assignee_person_id[ObjectId] == user._id[ObjectId])
+    val assignedDocuments: Seq[DynDoc] = assignedActivityActionPairs.flatMap(aa => {
+      val activityOid = aa._1._id[ObjectId]
+      val actionName = aa._2.name[String]
+      BWMongoDB3.document_master.find(Map("activity_id" -> activityOid, "action_name" -> actionName))
+    })
+
+    docsInManagedProjects ++ docsInManagedPhases ++ assignedDocuments
+  }
+
   private def getDocuments(user: DynDoc): Seq[Document] = {
     val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
     val docOid2labels = mutable.Map.empty[ObjectId, mutable.Buffer[String]]
@@ -32,7 +65,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         docOid2labels.put(docOid, docLabels)
       }
     }
-    val docs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("project_id" -> Map("$exists" -> true)))
+    val docs: Seq[DynDoc] = findDocuments(user)
     val docProperties: Seq[Document] = docs.map(d => {
       val versions: Seq[DynDoc] = GetDocumentVersionsList.versions(d)
       val systemLabels = getLabels(d.asDoc)

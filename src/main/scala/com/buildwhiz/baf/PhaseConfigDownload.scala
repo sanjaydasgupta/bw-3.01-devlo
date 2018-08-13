@@ -90,6 +90,50 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     timersSheet.getLastRowNum + 1
   }
 
+  private def addDocumentsSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+    val documentSheet = workbook.createSheet("Documents")
+    val headerInfo = Seq(("Doc Name", 40), ("Doc Descr", 40), ("Labels", 40),
+      ("Mandatory", 25), ("Content Type", 25), ("Activity", 40), ("Task", 40), ("Doc ID", 40))
+    makeHeaderRow(documentSheet, headerInfo)
+    val activityIds: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
+      "bpmn_name" -> bpmnName))
+    for (activity <- activities) {
+      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
+      for (task <- actions) {
+        val existingTaskDocs: Seq[DynDoc] = BWMongoDB3.document_master.
+          find(Map("activity_id" -> activity._id[ObjectId], "action_name" -> task.name[String]))
+        for (doc <- existingTaskDocs) {
+          val row = documentSheet.createRow(documentSheet.getLastRowNum + 1)
+          row.createCell(0).setCellValue(doc.name[String])
+          row.createCell(1).setCellValue(doc.description[String])
+          row.createCell(2).setCellValue(doc.labels[Many[String]].mkString(","))
+          row.createCell(3).setCellValue(if (doc.mandatory[Boolean]) "yes" else "no")
+          row.createCell(4).setCellValue(doc.content_type[String])
+          // owner task reference ...
+          row.createCell(5).setCellValue(doc.activity_id[ObjectId].toString)
+          row.createCell(6).setCellValue(doc.action_name[String])
+          // document _id ...
+          row.createCell(7).setCellValue(doc._id[ObjectId].toString)
+        }
+        if (existingTaskDocs.isEmpty) {
+          val row = documentSheet.createRow(documentSheet.getLastRowNum + 1)
+          row.createCell(0).setCellValue("name")
+          row.createCell(1).setCellValue("description")
+          row.createCell(2).setCellValue("comma-separated labels")
+          row.createCell(3).setCellValue("yes/no")
+          row.createCell(4).setCellValue("image/pdf/word/excel/bim/xml")
+          // owner task reference ...
+          row.createCell(5).setCellValue(activity._id[ObjectId].toString)
+          row.createCell(6).setCellValue(task.name[String])
+          // document _id ...
+          row.createCell(7).setCellValue("-")
+        }
+      }
+    }
+    documentSheet.getLastRowNum + 1
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
@@ -100,14 +144,15 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       val workbook = new XSSFWorkbook()
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val taskCount = addTasksSheet(workbook, project, phase, bpmnName)
-      val variableCount = addVariablesSheet(workbook, project, phase, bpmnName)
-      val timerCount = addTimersSheet(workbook, project, phase, bpmnName)
+      val taskNbr = addTasksSheet(workbook, project, phase, bpmnName)
+      val varNbr = addVariablesSheet(workbook, project, phase, bpmnName)
+      val timerNbr = addTimersSheet(workbook, project, phase, bpmnName)
+      val docNbr = addDocumentsSheet(workbook, project, phase, bpmnName)
       workbook.write(response.getOutputStream)
       response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet",
-        s"EXIT-OK ($taskCount tasks, $variableCount variables, $timerCount timers)", request)
+        s"EXIT-OK ($taskNbr tasks, $varNbr variables, $timerNbr timers, $docNbr documents)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

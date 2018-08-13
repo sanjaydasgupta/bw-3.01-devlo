@@ -18,8 +18,9 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
     try {
       val actionName = parameters("action_name")
       val duration = parameters("duration")
+      val description = parameters.get("description")
       val activityOid = new ObjectId(parameters("activity_id"))
-      ActionDurationSet.set(request, activityOid, actionName, duration)
+      ActionDurationSet.set(request, activityOid, actionName, duration, description)
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
@@ -41,14 +42,20 @@ object ActionDurationSet {
     parts.map(p => f"$p%02d").mkString(":")
   }
 
-  def set(request: HttpServletRequest, activityOid: ObjectId, actionName: String, duration: String): Unit = {
+  def set(request: HttpServletRequest, activityOid: ObjectId, actionName: String, duration: String,
+          description: Option[String]): Unit = {
     if (!duration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
       throw new IllegalArgumentException(s"Bad duration format: '$duration'")
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
     val actionIdx = actionNames.indexOf(actionName)
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-      Map("$set" -> Map(s"actions.$actionIdx.duration" -> formatDuration(duration))))
+
+    val valuesToSet = description match {
+      case None => Map(s"actions.$actionIdx.duration" -> formatDuration(duration))
+      case Some(desc) => Map(s"actions.$actionIdx.duration" -> formatDuration(duration),
+        s"actions.$actionIdx.description" -> desc)
+    }
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" -> valuesToSet))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     else {

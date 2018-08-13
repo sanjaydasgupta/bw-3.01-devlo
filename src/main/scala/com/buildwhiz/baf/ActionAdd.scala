@@ -24,7 +24,8 @@ class ActionAdd extends HttpServlet with HttpUtils {
       val assigneeOid = new ObjectId(parameters("assignee_id"))
       val bpmnName = parameters("bpmn_name")
       val duration = parameters.getOrElse("duration", "00:00:00")
-      ActionAdd.add(request, activityOid, actionName, typ, bpmnName, assigneeOid, duration)
+      val actionDescription = parameters.getOrElse("description", s"$actionName (no description)")
+      ActionAdd.add(request, activityOid, actionName, actionDescription, typ, bpmnName, assigneeOid, duration)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -51,8 +52,8 @@ object ActionAdd {
     mainAction.inbox[Many[ObjectId]]
   }
 
-  def add(request: HttpServletRequest, activityOid: ObjectId, actionName: String, typ: String,
-          bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
+  def add(request: HttpServletRequest, activityOid: ObjectId, actionName: String, actionDescription: String,
+          typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
     if (existingActionNames.contains(actionName))
@@ -62,8 +63,8 @@ object ActionAdd {
     val outbox = new java.util.ArrayList[ObjectId]
     if (typ == "review")
       outbox.asScala.append(getTempDoc(s"$actionName-review-report"))
-    val action: Document = Map("name" -> actionName, "type" -> typ, "status" -> "defined",
-      "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> duration,
+    val action: Document = Map("name" -> actionName, "description" -> actionDescription, "type" -> typ,
+      "status" -> "defined", "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> duration,
       "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
       Map("$push" -> Map("actions" -> action)))

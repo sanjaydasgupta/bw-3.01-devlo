@@ -72,6 +72,13 @@ class Phase extends HttpServlet with RestUtils {
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
       val preDeleteParticipantOids = projectParticipantOids(theProject)
       val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]]
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+      val actionNamesByActivityOid: Seq[(ObjectId, Seq[String])] = activities.
+        map(activity => (activity._id[ObjectId], activity.actions[Many[Document]].map(_.name[String])))
+      for ((activityOid, actionNames) <- actionNamesByActivityOid) {
+        BWMongoDB3.document_master.deleteMany(
+          Map("activity_id" -> activityOid, "action_name" -> Map("$in" -> actionNames)))
+      }
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),

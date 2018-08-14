@@ -140,8 +140,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           mkString("&nbsp;&nbsp;")
 
         writer.println(s"""<h3 align=\"center\">DURATION: &nbsp;&nbsp;&nbsp;&nbsp;hours: $hourCountLinks,
-            |&nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
-            |&nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks</h3>""".stripMargin)
+                          |&nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
+                          |&nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks</h3>""".stripMargin)
 
         val typeLinks = Seq("all", "audit", "error", "check").
           map(t => if (logType == t) s"($t)" else t).
@@ -158,7 +158,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           map(days => s"""<a href="$urlName?count=$duration$durationUnit&type=$logType&until=${days}days">$days</a>""").
           mkString("&nbsp;&nbsp;")
         writer.println(s"""<h3 align=\"center\">UNTIL: &nbsp;&nbsp;&nbsp;&nbsp;hours: $hoursUntilLinks,
-            |&nbsp;&nbsp;&nbsp;&nbsp;days: $daysUntilLinks</h3>""".stripMargin)
+                          |&nbsp;&nbsp;&nbsp;&nbsp;days: $daysUntilLinks</h3>""".stripMargin)
 
         writer.println("</body></html>")
         response.setStatus(HttpServletResponse.SC_OK)

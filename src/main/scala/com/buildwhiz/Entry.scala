@@ -18,7 +18,14 @@ class Entry extends HttpServlet {
   }
 
   private def log(event: String, request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getSimpleName, request.getMethod, event, request)
+    val urlParts = request.getRequestURL.toString.split("/")
+    urlParts.zipWithIndex.find(_._1.matches("api|baf|dot|etc|tools|web")) match {
+      case Some((_, pkgIdx)) =>
+        val apiPath = s"${urlParts(pkgIdx)}/${urlParts(pkgIdx + 1)}"
+        BWLogger.log(apiPath, request.getMethod, event, request)
+      case None =>
+        BWLogger.log("Unknown", request.getMethod, event, request)
+    }
   }
 
   private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,

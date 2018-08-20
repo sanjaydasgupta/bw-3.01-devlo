@@ -1,0 +1,16 @@
+<div class="container" data-ng-controller="UserProfileCtrl as profileCtrl">
+    <p style="text-align:center; font-size: large;">User Profile</p>
+    <table align="center">
+        <tr><td style="background-color: cyan; text-align: center; font-weight: bold;" colspan="2">Set Password</td></tr>
+        <tr style="vertical-align: center;"><td>Old password</td><td><input type="text"
+                data-ng-model="profileCtrl.oldPassword"/></td></tr>
+        <tr style="vertical-align: center;"><td>New password</td><td><input type="password"
+                data-ng-model="profileCtrl.newPassword"/></td></tr>
+        <tr style="vertical-align: center;"><td>Confirm</td><td><input type="password"
+                data-ng-model="profileCtrl.cnfPassword"/></td></tr>
+        <tr style="vertical-align: center;"><td colspan="2" align="center"><button
+                data-ng-click="profileCtrl.userPasswordSet()"
+                data-ng-disabled="profileCtrl.userPasswordSetDisabled()">Set</button></td></tr>
+    </table>
+</div>
+<!--//===============================container============================-->

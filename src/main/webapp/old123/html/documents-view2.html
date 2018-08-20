@@ -1,0 +1,232 @@
+<div class="panel panel-primary" xmlns="http://www.w3.org/1999/html">
+  <div class="panel-heading">
+    <span style="font-weight:bold;">View Documents</span>
+    <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.toggleInfoDisplay()">
+      <span class="glyphicon glyphicon-info-sign"></span> Help</button>
+  </div>
+
+  <div class="panel-body fixed-panel container-fluid" style="padding:5px">
+    <!-- Busy overlay -->
+    <div data-ng-if="viewDocsCtrl2.busy" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
+      <img src="images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+    </div>
+    <!-- Info overlay -->
+    <div data-ng-if="viewDocsCtrl2.showInfo" style="padding:5px 5px; margin-top:3px; border:2px solid DarkGreen; width:100% vertical-align:top;">
+      <table style="width:100%;">
+        <tr><th style="background-color:DarkGreen; text-align:center; color:white;">Information</th></tr>
+        <tr><td><div data-ng-include="'info/documents-view.html'" style="height:300px; max-height:300px; min-height:300px; overflow:auto;"></div></td></tr>
+      </table>
+    </div>
+    <!-- Search -->
+    <div data-ng-if="!viewDocsCtrl2.showInfo" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100%">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="padding:0px;">
+        <table width="100%">
+          <tr><th style="background-color:#337ab7; text-align:center; color:white;">Document Search</th></tr>
+        </table>
+      </div>
+      <!-- Document Label -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Label&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-label" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{viewDocsCtrl2.currentLabelKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-label"
+              style="min-width:50px">
+            <li class="dropdown-item" data-ng-repeat="label in viewDocsCtrl2.labelObjects"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel(label.name)" style="padding:3px;">{{label.name}}</a></li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByLabel('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Category -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;<span style="font-weight:bold;">Category</span>&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-type" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{viewDocsCtrl2.currentCategoryKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-type"
+              style="min-width:50px">
+            <li class="dropdown-item" data-ng-repeat="category in viewDocsCtrl2.documentCategories">
+              <a href="javascript:void(0)" style="padding:3px;"
+                 data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory(category)">{{category}}</a>
+            </li>
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin() || viewDocsCtrl2.currentLabelKey != 'Any'"
+                class="divider" style="margin:1px;"></li>
+            <li data-ng-if="viewDocsCtrl2.isDataAdmin() || viewDocsCtrl2.currentLabelKey != 'Any'"
+                class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByCategory('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Subcategory -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;<span style="font-weight:bold;">Subcategory</span>&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-subcategory" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{viewDocsCtrl2.currentSubcategoryKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-subcategory"
+              style="min-width:50px">
+            <li class="dropdown-item" data-ng-repeat="subcategory in viewDocsCtrl2.documentSubcategories"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsBySubcategory(subcategory)" style="padding:3px;">{{subcategory}}</a></li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsBySubcategory('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div>
+      <!-- Content -->
+      <!--div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Content&nbsp;
+        <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+          <button id="btn-content" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+            {{viewDocsCtrl2.currentContentKey}} <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-content"
+              style="min-width:50px">
+            <li class="dropdown-item" data-ng-repeat="contentType in viewDocsCtrl2.contentTypes"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByContent(contentType)" style="padding:3px;">{{contentType}}</a></li>
+            <li class="divider" style="margin:1px;"></li>
+            <li class="dropdown-item"><a href="javascript:void(0)"
+                data-ng-click="viewDocsCtrl2.fetchDocumentsByContent('Any')" style="padding:3px;">Any</a></li>
+          </ul>
+        </div>
+      </div-->
+      <!-- Name -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Name&nbsp;
+        <input type="text" data-ng-model="viewDocsCtrl2.documentName" size="15" style="height:20px; margin:1px;" />
+      </div>
+      <!-- Description -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        &nbsp;&nbsp;Descr&nbsp;
+        <input type="text" data-ng-model="viewDocsCtrl2.documentDescription" size="15" style="height:20px; margin:1px;" />
+      </div>
+      <!-- Buttons, etc. -->
+      <div class="col-xs-12 col-sm-4 col-md-4 col-lg-2" style="padding:3px; border:1px solid #337ab7;">
+        <input type="checkbox" data-ng-model="viewDocsCtrl2.displayAllVersions" style="margin:0px;"
+            data-ng-change="viewDocsCtrl2.allVersionsChanged()"/>All versions
+        &nbsp;&nbsp;<button class="btn btn-xs btn-primary" data-ng-click="viewDocsCtrl2.findDocuments()"><span class="glyphicon glyphicon-search"></span> Find</button>
+      </div>
+    </div>
+    <!-- Found Documents Table (displayed conditionally) -->
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.findModeActive" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="100%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Documents ({{viewDocsCtrl2.documents.length}})</th></tr>
+      </table>
+      <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
+        <table border="1" width="100%">
+          <tr><th style="text-align:center;">Name</th><th style="text-align:center;">Description</th><th style="text-align:center;">Version Comments</th>
+            <th style="text-align:center;">Date & Time</th><th style="text-align:center;">Author</th>
+            <th style="text-align:center;">Download</th><th style="text-align:center;">RFI</th>
+            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.canUpload()">Upload</th>
+            <th style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">Delete</th>
+          </tr>
+          <tr data-ng-repeat="document in viewDocsCtrl2.documents" style="background-color:{{viewDocsCtrl2.getRowColor(document)}};">
+            <td style="text-align:center;"><a href="javascript:void(0)" data-ng-click="viewDocsCtrl2.displayDetail(document)">{{document.name}}</a></td>
+            <td style="text-align:center;">{{document.description}}</td><td style="text-align:center;">{{document.comments}}</td>
+            <td style="text-align:center;">{{document.date_time}}</td><td style="text-align:center;">{{document.author}}</td>
+            <td style="text-align:center;"><a href="{{document.link}}" target="_blank">download</a></td>
+            <td style="text-align:center;">
+              <a href="#/rfi?document_master_id={{document._id}}&timestamp={{document.timestamp}}&{{viewDocsCtrl2.origin(document.name)}}">
+                =&nbsp;{{document.rfi_ids.length}}&nbsp;=</a>
+            </td>
+            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.canUpload()">
+              <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.uploadDocumentVersion(document)">
+              <span class="glyphicon glyphicon-upload"></span> Upload</a>
+            </td>
+            <td style="text-align:center;" data-ng-if="viewDocsCtrl2.specialFunctionsDisplayed()">
+              <a href="javascript:void(0);" data-ng-click="viewDocsCtrl2.deleteDocument(document)">
+              <span class="glyphicon glyphicon-remove-sign"></span> Delete</a>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <!-- Labels and Other Details -->
+    <div data-ng-if="viewDocsCtrl2.selectedDocument != null" class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid #337ab7; width:100% vertical-align:top;">
+      <table width="25%">
+        <tr><th style="background-color:#337ab7; text-align:center; color:white;">Label Assignment</th></tr>
+        <tr><td>
+          <div style="height:150px; max-height:150px; min-height:150px; overflow:auto;">
+            <table>
+              <tr data-ng-repeat="label in viewDocsCtrl2.labelObjects">
+                <td style="padding:0px;"><input type="checkbox" data-ng-model="label.contained" data-ng-change="viewDocsCtrl2.labelToggle(label)"/>&nbsp;</td>
+                <td style="padding:0px;">{{label.name}}</td>
+              </tr>
+            </table>
+          </div>
+        </td></tr>
+      </table>
+    </div>
+    <!-- Uplolad Document -->
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToUpload != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid green; width:100% vertical-align:top;">
+      <span class="center-block" style="margin:0px; text-align:center;">{{viewDocsCtrl2.documentToUpload.category}} / {{viewDocsCtrl2.documentToUpload.subcategory}}
+          / {{viewDocsCtrl2.documentToUpload.name}} / {{viewDocsCtrl2.documentToUpload.description}}</span>
+      <hr style="margin:1px;" />
+      <table>
+        <tr>
+          <!-- Version comments -->
+          <td>
+            &nbsp;<input type="text" data-ng-model="viewDocsCtrl2.versionComments" size="35" style="margin:4px;" placeholder="Version Comments"/>
+          </td>
+          <!-- Author -->
+          <td>
+            <span style="margin-left:25px;">Author</span>&nbsp;<input type="text" data-ng-model="viewDocsCtrl2.authorsMask" size="5" style="height:20px" />
+            <button class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.filterAuthorNames()">Filter</button>
+            Select&nbsp;
+            <div class="btn-group" data-uib-dropdown data-dropdown-append-to="appendToEl">
+              <button id="btn-author2" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+                {{viewDocsCtrl2.currentAuthor.name}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="btn-author2"
+                  style="min-width:50px">
+                <li class="dropdown-item" data-ng-repeat="author in viewDocsCtrl2.filteredAuthors">
+                  <a href="javascript:void(0)" style="padding:3px;"
+                     data-ng-click="viewDocsCtrl2.fetchDocumentsByAuthor(author)">{{author.name}}</a>
+                </li>
+              </ul>
+            </div>
+          </td>
+          <!-- Date -->
+          <td>
+            <span class="input-group" style="max-width:150px; vertical-align:middle; margin-left:25px; margin-right:25px;">
+              <input type="text" class="form-control" data-uib-datepicker-popup data-ng-model="viewDocsCtrl2.selectedDate"
+                 data-is-open="viewDocsCtrl2.datePickerOpened" data-datepicker-options="viewDocsCtrl2.dateOptions"
+                 data-ng-required="true" style="max-width:150px;" />
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" data-ng-click="viewDocsCtrl2.datePickerOpened = true">
+                    <i class="glyphicon glyphicon-calendar"></i></button>
+              </span>
+            </span>
+          </td>
+          <!-- Time -->
+          <td>
+            <span data-uib-timepicker data-ng-model="viewDocsCtrl2.selectedDate" data-show-spinners="false"></span>
+          </td>
+          <!-- Buttons -->
+          <td>
+            <button style="margin-left:25px" class="btn btn-xs btn-info" data-ng-click="viewDocsCtrl2.documentToUpload = null">
+                Cancel</button>
+            <button style="margin-left:25px;" class="btn btn-xs btn-success" data-ng-click="viewDocsCtrl2.startUpload()"
+                data-ng-disabled="viewDocsCtrl2.versionComments == ''">Upload</button>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <input id="version-upload-button" type="file" style="display:none;" />
+    <!-- Delete Document -->
+    <div data-ng-if="!viewDocsCtrl2.showInfo && viewDocsCtrl2.documentToDelete != null"  class="row center-block" style="padding:5px 5px; margin-top:3px; border:2px solid red; width:100% vertical-align:top;">
+      <button class="btn btn-xs btn-warning pull-right" data-ng-click="viewDocsCtrl2.deleteDocumentConfirmed()">Delete</button>
+      <button class="btn btn-xs btn-info pull-left" data-ng-click="viewDocsCtrl2.documentToDelete = null">Cancel</button>
+      <span class="center-block" style="margin:0px; text-align:center;">Delete {{viewDocsCtrl2.documentToDelete.category}} / {{viewDocsCtrl2.documentToDelete.subcategory}}
+          / {{viewDocsCtrl2.documentToDelete.name}} / {{viewDocsCtrl2.documentToDelete.description}}
+          / {{viewDocsCtrl2.documentToDelete.comments}}?</span>
+    </div>
+  </div>
+</div>
+

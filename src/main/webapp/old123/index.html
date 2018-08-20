@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>BuildWhiz</title>
+
+    <!-- Bootstrap -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <link href="css/site.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]-->
+      <!--script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script-->
+      <!--script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script-->
+    <!--[endif]-->
+  </head>
+  <body data-ng-app="BuildWhizApp" data-ng-controller="MainController as mainCtrl">
+    <div class="navbar navbar-inverse navbar-static-top" style="font-size:14px; margin-bottom:3px;">
+        <div class="container">
+            <a href="#" class="navbar-brand" style="font-size: 14px;">{{mainCtrl.headerName()}}
+            <span style="margin-top:8px;margin-left:50px;font-size:1.5em;color:white;">{{mainCtrl.instance}}</span></a>
+            <button class="navbar-toggle" data-ng-click="mainCtrl.isNavCollapsed = !mainCtrl.isNavCollapsed">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <div class="collapse navbar-collapse" data-uib-collapse="mainCtrl.isNavCollapsed">
+                <ul class="nav navbar-nav navbar-right" data-ng-if="mainCtrl.loggedIn">
+                    <li class="dropdown" data-uib-dropdown data-dropdown-append-to-body data-ng-if="mainCtrl.isAdmin()">
+                        <a href="#" id="btn-append-to" data-uib-dropdown-toggle class="dropdown-toggle">
+                            Admin <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu" data-uib-dropdown-menu aria-labelledby="btn-append-to">
+                            <li><a href="#/documents-loader" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-cloud-upload"></span> Documents Loader</a></li>
+                            <li><a href="#/manageUsers" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-user"></span> Users</a></li>
+                            <li><a href="#/role-mapping" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-random"></span> Role Mapping</a></li>
+                            <li class="divider"></li>
+                            <li><a href="#/mongodb" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-cd"></span> MongoDB</a></li>
+                            <li><a href="#/systemMonitor" data-ng-click="mainCtrl.clickCommon()">
+                                <span class="glyphicon glyphicon-dashboard"></span> Sys-Monitor</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" data-ng-click="mainCtrl.logout()">
+                        <span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-if="!mainCtrl.loggedIn">
+        <div class="sign-in-wrapper container">
+            <div class="sign-in-form">
+                <h3 data-ng-if="mainCtrl.tryAgain" class="sign-in-message"
+                    style="color: white; background-color: red;">Sign-in error. Try again!</h3>
+                <h3 data-ng-if="!mainCtrl.tryAgain" class="sign-in-message">Sign-In</h3>
+                <!--div class="sign-in-colorgraph"></div-->
+                <input type="text" class="sign-in-username" data-ng-model="mainCtrl.username"
+                    autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
+
+                <input type="password" class="sign-in-password" data-ng-model="mainCtrl.password" placeholder="password"
+                       required="required" data-ng-keyup="$event.keyCode == 13 ? mainCtrl.login() : null" />
+                <a class="btn btn-xs btn-primary btn-block sign-in-button" data-ng-click="mainCtrl.login()" href="#">Login</a>
+                <!--a class="btn btn-xs btn-info btn-block sign-in-button"
+                   data-ng-click="mainCtrl.userNameEmailFromCookie()" href="#">Last-User?</a-->
+                <h3 class="sign-in-message" style="margin-top:10px; margin-bottom:0px;">We use cookies for security</h3>
+            </div>
+        </div>
+    </div>
+
+    <div data-ng-view data-ng-if="mainCtrl.loggedIn"></div>
+
+    <script src="js/lib/angular.min.js"></script>
+    <script src="js/lib/angular-route.min.js"></script>
+    <script src="js/lib/ui-bootstrap-tpls-2.5.0.min.js"></script>
+    <script src="js/module.js"></script>
+    <script src="js/controller-main.js"></script>
+    <script src="js/controller-manageUsers.js"></script>
+    <script src="js/controller-userProfile.js"></script>
+    <script src="js/controller-mongodb.js"></script>
+    <script src="js/controller-tasks.js"></script>
+    <script src="js/controller-projects.js"></script>
+    <script src="js/controller-documents-loader.js"></script>
+    <script src="js/controller-documents-view2.js"></script>
+    <script src="js/controller-status-update.js"></script>
+    <script src="js/controller-home.js"></script>
+    <script src="js/controller-help.js"></script>
+    <script src="js/controller-rfi.js"></script>
+    <script src="js/controller-systemMonitor.js"></script>
+    <script src="js/serviceAuthentication.js"></script>
+    <script src="js/controller-role-mapping.js"></script>
+    <script src="js/controller-bpmn.js"></script>
+    <script src="js/lib/bpmn-navigated-viewer.min.js"></script>
+  </body>
+</html>

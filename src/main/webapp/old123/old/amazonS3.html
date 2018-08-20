@@ -1,0 +1,25 @@
+<div class="container" data-ng-controller="AmazonS3Ctrl as s3Ctrl">
+    <div data-ng-if="s3Ctrl.isWaiting" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);">
+        <img src="css/images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+    </div>
+
+    <p style="text-align:center; font-size: large;">Amazon S3 View</p>
+
+    <table data-ng-repeat="project in s3Ctrl.amazonDocs" class="table table-condensed table-bordered table-hover">
+        <tr>
+            <td colspan="3" class="bg-primary text-center">Project: {{project.project}}</td>
+        </tr>
+        <tr data-ng-repeat="doc in project.docs" class="text-center">
+            <td width="40%">{{doc.doc_id}}</td><td width="40%">{{doc.ts}}</td><td width="20%">{{doc.size}}</td>
+        </tr>
+        <!--tr data-ng-if="project.project.indexOf('???') != -1">
+            <td colspan="3" class="text-center">
+                <button class="btn btn-danger btn-xs" data-ng-click="s3Ctrl.deleteProjectDocs(project.project)">
+                    Delete
+                </button>
+            </td>
+        </tr-->
+    </table>
+
+</div>
+<!--//===============================container============================-->

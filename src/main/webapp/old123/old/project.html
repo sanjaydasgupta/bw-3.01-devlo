@@ -1,0 +1,419 @@
+
+<div class="container" data-ng-controller="BuildWhizNgAppProjectCtrl">
+  <!--preloader Image load while data loading -->
+  <div id="divPreLoad" style="position: fixed; top: 0px; left: 0; z-index: 9999; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); display: none;">
+    <img src="css/images/animatedEllipse.gif" style="position: absolute; z-index: 10000; display: block; margin: auto auto; left: 0px; right: 0px; top: 0px; bottom: 0px;" />
+  </div>
+
+
+  <div id="divDemoUserShow">
+        <scrollable-tabset>
+          <tabset>
+            <tab ng-repeat="person in personsDataUpdate" active="preSelectTab(person._id)"  disable="person.disabled">
+              <tab-heading><div data-ng-click="clickDemoUser(person)">{{person.first_name}} {{person.last_name}}</div></tab-heading>
+             Projects for {{person.first_name}} {{person.last_name}}
+            </tab>
+          </tabset>
+        </scrollable-tabset>
+      </div>
+
+  <div>
+    <div id="divProjectCreateNew" name="divProjectCreateNew" class="pull-left">
+    <div class="text-left">
+      <!-- create new project interface Link -->
+      <a href="#" data-toggle="modal" id="linkCreateNewProject" class="text-success" data-target=".bs-example-modal-sm"><i class="glyphicon glyphicon-plus-sign"></i>Create New Project</a>
+      <div class="clr"></div>
+    </div>
+    </div>
+   
+    <div class="pull-right" id="divprojectRefresh" >
+    <div class=" text-right">
+      <!-- create new project interface Link -->
+      <a href="#" id="refreshProject" class="text-success" data-ng-click="btnRefreshProject()"><i class="glyphicon glyphicon-refresh"></i>Refresh Projects</a>
+      <div class="clr"></div>
+    </div>
+    </div>
+    <div class="clr"></div>
+  </div>
+
+
+  <!-- modal // create new project interface modal start here-->
+  <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" id="modalCreateNewProjectWrap" aria-labelledby="mySmallModalLabel">
+    <div class="modal-dialog modal-md" id="modalCreateNewProject">
+    <div class="modal-content">
+      <div class="modal-body">
+        <form class="form-horizontal formCreateNewProject">
+        <div class="form-group">
+          <label class="col-sm-3 control-label">Project Name</label>
+          <div class="col-sm-6">
+            <input type="text" autocomplete="off" class="form-control" data-ng-model="inputProjectName" id="inputProjectName" name="inputProjectName" placeholder="Project Name" autofocus="autofocus" data-ng-keyup="$event.keyCode == 13 ? createNewProject() : null">
+          </div>
+          <div class="col-sm-3" style="padding-right: 0px;">
+            <button type="button" class="btn btn-success" data-dismiss="modal" data-ng-click="createNewProject()"><span class="glyphicon glyphicon-ok-circle" style="padding-top: 4px; font-size: 20px" aria-hidden="true"></span></button>
+
+            <button type="button" data-dismiss="modal" class="btn btn-danger"><span class="glyphicon glyphicon-remove-circle" aria-hidden="true" style="padding-top: 4px; font-size: 20px"></span></button>
+          </div>
+        </div>
+        </form>
+      </div>
+    </div>
+    </div>
+  </div>
+  <!-- modal // create new project interface end here-->
+
+
+  <!-- modal // modalDiagram start here-->
+  <div id="modalDiagram" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+    <!-- Modal content-->
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" style=" ">&times;</button>
+    <h4 class="modal-title text-center"><span class="text-primary" id="txtBpmnDiagram" name="txtBpmnDiagram"></span></h4>
+    </div>
+    <div class="modal-body text-center">
+    <img src="" id="imgBpmnDiagram" alt="BPMN Diagram"/>
+    </div>
+    </div>
+    </div>
+  </div>
+  <!-- modal // modalDiagram end here-->
+
+  <!-- msgToggle start here-->
+  <div class="alert alert-danger msgToggle" style="display: none;">
+    <div id="lblMsg" class="text-center text-danger"></div>
+  </div>
+  <!-- msgToggle end here-->
+
+  <accordion>
+    <accordion-group id="agProjects" data-ng-repeat="project in projectDataUpdate" is-open="project.openProject" data-ng-class="[setStatusBorderColor(project.display_status), 'projectPanel']">
+    <!--==============Project Heading Start Here==============-->
+    <accordion-heading> 
+      <a class="col-md-8 col-sm-7 col-xs-5 projectsLinkHref" data-ng-click="OnProjectClick(project._id, false);" href="javascript:void(0)">
+        <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': project.openProject, 'glyphicon-chevron-down': !project.openProject}"></span>
+        <button  data-toggle="tooltip" data-placement="right" title="{{project.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(project.display_status)]"><img src="css/images/ProjectIcon.png" /></button>
+        <!--<div class="pull-left gHeaderImageDiv"><img src="css/images/ProjectIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(project.display_status)}};" /></div>-->
+        <div class="pull-left" style="padding-right:10px; line-height:24px;">{{project.name}}</div>
+        <!--<input type="hidden" id="hdnProjectID" >{{project._id}}</input>-->
+        
+        <div class="checkbox divcheckbox" data-ng-if="project.is_managed" data-ng-click="$event.stopPropagation();">
+        <!--<label ><input type="checkbox" id="checkboxProjectPublic" name="checkboxProjectPublic" data-ng-model="project.public" data-ng-true-value="true" data-ng-false-value="false"  data-ng-change="togglePublicProjectSync(project._id, project.public)">Public</label>        -->
+            <label ><input type="checkbox" id="checkboxProjectPublic" name="checkboxProjectPublic" data-ng-model="project.public"   data-ng-change="togglePublicProjectSync(project._id, project.public)">Public</label>       
+        </div>   
+            
+        <div class="clr"></div>
+      </a> 
+      <div class="col-md-4 col-sm-5 col-xs-7 divAdminCtrlWraper" id="divProjectCreateNewCtrl" data-ng-click="$event.stopPropagation();" data-ng-if="project.is_managed">
+        <div class="administratorCtrlPart">
+        <div class="row-fluid ">
+              <div class="administratorCtrlPartHr">
+                <div class="col-sm-4 col-xs-4 text-center">
+                  <button class="btn btn-success" data-ng-click="launchProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
+                </div>
+                <div class="col-sm-4 col-xs-4 text-center">
+                  <button class="btn btn-danger" data-ng-click="endProject(project._id); $event.stopPropagation();" data-ng-disabled="!project.can_end || project.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
+                </div>
+                <div data-ng-if="isAdministrator()" class="col-sm-4 col-xs-4 text-center">
+                  <button class="btn btn-danger" data-ng-click="deleteProject(project._id); $event.stopPropagation();" data-ng-disabled="project.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                </div>
+                <div class="clr"></div>
+              </div>
+              <div class="clr"></div>
+            </div>
+            <div class="divAdminCtrlHrSeparetor"></div>
+            <div class="row-fluid" data-ng-controller="BuildWhizNgAppPhaseCtrl">
+              <div class="administratorCtrlPartHr">
+                <div class="col-sm-2 col-xs-4  text-center">
+                  <label class="label">Phase</label>
+                </div><!--//col-sm-2 col-xs-4  text-center-->
+                <div class="col-sm-6 col-xs-4  text-center">
+                  <div class="dropdown ddProp ">
+                    <select class="form-control" data-ng-click="$event.stopPropagation();" data-ng-disabled="project.status == 'ended'" id="ddlPhaseType" name="ddlPhaseType" data-ng-model="selectPhaseNamesModel" data-ng-change="selectPhaseNamesChange(selectPhaseNamesModel)" >
+                      <option value="">Select Phase</option>
+                      <option data-ng-repeat="PhaseN in PhaseNamesUpdate" value="{{PhaseN}}">{{PhaseN}}</option>
+                    </select>
+                  </div><!--//dropdown ddProp -->
+                </div><!--//col-sm-6 col-xs-4  text-center-->
+                <div class="col-sm-4 col-xs-4  text-center">
+                  <button class="btn btn-success" data-ng-click="addPhase(selectPhaseNamesModel); OnProjectClick(project._id); $event.stopPropagation();" data-ng-disabled="project.status == 'ended'"><span class="glyphicon glyphicon-plus-sign"></span> Create</button>
+                </div><!--//col-sm-4 col-xs-4  text-center-->
+                <div class="clr"></div>
+              </div><!--/administratorCtrlPartHr-->
+              <div class="clr"></div>
+            </div><!--//row-fluid-->
+            <div class="clr"></div>
+          </div><!--//administratorCtrlPart-->
+        </div><!--//col-md-4 col-sm-5 divAdminCtrlWraper-->
+        <div class="clr"></div>
+      </accordion-heading>
+      <!--==============Project Heading End Here==============-->
+      <accordion>
+        <div data-ng-controller="BuildWhizNgAppPhaseCtrl" >   
+          <div id="dvPhaseMessege" class="text-center text-danger" data-ng-if="projectPhaseDataUpdate.length <= 0">No Phase Found</div>            
+            <accordion-group is-open="openPhase" data-ng-repeat="phase in projectPhaseDataUpdate" data-ng-class="[setStatusBorderColor(phase.display_status), 'phasePanel']">
+              <!--==============Phase Heading Start Here==============-->
+              <accordion-heading> 
+                <a class="col-md-7 col-sm-6 phaseLinkHref" data-ng-click="OnPhaseClick(phase._id);" href="javascript:void(0)">         
+                  <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openPhase, 'glyphicon-chevron-down': !openPhase}"></span>
+                  <button  data-toggle="tooltip" data-placement="right" title="{{phase.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(phase.display_status)]"><img src="css/images/PhaseIcon.png" alt="" /></button>
+                  <!--<div class="pull-left gHeaderImageDiv"><img src="css/images/PhaseIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(phase.display_status)}};" /></div>-->
+                  <div class="pull-left" style="padding-right:10px; line-height:24px;">{{phase.name}}</div>                  
+                  <div class="pull-left spanBpnmName text-center" style="padding-right:5px; line-height:24px;"><b>BPMM Name:</b> {{phase.bpmn_name}}</div>          
+                  <div class="clr"></div>
+                </a>
+                <div class="col-md-5 col-sm-6 divAdminCtrlWraper" id="divPhaseCreateNewCtrl" data-ng-click="$event.stopPropagation();" >                  
+                    <div class="administratorCtrlPart">
+                        <div class="administratorCtrlPartHr text-right">                           
+                            <div class="form-inline formTimersCtrl">
+                              <div class="form-group text-left">
+                                <button class="btn btn-success" style="margin-bottom:2px;" data-ng-click="launchPhase(project._id, phase._id, phase.bpmn_name); $event.stopPropagation();"  data-ng-if="phase.status == 'defined' && project.status == 'running' && phase.is_managed"><span class="glyphicon glyphicon-play"></span> Launch</button>
+                                <button class="btn btn-danger" style="margin-bottom:2px;" data-ng-click="deletePhase(project._id, phase._id); $event.stopPropagation();"  data-ng-if="phase.status != 'running' && project.is_managed"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                                <span class="spanAdminWrap">
+                                  <label for="ddlPersonsType" class=" text-right">Administrator </label>
+                                  <select  class="form-control" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(phase.status == 'defined' && project.is_managed)" id="ddlPersonsType" name="ddlPersonsType" data-ng-model="phase.admin_person_id">
+                                    <option data-ng-repeat="person in managerPersonsData" data-ng-selected="person._id == phase.admin_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
+                                  </select>
+                                  <button class="btn btn-success" data-ng-click="setPhaseAdministrator(project._id, phase._id, phase.admin_person_id); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && project.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>
+                                </span>
+                              </div><!--//form-group-->
+                            </div><!--//form-inline formTimersCtrl-->
+                        <div class="clr"></div>
+                        </div><!--//administratorCtrlPartHr-->
+                      <div class="clr"></div>                      
+                    </div><!--//administratorCtrlPart-->
+                  <div class="clr"></div>
+                </div><!--//col-lg-5 col-md-6 col-sm-8 divAdminCtrlWraper-->
+                <div class="clr"></div>
+                 
+              </accordion-heading>
+              <!--==============Phase Heading End Here==============-->        
+              <accordion>
+                <div data-ng-controller="BuildWhizNgAppProcessCtrl" >
+                  <div id="dvProcessNoFound" class="text-center text-danger" data-ng-if="PhaseProcessDataUpdate.length <= 0">No Process Found</div>
+                  <accordion-group  is-open="openProcess" data-ng-repeat="process in PhaseProcessDataUpdate" data-ng-class="[setStatusBorderColor(process.display_status), 'processPanel']" >
+                    <!--==============Process Heading Start Here==============-->
+                    <accordion-heading> 
+                      <a class="col-sm-12 processLinkHref" data-ng-click="OnProcessClick(phase._id,process.bpmn_name);" href="javascript:void(0)">
+                        <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openProcess, 'glyphicon-chevron-down': !openProcess}"></span>
+                        <button  data-toggle="tooltip" data-placement="right" title="{{process.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(process.display_status)]"><img src="css/images/ProcessIcon.png" alt="" /></button>
+                        <!--<div class="pull-left gHeaderImageDiv"><img src="css/images/ProcessIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(process.display_status)}};" /></div>-->
+                        <div class="pull-left" style="padding-right:10px; line-height:24px;">{{process.bpmn_name}}</div>                        
+                        <div class=" pull-left">
+                          <button  data-ng-click="btnDiagramClick(process.bpmn_name); $event.stopPropagation();" class="btnDiagramLink" data-toggle="modal" data-target="#modalDiagram">BPMN Diagram</button>
+                          <button data-ng-click="clickBtnTimer(process); $event.stopPropagation();"   data-ng-if="(process.timers.length != 0 && (project.is_managed || phase.is_managed))" class="btnDiagramLink">Timer</button>
+                          <button data-ng-click="clickBtnVariable(process); $event.stopPropagation();" data-ng-if="(process.variables.length != 0 && (project.is_managed || phase.is_managed))" class="btnDiagramLink" >Variables</button>
+
+                        </div>
+                      </a>                                       
+                      <div class="clr"></div>
+                        <div class="">
+                        <div class="administratorCtrlPart" style="margin-left:10px; margin-right:10px;" data-ng-click=" $event.stopPropagation();" data-ng-if="(process.timers.length != 0 || process.variables.length != 0) && (phase.is_managed || project.is_managed)">                    
+                          <div class="administratorCtrlPartHr" data-ng-click="$event.stopPropagation();">
+                             <div class="procedure-details" data-ng-show="process.showTimerDiv">
+                              <div class="form-inline formTimersCtrl">
+                                <div data-ng-repeat="timer in process.timers" class="col-xs-6 col-md-4">
+                                  <div class="form-group">
+                                    <label class="inputTimers text-left" data-ng-click="$event.stopPropagation();">{{timer.name}}  </label>
+                                     <input type="text" class="form-control  text-left" data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(process.status == 'defined')" id="Text1" data-ng-model="timer.duration" value="{{timer.duration}}" placeholder="00:00:00" size="10" pattern="(?:(?:\d{1,2}:)?\d{1,2}:)?\d{1,2}"  required="required" maxlength="8" />
+                                    <span class=" text-center">
+                                      <button data-ng-click="setProcessTimerDuration(phase._id, timer.name, timer.bpmn_name, timer.duration); $event.stopPropagation();" data-ng-if="phase.status == 'defined' && phase.is_managed"  class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Set</button>
+                                    </span>
+                                  </div><!--//form-group  -->                       
+                                </div><!--//col-sm-6 col-md-4 col-lg-3-->
+                              </div><!--//form-inline formTimersCtrl-->
+                               </div>
+
+
+                             <div class="procedure-details "  data-ng-show="process.showVariableDiv">
+                              <div class="form-inline formTimersCtrl">
+                                <div data-ng-repeat="variable in process.variables" class="col-xs-6 col-md-4">
+                                  <div class="form-group">
+                                    <label for="inputModelVariableValue" class="inputvariables text-left" data-ng-click="$event.stopPropagation();">{{variable.label}} </label>
+                                    
+                                    <span  data-ng-if="variable.type == 'B'">
+                                      <select data-ng-click="$event.stopPropagation();" class="form-control" id="ddlVariablesType" data-ng-model="ddlVariablesType"  data-ng-disabled="!(process.status == 'defined')"  >
+                                        <option value="true" data-ng-selected="variable.value == true" >True</option>
+                                        <option value="false" data-ng-selected="variable.value == false" >False</option>
+                                      </select>
+                                      <button data-ng-click="setProcessVariableValue(phase._id , variable.label , variable.bpmn_name , ddlVariablesType); $event.stopPropagation();" data-ng-if="process.status == 'defined' && phase.is_managed"  class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Set</button>
+                                    </span>
+                                    <span  data-ng-if="!(variable.type == 'B')">
+                                      <input type="text" class="form-control  text-left"  data-ng-click="$event.stopPropagation();"  data-ng-disabled="!(process.status == 'defined')" id="inputModelVariableValue" data-ng-model="variable.value" placeholder="True/False" size="10" required="required" />
+                                      <span class=" text-center">
+                                        <button data-ng-click="setProcessVariableValue(phase._id , variable.label , variable.bpmn_name , variable.value); $event.stopPropagation();" data-ng-if="process.status == 'defined' && phase.is_managed"  class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> Set</button>                                      
+                                      </span>
+                                    </span> 
+                                  </div><!--//form-group  -->                       
+                                </div><!--//col-sm-6 col-md-4 col-lg-3-->
+                              </div><!--//form-inline formTimersCtrl-->
+                            </div><!--//col-sm-12 col-xs-12 -->
+
+                          <div class="clr"></div>
+                          </div><!--//administratorCtrlPartHr-->
+                          <div class="clr"></div>
+                        </div><!--//administratorCtrlPart-->
+                      </div>
+                      <div class="clr"></div>
+                    </accordion-heading>
+                    <!--==============Process Heading End Here==============-->
+                    <accordion>
+                      <div data-ng-controller="BuildWhizNgAppActivityCtrl" > 
+                          <div id="dvActivityNoFound" class="text-center text-danger" data-ng-if="phaseActivityDataUpdate.length <= 0">No Activity Found</div>
+                          <accordion-group  is-open="openActivity" data-ng-repeat="activity in phaseActivityDataUpdate" data-ng-class="[setStatusBorderColor(activity.display_status), 'activityPanel']" >
+                            <!--==============Activity Heading Start Here==============-->
+                            <accordion-heading> 
+                              <a class="col-xs-3 col-sm-5 col-md-7 col-lg-8 activityLinkHref" data-ng-click="OnActivityClick(activity._id);" href="javascript:void(0)">         
+                                <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openActivity, 'glyphicon-chevron-down': !openActivity}"></span>
+                                <button  data-toggle="tooltip" data-placement="right" title="{{activity.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(activity.display_status)]"><img src="css/images/ActivityIcon.png" alt="" /></button>
+                                <!--<div class="pull-left gHeaderImageDiv"><img src="css/images/ActivityIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(activity.display_status)}};" /></div>-->
+                                <div class="pull-left" style="padding-right:10px; line-height:24px;"> {{activity.name}}</div>
+                                <div class="clr"></div>
+                                <div style="font-weight:normal" class="thActionDescription" >{{activity.description}}</div>
+                                    
+                                
+                              </a>
+                              <div class="col-xs-9 col-sm-7 col-md-5 col-lg-4 divAdminCtrlWraper" data-ng-click="$event.stopPropagation();" data-ng-if="activity.status == 'defined' && phase.is_managed">
+                                <div class="administratorCtrlPart">                        
+                                  <div class="row-fluid">                    
+                                    <div class="administratorCtrlPartHr">                                      
+                                        <div class="form-inline formTimersCtrl " data-ng-controller="BuildWhizNgAppActionCtrl">  
+                                          <div class="form-group mb20">
+                                            <select id="ddlAddActionType" name="ddlAddActionType" data-ng-model="ddlAddActionType" class="form-control">
+                                              <option value="" selected="selected">Type</option>
+                                              <option value="prerequisite">Prereq</option>
+                                              <option value="review">Review</option>
+                                            </select>
+                                            <input type="text" class="form-control " id="inputActionName" data-ng-model="inputActionName" required="required" placeholder="Action Name"  />  
+                                            <button class="btn btn-success" data-ng-click="btnAddAction(activity._id, inputActionName, ddlAddActionType, activity.bpmn_name); OnActivityClick(activity._id)"><span class="glyphicon glyphicon-plus-sign"></span> Add</button>
+                                          </div>  
+                                                                                   
+                                        </div><!--//form-inline formTimersCtrl-->
+                                              
+                                      <div class="clr"></div>
+                                    </div><!--//administratorCtrlPartHr-->
+                                  <div class="clr"></div>
+                                  </div><!--//row-fluid-->
+                                <div class="clr"></div>
+                                </div><!--//administratorCtrlPart -->
+                              </div><!--//col-md-7 col-sm-7 divAdminCtrlWraper-->
+                              <div class="clr"></div>
+                            </accordion-heading>
+                            <!--==============Activity Heading End Here==============--> 
+                            <accordion>
+                              <div data-ng-controller="BuildWhizNgAppActionCtrl" > 
+                              <div id="dvActionNoFound" class="text-center text-danger" data-ng-if="activityActionDataUpdate.length <= 0">No Action Found</div>
+                              <accordion-group  is-open="openAction" data-ng-repeat="action in activityActionDataUpdate" data-ng-class="[setStatusBorderColor(action.display_status), 'actionPanel']">
+                                <!--==============Action Heading Start Here==============-->
+                                <accordion-heading>
+                                  <a class="col-xs-3 col-sm-5 col-md-7 col-lg-8 actionLinkHref" data-ng-click="OnActionClick(action._id);" href="javascript:void(0)"> 
+                                     
+                                    <span class="gHeaderArrowIcon pull-left glyphicon" data-ng-class="{'glyphicon-chevron-up': openAction, 'glyphicon-chevron-down': !openAction}" data-ng-if="action.is_relevant"></span>
+                                    <button  data-toggle="tooltip" data-placement="right" title="{{action.display_status}}" class="btnStatusBox" style="margin-bottom:0px !important" data-ng-class="[setStatusBackgroundColor(action.display_status)]"><img src="css/images/ActionIcon.png" alt="" /></button>
+                                    <!--<div class="pull-left gHeaderImageDiv btnStatusBox" ><img src="css/images/ActionIcon.png" alt="" style="background-color: {{setStatusBackgroundColor(action.display_status)}};" /></div>-->
+                                    <div class="pull-left" data-ng-if="action.type != 'main'" style="padding-right:5px; line-height:24px;">{{activity.name}} / </div>
+                                    <div class="pull-left" style="padding-right:10px; line-height:24px;">{{action.name}}</div>
+                                    
+                                  </a>
+                                  <div class="col-xs-9 col-sm-7 col-md-5 col-lg-4 divAdminCtrlWraper" data-ng-click="$event.stopPropagation();" >
+                                    <div class="administratorCtrlPart">                        
+                                      <div class="row-fluid">  
+                                        <div class="administratorCtrlPartHr">             
+                                          <div class=" text-right">
+                                            <div class="form-inline formTimersCtrl">
+                                              <div class="form-group mb20">
+                                                <label class=" text-center">Duration </label>
+                                                   <input class="form-control" type="text" placeholder="00:00:00" value="{{action.duration}}" id="inputActionDuration" size="10" pattern="(?:(?:\d{1,2}:)?\d{1,2}:)?\d{1,2}" data-ng-model="action.duration" data-ng-disabled="!(action.status == 'defined' && phase.is_managed)"/>
+                                                <button class="btn btn-success" data-ng-click="setActionDuration(activity._id, action.name, action.duration)" data-ng-if="action.status == 'defined' && phase.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>
+                                              </div>
+                                              <div class="form-group">
+                                                <label class=" text-center">Assign to </label>
+                                                <select  class="form-control" data-ng-click="$event.stopPropagation();" name="ddlPersonsType" data-ng-model="action.assign_person_id" data-ng-disabled="!(action.status == 'defined' && phase.is_managed)" >
+                                                  <option data-ng-repeat="person in personsDataUpdate" data-ng-selected="person._id == action.assignee_person_id" value="{{person._id}}">{{person.first_name}} {{person.last_name}}</option>
+                                                </select>
+                                                <button class="btn btn-success" data-ng-click="setActionAdministrator(activity._id, project._id, action.name, action.assign_person_id)" data-ng-if="action.status == 'defined' && phase.is_managed"><span class="glyphicon glyphicon-ok"></span> Set</button>
+                                              </div>
+                                            </div><!--//form-inline formTimersCtrl-->
+                                          </div><!--//col-sm-12 col-xs-12  text-center-->            
+                                          <div class="clr"></div>
+                                        </div><!--//administratorCtrlPartHr-->
+                                        <div class="clr"></div>
+                                      </div><!--//row-fluid-->
+                                      <div class="clr"></div>
+                                    </div><!--//administratorCtrlPart-->
+                                  </div><!--//col-md-7 col-sm-7 divAdminCtrlWraper-->
+                                  <div class="clr"></div>
+                                </accordion-heading>
+                                <!--==============Action Heading End Here==============-->
+                                <div data-ng-if="action.is_relevant">
+                                  
+                                   <table class="table tableActionDetails">
+                                    <!--<tr><th colspan="2" style="font-weight:normal" class="thActionDescription" >{{action.description}}</th></tr>                                   -->
+                                    <tr>
+                                        <td colspan="2" style="padding-left:0px; padding-right:0px;">
+                                        <div class="actionContentPart pull-left">
+                                          <div class="">
+                                           <div class="text-center actionContentPartHeading">Documents</div>
+                                          <div class="text-left text-danger" data-ng-if="action.inDocuments.length <= 0" style="width:95%; margin:0px auto;">No Available Documents.</div>            
+                                          <div class="actionContent" data-ng-repeat="document in action.inDocuments" data-ng-if="action.inDocuments.length != 0">
+                                            <a data-ng-if="document.is_ready" href="baf/DocumentDownload/{{document.name}}?project_id={{project._id}}&document_id={{document._id}}" target="_blank">
+                                              {{document.name}}
+                                            </a>
+                                            <span data-ng-if="!document.is_ready">{{document.name}}</span>
+                                             
+                                          </div>
+                                          </div>
+                                        </div>   
+                                        <div class="actionContentPart pull-right">
+                                          <div class="">
+                                            <div class="text-center actionContentPartHeading">Uploads</div>
+                                            <div class="text-left text-danger" data-ng-if="action.outDocuments.length <= 0"  style="width:95%; margin:0px auto;">No Upload Required.</div>            
+                                            <div class="actionContent" data-ng-repeat="document in action.outDocuments" onchange="" data-ng-if="action.outDocuments.length != 0">
+                                              <span class="pull-left spanDocumentName">{{document.name}}</span>
+<!--                                                <input bw-upload data-ng-if="uploadDisabled(project, action, document)" type="file" project="project" document="document"
+                                                action="action" activity="activity" disabled class="browseBtn" />-->
+                                                <input bw-upload data-ng-if="!uploadDisabled(project, action, document)" type="file" project="project" document="document"
+                                                action="action" activity="activity" callback-Function="callbackFunction" class="hidden"  id="fileAction" />
+                                                &nbsp;&nbsp;<label for="fileAction" class="btn btn-info btn-xs">Choose File</label>
+                                                <div class="clr"></div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </td>
+                              
+                                    </tr>
+                                    <tr data-ng-if="action.assignee_is_user">
+                                      <th colspan="2" width="50%" class="text-right thActionContentFooter">
+                                        <span data-ng-if="action.type == 'review'">
+                                          Review Result
+                                          <select data-ng-model="action.review_ok" data-ng-disabled="reviewStatusDisabled(project, action)">
+                                            <option value="">Select</option>
+                                            <option value="OK">OK</option>
+                                            <option value="Not-OK">Not-OK</option>
+                                          </select>
+                                          &nbsp;&nbsp;&nbsp;&nbsp;
+                                        </span>                                        
+                                        <button class="btn btn-success btn-sm" data-ng-click="actionComplete(project._id, phase._id, process.bpmn_name, action.name, activity._id, action.type, action.review_ok)" data-ng-disabled="actionCompleteDisabled(project, action)">Complete</button>
+                                      </th>
+                                    </tr>
+                                  </table>
+                                    
+                                </div>
+                              </accordion-group>
+                            </div>
+                            </accordion>
+                          </accordion-group>
+                           </div><!--//BuildWhizNgAppActivityCtrl-->
+                    </accordion>
+                  </accordion-group>
+                </div>
+              </accordion>
+            </accordion-group>
+          </div><!--//BuildWhizNgAppPhaseCtrl-->
+      </accordion>   
+    </accordion-group>
+  </accordion>
+
+ 
+
+</div>
+<!-- /container -->

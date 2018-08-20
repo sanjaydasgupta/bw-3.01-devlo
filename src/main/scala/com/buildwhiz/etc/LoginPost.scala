@@ -48,11 +48,11 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   private def addMenuItems(person: Document): Unit = {
     val menuItems: Seq[Document] = Seq(
-      Map("name" -> "Documents", "url" -> "/docs"),
-      Map("name" -> "RFIs", "url" -> "/rfi"),
-      Map("name" -> "Projects", "url" -> "/projects"),
-      Map("name" -> "Tasks", "url" -> "/tasks"),
-      Map("name" -> "Help", "url" -> "/help")
+      Map("name" -> "Documents", "url" -> "/docs", "icon" -> "documents"),
+      Map("name" -> "RFIs", "url" -> "/rfi", "icon" -> "rfis"),
+      Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
+      Map("name" -> "Tasks", "url" -> "/tasks", "icon" -> "tasks"),
+      Map("name" -> "Help", "url" -> "/help", "icon" -> "help")
     )
     person.put("menu_items", menuItems)
   }

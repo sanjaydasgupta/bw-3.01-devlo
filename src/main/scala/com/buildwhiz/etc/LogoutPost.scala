@@ -2,11 +2,11 @@ package com.buildwhiz.etc
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-class LogoutPost extends HttpServlet with HttpUtils with CryptoUtils {
+class LogoutPost extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)

@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_rNYq4LUMEeWlVZC-eQ88iA" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_rNYq4LUMEeWlVZC-eQ88iA" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.16.2" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:message id="Message_1" name="Action-Complete" />
+  <bpmn2:collaboration id="review-collaboration">
+    <bpmn2:participant id="bw-infrastructure" name="BW-Infrastructure" processRef="Infra-Review-Handler" />
+    <bpmn2:participant id="contributor" name="Contributor" processRef="Process_0ae07bi" />
+    <bpmn2:messageFlow id="MessageFlow_11gtl7u" sourceRef="Request-Review" targetRef="contributor" />
+    <bpmn2:messageFlow id="MessageFlow_0d5cfva" sourceRef="contributor" targetRef="Await-Review-Action-Complete" />
+    <bpmn2:textAnnotation id="TextAnnotation_0lthmqa">
+      <bpmn2:text>The contributor is busy working on the assigned task during this time. The (sub) process instance is paused until the contributor indicates completion of the assigned task. The incoming arrow is implemented by the code in the Java class 'StartMainAction' (click on the 'Request Review' task, and examine details in properties panel). The outgoing arrow is implemented by invoking the camunda engine's 'RuntimeService.messageEventReceived'. This invocation is done within the BAF web-service that is called by the UI button for task completion. This code is in the BAF class 'ActionComplete'</bpmn2:text>
+    </bpmn2:textAnnotation>
+    <bpmn2:association id="Association_0cdllwm" sourceRef="contributor" targetRef="TextAnnotation_0lthmqa" />
+  </bpmn2:collaboration>
   <bpmn2:process id="Infra-Review-Handler" name="Infra Review Handler" isExecutable="true">
     <bpmn2:startEvent id="Start" name="Start">
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
-    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="Start" targetRef="Request-Review" />
-    <bpmn2:serviceTask id="Request-Review" name="Request Review" camunda:class="com.buildwhiz.jelly.StartMainAction">
-      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
-    </bpmn2:serviceTask>
-    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Request-Review" targetRef="Await-Review-Action-Complete" />
     <bpmn2:intermediateCatchEvent id="Await-Review-Action-Complete" name="Await Review&#10;Action-Complete" camunda:asyncAfter="true" camunda:exclusive="false">
       <bpmn2:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.WaitForActionSetup" event="start" />
@@ -18,55 +23,82 @@
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
       <bpmn2:messageEventDefinition id="MessageEventDefinition_1" messageRef="Message_1" />
     </bpmn2:intermediateCatchEvent>
-    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="Await-Review-Action-Complete" targetRef="End" />
     <bpmn2:endEvent id="End" name="End">
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
     </bpmn2:endEvent>
+    <bpmn2:sendTask id="Request-Review" name="Request Review" camunda:class="com.buildwhiz.jelly.StartMainAction">
+      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+    </bpmn2:sendTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="Await-Review-Action-Complete" targetRef="End" />
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Request-Review" targetRef="Await-Review-Action-Complete" />
+    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="Start" targetRef="Request-Review" />
   </bpmn2:process>
-  <bpmn2:message id="Message_1" name="Action-Complete" />
+  <bpmn2:process id="Process_0ae07bi" isExecutable="false" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Infra-Review-Handler">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="review-collaboration">
+      <bpmndi:BPMNShape id="Participant_0xia7md_di" bpmnElement="bw-infrastructure">
+        <dc:Bounds x="13" y="353" width="501" height="130" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_26" bpmnElement="Start">
-        <dc:Bounds x="25" y="171" width="36" height="36" />
+        <dc:Bounds x="63" y="395" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="31" y="212" width="24" height="12" />
+          <dc:Bounds x="69" y="436" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_18" bpmnElement="Await-Review-Action-Complete">
+        <dc:Bounds x="344" y="395" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="322" y="436" width="82" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_56" bpmnElement="End">
-        <dc:Bounds x="420" y="171" width="36" height="36" />
+        <dc:Bounds x="458" y="395" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="429" y="212" width="20" height="12" />
+          <dc:Bounds x="467" y="436" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_ServiceTask_26" bpmnElement="Request-Review">
-        <dc:Bounds x="120" y="149" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_StartEvent_26" targetElement="_BPMNShape_ServiceTask_26">
-        <di:waypoint xsi:type="dc:Point" x="61" y="189" />
-        <di:waypoint xsi:type="dc:Point" x="120" y="189" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_IntermediateCatchEvent_18" targetElement="_BPMNShape_EndEvent_56">
+        <di:waypoint x="380" y="413" />
+        <di:waypoint x="458" y="413" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="44" y="189" width="90" height="6" />
+          <dc:Bounds x="285" y="182" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_ServiceTask_26" targetElement="_BPMNShape_IntermediateCatchEvent_18">
-        <di:waypoint xsi:type="dc:Point" x="220" y="189" />
-        <di:waypoint xsi:type="dc:Point" x="306" y="189" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="SendTask_16spocn_di" targetElement="_BPMNShape_IntermediateCatchEvent_18">
+        <di:waypoint x="258" y="413" />
+        <di:waypoint x="344" y="413" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="216" y="189" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_18" bpmnElement="Await-Review-Action-Complete">
-        <dc:Bounds x="306" y="171" width="36" height="36" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_StartEvent_26" targetElement="SendTask_16spocn_di">
+        <di:waypoint x="99" y="413" />
+        <di:waypoint x="158" y="413" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="284" y="212" width="82" height="25" />
+          <dc:Bounds x="44" y="189" width="90" height="6" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_1rpqams_di" bpmnElement="contributor">
+        <dc:Bounds x="96" y="198" width="300" height="83" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_IntermediateCatchEvent_18" targetElement="_BPMNShape_EndEvent_56">
-        <di:waypoint xsi:type="dc:Point" x="342" y="189" />
-        <di:waypoint xsi:type="dc:Point" x="420" y="189" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="285" y="182" width="90" height="6" />
-        </bpmndi:BPMNLabel>
+      <bpmndi:BPMNShape id="SendTask_16spocn_di" bpmnElement="Request-Review">
+        <dc:Bounds x="158" y="373" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="MessageFlow_11gtl7u_di" bpmnElement="MessageFlow_11gtl7u">
+        <di:waypoint x="208" y="373" />
+        <di:waypoint x="208" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_0d5cfva_di" bpmnElement="MessageFlow_0d5cfva">
+        <di:waypoint x="362" y="281" />
+        <di:waypoint x="362" y="395" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0lthmqa_di" bpmnElement="TextAnnotation_0lthmqa">
+        <dc:Bounds x="40" y="14" width="458" height="124" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0cdllwm_di" bpmnElement="Association_0cdllwm">
+        <di:waypoint x="246" y="194" />
+        <di:waypoint x="193" y="138" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

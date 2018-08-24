@@ -44,7 +44,12 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
     viewAction.activity_id = activity._id[ObjectId]
     viewAction.activity_description = activity.description[String]
     viewAction.group_name = s"${project.name[String]}/${phase.name[String]}/${action.bpmn_name[String]}"
-    val p0 = if (project has "timestamps") project.timestamps[Document].y.start[Long] else Long.MaxValue
+    val p0 = if (project has "timestamps") {
+      val timestamps: DynDoc = project.timestamps[Document]
+      if (timestamps.has("start")) timestamps.start[Long] else Long.MaxValue
+    } else {
+      Long.MaxValue
+    }
     viewAction.in_documents = docList(project, action.inbox[Many[ObjectId]], p0)
     val t0 = if (action has "timestamps") action.timestamps[Document].y.start[Long] else Long.MaxValue
     val outDocumentsOids: Seq[ObjectId] = submittalOid +: action.outbox[Many[ObjectId]]
@@ -58,7 +63,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
@@ -88,10 +93,10 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
       writer.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

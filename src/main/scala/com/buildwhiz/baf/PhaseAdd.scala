@@ -198,23 +198,31 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     // bpmn, activity-name, role, description, id
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
+
       def sequence(callActivity: Element): Int = callActivity.getElementsByTagName("camunda:property").
         find(_.getAttributes.getNamedItem("name").getTextContent == "bw-sequence").
-        map(_.getAttributes.getNamedItem("value").getTextContent).head.toInt
+        map(_.getAttributes.getNamedItem("value").getTextContent) match {
+        case None => 0
+        case Some(s) => s.toInt
+      }
+
       def getNameRoleAndDescription(callActivity: Element): (String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
-        val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
+        val name = callActivity.getAttributes.getNamedItem("name").getTextContent.
+            replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
         val role = extensionProperties(callActivity, "bw-role") match {
           case r +: _ => r.getAttributes.getNamedItem("value").getTextContent
           case Nil => "phase-manager"
         }
         val description = extensionProperties(callActivity, "bw-description") match {
-          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent.replaceAll("\"", "\'")
+          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent.
+              replaceAll("\"", "\'")
           case Nil => s"$name (no description provided)"
         }
         (processNameAndDom._1, name, role, description, bpmnId)
       }
+
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
       val bpmnCallActivities: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:callActivity").
         map(_.asInstanceOf[Element])

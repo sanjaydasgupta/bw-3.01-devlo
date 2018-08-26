@@ -49,7 +49,7 @@ angular.module('BuildWhizApp')
       this.data = null;
       loginClient.loggedIn = false;
       loginClient.data = null;
-      var url = 'etc/LoginPost'; // Log OUT
+      var url = 'etc/LogoutPost'; // Log OUT
       $http.post(url)
     },
 

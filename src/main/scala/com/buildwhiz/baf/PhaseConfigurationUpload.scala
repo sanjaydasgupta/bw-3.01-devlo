@@ -47,7 +47,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       row.cellIterator.asScala.toSeq.map(_.getStringCellValue) match {
         case Seq(name, typ, activityId, duration, assignee, description) =>
           setTask(name, description, typ, activityId, duration, assignee)
-        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+        case _ => throw new IllegalArgumentException(s"unexpected cell count (${row.getPhysicalNumberOfCells}) in row ${row.getRowNum + 1}")
       }
     }
     s"${taskSheet.getPhysicalNumberOfRows -1} task(s)"
@@ -104,7 +104,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
       row.cellIterator.asScala.toSeq.map(_.getStringCellValue) match {
         case Seq(docName, docDescription, labels, mandatory, contentType, activityId, taskName, documentId) =>
           setDocument(docName, docDescription, labels, mandatory.toLowerCase == "yes", contentType, activityId, taskName, documentId)
-        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+        case _ => throw new IllegalArgumentException(s"unexpected cell count (${row.getPhysicalNumberOfCells}) in row ${row.getRowNum + 1}")
       }
     }
     s"${documentSheet.getPhysicalNumberOfRows - 1} variable(s)"
@@ -131,7 +131,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     for (row <- rows) {
       row.cellIterator.asScala.toSeq match {
         case Seq(name, typ, value) => setVariable(name.getStringCellValue, typ.getStringCellValue, value.getStringCellValue)
-        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+        case _ => throw new IllegalArgumentException(s"unexpected cell count (${row.getPhysicalNumberOfCells}) in row ${row.getRowNum + 1}")
       }
     }
     s"${variableSheet.getPhysicalNumberOfRows - 1} variable(s)"
@@ -158,7 +158,7 @@ class PhaseConfigurationUpload extends HttpServlet with HttpUtils with MailUtils
     for (row <- rows) {
       row.cellIterator.asScala.toSeq match {
         case Seq(name, typ, duration) => setTimer(name.getStringCellValue, typ.getStringCellValue, duration.getStringCellValue)
-        case _ => throw new IllegalArgumentException(s"unexpected cell count ($cellCount) in row ${header.getRowNum + 1}")
+        case _ => throw new IllegalArgumentException(s"unexpected cell count (${row.getPhysicalNumberOfCells}) in row ${row.getRowNum + 1}")
       }
     }
     s"${timersSheet.getPhysicalNumberOfRows - 1} timer(s)"

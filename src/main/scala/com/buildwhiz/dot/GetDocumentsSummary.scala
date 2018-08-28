@@ -81,13 +81,13 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         val authorOid = lastVersion.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
         val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
-        Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
+        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
           "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> lastVersion.timestamp[Long],
           "has_versions" -> true)
       } else {
-        Map("name" -> d.description[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
+        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
           "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
           "type" -> "???", "author" -> "???", "date" -> "???", "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> 0L, "has_versions" -> false)

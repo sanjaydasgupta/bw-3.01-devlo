@@ -16,7 +16,8 @@ class GetProjectList extends HttpServlet with HttpUtils {
     val user: DynDoc = getUser(request)
     val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
     val projectOids: Seq[ObjectId] = freshUserRecord.project_ids[Many[ObjectId]]
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(
+        Map("_id" -> Map("$in" -> projectOids), "admin_person_id" -> user._id[ObjectId]))
 
     val reply: Seq[Document] = projects.map(project =>
       Map("_id" -> project._id[ObjectId].toString, "status" -> project.status[String], "name" -> project.name[String])

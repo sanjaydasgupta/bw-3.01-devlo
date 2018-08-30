@@ -23,7 +23,7 @@ object DynDoc {
 
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
 
-  implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(new DynDoc(_))
+  implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(document2DynDoc)
 
   implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala
 
@@ -35,11 +35,12 @@ object DynDoc {
     sd.map(new DynDoc(_))
   }
 
-  implicit def mapToDocument(map: Map[String, Any]): Document = {
+  implicit def mapToDocument(inMap: Map[String, Any]): Document = {
 
     def seq2javaList(seq: Seq[_]): java.util.List[_] = seq.map({
       case m: Map[String, Any] @unchecked => mapToDocument(m)
       case s: Seq[_] => seq2javaList(s)
+      case dd: DynDoc => dd.asDoc
       case other => other
     }).asJava
 
@@ -49,13 +50,17 @@ object DynDoc {
         document.append(head._1, head._2 match {
           case m: Map[String, Any] @unchecked => mapToDocument(m)
           case seq: Seq[_] => seq2javaList(seq)
+          case dd: DynDoc => dd.asDoc
           case other => other
         })
         pairs2document(tail, document)
     }
 
-    pairs2document(map.toSeq)
+    pairs2document(inMap.toSeq)
   }
 
+  implicit def mapToDynDoc(map: Map[String, Any]): DynDoc = new DynDoc(mapToDocument(map))
+
+  implicit def mapSeq2DynDocSeq(inMap: Seq[Map[String, Any]]): Seq[DynDoc] = inMap.map(mapToDynDoc)
 }
 

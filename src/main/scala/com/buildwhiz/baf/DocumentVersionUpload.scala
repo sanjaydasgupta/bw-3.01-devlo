@@ -61,7 +61,8 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
       //response.getWriter.print(storageResults)
       //response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${storageResults._2} bytes)", request)
+      val message = s"Added version (${storageResults._2} bytes) to file ${documentRecord.name[String]}"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

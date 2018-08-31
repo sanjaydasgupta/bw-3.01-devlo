@@ -38,7 +38,7 @@ class ProjectConfigurationFetch extends HttpServlet with HttpUtils {
       //val pmPerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> project.admin_person_id[ObjectId])).head
       //val pmName = s"${pmPerson.first_name[String]} ${pmPerson.last_name[String]}"
       //val manager: DynDoc = Map("role" -> "Project-Manager", "person_id" -> pmPerson._id[ObjectId].toString, "name" -> pmName)
-      val assignees: Seq[DynDoc] = if (project.has("assignees")) {
+      val assignees: Seq[DynDoc] = if (project.has("assigned_roles")) {
         val projectAssignees: Seq[DynDoc] = project.assignees[Many[Document]].map(pa => {
           val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> pa.person_id[ObjectId])).head
           val assigneeName = s"${assignee.first_name[String]} ${assignee.last_name[String]}"

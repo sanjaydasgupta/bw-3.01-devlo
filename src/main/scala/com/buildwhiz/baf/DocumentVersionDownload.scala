@@ -23,7 +23,13 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
     try {
       val timestamp = parameters("timestamp").toLong
       val documentOid = new ObjectId(parameters("document_master_id"))
-      val amazonS3Key = f"$project430ForestOid-$documentOid-$timestamp%x"
+      val documentRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
+      val projectOid = if (documentRecord.has("project_id"))
+        documentRecord.project_id[ObjectId]
+      else
+        project430ForestOid
+      val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
+      BWLogger.log(getClass.getName, "doGet", s"amazonS3Key: $amazonS3Key", request)
       val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)

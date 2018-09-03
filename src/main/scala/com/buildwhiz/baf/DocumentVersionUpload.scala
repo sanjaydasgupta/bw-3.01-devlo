@@ -91,6 +91,7 @@ object DocumentVersionUpload {
       comments: String, authorOid: ObjectId, request: HttpServletRequest): (String, Long) = {
     BWLogger.log(getClass.getName, "storeAmazonS3", "ENTRY", request)
     val s3key = f"$projectId-$documentOid-$timestamp%x"
+    BWLogger.log(getClass.getName, "storeAmazonS3", s"amazonS3Key: $s3key", request)
     val file = new File(s3key)
     var fileLength = 0L
     try {

@@ -18,9 +18,11 @@ class ProjectConfigurationSet extends HttpServlet with HttpUtils {
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val postData: DynDoc = Document.parse(getStreamData(request))
       val description = postData.description[String]
-      val assignedRoles: Seq[Document] = postData.assigned_roles[Many[Document]]
+      val assignedRoles: Seq[DynDoc] = postData.assigned_roles[Many[Document]]
+      val roles: Seq[Document] = assignedRoles.
+        map(r => Map("person_id" -> r.person_id[String], "role_name" -> r.role_name[String]))
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
-        Map("$set" -> Map("description" -> description, "assigned_roles" -> assignedRoles)))
+        Map("$set" -> Map("description" -> description, "assigned_roles" -> roles)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       response.setContentType("application/json")

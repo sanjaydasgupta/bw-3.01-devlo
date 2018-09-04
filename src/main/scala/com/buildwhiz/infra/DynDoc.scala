@@ -61,6 +61,8 @@ object DynDoc {
 
   implicit def mapToDynDoc(map: Map[String, Any]): DynDoc = new DynDoc(mapToDocument(map))
 
+  implicit def mapSeq2DocSeq(inMap: Seq[Map[String, Any]]): Seq[Document] = inMap.map(mapToDocument)
+
   implicit def mapSeq2DynDocSeq(inMap: Seq[Map[String, Any]]): Seq[DynDoc] = inMap.map(mapToDynDoc)
 }
 

@@ -19,8 +19,14 @@ class ProjectConfigurationSet extends HttpServlet with HttpUtils {
       val postData: DynDoc = Document.parse(getStreamData(request))
       val description = postData.description[String]
       val assignedRoles: Seq[DynDoc] = postData.assigned_roles[Many[Document]]
-      val roles: Seq[Document] = assignedRoles.
-        map(r => Map("person_id" -> r.person_id[String], "role_name" -> r.role_name[String]))
+      val roles: Seq[Document] = assignedRoles.map(r => {
+        val person_id = r.person_id[String]
+        val personOid = new ObjectId(person_id)
+        if (BWMongoDB3.persons.find(Map("_id" -> personOid)).isEmpty)
+          throw new IllegalArgumentException(s"invalid person-id '$person_id'")
+        val roleName = r.role_name[String]
+        Map("person_id" -> personOid, "role_name" -> roleName)
+      })
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
         Map("$set" -> Map("description" -> description, "assigned_roles" -> roles)))
       if (updateResult.getMatchedCount == 0)

@@ -74,6 +74,17 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
 
 object DocumentVersionUpload {
 
+  def createProjectDocumentRecord(name: String, description: String, systemLabels: Seq[String],
+        projectOid: ObjectId): ObjectId = {
+    if (BWMongoDB3.document_master.find(Map("project_id" -> projectOid, "name" -> name,
+        "phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false))).asScala.nonEmpty)
+      throw new IllegalArgumentException(s"File named '$name' already exists")
+    val newDocument = new Document(Map("name" -> name, "description" -> description, "project_id" -> projectOid,
+      "timestamp" -> System.currentTimeMillis, "versions" -> Seq.empty[Document], "labels" -> systemLabels))
+    BWMongoDB3.document_master.insertOne(newDocument)
+    newDocument.getObjectId("_id")
+  }
+
   def createDocRecord(category: Option[String], subcategory: Option[String], name: Option[String],
       description: Option[String], projectOid: ObjectId): ObjectId = {
     val properties = Seq("category", "subcategory", "name", "description").

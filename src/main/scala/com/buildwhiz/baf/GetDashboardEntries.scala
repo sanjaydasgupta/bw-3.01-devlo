@@ -1,30 +1,80 @@
 package com.buildwhiz.baf
 
-import com.buildwhiz.infra.DynDoc
-import com.buildwhiz.utils.BWLogger
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import org.bson.Document
+import org.bson.types.ObjectId
 
-class GetDashboardEntries extends HttpServlet {
+import scala.collection.JavaConverters._
+
+class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  private def dashboardEntries(user: DynDoc): Seq[Document] = {
+    val timeZone = user.tz[String]
+    val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
+
+    val dashboardProjects: Seq[Document] = projects.
+        filter(_.admin_person_id[ObjectId] == user._id[ObjectId]).map(project => {
+      val projectName = project.name[String]
+      val projectStatus = project.status[String]
+      val statusTime = project.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
+      val statusDate = dateTimeString(statusTime, Some(timeZone))
+      Map("url" -> "dashboard/projects", "description" -> s"Project '$projectName' is $projectStatus",
+        "status_date" -> statusDate, "status" -> projectStatus, "due_date" -> "0000-00-00")
+    })
+
+    val allPhases: Seq[DynDoc] = projects.flatMap(project => {
+      val phaseOids = project.phase_ids[Many[ObjectId]]
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      phases
+    })
+
+    val dashboardPhases: Seq[Document] = allPhases.
+      filter(_.admin_person_id[ObjectId] == user._id[ObjectId]).map(phase => {
+      val phaseName = phase.name[String]
+      val phaseStatus = phase.status[String]
+      val statusTime = phase.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
+      val statusDate = dateTimeString(statusTime, Some(timeZone))
+      Map("url" -> "dashboard/phases", "description" -> s"Phase '$phaseName' is $phaseStatus",
+        "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00")
+    })
+
+    val activityOids: Seq[ObjectId] = allPhases.flatMap(_.activity_ids[Many[ObjectId]])
+    val allActivities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+    val allActions: Seq[DynDoc] = allActivities.flatMap(_.actions[Many[Document]])
+
+    val dashboardActions: Seq[Document] = allActions.
+        filter(_.assignee_person_id[ObjectId] == user._id[ObjectId]).map(action => {
+      val actionName = action.name[String]
+      val actionStatus = action.status[String]
+      Map("url" -> "dashboard/tasks", "description" -> s"Task '$actionName' is $actionStatus",
+        "status_date" -> "0000-00-00", "status" -> actionStatus, "due_date" -> "0000-00-00")
+    })
+
+    dashboardProjects ++ dashboardPhases ++ dashboardActions
+  }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    try {
+      val user: DynDoc = getUser(request)
 
-    //val user: DynDoc = getUser(request)
+      val entries: Seq[Document] = dashboardEntries(user)
 
-    val entries: Seq[Document] = Seq(
-      Map("status" -> "normal", "due_date" -> "None", "status_date" -> "2018-07-31", "url" -> "",
-        "description" -> "Project 'Multistory at 3300 Pickwick' awaiting completion"),
-      Map("status" -> "urgent", "due_date" -> "2018-09-15", "status_date" -> "2018-08-01", "url" -> "",
-        "description" -> "Task 'Floor slab casting' awaiting completion")
-    ).map(m => DynDoc.mapToDocument(m))
-
-    response.getWriter.println(entries.map(_.toJson).mkString("[", ", ", "]"))
-    response.setContentType("application/json")
-    response.setStatus(HttpServletResponse.SC_OK)
-
-    BWLogger.log(getClass.getName, "doGet", s"EXIT-OK", request)
+      response.getWriter.println(entries.map(_.toJson).mkString("[", ", ", "]"))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
   }
 
 }

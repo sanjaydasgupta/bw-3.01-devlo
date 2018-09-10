@@ -12,6 +12,13 @@ import scala.collection.JavaConverters._
 
 class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
 
+  def compareDashboardEntries(a: Document, b: Document): Boolean = {
+    val levels = Map("urgent" -> 3, "important" -> 2, "normal" -> 1)
+    val (lvla, lvlb) = (levels(a.y.status[String]), levels(b.y.status[String]))
+    val (dda, ddb) = (a.y.due_date[String], b.y.due_date[String])
+    (lvla > lvlb) || (lvla == lvlb) && (dda < ddb)
+  }
+
   private def dashboardEntries(user: DynDoc): Seq[Document] = {
     val timeZone = user.tz[String]
     val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
@@ -20,10 +27,14 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
     val dashboardProjects: Seq[Document] = projects.
         filter(_.admin_person_id[ObjectId] == user._id[ObjectId]).map(project => {
       val projectName = project.name[String]
-      val projectStatus = project.status[String]
+      val projectStatus = project.status[String] match {
+        case "defined" | "idle" => "urgent"
+        case "running" => "normal"
+        case _ => "important"
+      }
       val statusTime = project.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "dashboard/projects", "description" -> s"Project '$projectName' is $projectStatus",
+      Map("url" -> "dashboard/projects", "description" -> s"Project '$projectName' is ${project.status[String]}",
         "status_date" -> statusDate, "status" -> projectStatus, "due_date" -> "0000-00-00")
     })
 
@@ -36,10 +47,14 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
     val dashboardPhases: Seq[Document] = allPhases.
       filter(_.admin_person_id[ObjectId] == user._id[ObjectId]).map(phase => {
       val phaseName = phase.name[String]
-      val phaseStatus = phase.status[String]
+      val phaseStatus = phase.status[String] match {
+        case "defined" => "urgent"
+        case "running" => "normal"
+        case _ => "important"
+      }
       val statusTime = phase.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "dashboard/phases", "description" -> s"Phase '$phaseName' is $phaseStatus",
+      Map("url" -> "dashboard/phases", "description" -> s"Phase '$phaseName' is ${phase.status[String]}",
         "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00")
     })
 
@@ -50,12 +65,22 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
     val dashboardActions: Seq[Document] = allActions.
         filter(_.assignee_person_id[ObjectId] == user._id[ObjectId]).map(action => {
       val actionName = action.name[String]
-      val actionStatus = action.status[String]
-      Map("url" -> "dashboard/tasks", "description" -> s"Task '$actionName' is $actionStatus",
-        "status_date" -> "0000-00-00", "status" -> actionStatus, "due_date" -> "0000-00-00")
+      val actionStatus = action.status[String] match {
+        case "waiting" => "urgent"
+        case "ended" => "normal"
+        case _ => "important"
+      }
+      val statusDate = if (action.has("timestamps")) {
+        val statusTime = action.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
+        dateTimeString(statusTime, Some(timeZone))
+      } else {
+        "0000-00-00"
+      }
+      Map("url" -> "dashboard/tasks", "description" -> s"Task '$actionName' is ${action.status[String]}",
+        "status_date" -> statusDate, "status" -> actionStatus, "due_date" -> "0000-00-00")
     })
 
-    dashboardProjects ++ dashboardPhases ++ dashboardActions
+    (dashboardProjects ++ dashboardPhases ++ dashboardActions).sortWith(compareDashboardEntries)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

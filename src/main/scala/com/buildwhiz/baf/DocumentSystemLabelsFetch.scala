@@ -9,6 +9,19 @@ import org.bson.types.ObjectId
 
 class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
+  val labels = Seq("Architecture.Cover-Sheet", "Architecture.Site-Plan", "Architecture.Floor-Plans",
+    "Architecture.Schedules", "Architecture.Electrical-Plan", "Architecture.Sections", "Architecture.Elevations",
+    "Architecture.3D-Perspectives", "Architecture.Details", "Structure.General-Notes", "Structure.Details",
+    "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",
+    "Electrical.Notes", "Electrical.Single-Line-Dia.", "Electrical.Energy-Calcs",
+    "Electrical.Common-Area-Elec-Plans", "Mechanical.Notes", "Mechanical.Schedules", "Mechanical.Specifications",
+    "Mechanical.Energy-Calcs", "Mechanical.Mech-Plans", "Mechanical.Details", "Mechanical.Controls",
+    "Plumbing.Notes", "Plumbing.Calculations", "Plumbing.Specifications", "Plumbing.Plumbing-Plans",
+    "Plumbing.Details", "Interior.Details", "Studies.Geo-Technical", "Elevator.Submittals", "Elevator.Brochure",
+    "Building-Science.Details", "Building-Science.support-docs", "Fire-Sprinkler.Underground",
+    "Fire-Sprinkler.Other", "Fire-Alarm.Plans", "Fire-Alarm.Other", "Mechanical.Work-dwgs",
+    "Mechanical.Cut-sheets", "Building-Science.FLOOR-PLAN", "Building-Science.Other")
+
   private def getProjectLabels(projectOid: ObjectId): Seq[String] = {
     val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
     val projectLabels: Seq[String] = if (project.has("labels"))
@@ -28,7 +41,7 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
         ).filter(e => ! e.isEmpty)
       }
     })
-    (projectLabels ++ documentLabels).distinct
+    (labels ++ projectLabels ++ documentLabels).distinct
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -33,12 +33,7 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
       if (doc.has("labels")) {
         doc.labels[Many[String]]
       } else {
-        Seq("category", "subcategory").map(lbl =>
-          if (doc.has(lbl))
-            doc.asDoc.getString(lbl)
-          else
-            ""
-        ).filter(e => ! e.isEmpty)
+        Seq.empty[String]
       }
     })
     (labels ++ projectLabels ++ documentLabels).distinct
@@ -50,7 +45,8 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
       val parameters = getParameterMap(request)
       val projectOid = new ObjectId(parameters("project_id"))
       val projectLabels = getProjectLabels(projectOid)
-      response.getWriter.println(projectLabels.mkString("[", ", ", "]"))
+      val quotedLabels = projectLabels.map(label => s""""$label"""")
+      response.getWriter.println(quotedLabels.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projectLabels.length} labels)", request)

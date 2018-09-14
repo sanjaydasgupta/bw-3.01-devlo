@@ -8,17 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.mutable
-
 class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils {
-
-  private def getLabels(doc: Document): Seq[String] = {
-    val labels1 = Seq("category", "subcategory", "keywords").
-        map(doc.getOrDefault(_, "").asInstanceOf[String]).flatMap(_.split(",")).
-        map(_.trim).filter(_.nonEmpty)
-    val labels: Seq[String] = if (doc.has("labels")) doc.y.labels[Many[String]] else Seq.empty[String]
-    (labels ++ labels1).distinct
-  }
 
   private def findDocuments(user: DynDoc): Seq[DynDoc] = {
     val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
@@ -28,7 +18,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
 
     val managedProjectIds: Seq[ObjectId] = managedProjects.map(_._id[ObjectId])
     val docsInManagedProjects: Seq[DynDoc] = BWMongoDB3.document_master.
-        find(Map("project_id" -> Map("$in" -> managedProjectIds)))
+        find(Map("project_id" -> Map("$in" -> managedProjectIds), "name" -> Map("$exists" -> true)))
 
     val idsOfPhasesInNonManagedProjects: Seq[ObjectId] = nonManagedProjects.flatMap(_.phase_ids[Many[ObjectId]])
     val phasesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.phases.
@@ -37,7 +27,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         partition(_.admin_person_id[ObjectId] == user._id[ObjectId])
     val activityIdsInManagedPhases: Seq[ObjectId] = managedPhases.flatMap(_.activity_ids[Many[ObjectId]])
     val docsInManagedPhases: Seq[DynDoc] = BWMongoDB3.document_master.
-      find(Map("activity_id" -> Map("$in" -> activityIdsInManagedPhases)))
+      find(Map("activity_id" -> Map("$in" -> activityIdsInManagedPhases), "name" -> Map("$exists" -> true)))
 
     val idsOfActivitiesInNonManagedPhases = nonManagedPhases.flatMap(_.activity_ids[Many[ObjectId]])
     val activitiesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.activities.
@@ -48,28 +38,19 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     val assignedDocuments: Seq[DynDoc] = assignedActivityActionPairs.flatMap(aa => {
       val activityOid = aa._1._id[ObjectId]
       val actionName = aa._2.name[String]
-      BWMongoDB3.document_master.find(Map("activity_id" -> activityOid, "action_name" -> actionName))
+      BWMongoDB3.document_master.find(Map("activity_id" -> activityOid, "action_name" -> actionName,
+        "name" -> Map("$exists" -> true)))
     })
 
     docsInManagedProjects ++ docsInManagedPhases ++ assignedDocuments
   }
 
   private def getDocuments(user: DynDoc): Seq[Document] = {
-    val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
-    val docOid2labels = mutable.Map.empty[ObjectId, mutable.Buffer[String]]
-    for (label <- userLabels) {
-      val labelName = label.name[String]
-      val docOids: Seq[ObjectId] = label.document_ids[Many[ObjectId]]
-      for (docOid <- docOids) {
-        val docLabels: mutable.Buffer[String] = docOid2labels.getOrElse(docOid, mutable.Buffer.empty[String])
-        docLabels.append(labelName)
-        docOid2labels.put(docOid, docLabels)
-      }
-    }
+    val docOid2labels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(user)
     val docs: Seq[DynDoc] = findDocuments(user)
     val docProperties: Seq[Document] = docs.map(d => {
       val versions: Seq[DynDoc] = GetDocumentVersionsList.versions(d)
-      val systemLabels = getLabels(d.asDoc)
+      val systemLabels = GetDocumentsSummary.getSystemLabels(d)
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
       val allLabelsCsv = (systemLabels ++ userLabels).mkString(",")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
@@ -99,7 +80,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
@@ -108,13 +89,37 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       writer.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${allDocuments.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${allDocuments.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
+  }
+
+}
+
+object GetDocumentsSummary {
+
+  def getSystemLabels(doc: DynDoc): Seq[String] = {
+    def fix(str: String) = str.replaceAll("\\s+", "-")
+    val labels1 = if (doc.has("category") && doc.has("subcategory")) {
+      Seq(s"""${fix(doc.category[String])}.${fix(doc.subcategory[String])}""")
+    } else {
+      Seq.empty[String]
+    }
+    val labels: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
+    (labels ++ labels1).distinct
+  }
+
+  def docOid2UserLabels(user: DynDoc): Map[ObjectId, Seq[String]] = {
+    val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
+    userLabels.flatMap(label => {
+      val labelName = label.name[String]
+      val docOids: Seq[ObjectId] = label.document_ids[Many[ObjectId]]
+      docOids.map(oid => (oid, labelName))
+    }).groupBy(_._1).map(t => (t._1, t._2.map(_._2)))
   }
 
 }

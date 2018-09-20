@@ -3,6 +3,7 @@ package com.buildwhiz
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.utils.BWLogger
+import org.bson.Document
 
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
@@ -61,14 +62,24 @@ class Entry extends HttpServlet {
     }
   }
 
+  private def handleError(t: Throwable, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val simpleClassName = t.getClass.getSimpleName
+    val className = t.getClass.getName
+    val errorMessage = t.getMessage
+    log(s"ERROR: $simpleClassName($errorMessage)", request)
+    t.printStackTrace()
+    val error = new Document("status", "error").append("message", errorMessage).append("source", className)
+    response.getWriter.print(error.toJson)
+    response.setContentType("application/json")
+    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
       handleRequest(request, response, servlet => servlet.doPost(request, response))
     } catch {
       case t: Throwable =>
-        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
-        throw t
+        handleError(t, request, response)
     }
   }
 
@@ -88,9 +99,7 @@ class Entry extends HttpServlet {
       handleRequest(request, response, servlet => servlet.doGet(request, response))
     } catch {
       case t: Throwable =>
-        log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
-        throw t
+        handleError(t, request, response)
     }
   }
 

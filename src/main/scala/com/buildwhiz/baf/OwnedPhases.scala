@@ -1,17 +1,16 @@
 package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.{ProcessEngineException, ProcessEngines}
 
-class OwnedPhases extends HttpServlet with HttpUtils {
+class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def phase2actions(phase: DynDoc): Seq[DynDoc] = {
     val activityOids = phase.activity_ids[Many[ObjectId]]
@@ -21,10 +20,11 @@ class OwnedPhases extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val writer = response.getWriter
     try {
-      val personOid = new ObjectId(parameters("person_id"))
+      val user: DynDoc = getUser(request)
+      val personOid = user._id[ObjectId]
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectIsPublic = (project has "public") && project.public[Boolean]
@@ -33,14 +33,21 @@ class OwnedPhases extends HttpServlet with HttpUtils {
       val phases = if (projectIsPublic || project.admin_person_id[ObjectId] == personOid) allPhases else
         allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
           phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
+      for (phase <- phases) {
+        val managerOid = phase.admin_person_id[ObjectId]
+        val manager: DynDoc = BWMongoDB3.persons.find(Map("_id" -> managerOid)).head
+        phase.manager = s"${manager.first_name[String]} ${manager.last_name[String]}"
+        val timeStamps: DynDoc = phase.timestamps[Document]
+        phase.start_date = dateTimeString(timeStamps.start[Long], Some(user.tz[String]))
+      }
       writer.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

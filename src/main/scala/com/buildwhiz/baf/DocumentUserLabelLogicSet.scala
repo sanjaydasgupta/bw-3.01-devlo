@@ -47,16 +47,16 @@ object DocumentUserLabelLogicSet extends RegexParsers {
 
   type TestSet = Set[String] => Boolean
 
-  def label: Parser[String] = "(?i)[A-Z](?:[A-Z0-9-]*[A-Z0-9])?".r
+  def label: Parser[TestSet] = "(?i)[A-Z](?:[A-Z0-9-]*[A-Z0-9])?".r ^^
+    { lbl => set => set.contains(lbl) }
 
   def or: Parser[TestSet] = (label <~ "(?i)OR".r) ~ expression ^^
-    { case lbl ~ expr => set => set.contains(lbl) || expr(set) }
+    { case lbl ~ expr => set => lbl(set) || expr(set) }
 
   def and: Parser[TestSet] = (label <~ "(?i)AND".r) ~ expression ^^
-    { case lbl ~ expr => set => set.contains(lbl) && expr(set) }
+    { case lbl ~ expr => set => lbl(set) && expr(set) }
 
-  def expression: Parser[TestSet] = and | or | "(" ~> expression <~ ")" |
-    label ^^ { lbl => set => set.contains(lbl) }
+  def expression: Parser[TestSet] = and | or | "(" ~> expression <~ ")" | label
 
   def parse(str: String): ParseResult[TestSet] = parseAll(expression, str)
 

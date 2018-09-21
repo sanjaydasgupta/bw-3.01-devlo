@@ -38,7 +38,10 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
         val manager: DynDoc = BWMongoDB3.persons.find(Map("_id" -> managerOid)).head
         phase.manager = s"${manager.first_name[String]} ${manager.last_name[String]}"
         val timeStamps: DynDoc = phase.timestamps[Document]
-        phase.start_date = dateTimeString(timeStamps.start[Long], Some(user.tz[String]))
+        phase.start_date = if (timeStamps.has("start"))
+          dateTimeString(timeStamps.start[Long], Some(user.tz[String]))
+        else
+          "Not yet defined"
       }
       writer.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))

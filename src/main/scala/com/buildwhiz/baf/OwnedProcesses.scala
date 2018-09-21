@@ -79,10 +79,10 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      val personOid = new ObjectId(parameters("person_id"))
+      val user: DynDoc = getUser(request)
+      val personOid = user._id[ObjectId]
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val activityOids = phase.activity_ids[Many[ObjectId]]
@@ -90,13 +90,13 @@ class OwnedProcesses extends HttpServlet with HttpUtils {
       activities.foreach(a => a.is_relevant = a.actions[Many[Document]].exists(_.assignee_person_id[ObjectId] == personOid))
       val processes = createProcesses(activities, phase.variables[Many[Document]], phase.timers[Many[Document]],
           personOid, phase)
-      writer.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(this.getClass.getName, "doGet()", s"EXIT-OK", request)
+      response.getWriter.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))
+      BWLogger.log(this.getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

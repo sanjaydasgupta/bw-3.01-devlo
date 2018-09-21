@@ -14,22 +14,23 @@ import scala.collection.JavaConverters._
 
 class OwnedProjects extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    //val parameters = getParameterMap(request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val writer = response.getWriter
     try {
-      val personOid = new ObjectId(parameters("person_id"))
-      val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]]
+      val user: DynDoc = getUser(request)
+      val personOid = user._id[ObjectId]
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+      val projectOids: Seq[ObjectId] = freshUserRecord.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
       writer.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

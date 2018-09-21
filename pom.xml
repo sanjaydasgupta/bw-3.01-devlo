@@ -12,7 +12,7 @@
 	<properties>
 		<camunda.version>7.8.0</camunda.version>
 		<spring.version>3.1.2.RELEASE</spring.version>
-		<scala.version>2.12.4</scala.version>
+		<scala.version>2.12.6</scala.version>
 	</properties>
 
 	<!-- import camunda BOM to ensure correct versions of camunda projects -->
@@ -55,11 +55,16 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-reflect</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang.modules</groupId>
+			<artifactId>scala-parser-combinators_2.12</artifactId>
+			<version>1.0.5</version>
+		</dependency>
 
 		<dependency>
   			<groupId>org.slf4j</groupId>

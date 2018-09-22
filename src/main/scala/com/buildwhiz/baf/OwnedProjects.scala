@@ -41,8 +41,9 @@ object OwnedProjects {
 
   def processProject(project: DynDoc, personOid: ObjectId): DynDoc = {
     def canEnd(project: DynDoc): Boolean = {
+      val projectAlreadyEnded = project.status[String] == "ended"
       val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[Many[ObjectId]])))
-      !phases.exists(_.status[String] == "running")
+      !phases.exists(_.status[String] == "running") && !projectAlreadyEnded
     }
 
     project.is_managed = project.admin_person_id[ObjectId] == personOid

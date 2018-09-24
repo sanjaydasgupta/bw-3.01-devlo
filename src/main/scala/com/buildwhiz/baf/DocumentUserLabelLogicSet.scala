@@ -60,7 +60,7 @@ object DocumentUserLabelLogicSet extends RegexParsers with PackratParsers {
     { case expr1 ~ expr2 => (set: Set[String]) => expr1(set) && expr2(set) }
   val not: PackratParser[TestSet] = NOT ~> expression ^^ { expr => (set: Set[String]) => !expr(set) }
 
-  lazy val expression: PackratParser[TestSet] = not | and | or | "(" ~> expression <~ ")" | LABEL
+  lazy val expression: PackratParser[TestSet] = and | or | "(" ~> expression <~ ")" | not | LABEL
 
   def parse(str: String): ParseResult[TestSet] = parseAll(expression, str)
 

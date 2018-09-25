@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.util.parsing.combinator.{PackratParsers, RegexParsers}
+import scala.util.parsing.combinator.RegexParsers
 
 class DocumentUserLabelLogicSet extends HttpServlet with HttpUtils {
 
@@ -43,7 +43,7 @@ class DocumentUserLabelLogicSet extends HttpServlet with HttpUtils {
 
 }
 
-object DocumentUserLabelLogicSet extends RegexParsers with PackratParsers {
+object DocumentUserLabelLogicSet extends RegexParsers {
 
   type TestSet = Set[String] => Boolean
 
@@ -54,20 +54,22 @@ object DocumentUserLabelLogicSet extends RegexParsers with PackratParsers {
   val LABEL: Parser[TestSet] = guard(not(AND | OR | NOT)) ~> "(?i)[A-Z](?:[A-Z0-9._-]*[A-Z0-9])?".r ^^
     { lbl => (set: Set[String]) => set.contains(lbl) }
 
-  val or: PackratParser[TestSet] = (expression <~ OR) ~ expression ^^
-    { case expr1 ~ expr2 => (set: Set[String]) => expr1(set) || expr2(set) }
-  val and: PackratParser[TestSet] = (expression <~ AND) ~ expression ^^
-    { case expr1 ~ expr2 => (set: Set[String]) => expr1(set) && expr2(set) }
-  val not: PackratParser[TestSet] = NOT ~> expression ^^ { expr => (set: Set[String]) => !expr(set) }
+  val topExpr: Parser[TestSet] = rep1sep(andExpr, OR) ^^
+    { exprList => (set: Set[String]) => exprList.map(exp => exp(set)).reduce((a, b) => a || b) }
 
-  lazy val expression: PackratParser[TestSet] = and | or | "(" ~> expression <~ ")" | not | LABEL
+  lazy val andExpr: Parser[TestSet] = rep1sep(elementExpr, AND) ^^
+    { exprList => (set: Set[String]) => exprList.map(exp => exp(set)).reduce((a, b) => a && b) }
 
-  def parse(str: String): ParseResult[TestSet] = parseAll(expression, str)
+  lazy val elementExpr: Parser[TestSet] = "(" ~> topExpr <~ ")" | not | LABEL
 
-  def eval(stringToParse: String, labels: Set[String]): Boolean = {
-    parse(stringToParse) match {
-      case Success(expr, _) => expr(labels)
-      case NoSuccess(_, _) => false
+  lazy val not: Parser[TestSet] = NOT ~> topExpr ^^ { expr => (set: Set[String]) => !expr(set) }
+
+  def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
+
+  def eval(expr: String, set: Set[String]): String = {
+    parse(expr) match {
+      case Success(test, _) => test(set).toString
+      case noSuccess => noSuccess.toString
     }
   }
 

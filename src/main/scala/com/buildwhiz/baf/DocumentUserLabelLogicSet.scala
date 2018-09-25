@@ -28,6 +28,9 @@ class DocumentUserLabelLogicSet extends HttpServlet with HttpUtils {
       val idx = userLabels.indexWhere(_.name[String] == labelName)
       if (idx == -1)
         throw new IllegalArgumentException(s"label '$labelName' not found")
+      val documentIds: Seq[ObjectId] = userLabels(idx).document_ids[Many[ObjectId]]
+      if (documentIds.nonEmpty)
+        throw new IllegalArgumentException(s"label '$labelName' is already set manually")
       val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> user._id[ObjectId]),
         Map("$set" -> Map(s"labels.$idx.logic" -> logic)))
       if (updateResult.getMatchedCount == 0)

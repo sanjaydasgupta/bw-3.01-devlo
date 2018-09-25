@@ -26,6 +26,11 @@ class DocGroupLabelManage extends HttpServlet with HttpUtils {
       val labelIndices = labels.map(label => usersLabelRecords.indexWhere(_.name[String] == label))
       val (modifiedCount, opName) = op match {
         case "add" =>
+          val existingLabelRecords = labelIndices.filter(_ != -1).map(idx => usersLabelRecords(idx))
+          val logicLabelNames = existingLabelRecords.
+              filter(rec => rec.has("logic") && rec.logic[String].trim.nonEmpty).map(_.name[String])
+          if (logicLabelNames.nonEmpty)
+            throw new IllegalArgumentException(s"""Labels already have logic: ${logicLabelNames.mkString(", ")}""")
           val updateResults = docOids.flatMap(docOid =>
             labelIndices.zip(labels).map(idx =>
               if (idx._1 == -1)

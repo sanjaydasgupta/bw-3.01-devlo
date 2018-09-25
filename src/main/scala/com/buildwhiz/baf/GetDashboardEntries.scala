@@ -34,7 +34,7 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
       }
       val statusTime = project.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "dashboard/projects", "description" -> s"Project '$projectName' is ${project.status[String]}",
+      Map("url" -> "projects", "description" -> s"Project '$projectName' is ${project.status[String]}",
         "status_date" -> statusDate, "status" -> projectStatus, "due_date" -> "0000-00-00")
     })
 
@@ -54,7 +54,7 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
       }
       val statusTime = phase.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "dashboard/phases", "description" -> s"Phase '$phaseName' is ${phase.status[String]}",
+      Map("url" -> "phases", "description" -> s"Phase '$phaseName' is ${phase.status[String]}",
         "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00")
     })
 
@@ -76,7 +76,7 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
       } else {
         "0000-00-00"
       }
-      Map("url" -> "dashboard/tasks", "description" -> s"Task '$actionName' is ${action.status[String]}",
+      Map("url" -> "tasks", "description" -> s"Task '$actionName' is ${action.status[String]}",
         "status_date" -> statusDate, "status" -> actionStatus, "due_date" -> "0000-00-00")
     })
 

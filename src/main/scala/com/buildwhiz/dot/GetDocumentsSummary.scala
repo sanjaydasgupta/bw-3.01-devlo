@@ -1,5 +1,6 @@
 package com.buildwhiz.dot
 
+import com.buildwhiz.baf.DocumentUserLabelLogicSet
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -52,7 +53,9 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       val versions: Seq[DynDoc] = GetDocumentVersionsList.versions(d)
       val systemLabels = GetDocumentsSummary.getSystemLabels(d)
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
-      val allLabelsCsv = (systemLabels ++ userLabels).mkString(",")
+      val logicalLabels = GetDocumentsSummary.getLogicalLabels(systemLabels ++ userLabels, user)
+      val allUserLabels = userLabels ++ logicalLabels
+      val allLabelsCsv = (systemLabels ++ allUserLabels).mkString(",")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
       val hasVersions = versions.nonEmpty
       val documentProperties: Document = if (hasVersions) {
@@ -63,13 +66,13 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
         val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
-          "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
+          "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> lastVersion.timestamp[Long],
           "has_versions" -> true)
       } else {
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
-          "labels" -> Map("system" -> systemLabels, "user" -> userLabels, "all_csv" -> allLabelsCsv),
+          "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> "???", "author" -> "???", "date" -> "???", "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> 0L, "has_versions" -> false)
       }
@@ -115,11 +118,22 @@ object GetDocumentsSummary {
 
   def docOid2UserLabels(user: DynDoc): Map[ObjectId, Seq[String]] = {
     val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
-    userLabels.flatMap(label => {
+    userLabels.filter(label => {!label.has("logic") || label.logic[String].trim.isEmpty}).
+      flatMap(label => {
       val labelName = label.name[String]
       val docOids: Seq[ObjectId] = label.document_ids[Many[ObjectId]]
       docOids.map(oid => (oid, labelName))
     }).groupBy(_._1).map(t => (t._1, t._2.map(_._2)))
+  }
+
+  def getLogicalLabels(nonLogicalLabels: Seq[String], user: DynDoc): Seq[String] = {
+    val userLabels: Seq[DynDoc] = if (user.has("labels"))
+      user.labels[Many[Document]]
+    else
+      Seq.empty[DynDoc]
+    val logicalLabels = userLabels.filter(label => label.has("logic") && label.logic[String].trim.nonEmpty).
+        filter(label => DocumentUserLabelLogicSet.eval(label.logic[String], nonLogicalLabels.toSet))
+    logicalLabels.map(_.name[String])
   }
 
 }

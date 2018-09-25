@@ -66,10 +66,10 @@ object DocumentUserLabelLogicSet extends RegexParsers {
 
   def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
 
-  def eval(expr: String, set: Set[String]): String = {
+  def eval(expr: String, set: Set[String]): Boolean = {
     parse(expr) match {
-      case Success(test, _) => test(set).toString
-      case noSuccess => noSuccess.toString
+      case Success(test, _) => test(set)
+      case _ => false
     }
   }
 

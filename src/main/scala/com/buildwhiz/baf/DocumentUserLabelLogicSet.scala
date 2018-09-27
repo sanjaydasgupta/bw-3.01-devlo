@@ -17,9 +17,9 @@ class DocumentUserLabelLogicSet extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val labelName: String = parameters("label_name")
-      val logic: String = parameters("logic")
+      val logic: String = parameters("logic").trim
       val parseResult = DocumentUserLabelLogicSet.parse(logic)
-      if (!parseResult.successful)
+      if (logic.nonEmpty && !parseResult.successful)
         throw new IllegalArgumentException(s"bad logic at '${parseResult.next.source}'")
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head

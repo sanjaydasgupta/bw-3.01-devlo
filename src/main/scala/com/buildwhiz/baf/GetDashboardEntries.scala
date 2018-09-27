@@ -87,13 +87,13 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
-
-      val entries: Seq[Document] = dashboardEntries(user)
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
+      val entries: Seq[Document] = dashboardEntries(freshUserRecord)
 
       response.getWriter.println(entries.map(_.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${entries.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

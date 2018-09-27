@@ -16,7 +16,7 @@ class DocumentLabelAdd extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val labelName: String = parameters("label_name")
-      if (!DocumentLabelAdd.isValidLabel(labelName))
+      if (!DocumentUserLabelLogicSet.labelIsValid(labelName))
         throw new IllegalArgumentException(s"invalid label name '$labelName'")
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
@@ -39,15 +39,3 @@ class DocumentLabelAdd extends HttpServlet with HttpUtils {
 
 }
 
-object DocumentLabelAdd {
-
-  private val validLabelRe = "(?i)[A-Z0-9]+(?:[A-Z0-9-]*[A-Z0-9])?".r
-  private val invalidLabelRe = "(?i)OR|AND".r
-
-  def isValidLabel(label: String): Boolean = label match {
-      case invalidLabelRe() => false
-      case validLabelRe() => true
-      case _ => false
-  }
-
-}

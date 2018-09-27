@@ -67,6 +67,8 @@ object DocumentUserLabelLogicSet extends RegexParsers {
 
   lazy val not: Parser[TestSet] = NOT ~> topExpr ^^ { expr => (set: Set[String]) => !expr(set) }
 
+  def labelIsValid(label: String): Boolean = parseAll(LABEL, label).successful
+
   def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
 
   def eval(expr: String, set: Set[String]): Boolean = {

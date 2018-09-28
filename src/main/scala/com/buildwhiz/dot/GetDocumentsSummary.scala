@@ -43,7 +43,10 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         "name" -> Map("$exists" -> true)))
     })
 
-    docsInManagedProjects ++ docsInManagedPhases ++ assignedDocuments
+    val authoredDocs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("project_id" -> Map("$in" -> projectOids),
+        "versions.author_person_id" -> user._id[ObjectId], "name" -> Map("$exists" -> true)))
+
+    (docsInManagedProjects ++ docsInManagedPhases ++ assignedDocuments ++ authoredDocs).distinct
   }
 
   private def getDocuments(user: DynDoc): Seq[Document] = {

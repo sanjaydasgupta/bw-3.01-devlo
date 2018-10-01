@@ -23,7 +23,7 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
       val docOid2UserLabels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(person)
 
       val userLabels: Seq[String] = docOids.
-          flatMap(oid => if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid).distinct else Seq.empty[String])
+          flatMap(oid => if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid) else Seq.empty[String]).distinct
       val csvUserLabels = userLabels.map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
 
       val documentRecords: Seq[DynDoc] = docOids.

@@ -17,19 +17,21 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val phaseId = parameters("phase_id")
-      val bpmnName = parameters("phase_bpmn_name")
+      val phaseOid = new ObjectId(phaseId)
+      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val bpmnName = thePhase.bpmn_name[String]
+      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
       val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
       val processInstance = rts.startProcessInstanceByKey(bpmnName,
-        Map("project_id" -> parameters("project_id"), "phase_id" -> phaseId, "top_level_bpmn" -> bpmnName))
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> new ObjectId(phaseId)),
+        Map("project_id" -> project._id[ObjectId].toString, "phase_id" -> phaseId, "top_level_bpmn" -> bpmnName))
+      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map("process_instance_id" -> processInstance.getProcessInstanceId)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> new ObjectId(phaseId))).head
-      val phaseLog = s"'${thePhase.name[String]}' ($phaseId)"
-      BWLogger.audit(getClass.getName, "doPost", s"""Launched phase $phaseLog""", request)
+      val phaseLogMessage = s"Launched phase '${thePhase.name[String]}' ($phaseId)"
+      BWLogger.audit(getClass.getName, "doPost", phaseLogMessage, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

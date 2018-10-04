@@ -21,7 +21,6 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
@@ -43,7 +42,7 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
         else
           "Not yet defined"
       }
-      writer.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
+      response.getWriter.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

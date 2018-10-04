@@ -15,7 +15,6 @@ class OwnedTasksStatusSummary extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
@@ -29,7 +28,7 @@ class OwnedTasksStatusSummary extends HttpServlet with HttpUtils {
       val actions = allActions.filter(_.assignee_person_id[ObjectId] == personOid)
       val countsByStatus = actions.groupBy(_.status[String]).map(t => (t._1, t._2.size))
       val statusDocument = new Document(countsByStatus)
-      writer.print(statusDocument.toJson)
+      response.getWriter.print(statusDocument.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

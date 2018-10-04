@@ -64,7 +64,6 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val filterKey = parameters("filter_key")
@@ -90,7 +89,7 @@ class OwnedActionsSummary extends HttpServlet with HttpUtils {
           }
         }
       }
-      writer.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
+      response.getWriter.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

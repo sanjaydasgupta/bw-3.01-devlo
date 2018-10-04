@@ -60,7 +60,6 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
       val rawRoles: Seq[String] = user.roles[Many[String]]
@@ -96,7 +95,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         fileOutputStream.flush()
         fileOutputStream.close()
         archiveOldFiles(directory, fileName, tomcatDirName, request)
-        writer.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
+        response.getWriter.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)
       } else {
@@ -109,7 +108,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
           BWLogger.log(getClass.getName, "doPost()", s"""ERROR: Upload failure status: $status""", request)
           s"ERROR [$status]"
         }
-        writer.println(s"""Update status: $statusMsg, files: ${files.mkString(", ")}""")
+        response.getWriter.println(s"""Update status: $statusMsg, files: ${files.mkString(", ")}""")
       }
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {

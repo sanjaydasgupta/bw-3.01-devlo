@@ -8,12 +8,11 @@ class PhaseBpmnNamesFetch extends HttpServlet with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val prefix = "1.01/Phase-"
       val phaseNames: Seq[String] = getDeployedResources.map(_.getName).filter(_.matches(s"$prefix.+\\.bpmn")).
         map(s => s""""${s.substring(prefix.length, s.length - 5)}"""").distinct
-      writer.print(phaseNames.sorted.mkString("[", ", ", "]"))
+      response.getWriter.print(phaseNames.sorted.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

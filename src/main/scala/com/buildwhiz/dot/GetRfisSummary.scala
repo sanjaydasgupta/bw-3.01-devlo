@@ -40,13 +40,12 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
-      val allRfis = getRfis(request)
-      writer.print(allRfis.map(document => bson2json(document)).mkString("[", ", ", "]"))
+      val rfiJsons = getRfis(request).map(bson2json)
+      response.getWriter.print(rfiJsons.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${allRfis.length})", request)
+      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

@@ -88,12 +88,11 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
       val allDocuments = getDocuments(freshUserRecord)
-      writer.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
+      response.getWriter.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${allDocuments.length})", request)

@@ -38,7 +38,6 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
@@ -47,7 +46,7 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
       val documentMasters: Seq[DynDoc] = BWMongoDB3.document_master.find()
       val preloadedDocuments = documentMasters.filter(_ has "preload")
       preloadedDocuments.foreach(d => d.asDoc.put("available", uploadedDocumentsById.contains(d._id[ObjectId])))
-      writer.print(preloadedDocuments.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]"))
+      response.getWriter.print(preloadedDocuments.map(d => bson2json(d.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

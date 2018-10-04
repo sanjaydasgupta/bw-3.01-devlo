@@ -15,7 +15,6 @@ class OwnedActivities extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
@@ -23,7 +22,7 @@ class OwnedActivities extends HttpServlet with HttpUtils {
       val activityOids = phase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
       val bpmnName = parameters("bpmn_name")
-      writer.print(activities.map(a => OwnedActivities.processActivity(a, personOid)).
+      response.getWriter.print(activities.map(a => OwnedActivities.processActivity(a, personOid)).
         filter(_.bpmn_name[String] == bpmnName).map(activity => bson2json(activity.asDoc)).
         mkString("[", ", ", "]"))
       response.setContentType("application/json")

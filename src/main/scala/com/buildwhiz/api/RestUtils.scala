@@ -20,7 +20,6 @@ trait RestUtils extends HttpUtils {
       secretFields: Set[String] = Set.empty, sorter: Option[(Document, Document) => Boolean] = None,
       filter: Option[Document => Boolean] = None): Unit = {
     BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val uriParts = new URI(request.getRequestURI.replace("[", "%5B").replace("]", "%5D")).getPath.split("/").toSeq.reverse
       val collection = BWMongoDB3(collectionName)
@@ -48,7 +47,7 @@ trait RestUtils extends HttpUtils {
         sb.append(bson2json(p))
       }
       sb.append("]\n")
-      writer.print(sb.toString())
+      response.getWriter.print(sb.toString())
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "handleGet", s"EXIT-OK", request)

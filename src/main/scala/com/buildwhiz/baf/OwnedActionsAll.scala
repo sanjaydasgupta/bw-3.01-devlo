@@ -43,7 +43,6 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val projectOids: Many[ObjectId] = BWMongoDB3.persons.find(Map("_id" -> personOid)).head.project_ids[Many[ObjectId]]
@@ -101,7 +100,7 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
           }
         }
       }
-      writer.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
+      response.getWriter.print(allActions.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)

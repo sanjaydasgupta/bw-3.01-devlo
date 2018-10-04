@@ -28,7 +28,6 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val parameters = getParameterMap(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).head
@@ -41,7 +40,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
         map(p => (p._1, p._2.map(t => s"""{"doc_id": "${t._1}", "ts": "${t._2}", "size": ${t._3}}"""))).
         map(p => (p._1, p._2.mkString("[", ", ", "]"))).
         map(p => s"""{"project": "${projectId2IdAndName(p._1)}", "docs": ${p._2}}""").toSeq
-      writer.print(byProject.mkString("[", ", ", "]"))
+      response.getWriter.print(byProject.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${namesAndSizes.length} objects)", request)

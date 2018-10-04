@@ -13,7 +13,6 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
       val documentOid = new ObjectId(parameters("document_id"))
@@ -30,7 +29,7 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
           "datetime" -> dateTimeString(version.timestamp[Long], Some(user.tz[String])))
         prop
       })
-      writer.print(versionProperties.map(document => bson2json(document)).mkString("[", ", ", "]"))
+      response.getWriter.print(versionProperties.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${versionProperties.length})", request)

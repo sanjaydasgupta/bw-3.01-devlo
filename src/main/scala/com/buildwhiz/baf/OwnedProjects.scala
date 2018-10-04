@@ -16,7 +16,6 @@ class OwnedProjects extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
     try {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
@@ -24,7 +23,7 @@ class OwnedProjects extends HttpServlet with HttpUtils {
       val projectOids: Seq[ObjectId] = freshUserRecord.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
-      writer.print(augmentedProjects.mkString("[", ", ", "]"))
+      response.getWriter.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

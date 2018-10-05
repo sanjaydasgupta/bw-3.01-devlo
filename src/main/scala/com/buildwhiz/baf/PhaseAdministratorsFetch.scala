@@ -11,7 +11,9 @@ import org.bson.types.ObjectId
 class PhaseAdministratorsFetch extends HttpServlet with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    // ToDo: Use project_id and bpmn_name to determine possible phase-managers
+    //
+    // ToDo: Use phase_id to determine possible phase-managers
+    //
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val managers: Seq[Document] = Seq("Sourav", "Gouri", "Sanjay").map(fn => {

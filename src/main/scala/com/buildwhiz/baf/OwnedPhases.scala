@@ -40,9 +40,9 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
         phase.start_date = if (timeStamps.has("start"))
           dateTimeString(timeStamps.start[Long], Some(user.tz[String]))
         else
-          "Not yet defined"
+          "0000-00-00 00:00"
       }
-      response.getWriter.print(phases.map(phase => OwnedPhases.processPhase(phase, personOid)).map(phase => bson2json(phase.asDoc))
+      response.getWriter.print(phases.map(phase => OwnedPhases.processPhase(phase, project, personOid)).map(phase => bson2json(phase.asDoc))
         .mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -71,11 +71,12 @@ object OwnedPhases {
       true
   }
 
-  def processPhase(phase: DynDoc, personOid: ObjectId): DynDoc = {
+  def processPhase(phase: DynDoc, project: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> phase.activity_ids[Many[ObjectId]])))
     val isRelevant = activities.flatMap(_.actions[Many[Document]]).
       exists(_.assignee_person_id[ObjectId] == personOid)
+    phase.can_launch = phase.status[String] == "defined" && project.status[String] == "running"
     phase.is_managed = phase.admin_person_id[ObjectId] == personOid
     phase.is_relevant = isRelevant || phase.is_managed[Boolean]
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])

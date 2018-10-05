@@ -1,10 +1,11 @@
 package com.buildwhiz.baf
 
 import java.util
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.bson.Document
@@ -323,7 +324,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
-      val newPhaseDocument = OwnedPhases.processPhase(newPhase, adminPersonOid).asDoc
+      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val newPhaseDocument = OwnedPhases.processPhase(newPhase, project, adminPersonOid).asDoc
       response.getWriter.println(bson2json(newPhaseDocument))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

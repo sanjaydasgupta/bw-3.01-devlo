@@ -37,7 +37,8 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = user.tz[String]
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)), "own" -> own,
-          "text" -> message.text[String], "sender" -> senderName, "attachments" -> getAttachments(message)))
+          "text" -> (if (message.text[Any] == null) "" else message.text[String]),
+          "sender" -> senderName, "attachments" -> getAttachments(message)))
       })
       for (idx <- messages.indices) {
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid),

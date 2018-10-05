@@ -43,7 +43,8 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
         BWMongoDB3.rfi_messages.updateOne(Map("_id" -> rfiOid),
           Map("$addToSet" -> Map(s"messages.$idx.read_person_ids" -> user._id[ObjectId])))
       }
-      response.getWriter.print(messageLines.map(bson2json).mkString("[", ", ", "]"))
+      val results = messageLines.map(bson2json).mkString("[", ", ", "]")
+      response.getWriter.print(results)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${messageLines.length} objects)", request)

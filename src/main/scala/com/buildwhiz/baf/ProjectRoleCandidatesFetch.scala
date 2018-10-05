@@ -9,11 +9,9 @@ import org.bson.types.ObjectId
 
 class ProjectRoleCandidatesFetch extends HttpServlet with HttpUtils {
 
-  private val standardRoleNames = Seq("Quality-Assurance", "Safety-Assurance", "Site-Management")
-
   private def getRoleCandidates(project: DynDoc): Map[String, Seq[DynDoc]] = {
     val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("first_name" -> Map("$regex" -> "Tester.?")))
-    standardRoleNames.zipWithIndex.map(roleWithIndex =>
+    ProjectConfigurationFetch.standardRoleNames.zipWithIndex.map(roleWithIndex =>
       roleWithIndex._1 -> candidates.take(roleWithIndex._2 + 1).map(c => {
         val name = s"${c.first_name[String]} ${c.last_name[String]}"
         val candidateInfo: DynDoc = Map("person_id" -> c._id[ObjectId].toString, "name" -> name)

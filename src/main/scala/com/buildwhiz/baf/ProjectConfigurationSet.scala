@@ -16,6 +16,9 @@ class ProjectConfigurationSet extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+      val user: DynDoc = getUser(request)
+      if (user._id[ObjectId] != project.admin_person_id[ObjectId])
+        throw new IllegalArgumentException("Not permitted")
       val postData: DynDoc = Document.parse(getStreamData(request))
       val description = postData.description[String]
       val assignedRoles: Seq[DynDoc] = postData.assigned_roles[Many[Document]]

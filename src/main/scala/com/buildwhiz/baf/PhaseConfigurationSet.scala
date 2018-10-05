@@ -16,6 +16,11 @@ class PhaseConfigurationSet extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phase._id[ObjectId])).head
+      val user: DynDoc = getUser(request)
+      if (user._id[ObjectId] != phase.admin_person_id[ObjectId] &&
+          user._id[ObjectId] != project.admin_person_id[ObjectId])
+        throw new IllegalArgumentException("Not permitted")
       val postData: DynDoc = Document.parse(getStreamData(request))
       val description = postData.description[String]
       val assignedRoles: Seq[DynDoc] = postData.assigned_roles[Many[Document]]

@@ -1,7 +1,7 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.api.Project
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -35,33 +35,6 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK", request)
   }
 
-  private def adjustPersonsProjectIds(personOid: ObjectId, request: HttpServletRequest): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
-    for (project <- projects) {
-      val phaseIds: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
-      val activityIds: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]])
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
-      val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
-      val isAssociated = actions.exists(_.assignee_person_id[ObjectId] == personOid) ||
-        phases.exists(_.admin_person_id[ObjectId] == personOid) ||
-        projects.exists(_.admin_person_id[ObjectId] == personOid)
-      if (isAssociated) {
-        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
-          Map("$addToSet" -> Map("project_ids" -> project._id[ObjectId])))
-        if (updateResult.getMatchedCount == 0)
-          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
-      } else {
-        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
-          Map("$pull" -> Map("project_ids" -> project._id[ObjectId])))
-        if (updateResult.getMatchedCount == 0)
-          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        BWLogger.log(getClass.getName, "adjustProjectIds", s"$isAssociated, $updateResult", request)
-      }
-    }
-  }
-
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
@@ -69,6 +42,10 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
       val assignedPersonOid = new ObjectId(parameters("person_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+      val parentPhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+      val user: DynDoc = getUser(request)
+      if (user._id[ObjectId] != parentPhase.admin_person_id[ObjectId])
+        throw new IllegalArgumentException("Not permitted")
       val actionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
       val actionName = parameters("action_name")
       val actionIdx = actionNames.indexOf(actionName)
@@ -78,8 +55,8 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
         Map("$set" -> Map(s"actions.$actionIdx.assignee_person_id" -> assignedPersonOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      adjustPersonsProjectIds(assignedPersonOid, request)
-      adjustPersonsProjectIds(deAssignedPersonOid, request)
+      val parentProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> parentPhase._id[ObjectId])).head
+      Project.renewUserAssociations(request, Some(parentProject._id[ObjectId]))
       saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName, request)
       response.setStatus(HttpServletResponse.SC_OK)
       val actionLog = s"'$actionName'"

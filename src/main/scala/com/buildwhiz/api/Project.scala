@@ -92,3 +92,51 @@ class Project extends HttpServlet with RestUtils {
   }
 
 }
+
+object Project {
+
+  def projectUsers(project: DynDoc): Seq[ObjectId] = {
+
+    val users = if (project.has("assigned_roles")) {
+      project.admin_person_id[ObjectId] +: project.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
+    } else {
+      Seq(project.admin_person_id[ObjectId])
+    }
+
+    val phaseUsers = {
+      val phaseOids = project.phase_ids[Many[ObjectId]]
+      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      phases.flatMap(Phase.phaseUsers)
+    }
+
+    (users ++ phaseUsers).distinct
+  }
+
+  def renewUserAssociations(request: HttpServletRequest, projectOidOption: Option[ObjectId] = None): Unit = {
+
+    projectOidOption match {
+      case None => BWMongoDB3.projects.find().foreach(proj => renewUserAssociations(request, Some(proj._id[ObjectId])))
+
+      case Some(projectOid) =>
+        val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+        val userOids: Seq[ObjectId] = projectUsers(project)
+
+        val updateResult = BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> userOids)),
+            Map("$addToSet" -> Map("project_ids" -> projectOid)))
+        val updateResult2 = BWMongoDB3.persons.updateMany(Map("_id" -> Map("$nin" -> userOids)),
+          Map("$pull" -> Map("project_ids" -> projectOid)))
+
+        if (updateResult.getMatchedCount + updateResult2.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB error: $updateResult, $updateResult2")
+
+        val userNames = userOids.map(userOid => {
+          val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
+          s"${user.first_name[String]} ${user.last_name[String]}"
+        })
+        val message = s"""Project '${project.name[String]}' linked to users ${userNames.mkString(",")}"""
+        BWLogger.audit(getClass.getName, "renewUserAssociation", message, request)
+    }
+
+  }
+
+}

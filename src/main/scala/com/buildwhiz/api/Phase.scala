@@ -49,17 +49,17 @@ class Phase extends HttpServlet with RestUtils {
     handleRestPut(request, response, "Phase", "phases")
   }
 
-  private def projectParticipantOids(theProject: DynDoc): Seq[ObjectId] = {
-    val phaseOids = theProject.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
-    val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
-    val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]])
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
-    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
-    val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
-    (theProject.admin_person_id[ObjectId] +: (phaseAdminPersonOids ++ actionAssigneeOids)).distinct
-  }
-
+//  private def projectParticipantOids(theProject: DynDoc): Seq[ObjectId] = {
+//    val phaseOids = theProject.phase_ids[Many[ObjectId]]
+//    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+//    val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
+//    val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]])
+//    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+//    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
+//    val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
+//    (theProject.admin_person_id[ObjectId] +: (phaseAdminPersonOids ++ actionAssigneeOids)).distinct
+//  }
+//
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doDelete", s"ENTRY", request)
     try {
@@ -70,7 +70,7 @@ class Phase extends HttpServlet with RestUtils {
       }
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
-      val preDeleteParticipantOids = projectParticipantOids(theProject)
+      //val preDeleteParticipantOids = projectParticipantOids(theProject)
       val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
       val actionNamesByActivityOid: Seq[(ObjectId, Seq[String])] = activities.
@@ -83,10 +83,11 @@ class Phase extends HttpServlet with RestUtils {
       BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),
         Map("$pull" -> Map("phase_ids" -> phaseOid)))
-      val postDeleteParticipantOids = projectParticipantOids(theProject)
-      val affectedPersonOids = preDeleteParticipantOids.diff(postDeleteParticipantOids)
-      BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> affectedPersonOids)),
-        Map("$pull" -> Map("project_ids" -> theProject._id[ObjectId])))
+      //val postDeleteParticipantOids = projectParticipantOids(theProject)
+      //val affectedPersonOids = preDeleteParticipantOids.diff(postDeleteParticipantOids)
+      //BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> affectedPersonOids)),
+      //  Map("$pull" -> Map("project_ids" -> theProject._id[ObjectId])))
+      Project.renewUserAssociations(request, Some(theProject._id[ObjectId]))
       val phaseNameAndId = s"""${thePhase.name[String]} (${thePhase._id[ObjectId]})"""
       BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Phase '$phaseNameAndId'""", request)
     } catch {
@@ -99,6 +100,35 @@ class Phase extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     handleRestGet(request, response, "Phase", "phases")
+  }
+
+}
+
+object Phase {
+
+  def actionUsers(action: DynDoc): Seq[ObjectId] = {
+    if (action.has("assigned_roles"))
+      action.assignee_person_id[ObjectId] +: action.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
+    else
+      Seq(action.assignee_person_id[ObjectId])
+  }
+
+  def phaseUsers(phase: DynDoc): Seq[ObjectId] = {
+
+    val users = if (phase.has("assigned_roles")) {
+      phase.admin_person_id[ObjectId] +: phase.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
+    } else {
+      Seq(phase.admin_person_id[ObjectId])
+    }
+
+    val taskUsers = {
+      val activityOids = phase.activity_ids[Many[ObjectId]]
+      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+      val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
+      actions.flatMap(actionUsers)
+    }
+
+    (users ++ taskUsers).distinct
   }
 
 }

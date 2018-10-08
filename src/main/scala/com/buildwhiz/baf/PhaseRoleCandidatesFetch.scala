@@ -10,9 +10,11 @@ import org.bson.types.ObjectId
 class PhaseRoleCandidatesFetch extends HttpServlet with HttpUtils {
 
   private def getRoleCandidates(phase: DynDoc): Map[String, Seq[DynDoc]] = {
-    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("first_name" -> Map("$regex" -> "Tester.?")))
+    val nameRegex = "Prabhas|Sanjay|Gouri|Tester."
+    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("first_name" -> Map("$regex" -> nameRegex))).
+        sortBy(_.first_name[String])
     ProjectConfigurationFetch.standardRoleNames.zipWithIndex.map(roleWithIndex =>
-      roleWithIndex._1 -> candidates.take(roleWithIndex._2 + 1).map(c => {
+      roleWithIndex._1 -> candidates.take(roleWithIndex._2 * 2 + 1).map(c => {
         val name = s"${c.first_name[String]} ${c.last_name[String]}"
         val candidateInfo: DynDoc = Map("person_id" -> c._id[ObjectId].toString, "name" -> name)
         candidateInfo

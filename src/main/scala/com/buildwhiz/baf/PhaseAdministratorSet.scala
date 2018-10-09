@@ -43,7 +43,9 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val parentProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
       val user: DynDoc = getUser(request)
-      if (user._id[ObjectId] != parentProject.admin_person_id[ObjectId])
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
+      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      if (!isAdmin && freshUserRecord._id[ObjectId] != parentProject.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
       val deAssignedPersonOid = thePhase.admin_person_id[ObjectId]
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

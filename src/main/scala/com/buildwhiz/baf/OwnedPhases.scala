@@ -24,12 +24,16 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectIsPublic = (project has "public") && project.public[Boolean]
       val phaseOids = project.phase_ids[Many[ObjectId]]
       val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
-      val phases = if (projectIsPublic || project.admin_person_id[ObjectId] == personOid) allPhases else
+      val phases = if (isAdmin || projectIsPublic || project.admin_person_id[ObjectId] == personOid)
+        allPhases
+      else
         allPhases.filter(phase => phase.admin_person_id[ObjectId] == personOid ||
           phase2actions(phase).exists(_.assignee_person_id[ObjectId] == personOid))
       for (phase <- phases) {
@@ -38,7 +42,7 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
         phase.manager = s"${manager.first_name[String]} ${manager.last_name[String]}"
         val timeStamps: DynDoc = phase.timestamps[Document]
         phase.start_date = if (timeStamps.has("start"))
-          dateTimeString(timeStamps.start[Long], Some(user.tz[String]))
+          dateTimeString(timeStamps.start[Long], Some(freshUserRecord.tz[String]))
         else
           "0000-00-00 00:00"
       }

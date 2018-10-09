@@ -20,8 +20,14 @@ class OwnedProjects extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val projectOids: Seq[ObjectId] = freshUserRecord.project_ids[Many[ObjectId]]
-      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
+      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val query: Document = if (isAdmin) {
+        Map.empty[String, Any]
+      } else {
+        val projectOids: Seq[ObjectId] = freshUserRecord.project_ids[Many[ObjectId]]
+        Map("_id" -> Map("$in" -> projectOids))
+      }
+      val projects: Seq[DynDoc] = BWMongoDB3.projects.find(query)
       val augmentedProjects = projects.map(project => bson2json(OwnedProjects.processProject(project, personOid).asDoc))
       response.getWriter.print(augmentedProjects.mkString("[", ", ", "]"))
       response.setContentType("application/json")

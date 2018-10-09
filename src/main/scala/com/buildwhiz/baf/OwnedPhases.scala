@@ -8,7 +8,7 @@ import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-import org.camunda.bpm.engine.{ProcessEngineException, ProcessEngines}
+import org.camunda.bpm.engine.ProcessEngines
 
 class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
 
@@ -69,7 +69,7 @@ object OwnedPhases {
         rts.getVariables(phase.process_instance_id[String])
         true
       } catch {
-        case _: ProcessEngineException => false
+        case _: AnyRef => false
       }
     } else
       true

@@ -15,6 +15,7 @@
 
   self.projects = [];
   self.selectedProject = null;
+  self.selectedProjectManager = null;
   self.newProjectName = '';
 
   self.phases = [];
@@ -83,6 +84,8 @@
           self.phases = resp.data;
           $log.log('OK GET ' + query + ' (' + self.phases.length + ') objects');
           self.selectedProject = self.projects.filter(function(p){return p._id == projectId;})[0];
+          self.selectedProjectManager = self.phaseManagers.
+                    filter(function(pm){return pm._id == self.selectedProject.admin_person_id})[0];
           self.selectedPhase = phaseId ? self.phases.filter(function(p){return p._id == phaseId;})[0] : null;
           if (phaseId) {
             self.selectedPhaseManager = self.phaseManagers.
@@ -186,6 +189,34 @@
         $log.log('ERROR DELETE ' + query);
       }
     );
+  }
+
+  self.projectManagerSelect = function(pm) {
+    self.selectedProjectManager = pm;
+    $log.log('Called projectManagerSelect(' + pm.name + ')');
+  }
+
+  self.projectManagerSet = function() {
+    var query = 'baf/ProjectAdministratorSet?person_id=' + self.selectedProjectManager._id +
+        '&project_id=' + self.selectedProject._id;
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        //self.selectProject(self.selectedProject._id, self.selectedPhase._id);
+        //self.selectedPhase.admin_person_id = self.selectedPhaseManager._id;
+        $log.log('OK POST ' + query);
+      },
+      function(resp) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    );
+    $log.log('Called projectManagerSet(' + self.selectedProjectManager.name + ')');
+  }
+
+  self.isBuildWhizAdmin = function() {
+    return AuthService.data.roles.indexOf('BW-Admin') != -1;
   }
 
   self.isProjectManager = function() {

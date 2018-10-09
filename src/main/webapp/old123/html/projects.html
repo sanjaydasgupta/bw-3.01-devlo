@@ -47,7 +47,25 @@
           <table data-ng-if="projectsCtrl.selectedProject != null"
               class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})</th></tr>
-            <tr data-ng-if="projectsCtrl.isProjectManager()">
+            <tr data-ng-if="projectsCtrl.isBuildWhizAdmin()">
+              <td>
+                BW-Admin: <div class="btn-group" data-uib-dropdown>
+                <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
+                        data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'">
+                  {{projectsCtrl.selectedProjectManager.name}} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="project-manager-dropdown">
+                  <li data-ng-repeat="projectManager in projectsCtrl.phaseManagers" role="menuitem">
+                    <a href="javascript:void(0)" data-ng-click="projectsCtrl.projectManagerSelect(projectManager)">{{projectManager.name}}</a>
+                  </li>
+                </ul>
+              </div>
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.projectManagerSet()"
+                        data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+              </td>
+            </tr>
+
+            <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isBuildWhizAdmin()">
               <td>
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                     data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
@@ -75,7 +93,7 @@
                         data-ng-disabled="projectsCtrl.selectedProject.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
               </td>
             </tr>
-            <tr data-ng-if="!projectsCtrl.isProjectManager()">
+            <tr data-ng-if="!projectsCtrl.isProjectManager() && !projectsCtrl.isBuildWhizAdmin">
               <td align="center"><span style="color:red;">No access to this part</span></td>
             </tr>
           </table>

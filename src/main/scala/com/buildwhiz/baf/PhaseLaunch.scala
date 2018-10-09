@@ -16,9 +16,12 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
+      val user: DynDoc = getUser(request)
       val phaseId = parameters("phase_id")
       val phaseOid = new ObjectId(phaseId)
       val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      if (user._id[ObjectId] != thePhase.admin_person_id[ObjectId])
+        throw new IllegalArgumentException("Not permitted")
       val bpmnName = thePhase.bpmn_name[String]
       val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
       val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService

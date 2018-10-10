@@ -1,5 +1,6 @@
 package com.buildwhiz.dot
 
+import com.buildwhiz.api.{Activity, Action, Phase, Project}
 import com.buildwhiz.baf.DocumentUserLabelLogicSet
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
@@ -11,7 +12,45 @@ import org.bson.types.ObjectId
 
 class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def findDocuments(user: DynDoc): Seq[DynDoc] = {
+  private def documentsByActivity(activityOid: ObjectId, optUser: Option[DynDoc]): Seq[DynDoc] = {
+    val documents: Seq[DynDoc] = optUser match {
+      case None => BWMongoDB3.document_master.find(Map("activity_id" -> activityOid))
+      case Some(user) =>
+        val actions: Seq[DynDoc] = Activity.allActions(activityOid).
+            filter(action => Action.actionUsers(action).contains(user._id[ObjectId]))
+        val actionNames = actions.map(_.name[String])
+        BWMongoDB3.document_master.find(Map("activity_id" -> activityOid,
+            "action_name" -> Map("$in" -> actionNames)))
+    }
+    documents
+  }
+
+  private def documentsByPhase(user: DynDoc, phaseOid: ObjectId): Seq[DynDoc] = {
+    val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val userHasPhaseRole = Phase.phaseLevelUsers(phase).contains(user._id[ObjectId])
+    val activityOids = Phase.allActivityOids(phase)
+    val documents: Seq[DynDoc] = if (userHasPhaseRole) {
+      activityOids.flatMap(activityOid => documentsByActivity(activityOid, None))
+    } else {
+      activityOids.flatMap(activityOid => documentsByActivity(activityOid, Some(user)))
+    }
+    documents
+  }
+
+  private def documentsByProject(user: DynDoc, projectOid: ObjectId): Seq[DynDoc] = {
+    val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+    val userHasProjectRole = Project.projectLevelUsers(project).contains(user._id[ObjectId])
+    val documents: Seq[DynDoc] = if (userHasProjectRole) {
+      BWMongoDB3.document_master.find(Map("project_id" -> projectOid, "name" -> Map("$exists" -> true)))
+    } else {
+      val phaseOids = Project.allPhaseOids(project)
+      phaseOids.flatMap(phaseOid => documentsByPhase(user, phaseOid))
+    }
+    documents
+  }
+
+  private def findDocuments(user: DynDoc):
+      Seq[DynDoc] = {
     val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
 
@@ -50,10 +89,15 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       filterNot(d => d.has("category") && d.category[String] == "SYSTEM")
   }
 
-  private def getDocuments(user: DynDoc): Seq[Document] = {
+  private def getDocuments(user: DynDoc, optProjectOid: Option[ObjectId], optPhaseOid: Option[ObjectId]):
+      Seq[Document] = {
     val docOid2labels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(user)
-    val docs: Seq[DynDoc] = findDocuments(user)
-    val docProperties: Seq[Document] = docs.map(d => {
+    val docRecords: Seq[DynDoc] = (optProjectOid, optPhaseOid) match {
+      case (_, Some(phaseOid)) => documentsByPhase(user, phaseOid)
+      case (Some(projectOid), _) => documentsByProject(user, projectOid)
+      case _ => findDocuments(user)
+    }
+    val docProperties: Seq[Document] = docRecords.map(d => {
       val versions: Seq[DynDoc] = GetDocumentVersionsList.versions(d)
       val systemLabels = GetDocumentsSummary.getSystemLabels(d)
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
@@ -86,12 +130,14 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    //val parameters = getParameterMap(request)
+    val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val allDocuments = getDocuments(freshUserRecord)
+      val projectOid: Option[ObjectId] = parameters.get("project_id").map(pid => new ObjectId(pid))
+      val phaseOid: Option[ObjectId] = parameters.get("phase_id").map(pid => new ObjectId(pid))
+      val allDocuments = getDocuments(freshUserRecord, projectOid, phaseOid)
       response.getWriter.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

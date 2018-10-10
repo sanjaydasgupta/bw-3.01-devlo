@@ -99,6 +99,10 @@ object Project {
   def allPhases(project: DynDoc): Seq[DynDoc] = allPhaseOids(project).
       map(phaseOid => BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head)
 
+  def allActivities(project: DynDoc): Seq[DynDoc] = allPhases(project).flatMap(Phase.allActivities)
+
+  def allActions(project: DynDoc): Seq[DynDoc] = allActivities(project).flatMap(Activity.allActions)
+
   def projectLevelUsers(project: DynDoc): Seq[ObjectId] = {
     if (project.has("assigned_roles")) {
       (project.admin_person_id[ObjectId] +:

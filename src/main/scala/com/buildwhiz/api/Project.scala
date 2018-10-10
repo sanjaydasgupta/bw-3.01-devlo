@@ -95,21 +95,22 @@ class Project extends HttpServlet with RestUtils {
 
 object Project {
 
-  def projectUsers(project: DynDoc): Seq[ObjectId] = {
+  def allPhaseOids(project: DynDoc): Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
+  def allPhases(project: DynDoc): Seq[DynDoc] = allPhaseOids(project).
+      map(phaseOid => BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head)
 
-    val users = if (project.has("assigned_roles")) {
-      project.admin_person_id[ObjectId] +: project.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
+  def projectLevelUsers(project: DynDoc): Seq[ObjectId] = {
+    if (project.has("assigned_roles")) {
+      (project.admin_person_id[ObjectId] +:
+          project.assigned_roles[Many[Document]].map(_.person_id[ObjectId])).distinct
     } else {
       Seq(project.admin_person_id[ObjectId])
     }
+  }
 
-    val phaseUsers = {
-      val phaseOids = project.phase_ids[Many[ObjectId]]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
-      phases.flatMap(Phase.phaseUsers)
-    }
-
-    (users ++ phaseUsers).distinct
+  def allProjectUsers(project: DynDoc): Seq[ObjectId] = {
+    val phaseUsers = allPhases(project).flatMap(Phase.allPhaseUsers)
+    (projectLevelUsers(project) ++ phaseUsers).distinct
   }
 
   def renewUserAssociations(request: HttpServletRequest, projectOidOption: Option[ObjectId] = None): Unit = {
@@ -119,7 +120,7 @@ object Project {
 
       case Some(projectOid) =>
         val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-        val userOids: Seq[ObjectId] = projectUsers(project)
+        val userOids: Seq[ObjectId] = allProjectUsers(project)
 
         val updateResult = BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> userOids)),
             Map("$addToSet" -> Map("project_ids" -> projectOid)))

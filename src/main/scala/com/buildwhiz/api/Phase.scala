@@ -106,29 +106,28 @@ class Phase extends HttpServlet with RestUtils {
 
 object Phase {
 
-  def actionUsers(action: DynDoc): Seq[ObjectId] = {
-    if (action.has("assigned_roles"))
-      action.assignee_person_id[ObjectId] +: action.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
-    else
-      Seq(action.assignee_person_id[ObjectId])
-  }
+  def allActivityOids(phase: DynDoc): Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
+  def allActivities(phase: DynDoc): Seq[DynDoc] = allActivityOids(phase).
+    map(activityOid => BWMongoDB3.activities.find(Map("_id" -> activityOid)).head)
+  def allActions(phase: DynDoc): Seq[DynDoc] = allActivities(phase).flatMap(_.actions[Many[Document]])
 
-  def phaseUsers(phase: DynDoc): Seq[ObjectId] = {
-
-    val users = if (phase.has("assigned_roles")) {
-      phase.admin_person_id[ObjectId] +: phase.assigned_roles[Many[Document]].map(_.person_id[ObjectId])
+  def phaseLevelUsers(phase: DynDoc): Seq[ObjectId] = {
+    if (phase.has("assigned_roles")) {
+      (phase.admin_person_id[ObjectId] +:
+          phase.assigned_roles[Many[Document]].map(_.person_id[ObjectId])).distinct
     } else {
       Seq(phase.admin_person_id[ObjectId])
     }
+  }
 
-    val taskUsers = {
-      val activityOids = phase.activity_ids[Many[ObjectId]]
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
-      val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
-      actions.flatMap(actionUsers)
+  def allPhaseUsers(phase: DynDoc): Seq[ObjectId] = {
+
+    val actionUsers = {
+      val actions = Phase.allActions(phase)
+      actions.flatMap(Action.actionUsers)
     }
 
-    (users ++ taskUsers).distinct
+    (phaseLevelUsers(phase) ++ actionUsers).distinct
   }
 
 }

@@ -1,7 +1,7 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.api.Project
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -9,8 +9,6 @@ import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-
-import scala.collection.JavaConverters._
 
 class OwnedProjects extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -53,11 +51,8 @@ object OwnedProjects {
 
     project.is_managed = project.admin_person_id[ObjectId] == personOid
     project.can_end = canEnd(project)
-    val phaseOids = project.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
-    val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]]).asJava
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
-    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
+    val phases: Seq[DynDoc] = Project.allPhases(project)
+    val actions: Seq[DynDoc] = Project.allActions(project)
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
       project.display_status = "waiting"
     else if (actions.exists(action => action.status[String] == "waiting"))
@@ -66,6 +61,7 @@ object OwnedProjects {
       project.display_status = "idle"
     else
       project.display_status = project.status[String]
+    project.docsUrl = s"docs?project_id=${project._id[ObjectId]}"
     project.asDoc.remove("phase_ids")
     project
   }

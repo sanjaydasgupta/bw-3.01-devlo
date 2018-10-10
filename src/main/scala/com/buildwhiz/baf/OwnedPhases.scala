@@ -93,6 +93,7 @@ object OwnedPhases {
     val subBpmns: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "")
     phase.sub_bpmns = subBpmns.sortBy(_.name[String]).map(_.asDoc)
     phase.healthy = healthy(phase)
+    phase.docsUrl = s"docs?phase_id=${phase._id[ObjectId]}"
     phase.remove("activity_ids")
     phase
   }

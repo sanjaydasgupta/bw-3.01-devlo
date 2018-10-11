@@ -46,7 +46,27 @@
           <!-- Project Selected -->
           <table data-ng-if="projectsCtrl.selectedProject != null"
               class="table table-condensed table-bordered table-hover">
-            <tr><th class="bg-primary text-center">Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})</th></tr>
+            <tr>
+              <th class="bg-primary text-center">
+              Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})
+                <label style="width:25px;"></label>
+                <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
+                  Manager: <div class="btn-group" data-uib-dropdown>
+                  <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
+                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'">
+                    {{projectsCtrl.selectedProjectManager.name}} <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="project-manager-dropdown">
+                    <li data-ng-repeat="projectManager in projectsCtrl.phaseManagers" role="menuitem">
+                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.projectManagerSelect(projectManager)">{{projectManager.name}}</a>
+                    </li>
+                  </ul>
+                  </div>
+                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.projectManagerSet()"
+                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+                </span>
+              </th>
+            </tr>
             <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isBuildWhizAdmin()">
               <td>
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
@@ -73,22 +93,6 @@
                         data-ng-disabled="!projectsCtrl.selectedProject.can_end || projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button>
                 <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.deleteSelectedProject()"
                         data-ng-disabled="projectsCtrl.selectedProject.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
-                <label style="width:25px;"></label>
-                <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
-                  Manager: <div class="btn-group" data-uib-dropdown>
-                  <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
-                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'">
-                    {{projectsCtrl.selectedProjectManager.name}} <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="project-manager-dropdown">
-                    <li data-ng-repeat="projectManager in projectsCtrl.phaseManagers" role="menuitem">
-                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.projectManagerSelect(projectManager)">{{projectManager.name}}</a>
-                    </li>
-                  </ul>
-                </div>
-                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.projectManagerSet()"
-                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
-                </span>
               </td>
             </tr>
             <tr data-ng-if="!projectsCtrl.isProjectManager() && !projectsCtrl.isBuildWhizAdmin">

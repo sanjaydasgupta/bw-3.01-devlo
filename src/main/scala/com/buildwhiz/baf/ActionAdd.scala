@@ -25,7 +25,8 @@ class ActionAdd extends HttpServlet with HttpUtils {
       val bpmnName = parameters("bpmn_name")
       val duration = parameters.getOrElse("duration", "00:00:00")
       val actionDescription = parameters.getOrElse("description", s"$actionName (no description)")
-      ActionAdd.add(request, activityOid, actionName, actionDescription, typ, bpmnName, assigneeOid, duration)
+      val optionalRole = parameters.get("assignee_role")
+      ActionAdd.add(request, activityOid, actionName, actionDescription, typ, bpmnName, assigneeOid, duration, optionalRole)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -53,7 +54,7 @@ object ActionAdd {
   }
 
   def add(request: HttpServletRequest, activityOid: ObjectId, actionName: String, actionDescription: String,
-          typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String): Unit = {
+          typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String, optRole: Option[String]): Unit = {
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
     if (existingActionNames.contains(actionName))
@@ -66,6 +67,8 @@ object ActionAdd {
     val action: Document = Map("name" -> actionName, "description" -> actionDescription, "type" -> typ,
       "status" -> "defined", "inbox" -> mainInbox(activityOid, actionName), "outbox" -> outbox, "duration" -> duration,
       "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
+    if (optRole.isDefined)
+      action.append("assignee_role", optRole.get)
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
       Map("$push" -> Map("actions" -> action)))
     if (updateResult.getModifiedCount == 0)

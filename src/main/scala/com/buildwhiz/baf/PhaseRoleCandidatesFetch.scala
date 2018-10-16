@@ -9,16 +9,14 @@ import org.bson.types.ObjectId
 
 class PhaseRoleCandidatesFetch extends HttpServlet with HttpUtils {
 
-  private def getRoleCandidates(phase: DynDoc): Map[String, Seq[DynDoc]] = {
-    val nameRegex = "Prabhas|Sanjay|Gouri|Tester."
-    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("first_name" -> Map("$regex" -> nameRegex))).
-        sortBy(_.first_name[String])
-    ProjectConfigurationFetch.standardRoleNames.zipWithIndex.map(roleWithIndex =>
-      roleWithIndex._1 -> candidates.take(roleWithIndex._2 * 2 + 1).map(c => {
-        val name = s"${c.first_name[String]} ${c.last_name[String]}"
-        val candidateInfo: DynDoc = Map("person_id" -> c._id[ObjectId].toString, "name" -> name)
-        candidateInfo
-      })).toMap
+  private def getRoleCandidates(phase: DynDoc, roleName: String): Seq[DynDoc] = {
+    val roleRegex = s".*$roleName.*"
+    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("roles" -> Map("$regex" -> roleRegex)))
+    val result: Seq[DynDoc] = candidates.map(candidate => {
+      val name = s"${candidate.first_name[String]} ${candidate.last_name[String]}"
+      Map("person_id" -> candidate._id[ObjectId].toString, "name" -> name)
+    })
+    result.sortBy(_.name[String])
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -28,11 +26,11 @@ class PhaseRoleCandidatesFetch extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val roleName = parameters("role_name")
-      val candidates: Seq[DynDoc] = getRoleCandidates(phase).getOrElse(roleName, Seq.empty[DynDoc])
+      val candidates: Seq[DynDoc] = getRoleCandidates(phase, roleName)
       response.getWriter.println(candidates.map(d => d.asDoc.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${candidates.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod,

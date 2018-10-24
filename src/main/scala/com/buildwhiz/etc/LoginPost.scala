@@ -52,6 +52,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
       Map("name" -> "RFIs", "url" -> "/rfi", "icon" -> "rfis"),
       Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
       Map("name" -> "Tasks", "url" -> "/tasks", "icon" -> "tasks"),
+      Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
       Map("name" -> "Help", "url" -> "/help", "icon" -> "help")
     )
     person.put("menu_items", menuItems)

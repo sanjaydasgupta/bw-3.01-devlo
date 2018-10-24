@@ -33,9 +33,9 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
       val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
       val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
       new Document(Map("_id" -> rfi._id[ObjectId].toString, "subject" -> rfi.subject[String],
+        "project_id" -> rfi.project_id[ObjectId].toString, "author" -> authorName, "date" -> date,
         "text" -> (if(lastMessage.text[Any] == null) "" else lastMessage.text[String]),
-        "documents" -> "???", "author" -> authorName, "date" -> date,
-        "closeable" -> closeable, "closed" -> (rfi.status[String] == "closed")))
+        "documents" -> "???", "closed" -> (rfi.status[String] == "closed"), "closeable" -> closeable))
     })
     rfiProperties
   }

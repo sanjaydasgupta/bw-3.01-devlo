@@ -39,6 +39,13 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
       val user: DynDoc = getUser(request)
       val senderOid = user._id[ObjectId]
       val text = postData.text[String]
+      val recipientRoles: Seq[String] = if (postData.has("recipient_roles"))
+        postData.recipient_roles[Many[String]]
+      else
+        Seq.empty[String]
+      //
+      // ToDo: handle recipientRoles
+      //
       val message = if (postData.has("attachments")) {
         val attachments: Seq[Document] = postData.attachments[String].split("#").
           map(a => {val d = Document.parse(a); if (d.containsKey("$$hashKey")) d.remove("$$hashKey"); d}).toSeq

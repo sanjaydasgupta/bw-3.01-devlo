@@ -37,11 +37,15 @@ class UserPropertyFetch extends HttpServlet with HttpUtils {
         case Some(em) => em.email[String]
         case None => ""
       }
+      val emailWork = emails.find(_.`type`[String] == "work") match {
+        case Some(em) => em.email[String]
+        case None => ""
+      }
 
-      val resultFields = Map("email_enabled" -> freshUserRecord.email_enabled[Boolean],
-        "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile, "email_other" -> emailOther)
-      val resultPerson = new Document(resultFields)
-      response.getWriter.print(resultPerson.toJson)
+      val resultFields: Document = Map("email_enabled" -> freshUserRecord.email_enabled[Boolean],
+          "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile,
+          "email_work" -> emailWork, "email_other" -> emailOther)
+      response.getWriter.print(resultFields.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", s"EXIT-OK", request)

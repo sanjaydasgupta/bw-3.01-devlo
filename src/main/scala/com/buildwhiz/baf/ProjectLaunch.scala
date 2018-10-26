@@ -20,14 +20,10 @@ class ProjectLaunch extends HttpServlet with HttpUtils {
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       if (user._id[ObjectId] != theProject.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
-      // instantiate BPMN process (ProjectControl)
-      //val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-      //rts.startProcessInstanceByKey("Infra-Project-Control2", Map("project_id" -> parameters("project_id")))
-      // update project status and start-timestamp
-      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
+      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid, "status" -> "defined"),
         Map("$set" -> Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis)))
-      response.setContentType("text/plain")
-      response.getWriter.print(updateResult)
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       val logMessage = s"Launched project '${theProject.name[String]}' (${theProject._id[ObjectId]})"
       BWLogger.audit(getClass.getName, "doPost", logMessage, request)

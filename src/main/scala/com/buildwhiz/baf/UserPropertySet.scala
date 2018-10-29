@@ -58,18 +58,16 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val personOid = parameters.get("person_id").map(new ObjectId(_))
       val userRecord: DynDoc = getUser(request)
+      val personOid: ObjectId = parameters.get("person_id") match {
+        case None => userRecord._id[ObjectId]
+        case Some(pid) => new ObjectId(pid)
+      }
       val properties = parameters("property").split("\\|")
       val values = parameters("value").split("\\|")
-      (userRecord, personOid) match {
-        case (user, None) =>
-          properties.zip(values).foreach(pv => setProperty(user._id[ObjectId], pv._1, pv._2))
-        case (user, Some(pOid)) =>
-          if (user._id[ObjectId] != pOid && !userRecord.roles[Many[String]].contains("BW-Admin"))
-            throw new IllegalArgumentException("Not permitted")
-          properties.zip(values).foreach(pv => setProperty(pOid, pv._1, pv._2))
-      }
+      if (userRecord._id[ObjectId] != personOid && !userRecord.roles[Many[String]].contains("BW-Admin"))
+        throw new IllegalArgumentException("Not permitted")
+      properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"

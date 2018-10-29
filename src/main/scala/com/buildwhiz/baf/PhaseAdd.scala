@@ -294,7 +294,6 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables,
         "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00")
-      //BWLogger.log(getClass.getName, "doPost", s"""Timers: ${timers.map(_.name[String]).mkString("[", ", ", "]")}""", request)
       BWMongoDB3.phases.insertOne(newPhase)
       val phaseOid = newPhase.y._id[ObjectId]
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
@@ -302,19 +301,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val namesRolesAndDescriptions = allProcessNameAndDoms.flatMap(getActivityNameRoleDescriptionAndId)
-      //BWLogger.log(getClass.getName, "doPost", s"""Activity-Names-n-Roles: ${namesAndRoles.mkString("[", ", ", "]")}""", request)
       for ((bpmn, activityName, activityRole, activityDescription, bpmnId) <- namesRolesAndDescriptions) {
-        // drawings: COVER SHEET, SITE PLAN, BASEMENT FLOOR PLAN
-        val availableDocumentList = Seq("57207549d5d8ad331d2ea699", "57207549d5d8ad331d2ea69a",
-          "57207549d5d8ad331d2ea69b").map(id => new ObjectId(id))
-        val inbox = new java.util.ArrayList[ObjectId]
-        inbox.addAll(availableDocumentList.asJava)
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
-          "inbox" -> inbox, "outbox" -> new java.util.ArrayList[ObjectId],
+          "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
           "assignee_person_id" -> adminPersonOid, "duration" -> "00:00:00", "start" -> "00:00:00", "end" -> "00:00:00")
-        val actions = new java.util.ArrayList[Document]
-        actions.asScala.append(action)
-        val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> actions,
+        val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
           "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> "00:00:00")
         BWMongoDB3.activities.insertOne(activity)

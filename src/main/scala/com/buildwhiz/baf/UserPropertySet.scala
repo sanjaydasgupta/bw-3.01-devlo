@@ -50,7 +50,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         Map("$pullAll" -> Map("roles" -> Seq(s"$qualifier:$roleName", roleName)))
     }
     val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid), setterSpec)
-    if (updateResult.getModifiedCount == 0)
+    if (updateResult.getMatchedCount == 0 && updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
 

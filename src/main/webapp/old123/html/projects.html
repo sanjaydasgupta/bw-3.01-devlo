@@ -52,8 +52,7 @@
                 <label style="width:25px;"></label>
                 <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
                   Manager: <div class="btn-group" data-uib-dropdown>
-                  <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
-                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'">
+                  <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
                     {{projectsCtrl.selectedProjectManager.name}} <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="project-manager-dropdown">
@@ -62,8 +61,8 @@
                     </li>
                   </ul>
                   </div>
-                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.projectManagerSet()"
-                          data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.projectManagerSet()">
+                    <span class="glyphicon glyphicon-ok-circle"></span> Set</button>
                 </span>
               </th>
             </tr>

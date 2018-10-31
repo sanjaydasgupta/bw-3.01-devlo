@@ -65,6 +65,8 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       }
       val properties = parameters("property").split("\\|")
       val values = parameters("value").split("\\|")
+      if (properties.length != values.length)
+        throw new IllegalArgumentException("Unmatched properties and values")
       if (userRecord._id[ObjectId] != personOid && !userRecord.roles[Many[String]].contains("BW-Admin"))
         throw new IllegalArgumentException("Not permitted")
       properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))

@@ -22,7 +22,7 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
       val newPassword = postData.new_password[String]
        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> userOid, "password" -> md5(oldPassword)),
         Map("$set" -> Map(s"password" -> md5(newPassword))))
-      if (updateResult.getModifiedCount == 0)
+      if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val info: DynDoc = BWMongoDB3.instance_info.find().head
       val instanceName = info.instance[String]

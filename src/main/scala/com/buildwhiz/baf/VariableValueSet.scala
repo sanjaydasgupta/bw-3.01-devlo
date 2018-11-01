@@ -29,15 +29,22 @@ class VariableValueSet extends HttpServlet with HttpUtils {
   }
 }
 
-object VariableValueSet {
+object VariableValueSet extends HttpUtils {
 
   def set(request: HttpServletRequest, response: HttpServletResponse, phaseOid: ObjectId, label: String,
         bpmnName: String, value: String): Unit = {
 
     val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val user: DynDoc = getUser(request)
+    if (user._id[ObjectId] != thePhase.admin_person_id[ObjectId])
+      throw new IllegalArgumentException("Not permitted")
+
     val variables: Seq[DynDoc] = thePhase.variables[Many[Document]]
     val labelsAndBpmnNames: Seq[(String, String)] = variables.map(v => (v.label[String], v.bpmn_name[String]))
     val variableIdx = labelsAndBpmnNames.indexOf((label, bpmnName))
+
+    if (variableIdx == -1)
+      throw new IllegalArgumentException(s"no such label: '$label'")
 
     val typedValue = variables(variableIdx).`type`[String] match {
       case "B" => value.toBoolean

@@ -154,13 +154,19 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
         incomingFlows.map(f => if (f.getTarget == node) f.getSource else f.getTarget)
       }
 
-      def minMin(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).min)
+      def minMin(offsets: Seq[(Long, Long)]): (Long, Long) = if (offsets.isEmpty)
+        (0L, 0L)
+      else
+        (offsets.map(_._1).min, offsets.map(_._2).min)
       //def minMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).min, offsets.map(_._2).max)
-      def maxMax(offsets: Seq[(Long, Long)]) = (offsets.map(_._1).max, offsets.map(_._2).max)
+      def maxMax(offsets: Seq[(Long, Long)]): (Long, Long) = if (offsets.isEmpty)
+        (0L, 0L)
+      else
+        (offsets.map(_._1).max, offsets.map(_._2).max)
 
       node match {
         case serviceTask: ServiceTask =>
-          minMin(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+          maxMax(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
         case _: StartEvent =>
           processOffset
         case parallelGateway: ParallelGateway =>
@@ -177,11 +183,11 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
         case exclusiveGateway: ExclusiveGateway =>
           minMin(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
         case endEvent: EndEvent =>
-          val exitOffset = minMin(predecessors(endEvent).
+          val exitOffset = maxMax(predecessors(endEvent).
               map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
           exitOffset
         case callActivity: CallActivity =>
-          val entryOffset = minMin(predecessors(callActivity).
+          val entryOffset = maxMax(predecessors(callActivity).
               map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
             val duration = getActivityDuration(callActivity.getId, phase, bpmnName)
@@ -197,13 +203,17 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
             exitOffset
           }
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val entryOffset = minMin(predecessors(ice).
+          val entryOffset = maxMax(predecessors(ice).
               map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
           val delay = getTimerDuration(ted, phase, bpmnName)
           setTimerSchedule(ted, phase, bpmnName, entryOffset, delay, onCriticalPath)
           val exitOffset = (entryOffset._1 + delay, entryOffset._2 + delay)
           exitOffset
+        case anyOtherType =>
+          val entryOffset = maxMax(predecessors(anyOtherType).
+            map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+          entryOffset
       }
     }
 

@@ -120,8 +120,11 @@ angular.module('BuildWhizApp')
             var bpmnElements = [];
             var clickableObjects = {};
 
-            var annotationOverlayHtml = function (bgColor, duration) {
-                return '<div style="background-color:' + bgColor + '; white-space:nowrap; padding:3px; border:1px solid #333; border-radius:5px; font-size: x-small; width:50px;">' + duration + '</div>';
+            var annotationOverlayHtml = function (bgColor, duration, onCriticalPath) {
+                var borderInfo = onCriticalPath ? "3px solid red;" : "1px solid black;";
+                return '<div style="background-color:' + bgColor + '; white-space:nowrap; padding:3px; ' +
+                        ' border:' + borderInfo + ' border-radius:5px;' +
+                        ' font-size: x-small; width:50px;">' + duration + '</div>';
             }
 
             //Initialize bpmn
@@ -190,13 +193,13 @@ angular.module('BuildWhizApp')
             var annotateBPMN = function () {
                 bpmnElements.forEach(function (bpmnElement) {
                     var bgcolor = self.statusColor(bpmnElement.status);
-
+                    var onCriticalPath = bpmnElement.hasOwnProperty("on_critical_path") && bpmnElement.on_critical_path;
                     overlays.add(bpmnElement.bpmn_id, {
                         position: {
                             top: -30,
                             left: (bpmnElement.width - 50) / 2
                         },
-                        html: annotationOverlayHtml(bgcolor, bpmnElement.duration)
+                        html: annotationOverlayHtml(bgcolor, bpmnElement.duration, onCriticalPath)
                     });
                 });
             }

@@ -273,11 +273,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val bpmnName = parameters("bpmn_name")
+      val bpmnName = "Phase-" + parameters("bpmn_name")
       val phaseName = parameters("phase_name")
       val projectOid = new ObjectId(parameters("project_id"))
       val adminPersonOid = new ObjectId(parameters("admin_person_id"))
-      val allProcessNameAndDoms = getBpmnDomByName(s"Phase-$bpmnName")
+      val allProcessNameAndDoms = getBpmnDomByName(bpmnName)
       val validationErrors = validatePhase(allProcessNameAndDoms)
       val validationMessage = if (validationErrors.isEmpty) "Validation OK" else s"""Validation ERRORS: ${validationErrors.mkString(", ")}"""
       BWLogger.log(getClass.getName, "doPost", validationMessage, request)
@@ -290,7 +290,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
           append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")
       }).asJava
-      val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> s"Phase-$bpmnName",
+      val newPhase: Document = Map("name" -> phaseName, "status" -> "defined", "bpmn_name" -> bpmnName,
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables,
         "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00")
@@ -315,6 +315,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
+      PhaseBpmnTraverse.scheduleBpmnElements(bpmnName, phaseOid, request)
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val newPhaseDocument = OwnedPhases.processPhase(newPhase, project, adminPersonOid).asDoc
       response.getWriter.println(bson2json(newPhaseDocument))

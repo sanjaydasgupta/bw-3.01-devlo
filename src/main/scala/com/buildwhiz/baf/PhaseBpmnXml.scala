@@ -28,7 +28,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", timer.duration[String]).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).
-        append("status", timer.status[String]).append("elementType", "timer")
+        append("status", timer.status[String]).append("elementType", "timer").append("elementType", "timer").
+        append("on_critical_path", if (timer.has("on_critical_path")) timer.on_critical_path[Boolean] else false)
     })
   }
 
@@ -40,7 +41,8 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", start).append("end", end).append("status", stamp.status[String]).
-        append("name", stamp.name[String]).append("elementType", "subprocessCall")
+        append("name", stamp.name[String]).append("elementType", "subprocessCall").
+        append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
     })
   }
 
@@ -63,7 +65,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
           append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
         new Document("type", action.`type`[String]).append("name", action.name[String]).append("status", status).
           append("duration", action.duration[String]).append("assignee", shortAssignee).
-          append("start", action.start[String]).append("end", action.end[String])
+          append("start", action.start[String]).append("end", action.end[String]).
+          append("on_critical_path",
+              if (action.has("on_critical_path")) action.on_critical_path[Boolean] else false)
       })
       val status = if (tasks.exists(_.get("status") == "waiting"))
         "waiting"
@@ -74,7 +78,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).
         append("start", activity.start[String]).append("end", activity.end[String]).
-        append("duration", getActivityDuration(activity)).append("elementType", "activity")
+        append("duration", getActivityDuration(activity)).append("elementType", "activity").
+        append("on_critical_path",
+            if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })
     returnActivities
   }

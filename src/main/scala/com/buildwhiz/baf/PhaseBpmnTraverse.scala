@@ -144,14 +144,16 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
   private def scheduleBpmnElements(topLevelBpmnModel: BpmnModelInstance, phase: DynDoc, topLevelBpmnName: String,
       request: HttpServletRequest): (Long, Long) = {
 
-    def getTimeOffset(node: FlowNode, processOffset: (Long, Long), bpmnName: String, onCriticalPath: Boolean = false):
-        (Long, Long) = {
+    def getTimeOffset(node: FlowNode, processOffset: (Long, Long), bpmnName: String, onCriticalPath: Boolean,
+        seenNodes: Set[FlowNode]): (Long, Long) = {
       BWLogger.log(getClass.getName, "getTimeOffset",
         s"ENTRY(${node.getName})", request)
 
       def predecessors(node: FlowNode): Seq[FlowNode] = {
         val incomingFlows: Seq[SequenceFlow] = node.getIncoming.asScala.toSeq
-        incomingFlows.map(f => if (f.getTarget == node) f.getSource else f.getTarget)
+        val allPredecessors = incomingFlows.map(f => if (f.getTarget == node) f.getSource else f.getTarget)
+        val unseenPredecessors = allPredecessors.diff(seenNodes.toSeq)
+        unseenPredecessors
       }
 
       def minMin(offsets: Seq[(Long, Long)]): (Long, Long) = if (offsets.isEmpty)
@@ -165,30 +167,32 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
         (offsets.map(_._1).max, offsets.map(_._2).max)
 
       node match {
-        case serviceTask: ServiceTask =>
-          maxMax(predecessors(serviceTask).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+        case serviceTask: ServiceTask => maxMax(predecessors(serviceTask).
+            map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + serviceTask)))
         case _: StartEvent =>
           processOffset
         case parallelGateway: ParallelGateway =>
           val predecessorNodes = predecessors(parallelGateway)
-          val offsets = predecessorNodes.map(n => getTimeOffset(n, processOffset, bpmnName))
+          val offsets = predecessorNodes.map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath = false,
+              seenNodes + parallelGateway))
           if (onCriticalPath) {
             val criticalPath = if (predecessorNodes.length == 1)
               predecessorNodes.head
             else
               predecessorNodes.zip(offsets).reduce((a, b) => if (a._2._2 > b._2._2) a else b)._1
-            getTimeOffset(criticalPath, processOffset, bpmnName, onCriticalPath)
+            getTimeOffset(criticalPath, processOffset, bpmnName, onCriticalPath, seenNodes + parallelGateway)
           }
           maxMax(offsets)
         case exclusiveGateway: ExclusiveGateway =>
-          minMin(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+          minMin(predecessors(exclusiveGateway).map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath,
+              seenNodes + exclusiveGateway)))
         case endEvent: EndEvent =>
           val exitOffset = maxMax(predecessors(endEvent).
-              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + endEvent)))
           exitOffset
         case callActivity: CallActivity =>
           val entryOffset = maxMax(predecessors(callActivity).
-              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + callActivity)))
           if (callActivity.getCalledElement == "Infra-Activity-Handler") {
             val duration = getActivityDuration(callActivity.getId, phase, bpmnName)
             setActivitySchedule(callActivity.getId, phase, bpmnName, entryOffset, duration, onCriticalPath)
@@ -198,13 +202,14 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
             val calledElement = callActivity.getCalledElement
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            val exitOffset = getTimeOffset(endEvents.head, entryOffset, calledElement, onCriticalPath)
+            val exitOffset = getTimeOffset(endEvents.head, entryOffset, calledElement, onCriticalPath,
+                seenNodes + callActivity)
             setSubProcessSchedule(phase, calledElement, bpmnName, entryOffset, exitOffset, onCriticalPath)
             exitOffset
           }
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
           val entryOffset = maxMax(predecessors(ice).
-              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+              map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + ice)))
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
           val delay = getTimerDuration(ted, phase, bpmnName)
           setTimerSchedule(ted, phase, bpmnName, entryOffset, delay, onCriticalPath)
@@ -212,13 +217,13 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
           exitOffset
         case anyOtherType =>
           val entryOffset = maxMax(predecessors(anyOtherType).
-            map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath)))
+            map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + anyOtherType)))
           entryOffset
       }
     }
 
     val endEvents: Seq[EndEvent] = topLevelBpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = getTimeOffset(endEvents.head, (0, 0), topLevelBpmnName, onCriticalPath = true)
+    val offset = getTimeOffset(endEvents.head, (0, 0), topLevelBpmnName, onCriticalPath = true, Set.empty[FlowNode])
     val end = ms2duration(duration2ms(phase.start[String]) + (offset._1 + offset._2) / 2)
     val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
       Map("$set" -> Map("end" -> end)))

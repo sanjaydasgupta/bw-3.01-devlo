@@ -42,13 +42,21 @@ class UserPropertyFetch extends HttpServlet with HttpUtils {
         case None => ""
       }
 
+      val textEnabled: Boolean = if (freshUserRecord.has("text_enabled"))
+        freshUserRecord.text_enabled[Boolean]
+      else
+        false
+
       val emailEnabled: Boolean = if (freshUserRecord.has("email_enabled"))
         freshUserRecord.email_enabled[Boolean]
       else
         false
+
       val resultFields: Document = Map("email_enabled" -> emailEnabled,
+          "text_enabled" -> textEnabled,
           "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile,
           "email_work" -> emailWork, "email_other" -> emailOther)
+
       response.getWriter.print(resultFields.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

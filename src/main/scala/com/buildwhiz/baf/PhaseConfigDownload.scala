@@ -31,7 +31,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     }
   }
 
-  private def addTasksSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+  private def addTasksSheet(workbook: XSSFWorkbook, phase: DynDoc, bpmnName: String): Int = {
     val activityIds: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
       "bpmn_name" -> bpmnName))
@@ -63,7 +63,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     taskSheet.getLastRowNum + 1
   }
 
-  private def addVariablesSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+  private def addVariablesSheet(workbook: XSSFWorkbook, phase: DynDoc, bpmnName: String): Int = {
     val variablesSheet = workbook.createSheet("Variables")
     val headerInfo = Seq(("Variable-Name", 60), ("Type", 20), ("Value", 20))
     makeHeaderRow(variablesSheet, headerInfo)
@@ -81,7 +81,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     variablesSheet.getLastRowNum + 1
   }
 
-  private def addTimersSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+  private def addTimersSheet(workbook: XSSFWorkbook, phase: DynDoc, bpmnName: String): Int = {
     val timersSheet = workbook.createSheet("Timers")
     val headerInfo = Seq(("Timer-Name", 60), ("Type", 20), ("Value", 20))
     makeHeaderRow(timersSheet, headerInfo)
@@ -96,7 +96,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     timersSheet.getLastRowNum + 1
   }
 
-  private def addDocumentsSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+  private def addDocumentsSheet(workbook: XSSFWorkbook, phase: DynDoc, bpmnName: String): Int = {
     val documentSheet = workbook.createSheet("Documents")
     val headerInfo = Seq(("Name", 40), ("Description", 40), ("Labels\nCSVs", 40),
       ("Mandatory\nYes/No", 25), ("Content Type\nimage/pdf/word/excel/bim/xml", 25),
@@ -141,7 +141,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     documentSheet.getLastRowNum + 1
   }
 
-  private def addObserverRolesSheet(workbook: XSSFWorkbook, project: DynDoc, phase: DynDoc, bpmnName: String): Int = {
+  private def addObserverRolesSheet(workbook: XSSFWorkbook, phase: DynDoc, bpmnName: String): Int = {
     val rolesSheet = workbook.createSheet("Observers")
     val headerInfo = Seq(("Observer-Role", 30), ("Assignee-Name", 60), ("Assignee-Id", 30))
     makeHeaderRow(rolesSheet, headerInfo)
@@ -164,17 +164,15 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      val projectOid = new ObjectId(parameters("project_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
       val bpmnName = parameters("bpmn_name")
       val workbook = new XSSFWorkbook()
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val taskNbr = addTasksSheet(workbook, project, phase, bpmnName)
-      val varNbr = addVariablesSheet(workbook, project, phase, bpmnName)
-      val timerNbr = addTimersSheet(workbook, project, phase, bpmnName)
-      val docNbr = addDocumentsSheet(workbook, project, phase, bpmnName)
-      val roleNbr = addObserverRolesSheet(workbook, project, phase, bpmnName)
+      val taskNbr = addTasksSheet(workbook, phase, bpmnName)
+      val varNbr = addVariablesSheet(workbook, phase, bpmnName)
+      val timerNbr = addTimersSheet(workbook, phase, bpmnName)
+      val docNbr = addDocumentsSheet(workbook, phase, bpmnName)
+      val roleNbr = addObserverRolesSheet(workbook, phase, bpmnName)
       workbook.write(response.getOutputStream)
       response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       response.setStatus(HttpServletResponse.SC_OK)

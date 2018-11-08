@@ -4,7 +4,6 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, CryptoUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -19,7 +18,7 @@ class Person extends HttpServlet with RestUtils with CryptoUtils {
       val d2 = new Document(d)
       d2.put("password", md5(d.getString("first_name")))
       d2.put("roles", List.empty[String].asJava)
-      d2.put("project_ids", List(project430ForestOid).asJava)
+      d2.put("project_ids", Seq.empty[ObjectId].asJava)
       d2
     }
 

@@ -20,7 +20,7 @@ class PhaseAdministratorsFetch extends HttpServlet {
       val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("roles" -> Map("$regex" -> roleRegex)))
       val managers: Seq[Document] = candidates.map(candidate => {
         val name = s"${candidate.first_name[String]} ${candidate.last_name[String]}"
-        Map("person_id" -> candidate._id[ObjectId].toString, "name" -> name)
+        Map("_id" -> candidate._id[ObjectId].toString, "name" -> name)
       })
       response.getWriter.print(managers.map(_.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")

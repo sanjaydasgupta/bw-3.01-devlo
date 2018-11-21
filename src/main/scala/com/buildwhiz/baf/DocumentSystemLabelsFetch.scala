@@ -9,18 +9,37 @@ import org.bson.types.ObjectId
 
 class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
-  val labels = Seq("Architecture.Cover-Sheet", "Architecture.Site-Plan", "Architecture.Floor-Plans",
+  val labels = Seq(
+    "Architecture", "Architecture.Cover-Sheet", "Architecture.Site-Plan", "Architecture.Floor-Plans",
     "Architecture.Schedules", "Architecture.Electrical-Plan", "Architecture.Sections", "Architecture.Elevations",
-    "Architecture.3D-Perspectives", "Architecture.Details", "Structure.General-Notes", "Structure.Details",
-    "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",
-    "Electrical.Notes", "Electrical.Single-Line-Dia.", "Electrical.Energy-Calcs",
-    "Electrical.Common-Area-Elec-Plans", "Mechanical.Notes", "Mechanical.Schedules", "Mechanical.Specifications",
+    "Architecture.3D-Perspectives", "Architecture.Details",
+
+    "Building-Science", "Building-Science.FLOOR-PLAN", "Building-Science.Other", "Building-Science.Details",
+    "Building-Science.support-docs",
+
+    "Electrical", "Electrical.Notes", "Electrical.Single-Line-Dia.", "Electrical.Energy-Calcs",
+    "Electrical.Common-Area-Elec-Plans",
+
+    "Elevator", "Elevator.Submittals", "Elevator.Brochure",
+
+    "Fire-Alarm", "Fire-Alarm.Plans", "Fire-Alarm.Other",
+
+    "Fire-Sprinkler", "Fire-Sprinkler.Underground", "Fire-Sprinkler.Other",
+
+    "Interior", "Interior.Details",
+
+    "Mechanical", "Mechanical.Notes", "Mechanical.Schedules", "Mechanical.Specifications",
     "Mechanical.Energy-Calcs", "Mechanical.Mech-Plans", "Mechanical.Details", "Mechanical.Controls",
-    "Plumbing.Notes", "Plumbing.Calculations", "Plumbing.Specifications", "Plumbing.Plumbing-Plans",
-    "Plumbing.Details", "Interior.Details", "Studies.Geo-Technical", "Elevator.Submittals", "Elevator.Brochure",
-    "Building-Science.Details", "Building-Science.support-docs", "Fire-Sprinkler.Underground",
-    "Fire-Sprinkler.Other", "Fire-Alarm.Plans", "Fire-Alarm.Other", "Mechanical.Work-dwgs",
-    "Mechanical.Cut-sheets", "Building-Science.FLOOR-PLAN", "Building-Science.Other")
+    "Mechanical.Work-dwgs", "Mechanical.Cut-sheets",
+
+    "Plumbing", "Plumbing.Notes", "Plumbing.Calculations", "Plumbing.Specifications", "Plumbing.Plumbing-Plans",
+    "Plumbing.Details",
+
+    "Structure", "Structure.General-Notes", "Structure.Details",
+    "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",
+
+    "Studies", "Studies.Geo-Technical",
+  )
 
   private def getProjectLabels(projectOid: ObjectId): Seq[String] = {
     val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head

@@ -1,9 +1,11 @@
 package com.buildwhiz.web
 
 import java.io.{File, FileInputStream}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
+
+import scala.sys.process._
 
 class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
 
@@ -42,18 +44,23 @@ class BrowseFiles extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def downloadFile(file: File, response: HttpServletResponse): Unit = {
-    val fis = new FileInputStream(file)
-    val buffer = new Array[Byte](4096)
-    def copy(): Unit = {
-      val length = fis.read(buffer)
-      if (length == buffer.length) {
-        response.getOutputStream.write(buffer)
-        copy()
-      } else if (length > 0) {
-        response.getOutputStream.write(buffer, 0, length)
+    if (file.getName == "catalina.out") {
+      val contents: String = Seq("tail", "-n", "10000", file.getCanonicalPath).!!
+      response.getOutputStream.print(contents)
+    } else {
+      val fis = new FileInputStream(file)
+      val buffer = new Array[Byte](4096)
+      def copy(): Unit = {
+        val length = fis.read(buffer)
+        if (length == buffer.length) {
+          response.getOutputStream.write(buffer)
+          copy()
+        } else if (length > 0) {
+          response.getOutputStream.write(buffer, 0, length)
+        }
       }
+      copy()
     }
-    copy()
     response.setContentType("application/octet-stream")
   }
 

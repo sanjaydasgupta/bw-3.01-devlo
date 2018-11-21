@@ -52,7 +52,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       BWLogger.log(getClass.getName, "doGet", s"query: ${fullQuery.toSeq}", request)
       val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(fullQuery)
 
-      val docRecords = allRecords.filter(_.category[String] != "SYSTEM")
+      val docRecords = allRecords.filter(rec => !rec.has("category") || rec.category[String] != "SYSTEM")
       val recsWithVersions: Seq[Map[String, AnyRef]] = docRecords.flatMap(docRec => {
         val allVersions: Seq[DynDoc] = docRec.versions[Many[Document]].sortBy(d => -d.timestamp[Long]).
             zipWithIndex.map(t => {t._1.version = t._2; t._1})

@@ -28,7 +28,7 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
     if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
       throw new IllegalArgumentException(s"File named '$name' already exists")
 
-    val assertions = query.toSeq.filterNot(_._2.isInstanceOf[Map[String, _]]).toMap
+    val assertions = query.toSeq.filterNot(_._2.isInstanceOf[Map[_, _]]).toMap
     val newDocumentRecord = new Document(Map("name" -> name, "description" -> description, "project_id" -> projectOid,
       "type" -> fileType, "timestamp" -> System.currentTimeMillis, "versions" -> Seq.empty[Document],
       "labels" -> systemLabels) ++ assertions)
@@ -41,21 +41,9 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
     val parameters = getParameterMap(request)
     try {
 
-      if (request.getParts.size != 1)
-        throw new IllegalArgumentException(s"parts.length != 1")
-      val part = request.getParts.iterator.next()
-      val uploadSize = part.getSize
-      if (uploadSize > 1e7)
-        throw new IllegalArgumentException(s"attachment size > 10Mb")
-      val submittedFilename = part.getSubmittedFileName
-      val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
-        "unknown.tmp"
-      else
-        submittedFilename
-      val inputStream = part.getInputStream
       val name = parameters("name")
-      val description = parameters("description")
-      val fileType = parameters("type")
+      val description = parameters.getOrElse("description", "???")
+      val fileType = parameters.getOrElse("type", "???")
       val projectOid = new ObjectId(parameters("project_id"))
       val labels = parameters("labels").split(",").toSeq
       val user: DynDoc = getUser(request)
@@ -63,12 +51,31 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
 
       val docOid = createProjectDocumentRecord(name, description, fileType, labels, projectOid, None, None)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
-      val storageResult = DocumentVersionUpload.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
-        docOid, timestamp, "-", user._id[ObjectId], request)
+
+      val partCount = if (request.getContentType.contains("multipart")) request.getParts.size else 0
+      if (partCount > 1)
+        throw new IllegalArgumentException(s"multiple file uploads not allowed")
+      if (partCount == 1) {
+        val part = request.getParts.iterator.next()
+        //val uploadSize = part.getSize
+        //if (uploadSize > 1e7)
+        //  throw new IllegalArgumentException(s"attachment size > 10Mb")
+        val submittedFilename = part.getSubmittedFileName
+        val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
+          "unknown.tmp"
+        else
+          submittedFilename
+        val inputStream = part.getInputStream
+        val storageResult = DocumentVersionUpload.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+          docOid, timestamp, "-", user._id[ObjectId], request)
+        val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
+        BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      } else {
+        val message = s"Created new document record for '$name'"
+        BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      }
 
       response.setStatus(HttpServletResponse.SC_OK)
-      val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
-      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

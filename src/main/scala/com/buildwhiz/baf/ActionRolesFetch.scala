@@ -40,7 +40,7 @@ object ActionRolesFetch {
       throw new IllegalArgumentException(s"bad action type: '$actionType'")
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val allTheActions: Seq[DynDoc] = theActivity.actions[Many[Document]]
-    val theMainAction: DynDoc = allTheActions.filter(_.`type` == "main").head
+    val theMainAction: DynDoc = allTheActions.filter(_.`type`[String] == "main").head
     val resultRoles = if (theMainAction.has("assignee_role")) {
       val mainActionRole = theMainAction.assignee_role[String]
       Seq(mainActionRole, s"$mainActionRole-$actionType")

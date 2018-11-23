@@ -47,7 +47,14 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       val projectOid = new ObjectId(parameters("project_id"))
       val labels = parameters("labels").split(",").toSeq
       val user: DynDoc = getUser(request)
-      val timestamp = System.currentTimeMillis
+      val authorOid = parameters.get("author_id") match {
+        case Some(id) => new ObjectId(id)
+        case None => user._id[ObjectId]
+      }
+      val timestamp = parameters.get("timestamp") match {
+        case Some(ts) => ts.toLong
+        case None => System.currentTimeMillis
+      }
 
       val docOid = createProjectDocumentRecord(name, description, fileType, labels, projectOid, None, None)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
@@ -57,9 +64,6 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         throw new IllegalArgumentException(s"multiple file uploads not allowed")
       if (partCount == 1) {
         val part = request.getParts.iterator.next()
-        //val uploadSize = part.getSize
-        //if (uploadSize > 1e7)
-        //  throw new IllegalArgumentException(s"attachment size > 10Mb")
         val submittedFilename = part.getSubmittedFileName
         val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
           "unknown.tmp"
@@ -67,7 +71,7 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
           submittedFilename
         val inputStream = part.getInputStream
         val storageResult = DocumentVersionUpload.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
-          docOid, timestamp, "-", user._id[ObjectId], request)
+          docOid, timestamp, "-", authorOid, request)
         val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
       } else {

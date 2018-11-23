@@ -126,7 +126,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       }
       documentProperties
     })
-    docProperties
+    docProperties.groupBy(_.getString("_id")).toSeq.map(_._2.head)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

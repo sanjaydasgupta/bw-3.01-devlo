@@ -26,6 +26,8 @@
   self.userPhoneWorkOriginal = '';
   self.userPhoneMobileOriginal = '';
 
+  self.newUserPassword = '<None>';
+
   $http.get('api/Role').then(
     function(res) {
       self.allRoles = res.data;
@@ -266,6 +268,20 @@
 
   self.isSelf = function() {
     return self.selectedUser._id == AuthService.data._id;
+  }
+
+  self.userPasswordRenew = function() {
+    var query = 'baf/UserPasswordRenew?user_id=' + self.selectedUser._id;
+    $log.log('GET ' + query);
+    $http.get(query).then(
+      function(res) {
+        $log.log('OK GET ' + query);
+        self.newUserPassword = res.data['password'];
+      },
+      function(res) {
+        alert('ERROR GET ' + query);
+      }
+    )
   }
 
 }]);

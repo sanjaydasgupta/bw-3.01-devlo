@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0s6wbkh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
+  <bpmn:process id="CEQA-Initial-Study" name="CEQA Initial Study" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow_140wdug</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:callActivity id="IS-1" name="IS-1" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_140wdug</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_05sddub</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Review-of-IS-1-by-sponsor" name="Review of IS-1&#10;by sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_0t43el9</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1xh0llp</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1w7txdf">
+        <bpmn:targetRef>IS-1-Review-Documents</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Review-of-IS-1-by-EP" name="Review of IS-1&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1wam4vc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ab870p</bpmn:outgoing>
+      <bpmn:property id="Property_1dfrxai" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_1bxjksi">
+        <bpmn:sourceRef>IS-1-Review-Documents</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1dfrxai</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="IS-2" name="IS-2" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_00zb1yc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1az9fwa</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Review-of-IS-2-by-EP" name="Review of IS-2&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1p9n44z</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00cmn6t</bpmn:outgoing>
+      <bpmn:property id="Property_01qpnfl" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_1xfd2dv">
+        <bpmn:sourceRef>IS-2-Review-Documents</bpmn:sourceRef>
+        <bpmn:targetRef>Property_01qpnfl</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Review-of-IS-2-by-sponsor" name="Review of IS-2&#10;by sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_0cuu239</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0f21rcg</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0uctc4i">
+        <bpmn:targetRef>IS-2-Review-Documents</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_05sddub" sourceRef="IS-1" targetRef="ExclusiveGateway_1q10r8y" />
+    <bpmn:sequenceFlow id="SequenceFlow_00zb1yc" sourceRef="ExclusiveGateway_0lbf0ez" targetRef="IS-2" />
+    <bpmn:sequenceFlow id="SequenceFlow_0cuu239" sourceRef="ExclusiveGateway_05d7hnk" targetRef="Review-of-IS-2-by-sponsor" />
+    <bpmn:sequenceFlow id="SequenceFlow_1az9fwa" sourceRef="IS-2" targetRef="ExclusiveGateway_05d7hnk" />
+    <bpmn:sequenceFlow id="SequenceFlow_0f21rcg" sourceRef="Review-of-IS-2-by-sponsor" targetRef="ExclusiveGateway_0969tgd" />
+    <bpmn:sequenceFlow id="SequenceFlow_140wdug" sourceRef="Start" targetRef="IS-1" />
+    <bpmn:callActivity id="Screen-Check-IS" name="Screen check IS" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1rhucvr</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0d7g49v</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Screen-Review-by-EP" name="Screen Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_0p8qiiv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ufbhmh</bpmn:outgoing>
+      <bpmn:property id="Property_1xanshe" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_07a0jc5">
+        <bpmn:sourceRef>Screen-Review-Documents</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1xanshe</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Screen-Review-by-Sponsor" name="Screen Review&#10;by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1wjwe6o</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0jmx7ka</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0h73y9x">
+        <bpmn:targetRef>Screen-Review-Documents</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_00cmn6t" sourceRef="Review-of-IS-2-by-EP" targetRef="ExclusiveGateway_0969tgd" />
+    <bpmn:callActivity id="Print-Check-IS" name="Print check IS" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_16t8bl7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_18drkck</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Print-Review-by-EP" name="Print Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_0cpvvj8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_02jifxw</bpmn:outgoing>
+      <bpmn:property id="Property_10mbrwm" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_18f5iob">
+        <bpmn:sourceRef>Print-Review-Documents</bpmn:sourceRef>
+        <bpmn:targetRef>Property_10mbrwm</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Print-Review-by-Sponsor" name="Print Review&#10;by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:incoming>SequenceFlow_1rkqhvj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_09eoe80</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0n5gstx">
+        <bpmn:targetRef>Print-Review-Documents</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0ufbhmh" sourceRef="Screen-Review-by-EP" targetRef="ExclusiveGateway_0n5oibm" />
+    <bpmn:sequenceFlow id="SequenceFlow_0w2o4d7" sourceRef="ExclusiveGateway_1pwamee" targetRef="End" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0w2o4d7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1rhucvr" sourceRef="ExclusiveGateway_0969tgd" targetRef="Screen-Check-IS" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0969tgd">
+      <bpmn:incoming>SequenceFlow_00cmn6t</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0f21rcg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1rhucvr</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1p9n44z" sourceRef="ExclusiveGateway_05d7hnk" targetRef="Review-of-IS-2-by-EP" />
+    <bpmn:parallelGateway id="ExclusiveGateway_05d7hnk">
+      <bpmn:incoming>SequenceFlow_1az9fwa</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1p9n44z</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0cuu239</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1wam4vc" sourceRef="ExclusiveGateway_1q10r8y" targetRef="Review-of-IS-1-by-EP" />
+    <bpmn:sequenceFlow id="SequenceFlow_0t43el9" sourceRef="ExclusiveGateway_1q10r8y" targetRef="Review-of-IS-1-by-sponsor" />
+    <bpmn:dataObjectReference id="IS-1-Review-Documents" name="IS-1 Review&#10;Documents" dataObjectRef="DataObject_1apvwdq" />
+    <bpmn:dataObject id="DataObject_1apvwdq" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1q10r8y">
+      <bpmn:incoming>SequenceFlow_05sddub</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1wam4vc</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0t43el9</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1xh0llp" sourceRef="Review-of-IS-1-by-sponsor" targetRef="ExclusiveGateway_0lbf0ez" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ab870p" sourceRef="Review-of-IS-1-by-EP" targetRef="ExclusiveGateway_0lbf0ez" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0lbf0ez">
+      <bpmn:incoming>SequenceFlow_1xh0llp</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ab870p</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00zb1yc</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:dataObjectReference id="IS-2-Review-Documents" name="IS-2 Review&#10;Documents" dataObjectRef="DataObject_1vyyd64" />
+    <bpmn:dataObject id="DataObject_1vyyd64" />
+    <bpmn:sequenceFlow id="SequenceFlow_1wjwe6o" sourceRef="ExclusiveGateway_1wk122m" targetRef="Screen-Review-by-Sponsor" />
+    <bpmn:sequenceFlow id="SequenceFlow_0p8qiiv" sourceRef="ExclusiveGateway_1wk122m" targetRef="Screen-Review-by-EP" />
+    <bpmn:sequenceFlow id="SequenceFlow_0d7g49v" sourceRef="Screen-Check-IS" targetRef="ExclusiveGateway_1wk122m" />
+    <bpmn:sequenceFlow id="SequenceFlow_0jmx7ka" sourceRef="Screen-Review-by-Sponsor" targetRef="ExclusiveGateway_0n5oibm" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1wk122m">
+      <bpmn:incoming>SequenceFlow_0d7g49v</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1wjwe6o</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0p8qiiv</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="ExclusiveGateway_0n5oibm">
+      <bpmn:incoming>SequenceFlow_0ufbhmh</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0jmx7ka</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_16t8bl7</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_16t8bl7" sourceRef="ExclusiveGateway_0n5oibm" targetRef="Print-Check-IS" />
+    <bpmn:sequenceFlow id="SequenceFlow_18drkck" sourceRef="Print-Check-IS" targetRef="ExclusiveGateway_1xihxzc" />
+    <bpmn:sequenceFlow id="SequenceFlow_1rkqhvj" sourceRef="ExclusiveGateway_1xihxzc" targetRef="Print-Review-by-Sponsor" />
+    <bpmn:sequenceFlow id="SequenceFlow_0cpvvj8" sourceRef="ExclusiveGateway_1xihxzc" targetRef="Print-Review-by-EP" />
+    <bpmn:sequenceFlow id="SequenceFlow_09eoe80" sourceRef="Print-Review-by-Sponsor" targetRef="ExclusiveGateway_1pwamee" />
+    <bpmn:sequenceFlow id="SequenceFlow_02jifxw" sourceRef="Print-Review-by-EP" targetRef="ExclusiveGateway_1pwamee" />
+    <bpmn:dataObjectReference id="Screen-Review-Documents" name="Screen Review&#10;Documents" dataObjectRef="DataObject_0kv109p" />
+    <bpmn:dataObject id="DataObject_0kv109p" />
+    <bpmn:dataObjectReference id="Print-Review-Documents" name="Print Review&#10;Documents" dataObjectRef="DataObject_1mb5kd6" />
+    <bpmn:dataObject id="DataObject_1mb5kd6" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1xihxzc">
+      <bpmn:incoming>SequenceFlow_18drkck</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1rkqhvj</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0cpvvj8</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="ExclusiveGateway_1pwamee">
+      <bpmn:incoming>SequenceFlow_09eoe80</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_02jifxw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0w2o4d7</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:textAnnotation id="IS-Ready-for-DEIR-as-Appendix">
+      <bpmn:text>IS Ready for DEIR as Appendix</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1qs3et1" sourceRef="End" targetRef="IS-Ready-for-DEIR-as-Appendix" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="CEQA-Initial-Study">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="4" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="11" y="205" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1yekmrn_di" bpmnElement="IS-1">
+        <dc:Bounds x="74" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_16r18rh_di" bpmnElement="Review-of-IS-1-by-sponsor">
+        <dc:Bounds x="297" y="27" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1s4itrq_di" bpmnElement="Review-of-IS-1-by-EP">
+        <dc:Bounds x="297" y="256" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1eyku4h_di" bpmnElement="IS-2">
+        <dc:Bounds x="492" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1m262oz_di" bpmnElement="Review-of-IS-2-by-EP">
+        <dc:Bounds x="705" y="256" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1hmlqu0_di" bpmnElement="Review-of-IS-2-by-sponsor">
+        <dc:Bounds x="705" y="27" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_05sddub_di" bpmnElement="SequenceFlow_05sddub">
+        <di:waypoint x="174" y="180" />
+        <di:waypoint x="229" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_00zb1yc_di" bpmnElement="SequenceFlow_00zb1yc">
+        <di:waypoint x="465" y="180" />
+        <di:waypoint x="492" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cuu239_di" bpmnElement="SequenceFlow_0cuu239">
+        <di:waypoint x="653" y="155" />
+        <di:waypoint x="653" y="67" />
+        <di:waypoint x="705" y="67" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1az9fwa_di" bpmnElement="SequenceFlow_1az9fwa">
+        <di:waypoint x="592" y="180" />
+        <di:waypoint x="628" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0f21rcg_di" bpmnElement="SequenceFlow_0f21rcg">
+        <di:waypoint x="805" y="67" />
+        <di:waypoint x="866" y="67" />
+        <di:waypoint x="866" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_140wdug_di" bpmnElement="SequenceFlow_140wdug">
+        <di:waypoint x="40" y="180" />
+        <di:waypoint x="74" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_05glyel_di" bpmnElement="Screen-Check-IS">
+        <dc:Bounds x="74" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1fb4vfc_di" bpmnElement="Screen-Review-by-EP">
+        <dc:Bounds x="297" y="606" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_11hkn10_di" bpmnElement="Screen-Review-by-Sponsor">
+        <dc:Bounds x="297" y="389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_00cmn6t_di" bpmnElement="SequenceFlow_00cmn6t">
+        <di:waypoint x="805" y="296" />
+        <di:waypoint x="866" y="296" />
+        <di:waypoint x="866" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_17rzyvg_di" bpmnElement="Print-Check-IS">
+        <dc:Bounds x="492" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1pudb5o_di" bpmnElement="Print-Review-by-EP">
+        <dc:Bounds x="705" y="606" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_159u5d1_di" bpmnElement="Print-Review-by-Sponsor">
+        <dc:Bounds x="705" y="389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ufbhmh_di" bpmnElement="SequenceFlow_0ufbhmh">
+        <di:waypoint x="397" y="646" />
+        <di:waypoint x="440" y="646" />
+        <di:waypoint x="440" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0w2o4d7_di" bpmnElement="SequenceFlow_0w2o4d7">
+        <di:waypoint x="891" y="535" />
+        <di:waypoint x="937" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1xcu1n5_di" bpmnElement="End">
+        <dc:Bounds x="937" y="517" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="946" y="560" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1rhucvr_di" bpmnElement="SequenceFlow_1rhucvr">
+        <di:waypoint x="891" y="180" />
+        <di:waypoint x="941" y="180" />
+        <di:waypoint x="941" y="362" />
+        <di:waypoint x="39" y="362" />
+        <di:waypoint x="39" y="535" />
+        <di:waypoint x="74" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0i0wmhc_di" bpmnElement="ExclusiveGateway_0969tgd">
+        <dc:Bounds x="841" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1p9n44z_di" bpmnElement="SequenceFlow_1p9n44z">
+        <di:waypoint x="653" y="205" />
+        <di:waypoint x="653" y="296" />
+        <di:waypoint x="705" y="296" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_10joij9_di" bpmnElement="ExclusiveGateway_05d7hnk">
+        <dc:Bounds x="628" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wam4vc_di" bpmnElement="SequenceFlow_1wam4vc">
+        <di:waypoint x="254" y="205" />
+        <di:waypoint x="254" y="296" />
+        <di:waypoint x="297" y="296" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0t43el9_di" bpmnElement="SequenceFlow_0t43el9">
+        <di:waypoint x="254" y="155" />
+        <di:waypoint x="254" y="67" />
+        <di:waypoint x="297" y="67" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataObjectReference_1xrjxn8_di" bpmnElement="IS-1-Review-Documents">
+        <dc:Bounds x="329" y="155" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="277" y="115" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1w7txdf_di" bpmnElement="DataOutputAssociation_1w7txdf">
+        <di:waypoint x="347" y="107" />
+        <di:waypoint x="347" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_1bxjksi_di" bpmnElement="DataInputAssociation_1bxjksi">
+        <di:waypoint x="347" y="205" />
+        <di:waypoint x="347" y="256" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1g9yj13_di" bpmnElement="ExclusiveGateway_1q10r8y">
+        <dc:Bounds x="229" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1xh0llp_di" bpmnElement="SequenceFlow_1xh0llp">
+        <di:waypoint x="397" y="67" />
+        <di:waypoint x="440" y="67" />
+        <di:waypoint x="440" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ab870p_di" bpmnElement="SequenceFlow_0ab870p">
+        <di:waypoint x="397" y="296" />
+        <di:waypoint x="440" y="296" />
+        <di:waypoint x="440" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1p6xyew_di" bpmnElement="ExclusiveGateway_0lbf0ez">
+        <dc:Bounds x="415" y="155" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_0zj0hqd_di" bpmnElement="IS-2-Review-Documents">
+        <dc:Bounds x="737" y="155" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="687" y="119" width="61" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0uctc4i_di" bpmnElement="DataOutputAssociation_0uctc4i">
+        <di:waypoint x="755" y="107" />
+        <di:waypoint x="755" y="155" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_1xfd2dv_di" bpmnElement="DataInputAssociation_1xfd2dv">
+        <di:waypoint x="755" y="205" />
+        <di:waypoint x="755" y="256" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wjwe6o_di" bpmnElement="SequenceFlow_1wjwe6o">
+        <di:waypoint x="254" y="510" />
+        <di:waypoint x="254" y="429" />
+        <di:waypoint x="297" y="429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0p8qiiv_di" bpmnElement="SequenceFlow_0p8qiiv">
+        <di:waypoint x="254" y="560" />
+        <di:waypoint x="254" y="646" />
+        <di:waypoint x="297" y="646" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0d7g49v_di" bpmnElement="SequenceFlow_0d7g49v">
+        <di:waypoint x="174" y="535" />
+        <di:waypoint x="229" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jmx7ka_di" bpmnElement="SequenceFlow_0jmx7ka">
+        <di:waypoint x="397" y="429" />
+        <di:waypoint x="440" y="429" />
+        <di:waypoint x="440" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1881rpl_di" bpmnElement="ExclusiveGateway_1wk122m">
+        <dc:Bounds x="229" y="510" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_1gglnly_di" bpmnElement="ExclusiveGateway_0n5oibm">
+        <dc:Bounds x="415" y="510" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_16t8bl7_di" bpmnElement="SequenceFlow_16t8bl7">
+        <di:waypoint x="465" y="535" />
+        <di:waypoint x="492" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_18drkck_di" bpmnElement="SequenceFlow_18drkck">
+        <di:waypoint x="592" y="535" />
+        <di:waypoint x="628" y="535" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1rkqhvj_di" bpmnElement="SequenceFlow_1rkqhvj">
+        <di:waypoint x="653" y="510" />
+        <di:waypoint x="653" y="429" />
+        <di:waypoint x="705" y="429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cpvvj8_di" bpmnElement="SequenceFlow_0cpvvj8">
+        <di:waypoint x="653" y="560" />
+        <di:waypoint x="653" y="646" />
+        <di:waypoint x="705" y="646" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_09eoe80_di" bpmnElement="SequenceFlow_09eoe80">
+        <di:waypoint x="805" y="429" />
+        <di:waypoint x="866" y="429" />
+        <di:waypoint x="866" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_02jifxw_di" bpmnElement="SequenceFlow_02jifxw">
+        <di:waypoint x="805" y="646" />
+        <di:waypoint x="866" y="646" />
+        <di:waypoint x="866" y="560" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataObjectReference_04t3nb2_di" bpmnElement="Screen-Review-Documents">
+        <dc:Bounds x="329" y="510" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="258" y="475" width="75" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0h73y9x_di" bpmnElement="DataOutputAssociation_0h73y9x">
+        <di:waypoint x="347" y="469" />
+        <di:waypoint x="347" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_07a0jc5_di" bpmnElement="DataInputAssociation_07a0jc5">
+        <di:waypoint x="347" y="560" />
+        <di:waypoint x="347" y="606" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataObjectReference_13vy5to_di" bpmnElement="Print-Review-Documents">
+        <dc:Bounds x="737" y="510" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="683" y="478" width="62" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0n5gstx_di" bpmnElement="DataOutputAssociation_0n5gstx">
+        <di:waypoint x="755" y="469" />
+        <di:waypoint x="755" y="510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_18f5iob_di" bpmnElement="DataInputAssociation_18f5iob">
+        <di:waypoint x="755" y="560" />
+        <di:waypoint x="755" y="606" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0kw08y5_di" bpmnElement="IS-Ready-for-DEIR-as-Appendix">
+        <dc:Bounds x="891" y="437" width="100" height="54" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1qs3et1_di" bpmnElement="Association_1qs3et1">
+        <di:waypoint x="952" y="518" />
+        <di:waypoint x="946" y="491" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_187bam0_di" bpmnElement="ExclusiveGateway_1xihxzc">
+        <dc:Bounds x="628" y="510" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_1t3e50f_di" bpmnElement="ExclusiveGateway_1pwamee">
+        <dc:Bounds x="841" y="510" width="50" height="50" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

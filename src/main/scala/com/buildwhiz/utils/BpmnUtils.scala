@@ -22,7 +22,12 @@ trait BpmnUtils {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
       repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala
-    allProcessDefinitions.find(_.getKey == bpmnName).head
+    allProcessDefinitions.find(_.getKey == bpmnName) match {
+      case Some(pd) => pd
+      case None =>
+        val message = s"process '$bpmnName' not found among ${allProcessDefinitions.map(_.getKey).mkString(", ")}"
+        throw new IllegalArgumentException(message)
+    }
   }
 
   def getBpmnName(de: DelegateExecution): String = getProcessDefinition(de).getKey

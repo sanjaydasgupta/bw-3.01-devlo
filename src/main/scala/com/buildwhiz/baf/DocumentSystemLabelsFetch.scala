@@ -9,24 +9,38 @@ import org.bson.types.ObjectId
 
 class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
-  val labels = Seq(
-    "Architecture", "Architecture.Cover-Sheet", "Architecture.Site-Plan", "Architecture.Floor-Plans",
-    "Architecture.Schedules", "Architecture.Electrical-Plan", "Architecture.Sections", "Architecture.Elevations",
-    "Architecture.3D-Perspectives", "Architecture.Details",
+  private val labels = Seq(
+    "Architecture", "Architecture.3D-Perspectives", "Architecture.Contracts", "Architecture.Cover-Sheet",
+    "Architecture.Site-Plan", "Architecture.Floor-Plans", "Architecture.Schedules", "Architecture.Electrical-Plan",
+    "Architecture.Sections", "Architecture.Elevations", "Architecture.Details",
 
     "Building-Science", "Building-Science.FLOOR-PLAN", "Building-Science.Other", "Building-Science.Details",
     "Building-Science.support-docs",
+
+    "Curr-Plan",
+
+    "EIR", "EIR.Contract", "EIR.Meeting-Notes",
 
     "Electrical", "Electrical.Notes", "Electrical.Single-Line-Dia.", "Electrical.Energy-Calcs",
     "Electrical.Common-Area-Elec-Plans",
 
     "Elevator", "Elevator.Submittals", "Elevator.Brochure",
 
+    "Env-Plan",
+
     "Fire-Alarm", "Fire-Alarm.Plans", "Fire-Alarm.Other",
 
     "Fire-Sprinkler", "Fire-Sprinkler.Underground", "Fire-Sprinkler.Other",
 
+    "Geotech", "Geotech.Invoice",
+
+    "HRE", "HRE.Contracts", "HRE.Reports",
+
     "Interior", "Interior.Details",
+
+    "Land-Use",
+
+    "Laser-Scan", "Laser-Scan.Contracts",
 
     "Mechanical", "Mechanical.Notes", "Mechanical.Schedules", "Mechanical.Specifications",
     "Mechanical.Energy-Calcs", "Mechanical.Mech-Plans", "Mechanical.Details", "Mechanical.Controls",
@@ -35,10 +49,22 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
     "Plumbing", "Plumbing.Notes", "Plumbing.Calculations", "Plumbing.Specifications", "Plumbing.Plumbing-Plans",
     "Plumbing.Details",
 
+    "Pre-App-Meeting",
+
+    "Preservation-Alternatives", "Preservation-Alternatives.Contracts",
+
+    "Public-Health",
+
+    "Solis-Report", "Solis-Report.Contracts", "Solis-Report.Reports",
+
     "Structure", "Structure.General-Notes", "Structure.Details",
     "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",
 
     "Studies", "Studies.Geo-Technical",
+
+    "Survey", "Survey.Contract",
+
+    "Wind-Study", "Wind-Study.Contracts", "Wind-Study.Invoice", "Wind-Study.Reports"
   )
 
   private def getProjectLabels(projectOid: ObjectId): Seq[String] = {

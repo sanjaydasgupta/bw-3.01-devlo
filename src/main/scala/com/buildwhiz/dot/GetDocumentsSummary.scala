@@ -37,20 +37,30 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     documents
   }
 
+  private def filterDocumentsByUserRole(docs: Seq[DynDoc], user: DynDoc): Seq[DynDoc] = {
+    val userRoles: Seq[String] = user.roles[Many[String]]
+    val fullAccessRoles = Seq("BW-Admin", "Project-Manager", "Project-Owner")
+    if (userRoles.exists(role => fullAccessRoles.contains(role))) {
+      docs
+    } else if (userRoles.contains("Architect")) {
+      docs.filterNot(doc => doc.labels[Many[String]].exists(_.matches(".*(?:Contracts?|Invoices?).*")))
+    } else
+      Seq.empty[DynDoc]
+  }
+
   private def documentsByProject(user: DynDoc, projectOid: ObjectId): Seq[DynDoc] = {
     val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
     val userHasProjectRole = Project.projectLevelUsers(project).contains(user._id[ObjectId])
     val documents: Seq[DynDoc] = if (userHasProjectRole) {
-      BWMongoDB3.document_master.find(Map("project_id" -> projectOid, "name" -> Map("$exists" -> true)))
+      val allDocs = BWMongoDB3.document_master.find(Map("project_id" -> projectOid, "name" -> Map("$exists" -> true)))
+      filterDocumentsByUserRole(allDocs, user)
     } else {
-      val phaseOids = Project.allPhaseOids(project)
-      phaseOids.flatMap(phaseOid => documentsByPhase(user, phaseOid))
+      Seq.empty[DynDoc]
     }
     documents
   }
 
-  private def findDocuments(user: DynDoc):
-      Seq[DynDoc] = {
+  private def findDocuments(user: DynDoc): Seq[DynDoc] = {
     val projectOids: Seq[ObjectId] = user.project_ids[Many[ObjectId]]
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
 

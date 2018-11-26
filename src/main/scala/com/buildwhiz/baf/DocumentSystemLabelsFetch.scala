@@ -55,7 +55,7 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
     "Public-Health",
 
-    "Solis-Report", "Solis-Report.Contracts", "Solis-Report.Reports",
+    "Soils-Report", "Soils-Report.Contracts", "Soils-Report.Reports",
 
     "Structure", "Structure.General-Notes", "Structure.Details",
     "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",

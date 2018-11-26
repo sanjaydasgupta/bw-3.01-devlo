@@ -46,16 +46,21 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   */
 
-  private def addMenuItems(person: Document): Unit = {
+  private def addMenuItems(person: DynDoc): Unit = {
     val menuItems: Seq[Document] = Seq(
-      Map("name" -> "Documents", "url" -> "/docs", "icon" -> "documents"),
       Map("name" -> "RFIs", "url" -> "/rfi", "icon" -> "rfis"),
       Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
       Map("name" -> "Tasks", "url" -> "/tasks", "icon" -> "tasks"),
       Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
       Map("name" -> "Help", "url" -> "/help", "icon" -> "help")
     )
-    person.put("menu_items", menuItems)
+    //val documentMenu = if (person.project_ids[Many[ObjectId]].length == 1)
+    //  Seq(Map("name" -> "Documents", "url" -> s"/docs?project_id=${person.project_ids[Many[ObjectId]].head.toString}",
+    //      "icon" -> "documents"))
+    //else
+    //  Seq.empty[Map[String, String]]
+
+    person.asDoc.put("menu_items", /*documentMenu ++ */menuItems)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -74,15 +79,15 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
           case None =>
             BWLogger.log(getClass.getName, "doPost", s"Login ERROR: $email", request)
             """{"_id": "", "first_name": "", "last_name": ""}"""
-          case Some(p) =>
-            cookieSessionSet(email, p, request, response)
-            addMenuItems(p)
-            if (!p.containsKey("document_filter_labels"))
-              p.put("document_filter_labels", Seq.empty[String])
+          case Some(personRecord) =>
+            cookieSessionSet(email, personRecord, request, response)
+            addMenuItems(personRecord)
+            if (!personRecord.containsKey("document_filter_labels"))
+              personRecord.put("document_filter_labels", Seq.empty[String])
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
-              "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => p.containsKey(f))
-            val resultPerson = new Document(resultFields.map(f => (f, p.get(f))).toMap)
-            recordLoginTime(p)
+              "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => personRecord.containsKey(f))
+            val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap)
+            recordLoginTime(personRecord)
             BWLogger.audit(getClass.getName, "doPost", "Login OK", request)
             bson2json(resultPerson)
         }

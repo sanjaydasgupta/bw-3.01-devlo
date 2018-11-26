@@ -46,13 +46,13 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
 
       val logicLabels: Seq[String] = GetDocumentsSummary.getLogicalLabels(userLabels, user)
 
-      val csvUserLabels = (userLabels ++ logicLabels).map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
+      val csvUserLabels = (userLabels ++ logicLabels).sorted.map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
 
       val documentRecords: Seq[DynDoc] = docOids.
         map(oid => BWMongoDB3.document_master.find(Map("_id" -> oid)).head)
 
       val systemLabels: Seq[String] = documentRecords.
-        flatMap(docRecord => GetDocumentsSummary.getSystemLabels(docRecord)).distinct
+        flatMap(docRecord => GetDocumentsSummary.getSystemLabels(docRecord)).distinct.sorted
       val csvSystemLabels = systemLabels.map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
 
       response.getWriter.println(s"""{"user": $csvUserLabels, "system": $csvSystemLabels}""")

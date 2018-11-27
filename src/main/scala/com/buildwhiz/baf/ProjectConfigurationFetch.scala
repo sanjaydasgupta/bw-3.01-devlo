@@ -51,6 +51,6 @@ class ProjectConfigurationFetch extends HttpServlet with HttpUtils {
 
 object ProjectConfigurationFetch {
 
-  val standardRoleNames = Seq("Quality-Assurance", "Safety-Assurance", "Site-Management")
+  val standardRoleNames: Seq[String] = Seq("Quality-Assurance", "Safety-Assurance", "Site-Management", "Contributor")
 
 }

@@ -173,7 +173,7 @@
   }
 
   self.addNewUserDisabled = function() {
-    var re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$/
+    var re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,3}$/
     return self.newUserFirstName.trim() == '' || self.newUserLastName.trim() == '' ||
         !re.test(self.newUserEmailWork.trim());
   }

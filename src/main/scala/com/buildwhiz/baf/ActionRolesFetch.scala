@@ -36,7 +36,7 @@ object ActionRolesFetch {
     //
     // ToDo: use action_type to select roles
     //
-    if (!actionType.matches("review|prerequisite"))
+    if (!actionType.matches("review|prerequisite|main"))
       throw new IllegalArgumentException(s"bad action type: '$actionType'")
     val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
     val allTheActions: Seq[DynDoc] = theActivity.actions[Many[Document]]

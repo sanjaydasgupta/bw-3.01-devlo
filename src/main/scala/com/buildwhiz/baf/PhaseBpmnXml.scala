@@ -63,9 +63,12 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
         val shortAssignee = new Document("_id", assignee._id[ObjectId]).
           append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
-        new Document("type", action.`type`[String]).append("name", action.name[String]).append("status", status).
+        val actionType = action.`type`[String]
+        val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
+        val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
+        new Document("type", actionType).append("name", action.name[String]).append("status", status).
           append("duration", action.duration[String]).append("assignee", shortAssignee).
-          append("start", action.start[String]).append("end", action.end[String]).
+          append("start", action.start[String]).append("end", action.end[String]).append("role", actionRole).
           append("on_critical_path",
               if (action.has("on_critical_path")) action.on_critical_path[Boolean] else false)
       })

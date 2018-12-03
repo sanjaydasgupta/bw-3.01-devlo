@@ -37,6 +37,13 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     documents
   }
 
+  private def authoredDocuments(docs: Seq[DynDoc], user: DynDoc): Seq[DynDoc] = {
+    docs.filter(doc => {
+      val versions: Seq[DynDoc] = doc.versions[Many[DynDoc]]
+      versions.exists(v => v.author_person_id[ObjectId] == user._id[ObjectId])
+    })
+  }
+
   private def filterDocumentsByUserRole(docs: Seq[DynDoc], user: DynDoc): Seq[DynDoc] = {
     val userRoles: Seq[String] = user.roles[Many[String]]
     val fullAccessRoles = Seq("BW-Admin", "BW-Testing", "Project-Manager", "Project-Owner", "Project-Sponsor")
@@ -45,7 +52,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     } else if (userRoles.contains("Architect")) {
       docs.filterNot(doc => doc.labels[Many[String]].exists(_.matches(".*(?:Contracts?|Invoices?).*")))
     } else
-      Seq.empty[DynDoc]
+      authoredDocuments(docs, user)
   }
 
   private def documentsByProject(user: DynDoc, projectOid: ObjectId): Seq[DynDoc] = {
@@ -103,8 +110,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
       Seq[Document] = {
     val docOid2labels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(user)
     val docRecords: Seq[DynDoc] = (optProjectOid, optPhaseOid) match {
-      case (_, Some(phaseOid)) => documentsByPhase(user, phaseOid)
       case (Some(projectOid), _) => documentsByProject(user, projectOid)
+      case (_, Some(phaseOid)) => documentsByPhase(user, phaseOid)
       case _ => findDocuments(user)
     }
     val docProperties: Seq[Document] = docRecords.map(d => {

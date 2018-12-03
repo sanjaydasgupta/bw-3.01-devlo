@@ -39,7 +39,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
 
   private def filterDocumentsByUserRole(docs: Seq[DynDoc], user: DynDoc): Seq[DynDoc] = {
     val userRoles: Seq[String] = user.roles[Many[String]]
-    val fullAccessRoles = Seq("BW-Admin", "Project-Manager", "Project-Owner")
+    val fullAccessRoles = Seq("BW-Admin", "BW-Testing", "Project-Manager", "Project-Owner", "Project-Sponsor")
     if (userRoles.exists(role => fullAccessRoles.contains(role))) {
       docs
     } else if (userRoles.contains("Architect")) {

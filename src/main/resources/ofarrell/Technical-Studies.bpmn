@@ -22,6 +22,9 @@
     <bpmn:callActivity id="Soil-Study" name="Soil Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Soils-Consultant" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1bfgy9l</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_01p1dyh</bpmn:outgoing>
@@ -29,6 +32,9 @@
     <bpmn:callActivity id="Geotechnical-Study" name="Geotechnical Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Geotechnical-Engineer" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0gk3qpv</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0gkdqti</bpmn:outgoing>
@@ -36,6 +42,9 @@
     <bpmn:callActivity id="Shadow-Study" name="Shadow Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Sun-Study" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1xkpn03</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1qh0uie</bpmn:outgoing>
@@ -43,6 +52,9 @@
     <bpmn:callActivity id="Acoustic-Study" name="Acoustic Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Accoustic-Consultant" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0hevchm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ctamhj</bpmn:outgoing>
@@ -50,6 +62,9 @@
     <bpmn:callActivity id="Traffic-Study" name="Traffic Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Transportation-Engineer" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_01diwyn</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1dykms6</bpmn:outgoing>
@@ -57,6 +72,9 @@
     <bpmn:callActivity id="Wind-Study" name="Wind Study" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Wind-Consultant" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0mkei4n</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1kx3j9q</bpmn:outgoing>

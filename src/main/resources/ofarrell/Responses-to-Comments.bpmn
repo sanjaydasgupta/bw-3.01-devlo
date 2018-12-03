@@ -8,10 +8,20 @@
       <bpmn:outgoing>SequenceFlow_13fjugb</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:callActivity id="RTC-1" name="RTC‐1" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13fjugb</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00m5tbt</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-RTC-1-by-Sponsor" name="Review of RTC-1 by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0lu6ff4</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1mw6jm0</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_1bs0507">
@@ -19,6 +29,11 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-RTC-1-by-EP" name="Review of RTC-1 by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1qew4r2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1mle4qp</bpmn:outgoing>
       <bpmn:property id="Property_15tpahm" name="__targetRef_placeholder" />
@@ -28,10 +43,20 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="RTC-2" name="RTC‐2" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1bhfd77</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ad4oyv</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-RTC-2-by-EP" name="Review of RTC-2 by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1j00gke</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1di7uwi</bpmn:outgoing>
       <bpmn:property id="Property_18wwvpn" name="__targetRef_placeholder" />
@@ -41,6 +66,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-RTC-2-by-Sponsor" name="Review of RTC-2 by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0jp4ofn</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_04mo4qg</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0yud6y7">
@@ -48,10 +78,20 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Screen-check-RTC" name="Screen check RTC" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_06o9yyh</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0rvtgws</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Screen-Review-by-EP" name="Screen Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1kjk0my</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0dt6o3p</bpmn:outgoing>
       <bpmn:property id="Property_11imyz5" name="__targetRef_placeholder" />
@@ -61,6 +101,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Screen-Review-by-Sponsor" name="Screen Review&#10;by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1pfmqyz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0f1lu2d</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0gtzo85">
@@ -68,10 +113,20 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Check-RTC" name="Print Check RTC" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_150yr10</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1u75o1a</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Review-by-EP" name="Print Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0cgxdik</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ttk6jp</bpmn:outgoing>
       <bpmn:property id="Property_0k8ghrv" name="__targetRef_placeholder" />
@@ -81,6 +136,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Review-by-Sponsor" name="Print Review by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0eaeibq</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0lf32kf</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0u33myp">

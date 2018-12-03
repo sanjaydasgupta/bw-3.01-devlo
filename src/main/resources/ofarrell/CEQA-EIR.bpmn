@@ -8,10 +8,20 @@
       <bpmn:outgoing>SequenceFlow_0c9v9w1</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:callActivity id="DEIR-1" name="DEIR‐1" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0c9v9w1</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_09e1g20</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="DEIR-1-Review-by-Sponsor" name="DEIR-1 Review&#10;by sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1o6exy3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_04rv900</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_03mnyur">
@@ -19,6 +29,11 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="DEIR-1-Review-By-EP" name="DEIR‐1 Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0zgx3we</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0oitg57</bpmn:outgoing>
       <bpmn:property id="Property_1va3tdu" name="__targetRef_placeholder" />
@@ -28,10 +43,20 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="DEIR-2" name="DEIR‐2" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1gt6qsr</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_06lm6hj</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="DEIR-2-Review-By-EP" name="DEIR-2 Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0thde90</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1qzbzcn</bpmn:outgoing>
       <bpmn:property id="Property_030df55" name="__targetRef_placeholder" />
@@ -41,6 +66,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="DEIR-2-Review-by-sponsor" name="DEIR-2 Review&#10;by sponsor&#10;" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0rrzej1</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ahpvku</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_1n6uej1">
@@ -48,10 +78,20 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="ScreenCheckDEIR" name="Screen check DEIR" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1px55hi</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1n5yqsm</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Screen-Review-by-EP" name="Screen Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_16qu8mm</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_142dgf9</bpmn:outgoing>
       <bpmn:property id="Property_0z8o3hp" name="__targetRef_placeholder" />
@@ -61,6 +101,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Screen-Review-by-Sponsor" name="Screen Review&#10;by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1e5hmsy</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_12yx1x3</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0571wqt">
@@ -68,10 +113,20 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Check-DEIR" name="Print Check&#10;DEIR" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_138dguq</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0o7cwyl</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Review-by-EP" name="Print Review&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0y2vhnw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0am2y8q</bpmn:outgoing>
       <bpmn:property id="Property_079tooe" name="__targetRef_placeholder" />
@@ -81,6 +136,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Print-Review-by-sponsor" name="Print Review&#10;by sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0v933id</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0k0whhq</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0vav3ud">
@@ -196,11 +256,21 @@
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0sm6t3j" sourceRef="ExclusiveGateway_15c19pw" targetRef="Historic-Preservation-Commission-DEIR-Hearing" />
     <bpmn:callActivity id="Historic-Preservation-Commission-DEIR-Hearing" name="Historic Preservation Commission DEIR Hearing" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0sm6t3j</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1cwys30</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1cwys30" sourceRef="Historic-Preservation-Commission-DEIR-Hearing" targetRef="Planning-Commission-Draft-EIR-Hearing" />
     <bpmn:callActivity id="Planning-Commission-Draft-EIR-Hearing" name="Planning Commission Draft EIR Hearing" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1cwys30</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1gaj6ql</bpmn:outgoing>
     </bpmn:callActivity>

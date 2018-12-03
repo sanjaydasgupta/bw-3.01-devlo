@@ -9,10 +9,20 @@
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1m5r2ms" sourceRef="Star" targetRef="Draft-Project-Description-and-NOP" />
     <bpmn:callActivity id="Draft-Project-Description-and-NOP" name="Draft Project&#10;Description&#10;and NOP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1m5r2ms</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0nqn8y5</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-Initial-PD-by-Sponsor" name="Review of&#10;Initial PD&#10;by Sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1fqgskw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1lkqvee</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_170hgct">
@@ -20,6 +30,11 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-Initial-PD-by-EP" name="Review of&#10;Initial PD&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_08yjpwl</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0lkqlic</bpmn:outgoing>
       <bpmn:property id="Property_15dtfhd" name="__targetRef_placeholder" />
@@ -29,11 +44,21 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Revise-Project-Description-and-NOP" name="Revise Project Description&#10;and NOP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13x44o7</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_02xk8jq</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_13x44o7" sourceRef="ExclusiveGateway_034fejw" targetRef="Revise-Project-Description-and-NOP" />
     <bpmn:callActivity id="Review-of-Revised-PD-by-EP" name="Review of&#10;Revised PD&#10;by EP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1l5ei3b</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_15rfwuc</bpmn:outgoing>
       <bpmn:property id="Property_1vr5g60" name="__targetRef_placeholder" />
@@ -43,6 +68,11 @@
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
     <bpmn:callActivity id="Review-of-Revised-PD-by-Sponsor" name="Review of&#10;Revised PD&#10;by sponsor" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0cthklk</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00i0yqj</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_10jh5wy">
@@ -51,19 +81,25 @@
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_15rfwuc" sourceRef="Review-of-Revised-PD-by-EP" targetRef="ExclusiveGateway_1wezy67" />
     <bpmn:callActivity id="Final-Draft-PD-and-NOP" name="Final Draft&#10;PD and NOP " calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_16tz9ml</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ka5cdz</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0ka5cdz" sourceRef="Final-Draft-PD-and-NOP" targetRef="EP-Review-of-Final-Draft-PD-and-NOP" />
     <bpmn:callActivity id="EP-Review-of-Final-Draft-PD-and-NOP" name="EP Review&#10;of Final Draft&#10;PD and NOP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ka5cdz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1gay2ma</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1gay2ma" sourceRef="EP-Review-of-Final-Draft-PD-and-NOP" targetRef="Publish-Final-PD-for-EIR-and-NOP" />
-    <bpmn:sendTask id="Publish-Final-PD-for-EIR-and-NOP" name="Publish&#10;Final PD for&#10;EIR and NOP" camunda:class="com.buildwhiz.jelly.NoOpDelegate">
-      <bpmn:incoming>SequenceFlow_1gay2ma</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0e97h90</bpmn:outgoing>
-    </bpmn:sendTask>
     <bpmn:sequenceFlow id="SequenceFlow_0e97h90" sourceRef="Publish-Final-PD-for-EIR-and-NOP" targetRef="Delay-30-days" />
     <bpmn:intermediateCatchEvent id="Delay-30-days" name="Delay&#10;30 days">
       <bpmn:extensionElements>
@@ -124,6 +160,15 @@
       <bpmn:incoming>SequenceFlow_1lkqvee</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_13x44o7</bpmn:outgoing>
     </bpmn:parallelGateway>
+    <bpmn:callActivity id="Publish-Final-PD-for-EIR-and-NOP" name="Publish&#10;Final PD for&#10;EIR and NOP" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1gay2ma</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0e97h90</bpmn:outgoing>
+    </bpmn:callActivity>
   </bpmn:process>
   <bpmn:signal id="Signal_1lhmynr" name="Revise PD and NOP Complete" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -179,9 +224,6 @@
         <di:waypoint x="524" y="513" />
         <di:waypoint x="572" y="513" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="SendTask_0puwgby_di" bpmnElement="Publish-Final-PD-for-EIR-and-NOP">
-        <dc:Bounds x="572" y="473" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0e97h90_di" bpmnElement="SequenceFlow_0e97h90">
         <di:waypoint x="672" y="513" />
         <di:waypoint x="731" y="513" />
@@ -303,6 +345,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0fig89g_di" bpmnElement="ExclusiveGateway_034fejw">
         <dc:Bounds x="448" y="150" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1x4dng2_di" bpmnElement="Publish-Final-PD-for-EIR-and-NOP">
+        <dc:Bounds x="572" y="473" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

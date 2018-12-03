@@ -9,46 +9,96 @@
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_05rmt5e" sourceRef="Start" targetRef="Draft-Preservation-Alternatives-Report" />
     <bpmn:callActivity id="Draft-Preservation-Alternatives-Report" name="Draft Preservation Alternatives Report" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_05rmt5e</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1yxeiix</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="EP-Draft-Review" name="EP&#10;Draft Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0l20loh</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0f7uhdc</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="TRC-Draft-Review" name="TRC&#10;Draft Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1nffdq0</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1mtck8d</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Revised-Preservation-Alternatives-Report" name="Revised Preservation Alternatives Report" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_16ivnaw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0joo6s8</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="EP-Revised-Report-Review" name="EP Revised Report Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0x3squz</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1g5zec0</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="TRC-Revised-Report-Review" name="TRC Revised Report Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="EIR-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_144niu2</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_13y0wbt</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0joo6s8" sourceRef="Revised-Preservation-Alternatives-Report" targetRef="ExclusiveGateway_03spv16" />
     <bpmn:callActivity id="Optional-Meeting-to-Finalize-Report" name="Optional Meeting to Finalize Report" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ecarb5</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0zg4k8j</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0zg4k8j" sourceRef="Optional-Meeting-to-Finalize-Report" targetRef="Prepare-Screencheck-Report" />
     <bpmn:callActivity id="Prepare-Screencheck-Report" name="Prepare Screencheck Report" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0zg4k8j</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_07nirf6</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_07nirf6" sourceRef="Prepare-Screencheck-Report" targetRef="EP-Screencheck-Memorandum" />
     <bpmn:sequenceFlow id="SequenceFlow_15enwhl" sourceRef="EP-Screencheck-Memorandum" targetRef="Final-Report-for-ARC" />
     <bpmn:callActivity id="EP-Screencheck-Memorandum" name=" EP Screencheck Memorandum " calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_07nirf6</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_15enwhl</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Final-Report-for-ARC" name="Final  Report for ARC" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_15enwhl</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1p1958f</bpmn:outgoing>
     </bpmn:callActivity>
@@ -58,20 +108,40 @@
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1p1958f" sourceRef="Final-Report-for-ARC" targetRef="ARC-Hearing" />
     <bpmn:callActivity id="EP-Review-of-Report-1" name="EP Review of Report‐1" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0llommn</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_04xz019</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Post-ARC-Report-2" name="Post ARC Report‐2" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_04xz019</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ap0ssj</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="EP-Review-of-Report-2" name="EP Review of Report‐2" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ap0ssj</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1010jfi</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0ap0ssj" sourceRef="Post-ARC-Report-2" targetRef="EP-Review-of-Report-2" />
     <bpmn:sequenceFlow id="SequenceFlow_04xz019" sourceRef="EP-Review-of-Report-1" targetRef="Post-ARC-Report-2" />
     <bpmn:callActivity id="Final-Report-for-EIR" name="Final Report for EIR" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1010jfi</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_03139nl</bpmn:outgoing>
     </bpmn:callActivity>
@@ -84,6 +154,11 @@
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_03139nl" sourceRef="Final-Report-for-EIR" targetRef="End" />
     <bpmn:callActivity id="Post-ARC-Report-1" name="Post ARC Report‐1" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1gi50wu</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0llommn</bpmn:outgoing>
     </bpmn:callActivity>
@@ -96,6 +171,11 @@
       <bpmn:outgoing>SequenceFlow_0l20loh</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:callActivity id="Sponsor-Draft-Review" name="Sponsor&#10;Draft Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0uha52f</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1d2uyl0</bpmn:outgoing>
     </bpmn:callActivity>
@@ -116,6 +196,11 @@
     <bpmn:sequenceFlow id="SequenceFlow_0x3squz" sourceRef="ExclusiveGateway_03spv16" targetRef="EP-Revised-Report-Review" />
     <bpmn:sequenceFlow id="SequenceFlow_0l20loh" sourceRef="ExclusiveGateway_19s4i5a" targetRef="EP-Draft-Review" />
     <bpmn:callActivity id="Sponsor-Revised-Report-Review" name="Sponsor Revised Report Review" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+        </camunda:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_11717jd</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1n9a77v</bpmn:outgoing>
     </bpmn:callActivity>

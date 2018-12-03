@@ -8,7 +8,7 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-user-query" value="psr_approved:B:false:PSR-Approved" />
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
         <camunda:in variables="all" />
@@ -27,7 +27,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -38,7 +38,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -58,7 +58,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -69,7 +69,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -80,7 +80,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -98,7 +98,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -116,7 +116,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Surveyor" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -127,7 +127,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Land-Use-Attorney" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -145,7 +145,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Historic-Consultant" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -156,7 +156,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -177,7 +177,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -228,7 +228,7 @@
     <bpmn:callActivity id="Planning-Commission-Hearing" name="Planning Commission Hearing" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -247,7 +247,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="???" />
+          <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
         </camunda:properties>
       </bpmn:extensionElements>

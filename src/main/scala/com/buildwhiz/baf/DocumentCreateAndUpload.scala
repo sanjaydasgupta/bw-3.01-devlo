@@ -2,6 +2,7 @@ package com.buildwhiz.baf
 
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -45,12 +46,16 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       val description = parameters.getOrElse("description", "???")
       val fileType = parameters.getOrElse("type", "???")
       val projectOid = new ObjectId(parameters("project_id"))
+      if (BWMongoDB3.projects.find(Map("_id" -> projectOid)).isEmpty)
+        throw new IllegalArgumentException(s"unknown project-id: ${projectOid.toString}")
       val labels = parameters("labels").split(",").toSeq
       val user: DynDoc = getUser(request)
       val authorOid = parameters.get("author_id") match {
         case Some(id) => new ObjectId(id)
         case None => user._id[ObjectId]
       }
+      if (BWMongoDB3.persons.find(Map("_id" -> authorOid)).isEmpty)
+        throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
       val timestamp = parameters.get("timestamp") match {
         case Some(ts) => ts.toLong
         case None => System.currentTimeMillis

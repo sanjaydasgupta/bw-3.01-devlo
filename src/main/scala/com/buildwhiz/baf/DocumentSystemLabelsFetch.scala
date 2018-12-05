@@ -9,62 +9,58 @@ import org.bson.types.ObjectId
 
 class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
-  private val labels = Seq(
-    "Architecture", "Architecture.3D-Perspectives", "Architecture.Contracts", "Architecture.Cover-Sheet",
-    "Architecture.Site-Plan", "Architecture.Floor-Plans", "Architecture.Schedules", "Architecture.Electrical-Plan",
-    "Architecture.Sections", "Architecture.Elevations", "Architecture.Details",
+  private val standardLabels = Seq(
+    "3D-Perspective",
 
-    "Building-Science", "Building-Science.FLOOR-PLAN", "Building-Science.Other", "Building-Science.Details",
-    "Building-Science.support-docs",
+    "Architecture",
 
-    "Curr-Plan",
+    "Brochure", "Building-Science",
 
-    "EIR", "EIR.Contract", "EIR.Meeting-Notes",
+    "Calculations", "Common-Area", "Contract", "Controls", "Cover-Sheet", "Curr-Plan", "Cut-sheets",
 
-    "Electrical", "Electrical.Notes", "Electrical.Single-Line-Dia.", "Electrical.Energy-Calcs",
-    "Electrical.Common-Area-Elec-Plans",
+    "Detail",
 
-    "Elevator", "Elevator.Submittals", "Elevator.Brochure",
+    "EIR",
 
-    "Env-Plan",
+    "Electrical", "Elevation", "Elevator", "Energy", "Environmental",
 
-    "Fire-Alarm", "Fire-Alarm.Plans", "Fire-Alarm.Other",
+    "Fire-Alarm", "Fire-Sprinkler", "Floor-Plan", "Foundation", "Framing",
 
-    "Fire-Sprinkler", "Fire-Sprinkler.Underground", "Fire-Sprinkler.Other",
+    "General-Notes", "Geo-Technical",
 
-    "Geotech", "Geotech.Invoice",
+    "HRE",
 
-    "HRE", "HRE.Contracts", "HRE.Reports",
+    "Interior", "Invoice",
 
-    "Interior", "Interior.Details",
+    "Land-Use", "Laser-Scan",
 
-    "Land-Use",
+    "Mechanical",
 
-    "Laser-Scan", "Laser-Scan.Contracts",
+    "Meeting-Notes",
 
-    "Mechanical", "Mechanical.Notes", "Mechanical.Schedules", "Mechanical.Specifications",
-    "Mechanical.Energy-Calcs", "Mechanical.Mech-Plans", "Mechanical.Details", "Mechanical.Controls",
-    "Mechanical.Work-dwgs", "Mechanical.Cut-sheets",
+    "Notes",
 
-    "Plumbing", "Plumbing.Notes", "Plumbing.Calculations", "Plumbing.Specifications", "Plumbing.Plumbing-Plans",
-    "Plumbing.Details",
+    "Other",
+
+    "Plan",
+
+    "Plumbing",
 
     "Pre-App-Meeting",
 
-    "Preservation-Alternatives", "Preservation-Alternatives.Contracts",
+    "Preservation-Alternatives",
 
     "Public-Health",
 
-    "Soils-Report", "Soils-Report.Contracts", "Soils-Report.Reports",
+    "Report",
 
-    "Structure", "Structure.General-Notes", "Structure.Details",
-    "Structure.Foundation-Plans", "Structure.Framing-Plans", "Structure.Elevations", "Structure.3D-Perspectives",
+    "Schedules", "Sections", "Single-Line-Diagram", "Site", "Soil",
 
-    "Studies", "Studies.Geo-Technical",
+    "Specifications", "Structure", "Study", "Submittal", "Support-Docs", "Survey",
 
-    "Survey", "Survey.Contract",
+    "Underground",
 
-    "Wind-Study", "Wind-Study.Contracts", "Wind-Study.Invoice", "Wind-Study.Reports"
+    "Wind", "Work-Dwgs"
   )
 
   private def getProjectLabels(projectOid: ObjectId): Seq[String] = {
@@ -81,7 +77,7 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
         Seq.empty[String]
       }
     })
-    (labels ++ projectLabels ++ documentLabels).distinct
+    (standardLabels ++ projectLabels ++ documentLabels).distinct.sorted
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

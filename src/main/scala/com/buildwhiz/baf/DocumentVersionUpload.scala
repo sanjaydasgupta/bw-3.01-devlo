@@ -31,10 +31,17 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
     val parameters = getParameterMap(request)
     try {
       val documentOid = new ObjectId(parameters("document_id"))
+      if (BWMongoDB3.document_master.find(Map("_id" -> documentOid)).isEmpty)
+        throw new IllegalArgumentException(s"unknown document-id: ${documentOid.toString}")
       val comments = if (parameters.contains("comments")) parameters("comments") else "-"
 
       val user: DynDoc = getUser(request)
-      val authorOid = user._id[ObjectId]
+      val authorOid = parameters.get("author_id") match {
+        case Some(id) => new ObjectId(id)
+        case None => user._id[ObjectId]
+      }
+      if (BWMongoDB3.persons.find(Map("_id" -> authorOid)).isEmpty)
+        throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
 
       if (request.getParts.size != 1)
         throw new IllegalArgumentException(s"parts.length != 1")
@@ -48,7 +55,10 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
       else
         submittedFilename
 
-      val timestamp = System.currentTimeMillis
+      val timestamp = parameters.get("timestamp") match {
+        case Some(ts) => ts.toLong
+        case None => System.currentTimeMillis
+      }
 
       val documentRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
       val projectOid = documentRecord.project_id[ObjectId]

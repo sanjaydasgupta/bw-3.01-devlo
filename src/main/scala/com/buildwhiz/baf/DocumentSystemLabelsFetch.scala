@@ -9,59 +9,36 @@ import org.bson.types.ObjectId
 
 class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
 
+/*
   private val standardLabels = Seq(
     "3D-Perspective",
-
     "Architecture",
-
     "Brochure", "Building-Science",
-
     "Calculations", "Common-Area", "Contract", "Controls", "Cover-Sheet", "Curr-Plan", "Cut-sheets",
-
     "Detail",
-
     "EIR",
-
     "Electrical", "Elevation", "Elevator", "Energy", "Environmental",
-
     "Fire-Alarm", "Fire-Sprinkler", "Floor-Plan", "Foundation", "Framing",
-
     "General-Notes", "Geo-Technical",
-
     "HRE",
-
     "Interior", "Invoice",
-
     "Land-Use", "Laser-Scan",
-
     "Mechanical",
-
     "Meeting-Notes",
-
     "Notes",
-
     "Other",
-
     "Plan",
-
     "Plumbing",
-
     "Pre-App-Meeting",
-
     "Preservation-Alternatives",
-
     "Public-Health",
-
     "Report",
-
     "Schedules", "Sections", "Single-Line-Diagram", "Site", "Soil",
-
     "Specifications", "Structure", "Study", "Submittal", "Support-Docs", "Survey",
-
     "Underground",
-
     "Wind", "Work-Dwgs"
   )
+*/
 
   private def getProjectLabels(projectOid: ObjectId): Seq[String] = {
     val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
@@ -76,8 +53,14 @@ class DocumentSystemLabelsFetch extends HttpServlet with HttpUtils {
       } else {
         Seq.empty[String]
       }
-    })
-    (standardLabels ++ projectLabels ++ documentLabels).distinct.sorted
+    }).map(_.trim).filterNot(_.isEmpty)
+    // Begin 430-Forest backward compatibility (category/subcategory for labels)
+    val documentCategories: Seq[String] = documents.filter(_.has("category")).
+      map(_.category[String]).filterNot(_.trim.isEmpty)
+    val documentSubcategories: Seq[String] = documents.filter(_.has("subcategory")).
+      map(_.subcategory[String]).filterNot(_.trim.isEmpty)
+    // End 430-Forest backward compatibility (category/subcategory for labels)
+    (projectLabels ++ documentLabels ++ documentCategories ++ documentSubcategories).distinct.sorted
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

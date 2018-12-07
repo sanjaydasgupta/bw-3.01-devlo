@@ -50,11 +50,11 @@ object DocumentUserLabelLogicSet extends RegexParsers {
 
   type TestSet = Set[String] => Boolean
 
-  val AND: Parser[String] = "(?i)AND(?![A-Z0-9_-])".r
-  val OR: Parser[String] = "(?i)OR(?![A-Z0-9_-])".r
-  val NOT: Parser[String] = "(?i)NOT(?![A-Z0-9_-])".r
+  val AND: Parser[String] = "(?i)AND(?![A-Z0-9._-])".r
+  val OR: Parser[String] = "(?i)OR(?![A-Z0-9._-])".r
+  val NOT: Parser[String] = "(?i)NOT(?![A-Z0-9._-])".r
 
-  val LABEL: Parser[TestSet] = guard(not(AND | OR | NOT)) ~> "(?i)[A-Z](?:[A-Z0-9_-]*[A-Z0-9])?".r ^^
+  val LABEL: Parser[TestSet] = guard(not(AND | OR | NOT)) ~> "(?i)[A-Z](?:[A-Z0-9._-]*[A-Z0-9])?".r ^^
     { lbl => (set: Set[String]) => set.contains(lbl) }
 
   val topExpr: Parser[TestSet] = rep1sep(andExpr, OR) ^^

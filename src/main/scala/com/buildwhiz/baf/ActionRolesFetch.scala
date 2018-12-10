@@ -16,7 +16,7 @@ class ActionRolesFetch extends HttpServlet with HttpUtils {
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionType = parameters("action_type")
-      val resultRoles = ActionRolesFetch.roles(activityOid, actionType)
+      val resultRoles = ActionRolesFetch.roles(activityOid, actionType).map(r => s""""$r"""")
       response.getWriter.println(resultRoles.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1iogoee" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1iogoee" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
   <bpmn:process id="HRE2" name="HRE2" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -8,7 +8,7 @@
       <bpmn:outgoing>SequenceFlow_0dw0ktb</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0dw0ktb" sourceRef="Start" targetRef="HRE-Part-2-SOW" />
-    <bpmn:callActivity id="HRE-Part-2-SOW" name="HRE Part-2&#10;SOW" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="HRE-Part-2-SOW" name="HRE Part-2 SOW" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
@@ -18,7 +18,7 @@
       <bpmn:outgoing>SequenceFlow_0p8yo71</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0p8yo71" sourceRef="HRE-Part-2-SOW" targetRef="EP-Review-SOW" />
-    <bpmn:callActivity id="EP-Review-SOW" name="EP Review&#10;SOW" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="EP-Review-SOW" name="EP Review SOW" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
@@ -28,7 +28,7 @@
       <bpmn:outgoing>SequenceFlow_0m1y20x</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0m1y20x" sourceRef="EP-Review-SOW" targetRef="HRE-Part-2-Draft-1" />
-    <bpmn:callActivity id="HRE-Part-2-Draft-1" name="HRE Part-2&#10;Draft-1" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="HRE-Part-2-Draft-1" name="HRE Part-2 Draft-1" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
@@ -38,7 +38,7 @@
       <bpmn:outgoing>SequenceFlow_1huoyaj</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1huoyaj" sourceRef="HRE-Part-2-Draft-1" targetRef="EP-Review-of-HRE-Part-2-Draft-1" />
-    <bpmn:callActivity id="EP-Review-of-HRE-Part-2-Draft-1" name="EP Review of&#10;HRE Part-2&#10;Draft-1" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="EP-Review-of-HRE-Part-2-Draft-1" name="EP Review of HRE Part-2 Draft-1" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
@@ -48,7 +48,7 @@
       <bpmn:outgoing>SequenceFlow_05vjgzm</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_05vjgzm" sourceRef="EP-Review-of-HRE-Part-2-Draft-1" targetRef="HRE-Part-2-Draft-2" />
-    <bpmn:callActivity id="HRE-Part-2-Draft-2" name="HRE Part-2&#10;Draft-2" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="HRE-Part-2-Draft-2" name="HRE Part-2 Draft-2" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
@@ -58,7 +58,7 @@
       <bpmn:outgoing>SequenceFlow_0ul67pn</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0ul67pn" sourceRef="HRE-Part-2-Draft-2" targetRef="EP-Review-of-HRE-Part-2-Draft-2" />
-    <bpmn:callActivity id="EP-Review-of-HRE-Part-2-Draft-2" name="EP Review of&#10;HRE Part-2&#10;Draft-2" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="EP-Review-of-HRE-Part-2-Draft-2" name="EP Review of HRE Part-2 Draft-2" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
@@ -68,7 +68,7 @@
       <bpmn:outgoing>SequenceFlow_0janpat</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0janpat" sourceRef="EP-Review-of-HRE-Part-2-Draft-2" targetRef="HRE-Part-2-Final" />
-    <bpmn:callActivity id="HRE-Part-2-Final" name="HRE Part-2&#10;Final" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="HRE-Part-2-Final" name="HRE Part-2 Final" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
@@ -78,7 +78,7 @@
       <bpmn:outgoing>SequenceFlow_0buqc1o</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0buqc1o" sourceRef="HRE-Part-2-Final" targetRef="EP-Review-of-HRE-Part-2-Draft-2-Complete" />
-    <bpmn:callActivity id="HRER-PTR-Part-2" name="HRER/PTR&#10;Part-2" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="HRER-PTR-Part-2" name="HRER/PTR Part-2" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />

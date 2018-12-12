@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1cwra4f" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1cwra4f" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
   <bpmn:process id="Project-Description-NOP" name="Project Description NOP" isExecutable="true">
     <bpmn:startEvent id="Star" name="Start">
       <bpmn:extensionElements>
@@ -59,15 +59,15 @@
           <camunda:property name="bw-role" value="Env-Planning" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1l5ei3b</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_15rfwuc</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_0ckwibm</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1uwh8l3</bpmn:outgoing>
       <bpmn:property id="Property_1vr5g60" name="__targetRef_placeholder" />
       <bpmn:dataInputAssociation id="DataInputAssociation_01iracs">
         <bpmn:sourceRef>Revised-Review-Documents</bpmn:sourceRef>
         <bpmn:targetRef>Property_1vr5g60</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Review-of-Revised-PD-by-Sponsor" name="Review of&#10;Revised PD&#10;by sponsor" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Review-of-Revised-PD-by-Sponsor" name="Review of&#10;Revised PD&#10;by Sponsor" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
@@ -79,8 +79,7 @@
         <bpmn:targetRef>Revised-Review-Documents</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_15rfwuc" sourceRef="Review-of-Revised-PD-by-EP" targetRef="ExclusiveGateway_1wezy67" />
-    <bpmn:callActivity id="Final-Draft-PD-and-NOP" name="Final Draft&#10;PD and NOP " calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Final-Draft-PD-and-NOP" name="Final Draft&#10;PD and NOP" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="EIR-Consultant" />
@@ -106,11 +105,13 @@
         <camunda:properties>
           <camunda:property name="bw-duration" value="30:00:00" />
         </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0e97h90</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1gp4mq5</bpmn:outgoing>
       <bpmn:timerEventDefinition>
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${Delay_30_days}</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${delay_30_days}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1gp4mq5" sourceRef="Delay-30-days" targetRef="End" />
@@ -121,7 +122,8 @@
       <bpmn:incoming>SequenceFlow_1gp4mq5</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:intermediateThrowEvent id="Revise-PD-and-NOP-Complete" name="Revise PD and NOP Complete">
-      <bpmn:incoming>SequenceFlow_1jnrli3</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_02xk8jq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0v2etyo</bpmn:outgoing>
       <bpmn:signalEventDefinition signalRef="Signal_1lhmynr" />
     </bpmn:intermediateThrowEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1fqgskw" sourceRef="ExclusiveGateway_0fdcq4a" targetRef="Review-of-Initial-PD-by-Sponsor" />
@@ -135,17 +137,15 @@
     <bpmn:sequenceFlow id="SequenceFlow_0lkqlic" sourceRef="Review-of-Initial-PD-by-EP" targetRef="ExclusiveGateway_034fejw" />
     <bpmn:sequenceFlow id="SequenceFlow_1lkqvee" sourceRef="Review-of-Initial-PD-by-Sponsor" targetRef="ExclusiveGateway_034fejw" />
     <bpmn:parallelGateway id="ExclusiveGateway_11ctex8">
-      <bpmn:incoming>SequenceFlow_02xk8jq</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0v2etyo</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0cthklk</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_1l5ei3b</bpmn:outgoing>
-      <bpmn:outgoing>SequenceFlow_1jnrli3</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0ckwibm</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_02xk8jq" sourceRef="Revise-Project-Description-and-NOP" targetRef="ExclusiveGateway_11ctex8" />
+    <bpmn:sequenceFlow id="SequenceFlow_02xk8jq" sourceRef="Revise-Project-Description-and-NOP" targetRef="Revise-PD-and-NOP-Complete" />
     <bpmn:sequenceFlow id="SequenceFlow_0cthklk" sourceRef="ExclusiveGateway_11ctex8" targetRef="Review-of-Revised-PD-by-Sponsor" />
-    <bpmn:sequenceFlow id="SequenceFlow_1l5ei3b" sourceRef="ExclusiveGateway_11ctex8" targetRef="Review-of-Revised-PD-by-EP" />
     <bpmn:parallelGateway id="ExclusiveGateway_1wezy67">
-      <bpmn:incoming>SequenceFlow_15rfwuc</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_00i0yqj</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1uwh8l3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_16tz9ml</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_00i0yqj" sourceRef="Review-of-Revised-PD-by-Sponsor" targetRef="ExclusiveGateway_1wezy67" />
@@ -154,7 +154,6 @@
     <bpmn:dataObject id="DataObject_1lfl9ym" />
     <bpmn:dataObjectReference id="Revised-Review-Documents" name="Revised Review&#10;Documents" dataObjectRef="DataObject_18a29ry" />
     <bpmn:dataObject id="DataObject_18a29ry" />
-    <bpmn:sequenceFlow id="SequenceFlow_1jnrli3" sourceRef="ExclusiveGateway_11ctex8" targetRef="Revise-PD-and-NOP-Complete" />
     <bpmn:parallelGateway id="ExclusiveGateway_034fejw">
       <bpmn:incoming>SequenceFlow_0lkqlic</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_1lkqvee</bpmn:incoming>
@@ -169,6 +168,9 @@
       <bpmn:incoming>SequenceFlow_1gay2ma</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0e97h90</bpmn:outgoing>
     </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0ckwibm" sourceRef="ExclusiveGateway_11ctex8" targetRef="Review-of-Revised-PD-by-EP" />
+    <bpmn:sequenceFlow id="SequenceFlow_1uwh8l3" sourceRef="Review-of-Revised-PD-by-EP" targetRef="ExclusiveGateway_1wezy67" />
+    <bpmn:sequenceFlow id="SequenceFlow_0v2etyo" sourceRef="Revise-PD-and-NOP-Complete" targetRef="ExclusiveGateway_11ctex8" />
   </bpmn:process>
   <bpmn:signal id="Signal_1lhmynr" name="Revise PD and NOP Complete" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -200,16 +202,11 @@
         <di:waypoint x="538" y="175" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_08c1og4_di" bpmnElement="Review-of-Revised-PD-by-EP">
-        <dc:Bounds x="776" y="256" width="100" height="80" />
+        <dc:Bounds x="815" y="256" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0qak57m_di" bpmnElement="Review-of-Revised-PD-by-Sponsor">
-        <dc:Bounds x="776" y="14" width="100" height="80" />
+        <dc:Bounds x="815" y="14" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_15rfwuc_di" bpmnElement="SequenceFlow_15rfwuc">
-        <di:waypoint x="876" y="296" />
-        <di:waypoint x="934" y="296" />
-        <di:waypoint x="934" y="200" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_15f524q_di" bpmnElement="Final-Draft-PD-and-NOP">
         <dc:Bounds x="278" y="473" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -245,9 +242,9 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_11y3evp_di" bpmnElement="Revise-PD-and-NOP-Complete">
-        <dc:Bounds x="633" y="278" width="36" height="36" />
+        <dc:Bounds x="675" y="157" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="619" y="322" width="74" height="27" />
+          <dc:Bounds x="656" y="119.5" width="74" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1fqgskw_di" bpmnElement="SequenceFlow_1fqgskw">
@@ -278,32 +275,27 @@
         <di:waypoint x="473" y="150" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_1gdvy6z_di" bpmnElement="ExclusiveGateway_11ctex8">
-        <dc:Bounds x="682" y="150" width="50" height="50" />
+        <dc:Bounds x="743" y="150" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_02xk8jq_di" bpmnElement="SequenceFlow_02xk8jq">
         <di:waypoint x="638" y="175" />
-        <di:waypoint x="682" y="175" />
+        <di:waypoint x="675" y="175" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0cthklk_di" bpmnElement="SequenceFlow_0cthklk">
-        <di:waypoint x="707" y="150" />
-        <di:waypoint x="707" y="54" />
-        <di:waypoint x="776" y="54" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1l5ei3b_di" bpmnElement="SequenceFlow_1l5ei3b">
-        <di:waypoint x="707" y="200" />
-        <di:waypoint x="707" y="296" />
-        <di:waypoint x="776" y="296" />
+        <di:waypoint x="768" y="150" />
+        <di:waypoint x="768" y="54" />
+        <di:waypoint x="815" y="54" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0mms019_di" bpmnElement="ExclusiveGateway_1wezy67">
-        <dc:Bounds x="909" y="150" width="50" height="50" />
+        <dc:Bounds x="921" y="150" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_00i0yqj_di" bpmnElement="SequenceFlow_00i0yqj">
-        <di:waypoint x="876" y="54" />
-        <di:waypoint x="934" y="54" />
-        <di:waypoint x="934" y="150" />
+        <di:waypoint x="915" y="54" />
+        <di:waypoint x="946" y="54" />
+        <di:waypoint x="946" y="150" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_16tz9ml_di" bpmnElement="SequenceFlow_16tz9ml">
-        <di:waypoint x="959" y="175" />
+        <di:waypoint x="971" y="175" />
         <di:waypoint x="1003" y="175" />
         <di:waypoint x="1003" y="400" />
         <di:waypoint x="218" y="400" />
@@ -325,23 +317,18 @@
         <di:waypoint x="368" y="256" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="DataObjectReference_1d0u7s8_di" bpmnElement="Revised-Review-Documents">
-        <dc:Bounds x="807" y="150" width="36" height="50" />
+        <dc:Bounds x="847" y="150" width="36" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="740" y="108" width="79" height="27" />
+          <dc:Bounds x="780" y="108" width="79" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="DataInputAssociation_01iracs_di" bpmnElement="DataInputAssociation_01iracs">
-        <di:waypoint x="825" y="200" />
-        <di:waypoint x="826" y="256" />
+        <di:waypoint x="865" y="200" />
+        <di:waypoint x="866" y="256" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="DataOutputAssociation_10jh5wy_di" bpmnElement="DataOutputAssociation_10jh5wy">
-        <di:waypoint x="826" y="94" />
-        <di:waypoint x="825" y="150" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1jnrli3_di" bpmnElement="SequenceFlow_1jnrli3">
-        <di:waypoint x="695" y="188" />
-        <di:waypoint x="651" y="239" />
-        <di:waypoint x="651" y="278" />
+        <di:waypoint x="866" y="94" />
+        <di:waypoint x="865" y="150" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0fig89g_di" bpmnElement="ExclusiveGateway_034fejw">
         <dc:Bounds x="448" y="150" width="50" height="50" />
@@ -349,6 +336,20 @@
       <bpmndi:BPMNShape id="CallActivity_1x4dng2_di" bpmnElement="Publish-Final-PD-for-EIR-and-NOP">
         <dc:Bounds x="572" y="473" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ckwibm_di" bpmnElement="SequenceFlow_0ckwibm">
+        <di:waypoint x="768" y="200" />
+        <di:waypoint x="768" y="296" />
+        <di:waypoint x="815" y="296" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1uwh8l3_di" bpmnElement="SequenceFlow_1uwh8l3">
+        <di:waypoint x="915" y="296" />
+        <di:waypoint x="946" y="296" />
+        <di:waypoint x="946" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0v2etyo_di" bpmnElement="SequenceFlow_0v2etyo">
+        <di:waypoint x="711" y="175" />
+        <di:waypoint x="743" y="175" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

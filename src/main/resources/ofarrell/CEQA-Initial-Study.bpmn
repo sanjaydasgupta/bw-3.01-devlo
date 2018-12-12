@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0s6wbkh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0s6wbkh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
   <bpmn:process id="CEQA-Initial-Study" name="CEQA Initial Study" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -7,7 +7,7 @@
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_140wdug</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:callActivity id="IS-1" name="IS-1" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="IS-1" name="IS 1" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
@@ -16,7 +16,7 @@
       <bpmn:incoming>SequenceFlow_140wdug</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_05sddub</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Review-of-IS-1-by-sponsor" name="Review of IS-1&#10;by sponsor" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Review-of-IS-1-by-Sponsor" name="Review of IS-1&#10;by Sponsor" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
@@ -42,7 +42,7 @@
         <bpmn:targetRef>Property_1dfrxai</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
-    <bpmn:callActivity id="IS-2" name="IS-2" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="IS-2" name="IS 2" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
@@ -65,7 +65,7 @@
         <bpmn:targetRef>Property_01qpnfl</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Review-of-IS-2-by-sponsor" name="Review of IS-2&#10;by sponsor" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Review-of-IS-2-by-Sponsor" name="Review of IS-2&#10;by Sponsor" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
@@ -79,11 +79,11 @@
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_05sddub" sourceRef="IS-1" targetRef="ExclusiveGateway_1q10r8y" />
     <bpmn:sequenceFlow id="SequenceFlow_00zb1yc" sourceRef="ExclusiveGateway_0lbf0ez" targetRef="IS-2" />
-    <bpmn:sequenceFlow id="SequenceFlow_0cuu239" sourceRef="ExclusiveGateway_05d7hnk" targetRef="Review-of-IS-2-by-sponsor" />
+    <bpmn:sequenceFlow id="SequenceFlow_0cuu239" sourceRef="ExclusiveGateway_05d7hnk" targetRef="Review-of-IS-2-by-Sponsor" />
     <bpmn:sequenceFlow id="SequenceFlow_1az9fwa" sourceRef="IS-2" targetRef="ExclusiveGateway_05d7hnk" />
-    <bpmn:sequenceFlow id="SequenceFlow_0f21rcg" sourceRef="Review-of-IS-2-by-sponsor" targetRef="ExclusiveGateway_0969tgd" />
+    <bpmn:sequenceFlow id="SequenceFlow_0f21rcg" sourceRef="Review-of-IS-2-by-Sponsor" targetRef="ExclusiveGateway_0969tgd" />
     <bpmn:sequenceFlow id="SequenceFlow_140wdug" sourceRef="Start" targetRef="IS-1" />
-    <bpmn:callActivity id="Screen-Check-IS" name="Screen check IS" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Screen-Check-IS" name="Screen Check IS" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
@@ -119,7 +119,7 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_00cmn6t" sourceRef="Review-of-IS-2-by-EP" targetRef="ExclusiveGateway_0969tgd" />
-    <bpmn:callActivity id="Print-Check-IS" name="Print check IS" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="Print-Check-IS" name="Print Check IS" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
@@ -175,7 +175,7 @@
       <bpmn:outgoing>SequenceFlow_0cuu239</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1wam4vc" sourceRef="ExclusiveGateway_1q10r8y" targetRef="Review-of-IS-1-by-EP" />
-    <bpmn:sequenceFlow id="SequenceFlow_0t43el9" sourceRef="ExclusiveGateway_1q10r8y" targetRef="Review-of-IS-1-by-sponsor" />
+    <bpmn:sequenceFlow id="SequenceFlow_0t43el9" sourceRef="ExclusiveGateway_1q10r8y" targetRef="Review-of-IS-1-by-Sponsor" />
     <bpmn:dataObjectReference id="IS-1-Review-Documents" name="IS-1 Review&#10;Documents" dataObjectRef="DataObject_1apvwdq" />
     <bpmn:dataObject id="DataObject_1apvwdq" />
     <bpmn:parallelGateway id="ExclusiveGateway_1q10r8y">
@@ -183,7 +183,7 @@
       <bpmn:outgoing>SequenceFlow_1wam4vc</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0t43el9</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="SequenceFlow_1xh0llp" sourceRef="Review-of-IS-1-by-sponsor" targetRef="ExclusiveGateway_0lbf0ez" />
+    <bpmn:sequenceFlow id="SequenceFlow_1xh0llp" sourceRef="Review-of-IS-1-by-Sponsor" targetRef="ExclusiveGateway_0lbf0ez" />
     <bpmn:sequenceFlow id="SequenceFlow_0ab870p" sourceRef="Review-of-IS-1-by-EP" targetRef="ExclusiveGateway_0lbf0ez" />
     <bpmn:parallelGateway id="ExclusiveGateway_0lbf0ez">
       <bpmn:incoming>SequenceFlow_1xh0llp</bpmn:incoming>
@@ -242,7 +242,7 @@
       <bpmndi:BPMNShape id="CallActivity_1yekmrn_di" bpmnElement="IS-1">
         <dc:Bounds x="74" y="140" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_16r18rh_di" bpmnElement="Review-of-IS-1-by-sponsor">
+      <bpmndi:BPMNShape id="CallActivity_16r18rh_di" bpmnElement="Review-of-IS-1-by-Sponsor">
         <dc:Bounds x="297" y="27" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1s4itrq_di" bpmnElement="Review-of-IS-1-by-EP">
@@ -254,7 +254,7 @@
       <bpmndi:BPMNShape id="CallActivity_1m262oz_di" bpmnElement="Review-of-IS-2-by-EP">
         <dc:Bounds x="705" y="256" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_1hmlqu0_di" bpmnElement="Review-of-IS-2-by-sponsor">
+      <bpmndi:BPMNShape id="CallActivity_1hmlqu0_di" bpmnElement="Review-of-IS-2-by-Sponsor">
         <dc:Bounds x="705" y="27" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_05sddub_di" bpmnElement="SequenceFlow_05sddub">

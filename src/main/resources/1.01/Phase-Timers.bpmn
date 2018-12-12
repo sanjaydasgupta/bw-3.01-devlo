@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-Timers" name="Phase Timers" isExecutable="true">
     <bpmn2:parallelGateway id="ParallelGateway_1">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
@@ -19,6 +19,7 @@
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-duration" value="11:22:33" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_9</bpmn2:incoming>
@@ -29,6 +30,9 @@
       <bpmn2:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
         <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+        <camunda:properties>
+          <camunda:property name="bw-duration" value="33:22:11" />
+        </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_9</bpmn2:outgoing>
@@ -47,6 +51,9 @@
       <bpmn2:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
         <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+        <camunda:properties>
+          <camunda:property name="bw-duration" value="11:22:33" />
+        </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_8</bpmn2:outgoing>
@@ -60,6 +67,7 @@
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-duration" value="10:20:30" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_8</bpmn2:incoming>
@@ -92,15 +100,15 @@
         <dc:Bounds x="406" y="108" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ParallelGateway_2">
-        <di:waypoint xsi:type="dc:Point" x="50" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="248" y="148" />
+        <di:waypoint x="50" y="148" />
+        <di:waypoint x="248" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="104" y="130" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint xsi:type="dc:Point" x="506" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="556" y="148" />
+        <di:waypoint x="506" y="148" />
+        <di:waypoint x="556" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="575" y="161" width="90" height="6" />
         </bpmndi:BPMNLabel>
@@ -112,8 +120,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_2">
-        <di:waypoint xsi:type="dc:Point" x="298" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="333" y="148" />
+        <di:waypoint x="298" y="148" />
+        <di:waypoint x="333" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="330" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
@@ -125,8 +133,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_ParallelGateway_3" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint xsi:type="dc:Point" x="606" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="815" y="148" />
+        <di:waypoint x="606" y="148" />
+        <di:waypoint x="815" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="665.5" y="130" width="90" height="6" />
         </bpmndi:BPMNLabel>
@@ -135,17 +143,17 @@
         <dc:Bounds x="409" y="223" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_3">
-        <di:waypoint xsi:type="dc:Point" x="273" y="173" />
-        <di:waypoint xsi:type="dc:Point" x="273" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="333" y="263" />
+        <di:waypoint x="273" y="173" />
+        <di:waypoint x="273" y="263" />
+        <di:waypoint x="333" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="273" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="_BPMNShape_CallActivity_7" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint xsi:type="dc:Point" x="509" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="581" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="581" y="173" />
+        <di:waypoint x="509" y="263" />
+        <di:waypoint x="581" y="263" />
+        <di:waypoint x="581" y="173" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="536" y="254" width="90" height="6" />
         </bpmndi:BPMNLabel>
@@ -157,8 +165,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="_BPMNShape_IntermediateCatchEvent_2" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint xsi:type="dc:Point" x="369" y="148" />
-        <di:waypoint xsi:type="dc:Point" x="406" y="148" />
+        <di:waypoint x="369" y="148" />
+        <di:waypoint x="406" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="541" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
@@ -170,8 +178,8 @@
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_9" bpmnElement="SequenceFlow_9" sourceElement="_BPMNShape_IntermediateCatchEvent_3" targetElement="_BPMNShape_CallActivity_7">
-        <di:waypoint xsi:type="dc:Point" x="369" y="263" />
-        <di:waypoint xsi:type="dc:Point" x="409" y="263" />
+        <di:waypoint x="369" y="263" />
+        <di:waypoint x="409" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="455" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>

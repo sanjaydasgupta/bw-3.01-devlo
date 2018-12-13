@@ -61,7 +61,21 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         case None => System.currentTimeMillis
       }
 
-      val docOid = createProjectDocumentRecord(name, description, fileType, labels, projectOid, None, None)
+      val action: Option[(ObjectId, String)] = parameters.get("activity_id") match {
+        case Some(id) => parameters.get("action_name") match {
+          case Some(actionName) =>
+            val activityOid = new ObjectId(id)
+            val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+            val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
+            if (!actions.exists(_.name[String] == actionName))
+              throw new IllegalArgumentException(s"unknown task: '$actionName'")
+            Some((activityOid, actionName))
+          case None => throw new IllegalArgumentException("action_name not provided")
+        }
+        case None => None
+      }
+
+      val docOid = createProjectDocumentRecord(name, description, fileType, labels, projectOid, None, action)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
 
       val partCount = if (request.getContentType.contains("multipart")) request.getParts.size else 0

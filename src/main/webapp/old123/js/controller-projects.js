@@ -432,7 +432,7 @@
         formData.append(file.name, file, file.name);
         $log.log('formData.append(' + file.name + ')');
       });
-      var query = 'baf/PhaseConfigurationUpload?project_id=' + self.selectedProject._id +
+      var query = 'baf/PhaseConfigUpload?project_id=' + self.selectedProject._id +
           '&phase_id=' + self.selectedPhase._id + '&bpmn_name=' + bpmn_name;
       $log.log("POST: " + query);
       self.busy = true;

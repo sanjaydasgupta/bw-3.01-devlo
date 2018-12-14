@@ -64,8 +64,25 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         val shortAssignee = new Document("_id", assignee._id[ObjectId]).
           append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
         val actionType = action.`type`[String]
-        val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
-        val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
+        val actionRole = if (action.has("assignee_role")) {
+          action.assignee_role[String]
+        } else if (action.has("role")) {
+          action.role[String]
+        } else if (activity.has("assignee_role")) {
+          if (actionType == "main")
+            activity.assignee_role[String]
+          else
+            s"${activity.assignee_role[String]}-$actionType"
+        } else if (activity.has("role")) {
+          if (actionType == "main")
+            activity.role[String]
+          else
+            s"${activity.role[String]}-$actionType"
+        } else {
+          s"???-$actionType"
+        }
+        //val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
+        //val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
         new Document("type", actionType).append("name", action.name[String]).append("status", status).
           append("duration", action.duration[String]).append("assignee", shortAssignee).
           append("start", action.start[String]).append("end", action.end[String]).append("role", actionRole).

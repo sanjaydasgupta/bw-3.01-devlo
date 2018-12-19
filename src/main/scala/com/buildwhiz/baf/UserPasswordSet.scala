@@ -30,7 +30,7 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
         s"""Your password on '$instanceName' has just been changed.
           |If you have not changed it, please notify your contact person.
         """.stripMargin
-      sendMail(userOid, s"Password changed on '$instanceName'", mailBody, Some(request))
+      sendMail(Seq(userOid), s"Password changed on '$instanceName'", mailBody, Some(request))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
       val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"

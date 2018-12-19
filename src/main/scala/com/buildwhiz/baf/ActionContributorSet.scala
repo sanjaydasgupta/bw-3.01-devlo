@@ -20,12 +20,12 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
       val message1 = s"You have been assigned the role of contributor for action '$actionName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> assignedPersonOid, "subject" -> subject1, "message" -> message1))
-      sendMail(assignedPersonOid, subject1, message1, Some(request))
+      sendMail(Seq(assignedPersonOid), subject1, message1, Some(request))
       val subject2 = "Action role de-assignment"
       val message2 = s"You have been de-assigned from the role of contributor for action '$actionName'"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> deAssignedPersonOid, "subject" -> subject2, "message" -> message2))
-      sendMail(deAssignedPersonOid, subject2, message2, Some(request))
+      sendMail(Seq(deAssignedPersonOid), subject2, message2, Some(request))
     } catch {
       case t: Throwable =>
         //t.printStackTrace()

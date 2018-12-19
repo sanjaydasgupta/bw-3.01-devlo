@@ -25,7 +25,7 @@ class EvaluateReviewReports extends JavaDelegate with MailUtils {
             s"""${failedReviewNames.mkString(", ")}"""
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientOid, subject, message, None)
+      sendMail(Seq(recipientOid), subject, message, None)
     } catch {
       case t: Throwable =>
         t.printStackTrace()

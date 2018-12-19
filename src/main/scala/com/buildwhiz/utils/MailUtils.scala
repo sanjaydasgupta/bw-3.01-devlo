@@ -17,9 +17,6 @@ import scala.util.Failure
 
 trait MailUtils {
 
-  def sendMail(recipientOid: ObjectId, subject: String, body: String, request: Option[HttpServletRequest]): Unit =
-    sendMail(Seq(recipientOid), subject, body, request)
-
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
 

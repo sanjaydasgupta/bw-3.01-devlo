@@ -29,7 +29,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
         s"$targetTime"
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientOid, subject, message, None)
+      sendMail(Seq(recipientOid), subject, message, None)
     } catch {
       case t: Throwable =>
         t.printStackTrace()

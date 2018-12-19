@@ -27,7 +27,7 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
   private def sendProgressMail(projectManager: ObjectId, title: String, uri: String, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, s"sendProgressMail($projectManager)", "ENTRY", request)
     try {
-      sendMail(projectManager, s"RFI for '$title'", messageBody(title, uri), Some(request))
+      sendMail(Seq(projectManager), s"RFI for '$title'", messageBody(title, uri), Some(request))
     } catch {
       case t: Throwable =>
         //t.printStackTrace()
@@ -53,9 +53,9 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
       val description = s"person=$personOid, timestamp=$timestamp"
       for (part <- parts.tail) {
         val name = part.getName
-        val docOid = DocumentPreload.createDocRecord(Some("SYSTEM"), Some("Attachment"), Some(name),
+        val docOid = DocumentVersionUpload.createDocRecord(Some("SYSTEM"), Some("Attachment"), Some(name),
           Some(description), projectOid)
-        DocumentPreload.storeAmazonS3(name, part.getInputStream, projectOid.toString, docOid, timestamp, description,
+        DocumentVersionUpload.storeAmazonS3(name, part.getInputStream, projectOid.toString, docOid, timestamp, description,
           personOid, request)
         docIds.append(docOid)
       }

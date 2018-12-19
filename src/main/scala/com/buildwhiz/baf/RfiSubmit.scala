@@ -28,7 +28,7 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
       }
       BWMongoDB3.mails.insertOne(Map("project_id" -> projectOid, "timestamp" -> System.currentTimeMillis,
         "recipient_person_id" -> recipientPersonOid, "subject" -> subject, "message" -> message))
-      sendMail(recipientPersonOid, subject, message, Some(request))
+      sendMail(Seq(recipientPersonOid), subject, message, Some(request))
     } catch {
       case t: Throwable =>
         //t.printStackTrace()

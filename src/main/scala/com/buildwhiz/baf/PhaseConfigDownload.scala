@@ -115,7 +115,14 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
           row.createCell(0).setCellValue(doc.name[String])
           row.createCell(1).setCellValue(doc.description[String])
           row.createCell(2).setCellValue(doc.labels[Many[String]].mkString(","))
-          row.createCell(3).setCellValue(if (doc.mandatory[Boolean]) "yes" else "no")
+          val mandatory = if (doc.has("mandatory")) {
+            if (doc.mandatory[Boolean])
+              "yes"
+            else
+              "no"
+          } else
+            "no"
+          row.createCell(3).setCellValue(mandatory)
           row.createCell(4).setCellValue(doc.content_type[String])
           // owner task reference ...
           row.createCell(5).setCellValue(doc.activity_id[ObjectId].toString)

@@ -13,17 +13,19 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
-    labelsFetch(request, response)
-    BWLogger.log(getClass.getName, request.getMethod,s"""EXIT-OK""", request)
+    val (userLabelCount, systemLabelCount) = labelsFetch(request, response)
+    BWLogger.log(getClass.getName, request.getMethod,
+      s"EXIT-OK (userLabelCount: $userLabelCount, systemLabelCount: $systemLabelCount)", request)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
-    labelsFetch(request, response)
-    BWLogger.log(getClass.getName, request.getMethod,s"""EXIT-OK""", request)
+    val (userLabelCount, systemLabelCount) = labelsFetch(request, response)
+    BWLogger.log(getClass.getName, request.getMethod,
+      s"EXIT-OK (userLabelCount: $userLabelCount, systemLabelCount: $systemLabelCount)", request)
   }
 
-  def labelsFetch(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  def labelsFetch(request: HttpServletRequest, response: HttpServletResponse): (Int, Int) = {
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
@@ -39,17 +41,29 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
 
       val docOids = docIds.map(id => new ObjectId(id.trim))
 
-      val docOid2UserLabels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(person)
-
-      val userLabels: Seq[String] = docOids.
-        flatMap(oid => if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid) else Seq.empty[String]).distinct
-
-      val logicLabels: Seq[String] = GetDocumentsSummary.getLogicalLabels(userLabels, user)
-
-      val csvUserLabels = (userLabels ++ logicLabels).sorted.map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
-
       val documentRecords: Seq[DynDoc] = docOids.
         map(oid => BWMongoDB3.document_master.find(Map("_id" -> oid)).head)
+
+      val docOid2UserLabels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(person)
+      val docOid2SystemLabels: Map[ObjectId, Seq[String]] = documentRecords.
+          map(docRec => (docRec._id[ObjectId], GetDocumentsSummary.getSystemLabels(docRec))).toMap
+
+      val allUserLabels: Seq[String] = docOids.flatMap(oid =>
+        if (docOid2UserLabels.contains(oid) || docOid2SystemLabels.contains(oid)) {
+          val userLabels = if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid) else Seq.empty[String]
+          val systemLabels = if (docOid2SystemLabels.contains(oid)) docOid2SystemLabels(oid) else Seq.empty[String]
+          val logicLabels = GetDocumentsSummary.getLogicalLabels(userLabels ++ systemLabels, person)
+          val labelsMessage = s"userLabels: ${userLabels.mkString("[", ",", "]")}," +
+              s"systemLabels: ${systemLabels.mkString("[", ",", "]")})" +
+              s"logicLabels: ${logicLabels.mkString("[", ",", "]")})"
+          BWLogger.log(getClass.getName, "labelsFetch", labelsMessage, request)
+          userLabels ++ logicLabels
+        } else {
+          Seq.empty[String]
+        }
+      ).distinct
+
+      val csvUserLabels = allUserLabels.sorted.map(ul => s"""{"name": "$ul"}""").mkString("[", ", ", "]")
 
       val systemLabels: Seq[String] = documentRecords.
         flatMap(docRecord => GetDocumentsSummary.getSystemLabels(docRecord)).distinct.sorted
@@ -58,6 +72,7 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
       response.getWriter.println(s"""{"user": $csvUserLabels, "system": $csvSystemLabels}""")
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
+      (csvUserLabels.length, csvSystemLabels.length)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="Phase-Double-with-Dates" name="Phase Double with Dates" isExecutable="true">
+    <bpmn2:extensionElements>
+      <camunda:properties>
+        <camunda:property name="bw-variable" value="top_level:B:false:TopLevel" />
+      </camunda:properties>
+    </bpmn2:extensionElements>
+    <bpmn2:callActivity id="D-Two" name="D-Two" calledElement="Infra-Activity-Handler">
+      <bpmn2:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-variable" value="d_two:D:3.14:D-Two" />
+          <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-duration" value="12:34:56" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:sequenceFlow id="SequenceFlow_7" name="" sourceRef="D-Two" targetRef="Milestone-Two" />
+    <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn2:extensionElements>
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="ParallelGateway_1" />
+    <bpmn2:parallelGateway id="ParallelGateway_1">
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
+      <bpmn2:outgoing>SequenceFlow_6</bpmn2:outgoing>
+    </bpmn2:parallelGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="ParallelGateway_1" targetRef="D-One-with-Dates" />
+    <bpmn2:sequenceFlow id="SequenceFlow_6" name="" sourceRef="ParallelGateway_1" targetRef="D-Two" />
+    <bpmn2:callActivity id="D-One-with-Dates" name="D-One with Dates" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+      <bpmn2:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-variable" value="d_one:L:99999999:D-One" />
+          <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-duration" value="65:43:21" />
+          <camunda:property name="bw-actual-start" value="2017-06-10" />
+          <camunda:property name="bw-actual-end" value="2017-06-30" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+    </bpmn2:callActivity>
+    <bpmn2:parallelGateway id="ParallelGateway_2">
+      <bpmn2:incoming>SequenceFlow_19ayhsy</bpmn2:incoming>
+      <bpmn2:incoming>SequenceFlow_0zvbahg</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
+    </bpmn2:parallelGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="ParallelGateway_2" targetRef="End" />
+    <bpmn2:endEvent id="End" name="End">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_19ayhsy" sourceRef="Milestone-Two" targetRef="ParallelGateway_2" />
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="D-One-with-Dates" targetRef="Milestone-One" />
+    <bpmn2:sequenceFlow id="SequenceFlow_0zvbahg" sourceRef="Milestone-One" targetRef="ParallelGateway_2" />
+    <bpmn2:intermediateThrowEvent id="Milestone-Two" name="MN-Two">
+      <bpmn2:incoming>SequenceFlow_7</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_19ayhsy</bpmn2:outgoing>
+    </bpmn2:intermediateThrowEvent>
+    <bpmn2:intermediateThrowEvent id="Milestone-One" name="Milestone-One">
+      <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_0zvbahg</bpmn2:outgoing>
+    </bpmn2:intermediateThrowEvent>
+  </bpmn2:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Double-with-Dates">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
+        <dc:Bounds x="34" y="55" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="40" y="96" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
+        <dc:Bounds x="573" y="55" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="582" y="96" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="D-One-with-Dates">
+        <dc:Bounds x="239" y="33" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ParallelGateway_2">
+        <di:waypoint x="70" y="73" />
+        <di:waypoint x="129" y="73" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="116" y="117" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_2" bpmnElement="ParallelGateway_1">
+        <dc:Bounds x="129" y="48" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="311" y="165" width="0" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_CallActivity_6">
+        <di:waypoint x="179" y="73" />
+        <di:waypoint x="239" y="73" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="368" y="135" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_3" bpmnElement="ParallelGateway_2">
+        <dc:Bounds x="475" y="48" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="577" y="165" width="0" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_ParallelGateway_3" targetElement="_BPMNShape_EndEvent_45">
+        <di:waypoint x="525" y="73" />
+        <di:waypoint x="573" y="73" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="682" y="117" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_7" bpmnElement="D-Two">
+        <dc:Bounds x="242" y="151" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_CallActivity_7">
+        <di:waypoint x="154" y="98" />
+        <di:waypoint x="154" y="191" />
+        <di:waypoint x="242" y="191" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="309" y="253" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="_BPMNShape_CallActivity_7" targetElement="IntermediateThrowEvent_0y5eobo_di">
+        <di:waypoint x="342" y="191" />
+        <di:waypoint x="390" y="191" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="574" y="250" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_19ayhsy_di" bpmnElement="SequenceFlow_19ayhsy">
+        <di:waypoint x="426" y="191" />
+        <di:waypoint x="500" y="191" />
+        <di:waypoint x="500" y="98" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5">
+        <di:waypoint x="339" y="73" />
+        <di:waypoint x="390" y="73" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="518" y="135" width="6" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0zvbahg_di" bpmnElement="SequenceFlow_0zvbahg">
+        <di:waypoint x="426" y="73" />
+        <di:waypoint x="475" y="73" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0y5eobo_di" bpmnElement="Milestone-Two">
+        <dc:Bounds x="390" y="173" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="388" y="216" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_06tt0uz_di" bpmnElement="Milestone-One">
+        <dc:Bounds x="390" y="55" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="372" y="98" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

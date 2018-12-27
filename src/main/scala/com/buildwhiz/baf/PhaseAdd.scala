@@ -11,7 +11,7 @@ import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.w3c.dom
-import org.w3c.dom.{Element, Node, NodeList}
+import org.w3c.dom.{Element, NamedNodeMap, Node, NodeList}
 import org.xml.sax.InputSource
 
 import scala.collection.JavaConverters._
@@ -174,7 +174,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
           n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
         val duration = extensionProperties(timerNode, "bw-duration") match {
-          case dur +: _ => dur.getAttributes.getNamedItem("value").getTextContent
+          case dur +: _ => valueAttribute(dur)
           case Nil => "00:00:00"
         }
         (processNameAndDom._1, name, processVariableName, bpmnId, duration)
@@ -194,8 +194,21 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
+  private def valueAttribute(node: Node): String = {
+    node.getAttributes match {
+      case null => ""
+      case attributes: NamedNodeMap => attributes.getNamedItem("value") match {
+        case null => ""
+        case valueItem: Node => valueItem.getTextContent match {
+          case null => ""
+          case textContent: String => textContent
+        }
+      }
+    }
+  }
+
   private def getActivityNameRoleDescriptionDurationAndId(processNameAndDom: (String, dom.Document)):
-      Seq[(String, String, String, String, String, String)] = {
+      Seq[(String, String, String, String, String, String, String, String)] = {
     // bpmn, activity-name, role, description, id
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
@@ -208,25 +221,32 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
 
       def getNameRoleDescriptionAndDuration(callActivity: Element):
-          (String, String, String, String, String, String) = {
+          (String, String, String, String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.
             replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
         val role = extensionProperties(callActivity, "bw-role") match {
-          case r +: _ => r.getAttributes.getNamedItem("value").getTextContent
-          case Nil => "phase-manager"
+          case r +: _ => valueAttribute(r)
+          case Nil | null => "phase-manager"
         }
         val duration = extensionProperties(callActivity, "bw-duration") match {
-          case dur +: _ => dur.getAttributes.getNamedItem("value").getTextContent
-          case Nil => "00:00:00"
+          case dur +: _ => valueAttribute(dur)
+          case Nil | null => "00:00:00"
         }
         val description = extensionProperties(callActivity, "bw-description") match {
-          case d +: _ => d.getAttributes.getNamedItem("value").getTextContent.
-              replaceAll("\"", "\'")
-          case Nil => s"$name (no description provided)"
+          case d +: _ => valueAttribute(d).replaceAll("\"", "\'")
+          case Nil | null => s"$name (no description provided)"
         }
-        (processNameAndDom._1, name, role, description, duration, bpmnId)
+        val bpmnStart = extensionProperties(callActivity, "bw-actual-start") match {
+          case Nil | null => ""
+          case start +: _ => valueAttribute(start)
+        }
+        val bpmnEnd = extensionProperties(callActivity, "bw-actual-end") match {
+          case Nil | null => ""
+          case end +: _ => valueAttribute(end)
+        }
+        (processNameAndDom._1, name, role, description, duration, bpmnStart, bpmnEnd, bpmnId)
       }
 
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
@@ -306,13 +326,15 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val namesRolesAndDescriptions = allProcessNameAndDoms.flatMap(getActivityNameRoleDescriptionDurationAndId)
-      for ((bpmn, activityName, activityRole, activityDescription, activityDuration, bpmnId) <- namesRolesAndDescriptions) {
+      for ((bpmn, activityName, activityRole, activityDescription, activityDuration, bpmnStart, bpmnEnd, bpmnId) <-
+             namesRolesAndDescriptions) {
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
           "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
           "assignee_person_id" -> adminPersonOid, "duration" -> activityDuration, "start" -> "00:00:00", "end" -> "00:00:00")
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
-          "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration)
+          "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration,
+          "bpmn_start_date" -> bpmnStart, "bpmn_end_date" -> bpmnEnd)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

@@ -7,6 +7,8 @@
           <camunda:property name="bw-user-query" value="psr_approved:B:false:PSR-Approved" />
           <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2019-2-01" />
+          <camunda:property name="bw-actual-end" value="2019-5-01" />
         </camunda:properties>
         <camunda:in variables="all" />
       </bpmn:extensionElements>
@@ -16,6 +18,9 @@
     <bpmn:intermediateThrowEvent id="Current-Planner-Assigned" name="Current Planner Assigned">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-actual-end" value="2019-1-30" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1pd5o9l</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1q7css0</bpmn:outgoing>
@@ -26,6 +31,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2018-10-03" />
+          <camunda:property name="bw-actual-end" value="2018-10-03" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0nxjhnn</bpmn:incoming>
@@ -37,6 +44,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2018-09-06" />
+          <camunda:property name="bw-actual-end" value="2018-09-06" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0q7pybk</bpmn:incoming>
@@ -57,6 +66,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-06-06" />
+          <camunda:property name="bw-actual-end" value="2017-07-10" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_14no86z</bpmn:incoming>
@@ -68,9 +79,11 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-08-07" />
+          <camunda:property name="bw-actual-end" value="2017-08-07" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0r01x8e</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_14ki16g</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1erjy9x</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Architecture-Concept-Post-PPA" name="Architecture Concept&#10;Post PPA" calledElement="Infra-Activity-Handler">
@@ -79,6 +92,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-08-08" />
+          <camunda:property name="bw-actual-end" value="2017-09-25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_04lni6h</bpmn:incoming>
@@ -87,27 +102,35 @@
     <bpmn:intermediateThrowEvent id="EIR-Required" name="EIR Required">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-actual-start" value="2018-04-02" />
+        </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0myvvha</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1xki1q0</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_1k2z8bl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_07y0oym</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
-    <bpmn:callActivity id="Environmental-App" name="Environmental App" calledElement="Infra-Activity-Handler">
+    <bpmn:callActivity id="EIR-Fee-Paid" name="EIR Fee Paid" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2018-04-05" />
+          <camunda:property name="bw-actual-end" value="2018-04-05" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1xki1q0</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0akj7s6</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_07y0oym</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1pwoqpo</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:intermediateThrowEvent id="Environmental-Planner-assigned" name="Environmental Planner assigned">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-actual-start" value="2018-04-19" />
+        </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0akj7s6</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1k2z8bl</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_1pwoqpo</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1neriso</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
     <bpmn:callActivity id="Site-Survey" name="Site Survey" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
@@ -115,6 +138,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Surveyor" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2016-08-12" />
+          <camunda:property name="bw-actual-end" value="2016-08-30" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0tkq38z</bpmn:incoming>
@@ -126,6 +151,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Land-Use-Attorney" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2016-04-19" />
+          <camunda:property name="bw-actual-end" value="2016-07-19" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1uqiit4</bpmn:incoming>
@@ -134,6 +161,9 @@
     <bpmn:intermediateThrowEvent id="HRE-Consultant-List" name="HRE Consultant List">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-actual-start" value="2017-07-17" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13pr5x3</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_00jgtza</bpmn:outgoing>
@@ -144,6 +174,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-08-16" />
+          <camunda:property name="bw-actual-end" value="2017-09-01" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_00jgtza</bpmn:incoming>
@@ -155,20 +187,19 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2018-01-02" />
+          <camunda:property name="bw-actual-end" value="2018-04-02" />
         </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0hra9sy</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0myvvha</bpmn:outgoing>
+      <bpmn:incoming>SequenceFlow_0chvlgy</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1e3e378</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0r01x8e" sourceRef="PPA-Review" targetRef="PPA-Meeting" />
+    <bpmn:sequenceFlow id="SequenceFlow_0r01x8e" sourceRef="PPA-Review" targetRef="IntermediateThrowEvent_0z4eb1x" />
     <bpmn:sequenceFlow id="SequenceFlow_1erjy9x" sourceRef="PPA-Meeting" targetRef="ExclusiveGateway_0765ruv" />
     <bpmn:sequenceFlow id="SequenceFlow_1lvjw83" sourceRef="Architecture-Concept-Post-PPA" targetRef="ExclusiveGateway_193hxzt" />
-    <bpmn:sequenceFlow id="SequenceFlow_0myvvha" sourceRef="Planning-Environmental-Review" targetRef="EIR-Required" />
-    <bpmn:sequenceFlow id="SequenceFlow_1xki1q0" sourceRef="EIR-Required" targetRef="Environmental-App" />
-    <bpmn:sequenceFlow id="SequenceFlow_0akj7s6" sourceRef="Environmental-App" targetRef="Environmental-Planner-assigned" />
     <bpmn:sequenceFlow id="SequenceFlow_00jgtza" sourceRef="HRE-Consultant-List" targetRef="HRE-Part-1-Study" />
     <bpmn:sequenceFlow id="SequenceFlow_02yshdq" sourceRef="HRE-Part-1-Study" targetRef="ExclusiveGateway_193hxzt" />
-    <bpmn:sequenceFlow id="SequenceFlow_1k2z8bl" sourceRef="Environmental-Planner-assigned" targetRef="ExclusiveGateway_139f5zi" />
+    <bpmn:sequenceFlow id="SequenceFlow_1k2z8bl" sourceRef="ExclusiveGateway_1myqfvp" targetRef="EIR-Required" />
     <bpmn:sequenceFlow id="SequenceFlow_0tkq38z" sourceRef="Land-Use-Diligence-Memo" targetRef="Site-Survey" />
     <bpmn:callActivity id="Preliminary-Design-Concept" name="Preliminary Design Concept" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
@@ -176,6 +207,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2016-09_01" />
+          <camunda:property name="bw-actual-end" value="2016-09_25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_036h19l</bpmn:incoming>
@@ -185,7 +218,6 @@
     <bpmn:sequenceFlow id="SequenceFlow_036h19l" sourceRef="Site-Survey" targetRef="Preliminary-Design-Concept" />
     <bpmn:sequenceFlow id="SequenceFlow_04lni6h" sourceRef="ExclusiveGateway_0765ruv" targetRef="Architecture-Concept-Post-PPA" />
     <bpmn:sequenceFlow id="SequenceFlow_13pr5x3" sourceRef="ExclusiveGateway_0765ruv" targetRef="HRE-Consultant-List" />
-    <bpmn:sequenceFlow id="SequenceFlow_0hra9sy" sourceRef="ExclusiveGateway_193hxzt" targetRef="Planning-Environmental-Review" />
     <bpmn:parallelGateway id="ExclusiveGateway_0765ruv">
       <bpmn:incoming>SequenceFlow_1erjy9x</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_04lni6h</bpmn:outgoing>
@@ -194,13 +226,18 @@
     <bpmn:parallelGateway id="ExclusiveGateway_193hxzt">
       <bpmn:incoming>SequenceFlow_1lvjw83</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_02yshdq</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0hra9sy</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_01pnatk</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:intermediateThrowEvent id="PPA-Application" name="PPA Application">
-      <bpmn:incoming>SequenceFlow_0o6xh6i</bpmn:incoming>
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-actual-start" value="2017-06-06" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ukovgf</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_14no86z</bpmn:outgoing>
     </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="SequenceFlow_0o6xh6i" sourceRef="Preliminary-Design-Concept" targetRef="PPA-Application" />
+    <bpmn:sequenceFlow id="SequenceFlow_0o6xh6i" sourceRef="Preliminary-Design-Concept" targetRef="Pre-PPA-Meeting" />
     <bpmn:sequenceFlow id="SequenceFlow_14no86z" sourceRef="PPA-Application" targetRef="PPA-Review" />
     <bpmn:callActivity id="Technical-Studies" name="Technical Studies" calledElement="Technical-Studies">
       <bpmn:incoming>SequenceFlow_0kybwtw</bpmn:incoming>
@@ -209,6 +246,7 @@
     <bpmn:callActivity id="Preservation-Alternatives-Report" name="Preservation Alternatives Report" calledElement="Preservation-Alternatives">
       <bpmn:incoming>SequenceFlow_0w2vrq6</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1fq228u</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_11b56p0</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="CEQA-Initial-Study" name="CEQA Initial Study" calledElement="CEQA-Initial-Study">
       <bpmn:incoming>SequenceFlow_1h31ut6</bpmn:incoming>
@@ -221,12 +259,15 @@
     <bpmn:callActivity id="Responses-to-Comments" name="Responses to Comments" calledElement="Responses-to-Comments">
       <bpmn:incoming>SequenceFlow_1cxyenu</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1m5kpb2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_18z5li9</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:callActivity id="Planning-Commission-Hearing" name="Planning Commission Hearing" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2020-05-28" />
+          <camunda:property name="bw-actual-end" value="2020-05-28" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_11su0z0</bpmn:incoming>
@@ -246,6 +287,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" />
+          <camunda:property name="bw-actual-end" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0jcsum2</bpmn:incoming>
@@ -253,7 +296,7 @@
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0jcsum2" sourceRef="ExclusiveGateway_139f5zi" targetRef="HRER-PTR-Part-1" />
     <bpmn:parallelGateway id="ExclusiveGateway_139f5zi">
-      <bpmn:incoming>SequenceFlow_1k2z8bl</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1neriso</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0jcsum2</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0q7pybk</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_1sd0ugc</bpmn:outgoing>
@@ -289,6 +332,7 @@
     <bpmn:parallelGateway id="ExclusiveGateway_1vgx7z4">
       <bpmn:incoming>SequenceFlow_0mhv0ke</bpmn:incoming>
       <bpmn:incoming>SequenceFlow_04ykm89</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ezclj6</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_11su0z0</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1m5kpb2" sourceRef="Responses-to-Comments" targetRef="Delay-16-Days" />
@@ -354,6 +398,97 @@
       <bpmn:signalEventDefinition signalRef="Signal_1dd0wky" />
     </bpmn:boundaryEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1cxyenu" sourceRef="DEIR-Publication-Review-Complete" targetRef="Responses-to-Comments" />
+    <bpmn:callActivity id="Pre-PPA-Meeting" name="Pre PPA Meeting" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2016-10-11" />
+          <camunda:property name="bw-actual-end" value="2016-10-11" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0o6xh6i</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0jo9gwj</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0jo9gwj" sourceRef="Pre-PPA-Meeting" targetRef="PPA-Package-Preparation" />
+    <bpmn:callActivity id="PPA-Package-Preparation" name="PPA Package Preparation" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" />
+          <camunda:property name="bw-actual-end" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jo9gwj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ukovgf</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_0ukovgf" sourceRef="PPA-Package-Preparation" targetRef="PPA-Application" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0z4eb1x" name="EE Application">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-actual-start" value="2017-07-26" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0r01x8e</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14ki16g</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_14ki16g" sourceRef="IntermediateThrowEvent_0z4eb1x" targetRef="PPA-Meeting" />
+    <bpmn:callActivity id="Architecture-Alternatives-Post-HRE" name="Architecture Alternatives Post HRE" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-actual-end" value="2018-02-05" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ws7ge2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1klzj1f</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1klzj1f" sourceRef="Architecture-Alternatives-Post-HRE" targetRef="ExclusiveGateway_1myqfvp" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0ber6uh">
+      <bpmn:incoming>SequenceFlow_01pnatk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ws7ge2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0chvlgy</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_01pnatk" sourceRef="ExclusiveGateway_193hxzt" targetRef="ExclusiveGateway_0ber6uh" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ws7ge2" sourceRef="ExclusiveGateway_0ber6uh" targetRef="Architecture-Alternatives-Post-HRE" />
+    <bpmn:sequenceFlow id="SequenceFlow_0chvlgy" sourceRef="ExclusiveGateway_0ber6uh" targetRef="Planning-Environmental-Review" />
+    <bpmn:sequenceFlow id="SequenceFlow_1e3e378" sourceRef="Planning-Environmental-Review" targetRef="ExclusiveGateway_1myqfvp" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1myqfvp">
+      <bpmn:incoming>SequenceFlow_1klzj1f</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1e3e378</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1k2z8bl</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:callActivity id="Planning-Commission-Presentation" name="Planning Commission Presentation" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-actual-end" value="2018-02-05" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_11b56p0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0nloblv</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_11b56p0" sourceRef="Preservation-Alternatives-Report" targetRef="Planning-Commission-Presentation" />
+    <bpmn:sequenceFlow id="SequenceFlow_18z5li9" sourceRef="Responses-to-Comments" targetRef="ExclusiveGateway_08gvvbb" />
+    <bpmn:parallelGateway id="ExclusiveGateway_08gvvbb">
+      <bpmn:incoming>SequenceFlow_18z5li9</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0nloblv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ezclj6</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0ezclj6" sourceRef="ExclusiveGateway_08gvvbb" targetRef="ExclusiveGateway_1vgx7z4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0nloblv" sourceRef="Planning-Commission-Presentation" targetRef="ExclusiveGateway_08gvvbb" />
+    <bpmn:sequenceFlow id="SequenceFlow_1pwoqpo" sourceRef="EIR-Fee-Paid" targetRef="Environmental-Planner-assigned" />
+    <bpmn:sequenceFlow id="SequenceFlow_1neriso" sourceRef="Environmental-Planner-assigned" targetRef="ExclusiveGateway_139f5zi" />
+    <bpmn:sequenceFlow id="SequenceFlow_07y0oym" sourceRef="EIR-Required" targetRef="EIR-Fee-Paid" />
   </bpmn:process>
   <bpmn:signal id="Signal_1dd0wky" name="DEIR Publication Review Complete" />
   <bpmn:signal id="Signal_1lhmynr" name="Revise PD and NOP Complete" />
@@ -361,361 +496,437 @@
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-CEQA3">
       <bpmndi:BPMNEdge id="SequenceFlow_0nxjhnn_di" bpmnElement="SequenceFlow_0nxjhnn">
-        <di:waypoint x="226" y="366" />
-        <di:waypoint x="262" y="366" />
+        <di:waypoint x="586" y="375" />
+        <di:waypoint x="683" y="375" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1pd5o9l_di" bpmnElement="SequenceFlow_1pd5o9l">
-        <di:waypoint x="362" y="366" />
-        <di:waypoint x="585" y="366" />
+        <di:waypoint x="783" y="375" />
+        <di:waypoint x="930" y="375" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1q7css0_di" bpmnElement="SequenceFlow_1q7css0">
-        <di:waypoint x="621" y="366" />
-        <di:waypoint x="734" y="366" />
+        <di:waypoint x="966" y="375" />
+        <di:waypoint x="1079" y="375" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_0ywlh3g_di" bpmnElement="Pre-App-Community-Meeting">
-        <dc:Bounds x="126" y="326" width="100" height="80" />
+        <dc:Bounds x="486" y="335" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_05jh84k_di" bpmnElement="Project-Entitlement-Application">
-        <dc:Bounds x="262" y="326" width="100" height="80" />
+        <dc:Bounds x="683" y="335" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_16iz0u4_di" bpmnElement="Current-Planner-Assigned">
-        <dc:Bounds x="585" y="348" width="36" height="36" />
+        <dc:Bounds x="930" y="357" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="568" y="391" width="78" height="27" />
+          <dc:Bounds x="913" y="400" width="78" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_00hb8ig_di" bpmnElement="Planning-Staff-Review">
-        <dc:Bounds x="734" y="326" width="100" height="80" />
+        <dc:Bounds x="1079" y="335" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="StartEvent_1yc3cs5_di" bpmnElement="Start">
-        <dc:Bounds x="51" y="37" width="36" height="36" />
+        <dc:Bounds x="38" y="46" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="54" y="11" width="24" height="14" />
+          <dc:Bounds x="42" y="20" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_12kti1m_di" bpmnElement="PPA-Review">
-        <dc:Bounds x="569" y="15" width="100" height="80" />
+        <dc:Bounds x="821" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_02i3mzx_di" bpmnElement="PPA-Meeting">
-        <dc:Bounds x="697" y="15" width="100" height="80" />
+        <dc:Bounds x="1042" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_17olqhf_di" bpmnElement="Architecture-Concept-Post-PPA">
-        <dc:Bounds x="902" y="15" width="100" height="80" />
+        <dc:Bounds x="1247" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0sf52fs_di" bpmnElement="EIR-Required">
-        <dc:Bounds x="1238" y="37" width="36" height="36" />
+        <dc:Bounds x="75" y="503" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1225" y="80" width="66" height="14" />
+          <dc:Bounds x="63" y="546" width="66" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_1hy4jpl_di" bpmnElement="Environmental-App">
-        <dc:Bounds x="1323" y="15" width="100" height="80" />
+      <bpmndi:BPMNShape id="CallActivity_1hy4jpl_di" bpmnElement="EIR-Fee-Paid" bioc:stroke="#FB8C00" bioc:fill="#FFE0B2">
+        <dc:Bounds x="161" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_1iemu0a_di" bpmnElement="Environmental-Planner-assigned">
-        <dc:Bounds x="1453" y="37" width="36" height="36" />
+        <dc:Bounds x="313" y="503" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1428" y="8" width="85" height="27" />
+          <dc:Bounds x="288" y="474" width="85" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0vtjkix_di" bpmnElement="Site-Survey">
-        <dc:Bounds x="244" y="15" width="100" height="80" />
+        <dc:Bounds x="231" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1awj941_di" bpmnElement="Land-Use-Diligence-Memo">
-        <dc:Bounds x="115" y="15" width="100" height="80" />
+        <dc:Bounds x="102" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0el09c7_di" bpmnElement="HRE-Consultant-List">
-        <dc:Bounds x="830" y="184" width="36" height="36" />
+        <dc:Bounds x="1175" y="193" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="809" y="228" width="79" height="27" />
+          <dc:Bounds x="1154" y="237" width="79" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1iqtm8k_di" bpmnElement="HRE-Part-1-Study">
-        <dc:Bounds x="902" y="162" width="100" height="80" />
+        <dc:Bounds x="1247" y="171" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0hvfcns_di" bpmnElement="Planning-Environmental-Review">
-        <dc:Bounds x="1100" y="15" width="100" height="80" />
+        <dc:Bounds x="1557" y="171" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0r01x8e_di" bpmnElement="SequenceFlow_0r01x8e">
-        <di:waypoint x="669" y="55" />
-        <di:waypoint x="697" y="55" />
+        <di:waypoint x="921" y="64" />
+        <di:waypoint x="951" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1erjy9x_di" bpmnElement="SequenceFlow_1erjy9x">
-        <di:waypoint x="797" y="55" />
-        <di:waypoint x="823" y="55" />
+        <di:waypoint x="1142" y="64" />
+        <di:waypoint x="1168" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1lvjw83_di" bpmnElement="SequenceFlow_1lvjw83">
-        <di:waypoint x="1002" y="55" />
-        <di:waypoint x="1032" y="55" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0myvvha_di" bpmnElement="SequenceFlow_0myvvha">
-        <di:waypoint x="1200" y="55" />
-        <di:waypoint x="1238" y="55" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1xki1q0_di" bpmnElement="SequenceFlow_1xki1q0">
-        <di:waypoint x="1274" y="55" />
-        <di:waypoint x="1323" y="55" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0akj7s6_di" bpmnElement="SequenceFlow_0akj7s6">
-        <di:waypoint x="1423" y="55" />
-        <di:waypoint x="1453" y="55" />
+        <di:waypoint x="1347" y="64" />
+        <di:waypoint x="1377" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_00jgtza_di" bpmnElement="SequenceFlow_00jgtza">
-        <di:waypoint x="866" y="202" />
-        <di:waypoint x="902" y="202" />
+        <di:waypoint x="1211" y="211" />
+        <di:waypoint x="1247" y="211" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_02yshdq_di" bpmnElement="SequenceFlow_02yshdq">
-        <di:waypoint x="1002" y="202" />
-        <di:waypoint x="1057" y="202" />
-        <di:waypoint x="1057" y="80" />
+        <di:waypoint x="1347" y="211" />
+        <di:waypoint x="1402" y="211" />
+        <di:waypoint x="1402" y="89" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1k2z8bl_di" bpmnElement="SequenceFlow_1k2z8bl">
-        <di:waypoint x="1471" y="73" />
-        <di:waypoint x="1471" y="297" />
-        <di:waypoint x="23" y="297" />
-        <di:waypoint x="23" y="512" />
-        <di:waypoint x="50" y="512" />
+        <di:waypoint x="1736" y="64" />
+        <di:waypoint x="1760" y="64" />
+        <di:waypoint x="1760" y="306" />
+        <di:waypoint x="26" y="306" />
+        <di:waypoint x="26" y="521" />
+        <di:waypoint x="75" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0tkq38z_di" bpmnElement="SequenceFlow_0tkq38z">
-        <di:waypoint x="215" y="55" />
-        <di:waypoint x="244" y="55" />
+        <di:waypoint x="202" y="64" />
+        <di:waypoint x="231" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_0lkey91_di" bpmnElement="Preliminary-Design-Concept">
-        <dc:Bounds x="378" y="15" width="100" height="80" />
+        <dc:Bounds x="364" y="24" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1uqiit4_di" bpmnElement="SequenceFlow_1uqiit4">
-        <di:waypoint x="87" y="55" />
-        <di:waypoint x="115" y="55" />
+        <di:waypoint x="74" y="64" />
+        <di:waypoint x="102" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_036h19l_di" bpmnElement="SequenceFlow_036h19l">
-        <di:waypoint x="344" y="55" />
-        <di:waypoint x="378" y="55" />
+        <di:waypoint x="331" y="64" />
+        <di:waypoint x="364" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04lni6h_di" bpmnElement="SequenceFlow_04lni6h">
-        <di:waypoint x="873" y="55" />
-        <di:waypoint x="902" y="55" />
+        <di:waypoint x="1218" y="64" />
+        <di:waypoint x="1247" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_13pr5x3_di" bpmnElement="SequenceFlow_13pr5x3">
-        <di:waypoint x="848" y="80" />
-        <di:waypoint x="848" y="184" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0hra9sy_di" bpmnElement="SequenceFlow_0hra9sy">
-        <di:waypoint x="1082" y="55" />
-        <di:waypoint x="1100" y="55" />
+        <di:waypoint x="1193" y="89" />
+        <di:waypoint x="1193" y="193" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0a8l4py_di" bpmnElement="ExclusiveGateway_0765ruv">
-        <dc:Bounds x="823" y="30" width="50" height="50" />
+        <dc:Bounds x="1168" y="39" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ParallelGateway_1hicfzs_di" bpmnElement="ExclusiveGateway_193hxzt">
-        <dc:Bounds x="1032" y="30" width="50" height="50" />
+        <dc:Bounds x="1377" y="39" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_13ikfq2_di" bpmnElement="PPA-Application">
-        <dc:Bounds x="509" y="37" width="36" height="36" />
+        <dc:Bounds x="758" y="46" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="489" y="80" width="78" height="14" />
+          <dc:Bounds x="739" y="89" width="78" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0o6xh6i_di" bpmnElement="SequenceFlow_0o6xh6i">
-        <di:waypoint x="478" y="55" />
-        <di:waypoint x="509" y="55" />
+        <di:waypoint x="464" y="64" />
+        <di:waypoint x="498" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_14no86z_di" bpmnElement="SequenceFlow_14no86z">
-        <di:waypoint x="545" y="55" />
-        <di:waypoint x="569" y="55" />
+        <di:waypoint x="794" y="64" />
+        <di:waypoint x="821" y="64" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="CallActivity_05gfsbl_di" bpmnElement="Technical-Studies" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="126" y="763" width="100" height="80" />
+        <dc:Bounds x="471" y="772" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1yv0hny_di" bpmnElement="Preservation-Alternatives-Report" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="449" y="472" width="100" height="80" />
+        <dc:Bounds x="794" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0791ksh_di" bpmnElement="CEQA-Initial-Study" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="262" y="695" width="100" height="80" />
+        <dc:Bounds x="607" y="704" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1su259u_di" bpmnElement="CEQA-Environmental-Impact-Report" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="721" y="472" width="100" height="80" />
+        <dc:Bounds x="1066" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1rl7919_di" bpmnElement="Responses-to-Comments" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="963" y="472" width="100" height="80" />
+        <dc:Bounds x="1308" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1c70asp_di" bpmnElement="Planning-Commission-Hearing">
-        <dc:Bounds x="1236" y="472" width="100" height="80" />
+        <dc:Bounds x="1581" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_03ujrjp_di" bpmnElement="HRE-2" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="253" y="472" width="100" height="80" />
+        <dc:Bounds x="598" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_0d2lsce_di" bpmnElement="Project-Description-NOP" bioc:stroke="#43A047" bioc:fill="#C8E6C9">
-        <dc:Bounds x="126" y="617" width="100" height="80" />
+        <dc:Bounds x="471" y="626" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="CallActivity_1cipvs8_di" bpmnElement="HRER-PTR-Part-1">
-        <dc:Bounds x="126" y="472" width="100" height="80" />
+        <dc:Bounds x="471" y="481" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0jcsum2_di" bpmnElement="SequenceFlow_0jcsum2">
-        <di:waypoint x="100" y="512" />
-        <di:waypoint x="126" y="512" />
+        <di:waypoint x="445" y="521" />
+        <di:waypoint x="471" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0xmi8wc_di" bpmnElement="ExclusiveGateway_139f5zi">
-        <dc:Bounds x="50" y="487" width="50" height="50" />
+        <dc:Bounds x="395" y="496" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0877f28_di" bpmnElement="SequenceFlow_0877f28">
-        <di:waypoint x="226" y="512" />
-        <di:waypoint x="253" y="512" />
+        <di:waypoint x="571" y="521" />
+        <di:waypoint x="598" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1fq228u_di" bpmnElement="SequenceFlow_1fq228u">
-        <di:waypoint x="549" y="512" />
-        <di:waypoint x="575" y="512" />
+        <di:waypoint x="894" y="521" />
+        <di:waypoint x="920" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0637ptq_di" bpmnElement="SequenceFlow_0637ptq">
-        <di:waypoint x="611" y="512" />
-        <di:waypoint x="646" y="512" />
+        <di:waypoint x="956" y="521" />
+        <di:waypoint x="991" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_07iz4n3_di" bpmnElement="Delay-10-Days">
-        <dc:Bounds x="575" y="494" width="36" height="36" />
+        <dc:Bounds x="920" y="503" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="574" y="537" width="41" height="27" />
+          <dc:Bounds x="919" y="546" width="41" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0q5ldyj_di" bpmnElement="End">
-        <dc:Bounds x="1440" y="494" width="36" height="36" />
+        <dc:Bounds x="1785" y="503" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1449" y="537" width="20" height="14" />
+          <dc:Bounds x="1794" y="546" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0igxwoi_di" bpmnElement="SequenceFlow_0igxwoi">
-        <di:waypoint x="1336" y="512" />
-        <di:waypoint x="1365" y="512" />
+        <di:waypoint x="1681" y="521" />
+        <di:waypoint x="1710" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0q7pybk_di" bpmnElement="SequenceFlow_0q7pybk">
-        <di:waypoint x="75" y="487" />
-        <di:waypoint x="75" y="366" />
-        <di:waypoint x="126" y="366" />
+        <di:waypoint x="420" y="496" />
+        <di:waypoint x="420" y="375" />
+        <di:waypoint x="486" y="375" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0mhv0ke_di" bpmnElement="SequenceFlow_0mhv0ke">
-        <di:waypoint x="834" y="366" />
-        <di:waypoint x="1179" y="366" />
-        <di:waypoint x="1179" y="487" />
+        <di:waypoint x="1179" y="375" />
+        <di:waypoint x="1524" y="375" />
+        <di:waypoint x="1524" y="496" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_11su0z0_di" bpmnElement="SequenceFlow_11su0z0">
-        <di:waypoint x="1204" y="512" />
-        <di:waypoint x="1236" y="512" />
+        <di:waypoint x="1549" y="521" />
+        <di:waypoint x="1581" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_1cw4g4f_di" bpmnElement="ExclusiveGateway_1vgx7z4">
-        <dc:Bounds x="1154" y="487" width="50" height="50" />
+        <dc:Bounds x="1499" y="496" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1m5kpb2_di" bpmnElement="SequenceFlow_1m5kpb2">
-        <di:waypoint x="1063" y="512" />
-        <di:waypoint x="1092" y="512" />
+        <di:waypoint x="1408" y="521" />
+        <di:waypoint x="1437" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04ykm89_di" bpmnElement="SequenceFlow_04ykm89">
-        <di:waypoint x="1128" y="512" />
-        <di:waypoint x="1154" y="512" />
+        <di:waypoint x="1473" y="521" />
+        <di:waypoint x="1499" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_09r3qup_di" bpmnElement="Delay-16-Days">
-        <dc:Bounds x="1092" y="494" width="36" height="36" />
+        <dc:Bounds x="1437" y="503" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1091" y="537" width="41" height="27" />
+          <dc:Bounds x="1436" y="546" width="41" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_00y6rdt_di" bpmnElement="SequenceFlow_00y6rdt">
-        <di:waypoint x="362" y="735" />
-        <di:waypoint x="487" y="735" />
+        <di:waypoint x="707" y="744" />
+        <di:waypoint x="832" y="744" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1sd0ugc_di" bpmnElement="SequenceFlow_1sd0ugc">
-        <di:waypoint x="75" y="537" />
-        <di:waypoint x="75" y="657" />
-        <di:waypoint x="126" y="657" />
+        <di:waypoint x="420" y="546" />
+        <di:waypoint x="420" y="666" />
+        <di:waypoint x="471" y="666" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0kybwtw_di" bpmnElement="SequenceFlow_0kybwtw">
-        <di:waypoint x="75" y="537" />
-        <di:waypoint x="75" y="803" />
-        <di:waypoint x="126" y="803" />
+        <di:waypoint x="420" y="546" />
+        <di:waypoint x="420" y="812" />
+        <di:waypoint x="471" y="812" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_06ep997_di" bpmnElement="ExclusiveGateway_1nxq0y2">
-        <dc:Bounds x="487" y="710" width="50" height="50" />
+        <dc:Bounds x="832" y="719" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_12tcszt_di" bpmnElement="SequenceFlow_12tcszt">
-        <di:waypoint x="226" y="657" />
-        <di:waypoint x="512" y="657" />
-        <di:waypoint x="512" y="710" />
+        <di:waypoint x="571" y="666" />
+        <di:waypoint x="857" y="666" />
+        <di:waypoint x="857" y="719" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_10ixw9d_di" bpmnElement="SequenceFlow_10ixw9d">
-        <di:waypoint x="226" y="803" />
-        <di:waypoint x="512" y="803" />
-        <di:waypoint x="512" y="760" />
+        <di:waypoint x="571" y="812" />
+        <di:waypoint x="857" y="812" />
+        <di:waypoint x="857" y="769" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1bpuc6k_di" bpmnElement="SequenceFlow_1bpuc6k">
-        <di:waypoint x="1415" y="512" />
-        <di:waypoint x="1440" y="512" />
+        <di:waypoint x="1760" y="521" />
+        <di:waypoint x="1785" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_0uv0fng_di" bpmnElement="ExclusiveGateway_1u4w8ny">
-        <dc:Bounds x="1365" y="487" width="50" height="50" />
+        <dc:Bounds x="1710" y="496" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_10cxfk4_di" bpmnElement="SequenceFlow_10cxfk4">
-        <di:waypoint x="537" y="735" />
-        <di:waypoint x="1390" y="735" />
-        <di:waypoint x="1390" y="537" />
+        <di:waypoint x="882" y="744" />
+        <di:waypoint x="1735" y="744" />
+        <di:waypoint x="1735" y="546" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0my8kni_di" bpmnElement="SequenceFlow_0my8kni">
-        <di:waypoint x="821" y="512" />
-        <di:waypoint x="866" y="512" />
-        <di:waypoint x="866" y="471" />
+        <di:waypoint x="1166" y="521" />
+        <di:waypoint x="1211" y="521" />
+        <di:waypoint x="1211" y="480" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1vilyig_di" bpmnElement="SequenceFlow_1vilyig">
-        <di:waypoint x="353" y="512" />
-        <di:waypoint x="388" y="512" />
-        <di:waypoint x="388" y="446" />
-        <di:waypoint x="841" y="446" />
+        <di:waypoint x="698" y="521" />
+        <di:waypoint x="733" y="521" />
+        <di:waypoint x="733" y="455" />
+        <di:waypoint x="1186" y="455" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_06s4cf5_di" bpmnElement="SequenceFlow_06s4cf5">
-        <di:waypoint x="891" y="446" />
-        <di:waypoint x="1390" y="446" />
-        <di:waypoint x="1390" y="487" />
+        <di:waypoint x="1236" y="455" />
+        <di:waypoint x="1735" y="455" />
+        <di:waypoint x="1735" y="496" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_156ms58_di" bpmnElement="ExclusiveGateway_1o4ecz1">
-        <dc:Bounds x="841" y="421" width="50" height="50" />
+        <dc:Bounds x="1186" y="430" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1wh64ej_di" bpmnElement="SequenceFlow_1wh64ej">
-        <di:waypoint x="696" y="512" />
-        <di:waypoint x="721" y="512" />
+        <di:waypoint x="1041" y="521" />
+        <di:waypoint x="1066" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_1wkjmz1_di" bpmnElement="ExclusiveGateway_1w53rxl">
-        <dc:Bounds x="646" y="487" width="50" height="50" />
+        <dc:Bounds x="991" y="496" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BoundaryEvent_1luwnr3_di" bpmnElement="Revise-PD-and-NOP-Complete">
-        <dc:Bounds x="185" y="679" width="36" height="36" />
+        <dc:Bounds x="530" y="688" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="114" y="710" width="74" height="27" />
+          <dc:Bounds x="459" y="719" width="74" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1h31ut6_di" bpmnElement="SequenceFlow_1h31ut6">
-        <di:waypoint x="203" y="715" />
-        <di:waypoint x="203" y="735" />
-        <di:waypoint x="262" y="735" />
+        <di:waypoint x="548" y="724" />
+        <di:waypoint x="548" y="744" />
+        <di:waypoint x="607" y="744" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BoundaryEvent_0eizqui_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-2-Complete">
-        <dc:Bounds x="312" y="534" width="36" height="36" />
+        <dc:Bounds x="657" y="543" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="237" y="560" width="83" height="40" />
+          <dc:Bounds x="582" y="569" width="83" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0w2vrq6_di" bpmnElement="SequenceFlow_0w2vrq6">
-        <di:waypoint x="330" y="570" />
-        <di:waypoint x="330" y="590" />
-        <di:waypoint x="416" y="590" />
-        <di:waypoint x="416" y="512" />
-        <di:waypoint x="449" y="512" />
+        <di:waypoint x="675" y="579" />
+        <di:waypoint x="675" y="599" />
+        <di:waypoint x="761" y="599" />
+        <di:waypoint x="761" y="521" />
+        <di:waypoint x="794" y="521" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BoundaryEvent_14uj5wv_di" bpmnElement="DEIR-Publication-Review-Complete">
-        <dc:Bounds x="784" y="534" width="36" height="36" />
+        <dc:Bounds x="1129" y="543" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="701" y="565.5" width="87" height="27" />
+          <dc:Bounds x="1046" y="575" width="87" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1cxyenu_di" bpmnElement="SequenceFlow_1cxyenu">
-        <di:waypoint x="802" y="570" />
-        <di:waypoint x="802" y="590" />
-        <di:waypoint x="911" y="590" />
-        <di:waypoint x="911" y="512" />
-        <di:waypoint x="963" y="512" />
+        <di:waypoint x="1147" y="579" />
+        <di:waypoint x="1147" y="599" />
+        <di:waypoint x="1256" y="599" />
+        <di:waypoint x="1256" y="521" />
+        <di:waypoint x="1308" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1r0ceva_di" bpmnElement="Pre-PPA-Meeting" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="498" y="24" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jo9gwj_di" bpmnElement="SequenceFlow_0jo9gwj">
+        <di:waypoint x="598" y="64" />
+        <di:waypoint x="634" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_07lfdc2_di" bpmnElement="PPA-Package-Preparation" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="634" y="24" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ukovgf_di" bpmnElement="SequenceFlow_0ukovgf">
+        <di:waypoint x="734" y="64" />
+        <di:waypoint x="758" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0z4eb1x_di" bpmnElement="IntermediateThrowEvent_0z4eb1x">
+        <dc:Bounds x="951" y="46" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="935" y="89" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_14ki16g_di" bpmnElement="SequenceFlow_14ki16g">
+        <di:waypoint x="987" y="64" />
+        <di:waypoint x="1042" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_10i7giw_di" bpmnElement="Architecture-Alternatives-Post-HRE" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="1540" y="24" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1klzj1f_di" bpmnElement="SequenceFlow_1klzj1f">
+        <di:waypoint x="1640" y="64" />
+        <di:waypoint x="1686" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1hfvxlm_di" bpmnElement="ExclusiveGateway_0ber6uh">
+        <dc:Bounds x="1459" y="39" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_01pnatk_di" bpmnElement="SequenceFlow_01pnatk">
+        <di:waypoint x="1427" y="64" />
+        <di:waypoint x="1459" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ws7ge2_di" bpmnElement="SequenceFlow_0ws7ge2">
+        <di:waypoint x="1509" y="64" />
+        <di:waypoint x="1540" y="64" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0chvlgy_di" bpmnElement="SequenceFlow_0chvlgy">
+        <di:waypoint x="1484" y="89" />
+        <di:waypoint x="1484" y="211" />
+        <di:waypoint x="1557" y="211" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1e3e378_di" bpmnElement="SequenceFlow_1e3e378">
+        <di:waypoint x="1657" y="211" />
+        <di:waypoint x="1711" y="211" />
+        <di:waypoint x="1711" y="89" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_069snw2_di" bpmnElement="ExclusiveGateway_1myqfvp">
+        <dc:Bounds x="1686" y="39" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0m34i33_di" bpmnElement="Planning-Commission-Presentation" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="919" y="601" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_11b56p0_di" bpmnElement="SequenceFlow_11b56p0">
+        <di:waypoint x="844" y="561" />
+        <di:waypoint x="844" y="641" />
+        <di:waypoint x="919" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_18z5li9_di" bpmnElement="SequenceFlow_18z5li9">
+        <di:waypoint x="1358" y="561" />
+        <di:waypoint x="1358" y="616" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_10mglvm_di" bpmnElement="ExclusiveGateway_08gvvbb">
+        <dc:Bounds x="1333" y="616" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ezclj6_di" bpmnElement="SequenceFlow_0ezclj6">
+        <di:waypoint x="1383" y="641" />
+        <di:waypoint x="1524" y="641" />
+        <di:waypoint x="1524" y="546" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0nloblv_di" bpmnElement="SequenceFlow_0nloblv">
+        <di:waypoint x="1019" y="641" />
+        <di:waypoint x="1333" y="641" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1pwoqpo_di" bpmnElement="SequenceFlow_1pwoqpo">
+        <di:waypoint x="261" y="521" />
+        <di:waypoint x="313" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1neriso_di" bpmnElement="SequenceFlow_1neriso">
+        <di:waypoint x="349" y="521" />
+        <di:waypoint x="395" y="521" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_07y0oym_di" bpmnElement="SequenceFlow_07y0oym">
+        <di:waypoint x="111" y="521" />
+        <di:waypoint x="161" y="521" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

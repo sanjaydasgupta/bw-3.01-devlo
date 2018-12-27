@@ -12,6 +12,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="EIR-Consultant" />
+          <camunda:property name="bw-actual-start" value="2018-11-02" />
+          <camunda:property name="bw-actual-end" value="2018-11-30" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1m5r2ms</bpmn:incoming>
@@ -21,6 +23,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2018-12-03" />
+          <camunda:property name="bw-actual-end" value="2018-12-12" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1fqgskw</bpmn:incoming>
@@ -33,6 +37,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2018-12-03" />
+          <camunda:property name="bw-actual-end" value="2018-12-20" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_08yjpwl</bpmn:incoming>
@@ -47,6 +53,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="EIR-Consultant" />
+          <camunda:property name="bw-actual-start" value="2018-12-20" />
+          <camunda:property name="bw-actual-end" value="2019-01-03" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_13x44o7</bpmn:incoming>
@@ -57,6 +65,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-01-04" />
+          <camunda:property name="bw-actual-end" value="2019-01-17" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ckwibm</bpmn:incoming>
@@ -71,6 +81,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2019-01-04" />
+          <camunda:property name="bw-actual-end" value="2019-01-10" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0cthklk</bpmn:incoming>
@@ -83,6 +95,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="EIR-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-01-18" />
+          <camunda:property name="bw-actual-end" value="2019-01-24" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_16tz9ml</bpmn:incoming>
@@ -93,6 +107,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-01-25" />
+          <camunda:property name="bw-actual-end" value="2019-01-29" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ka5cdz</bpmn:incoming>
@@ -163,6 +179,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="EIR-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-01-30" />
+          <camunda:property name="bw-actual-end" value="2019-02-01" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1gay2ma</bpmn:incoming>

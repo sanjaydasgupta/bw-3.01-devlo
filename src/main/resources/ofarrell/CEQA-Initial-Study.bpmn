@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0s6wbkh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_0s6wbkh" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
   <bpmn:process id="CEQA-Initial-Study" name="CEQA Initial Study" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -11,6 +11,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-01-04" />
+          <camunda:property name="bw-actual-end" value="2019-02-08" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_140wdug</bpmn:incoming>
@@ -20,6 +22,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2019-02-11" />
+          <camunda:property name="bw-actual-end" value="2019-02-25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0t43el9</bpmn:incoming>
@@ -32,6 +36,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-02-11" />
+          <camunda:property name="bw-actual-end" value="2019-03-25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1wam4vc</bpmn:incoming>
@@ -46,6 +52,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-03-26" />
+          <camunda:property name="bw-actual-end" value="2019-04-22" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_00zb1yc</bpmn:incoming>
@@ -55,6 +63,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-04-23" />
+          <camunda:property name="bw-actual-end" value="2019-05-20" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1p9n44z</bpmn:incoming>
@@ -69,6 +79,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2019-04-23" />
+          <camunda:property name="bw-actual-end" value="2019-05-01" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0cuu239</bpmn:incoming>
@@ -87,6 +99,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-05-21" />
+          <camunda:property name="bw-actual-end" value="2019-06-04" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1rhucvr</bpmn:incoming>
@@ -96,6 +110,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-06-05" />
+          <camunda:property name="bw-actual-end" value="2019-06-18" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0p8qiiv</bpmn:incoming>
@@ -110,6 +126,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2019-06-05" />
+          <camunda:property name="bw-actual-end" value="2019-06-11" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1wjwe6o</bpmn:incoming>
@@ -123,6 +141,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Consultant" />
+          <camunda:property name="bw-actual-start" value="2019-06-19" />
+          <camunda:property name="bw-actual-end" value="2019-06-25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_16t8bl7</bpmn:incoming>
@@ -132,6 +152,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-06-26" />
+          <camunda:property name="bw-actual-end" value="2019-06-28" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0cpvvj8</bpmn:incoming>
@@ -146,6 +168,8 @@
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-actual-start" value="2019-06-26" />
+          <camunda:property name="bw-actual-end" value="2019-06-27" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1rkqhvj</bpmn:incoming>
@@ -155,12 +179,15 @@
       </bpmn:dataOutputAssociation>
     </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0ufbhmh" sourceRef="Screen-Review-by-EP" targetRef="ExclusiveGateway_0n5oibm" />
-    <bpmn:sequenceFlow id="SequenceFlow_0w2o4d7" sourceRef="ExclusiveGateway_1pwamee" targetRef="End" />
+    <bpmn:sequenceFlow id="SequenceFlow_0w2o4d7" sourceRef="ExclusiveGateway_1pwamee" targetRef="CallActivity_1vgauxm" />
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-actual-end" value="2019-06-28" />
+        </camunda:properties>
       </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0w2o4d7</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1n4gg3b</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1rhucvr" sourceRef="ExclusiveGateway_0969tgd" targetRef="Screen-Check-IS" />
     <bpmn:parallelGateway id="ExclusiveGateway_0969tgd">
@@ -226,10 +253,19 @@
       <bpmn:incoming>SequenceFlow_02jifxw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0w2o4d7</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:textAnnotation id="IS-Ready-for-DEIR-as-Appendix">
-      <bpmn:text>IS Ready for DEIR as Appendix</bpmn:text>
-    </bpmn:textAnnotation>
-    <bpmn:association id="Association_1qs3et1" sourceRef="End" targetRef="IS-Ready-for-DEIR-as-Appendix" />
+    <bpmn:callActivity id="CallActivity_1vgauxm" name="IS Ready for DEIR as Appendix" calledElement="Infra-Activity-Handler">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-actual-start" value="2019-07-01" />
+          <camunda:property name="bw-actual-end" value="2019-07-08" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0w2o4d7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1n4gg3b</bpmn:outgoing>
+      <bpmn:property id="Property_0io6ln0" name="__targetRef_placeholder" />
+    </bpmn:callActivity>
+    <bpmn:sequenceFlow id="SequenceFlow_1n4gg3b" sourceRef="CallActivity_1vgauxm" targetRef="End" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="CEQA-Initial-Study">
@@ -313,12 +349,12 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0w2o4d7_di" bpmnElement="SequenceFlow_0w2o4d7">
         <di:waypoint x="891" y="535" />
-        <di:waypoint x="937" y="535" />
+        <di:waypoint x="926" y="535" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="EndEvent_1xcu1n5_di" bpmnElement="End">
-        <dc:Bounds x="937" y="517" width="36" height="36" />
+        <dc:Bounds x="1058" y="517" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="946" y="560" width="20" height="14" />
+          <dc:Bounds x="1067" y="560" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1rhucvr_di" bpmnElement="SequenceFlow_1rhucvr">
@@ -475,19 +511,19 @@
         <di:waypoint x="755" y="560" />
         <di:waypoint x="755" y="606" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="TextAnnotation_0kw08y5_di" bpmnElement="IS-Ready-for-DEIR-as-Appendix">
-        <dc:Bounds x="891" y="437" width="100" height="54" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Association_1qs3et1_di" bpmnElement="Association_1qs3et1">
-        <di:waypoint x="952" y="518" />
-        <di:waypoint x="946" y="491" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ParallelGateway_187bam0_di" bpmnElement="ExclusiveGateway_1xihxzc">
         <dc:Bounds x="628" y="510" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ParallelGateway_1t3e50f_di" bpmnElement="ExclusiveGateway_1pwamee">
         <dc:Bounds x="841" y="510" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1vgauxm_di" bpmnElement="CallActivity_1vgauxm" bioc:stroke="#1E88E5" bioc:fill="#BBDEFB">
+        <dc:Bounds x="926" y="495" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1n4gg3b_di" bpmnElement="SequenceFlow_1n4gg3b">
+        <di:waypoint x="1026" y="535" />
+        <di:waypoint x="1058" y="535" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

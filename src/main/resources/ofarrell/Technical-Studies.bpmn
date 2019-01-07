@@ -18,7 +18,9 @@
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-role" value="Soils-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
           <camunda:property name="bw-actual-start" value="2018-07-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-08-02" />
           <camunda:property name="bw-actual-end" value="2018-08-02" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -30,7 +32,9 @@
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-role" value="Geotechnical-Engineer" />
+          <camunda:property name="bw-scheduled-start" value="2018-08-16" />
           <camunda:property name="bw-actual-start" value="2018-08-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-09-18" />
           <camunda:property name="bw-actual-end" value="2018-09-18" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -42,7 +46,9 @@
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-role" value="Wind-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
           <camunda:property name="bw-actual-start" value="2018-07-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-08-14" />
           <camunda:property name="bw-actual-end" value="2018-08-14" />
         </camunda:properties>
       </bpmn:extensionElements>

@@ -7,8 +7,8 @@
           <camunda:property name="bw-user-query" value="psr_approved:B:false:PSR-Approved" />
           <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
-          <camunda:property name="bw-actual-start" value="2019-2-01" />
-          <camunda:property name="bw-actual-end" value="2019-5-01" />
+          <camunda:property name="bw-scheduled-start" value="2019-02-01" />
+          <camunda:property name="bw-scheduled-end" value="2019-05-01" />
         </camunda:properties>
         <camunda:in variables="all" />
       </bpmn:extensionElements>
@@ -19,7 +19,7 @@
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
         <camunda:properties>
-          <camunda:property name="bw-actual-end" value="2019-1-30" />
+          <camunda:property name="bw-scheduled-end" value="2019-01-30" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1pd5o9l</bpmn:incoming>
@@ -31,7 +31,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-10-03" />
           <camunda:property name="bw-actual-start" value="2018-10-03" />
+          <camunda:property name="bw-scheduled-end" value="2018-10-03" />
           <camunda:property name="bw-actual-end" value="2018-10-03" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -44,7 +46,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-09-06" />
           <camunda:property name="bw-actual-start" value="2018-09-06" />
+          <camunda:property name="bw-scheduled-end" value="2018-09-06" />
           <camunda:property name="bw-actual-end" value="2018-09-06" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -66,7 +70,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Current-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-06-06" />
           <camunda:property name="bw-actual-start" value="2017-06-06" />
+          <camunda:property name="bw-scheduled-end" value="2017-07-10" />
           <camunda:property name="bw-actual-end" value="2017-07-10" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -79,7 +85,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-07" />
           <camunda:property name="bw-actual-start" value="2017-08-07" />
+          <camunda:property name="bw-scheduled-end" value="2017-08-07" />
           <camunda:property name="bw-actual-end" value="2017-08-07" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -92,7 +100,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-08" />
           <camunda:property name="bw-actual-start" value="2017-08-08" />
+          <camunda:property name="bw-scheduled-end" value="2017-09-25" />
           <camunda:property name="bw-actual-end" value="2017-09-25" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -103,6 +113,7 @@
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
         <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2018-04-02" />
           <camunda:property name="bw-actual-start" value="2018-04-02" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -115,7 +126,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-04-05" />
           <camunda:property name="bw-actual-start" value="2018-04-05" />
+          <camunda:property name="bw-scheduled-end" value="2018-04-05" />
           <camunda:property name="bw-actual-end" value="2018-04-05" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -126,6 +139,7 @@
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
         <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2018-04-19" />
           <camunda:property name="bw-actual-start" value="2018-04-19" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -138,7 +152,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Surveyor" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-08-12" />
           <camunda:property name="bw-actual-start" value="2016-08-12" />
+          <camunda:property name="bw-scheduled-end" value="2016-08-30" />
           <camunda:property name="bw-actual-end" value="2016-08-30" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -151,7 +167,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Land-Use-Attorney" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-04-19" />
           <camunda:property name="bw-actual-start" value="2016-04-19" />
+          <camunda:property name="bw-scheduled-end" value="2016-07-19" />
           <camunda:property name="bw-actual-end" value="2016-07-19" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -162,6 +180,7 @@
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
         <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-07-17" />
           <camunda:property name="bw-actual-start" value="2017-07-17" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -174,7 +193,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Historic-Consultant" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-16" />
           <camunda:property name="bw-actual-start" value="2017-08-16" />
+          <camunda:property name="bw-scheduled-end" value="2017-09-01" />
           <camunda:property name="bw-actual-end" value="2017-09-01" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -187,7 +208,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-01-02" />
           <camunda:property name="bw-actual-start" value="2018-01-02" />
+          <camunda:property name="bw-scheduled-end" value="2018-04-02" />
           <camunda:property name="bw-actual-end" value="2018-04-02" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -207,8 +230,10 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
-          <camunda:property name="bw-actual-start" value="2016-09_01" />
-          <camunda:property name="bw-actual-end" value="2016-09_25" />
+          <camunda:property name="bw-scheduled-start" value="2016-09-01" />
+          <camunda:property name="bw-actual-start" value="2016-09-01" />
+          <camunda:property name="bw-scheduled-end" value="2016-09-25" />
+          <camunda:property name="bw-actual-end" value="2016-09-25" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_036h19l</bpmn:incoming>
@@ -231,6 +256,7 @@
     <bpmn:intermediateThrowEvent id="PPA-Application" name="PPA Application">
       <bpmn:extensionElements>
         <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-06-06" />
           <camunda:property name="bw-actual-start" value="2017-06-06" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -266,8 +292,8 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
-          <camunda:property name="bw-actual-start" value="2020-05-28" />
-          <camunda:property name="bw-actual-end" value="2020-05-28" />
+          <camunda:property name="bw-scheduled-start" value="2020-05-28" />
+          <camunda:property name="bw-scheduled-end" value="2020-05-28" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_11su0z0</bpmn:incoming>
@@ -287,8 +313,10 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Env-Planning" />
           <camunda:property name="bw-duration" value="00:00:00" />
-          <camunda:property name="bw-actual-start" />
-          <camunda:property name="bw-actual-end" />
+          <camunda:property name="bw-scheduled-start" value="2018-11-05" />
+          <camunda:property name="bw-actual-start" value="2018-11-05" />
+          <camunda:property name="bw-scheduled-end" value="2018-11-05" />
+          <camunda:property name="bw-actual-end" value="2018-11-05" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0jcsum2</bpmn:incoming>
@@ -404,7 +432,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-10-11" />
           <camunda:property name="bw-actual-start" value="2016-10-11" />
+          <camunda:property name="bw-scheduled-end" value="2016-10-11" />
           <camunda:property name="bw-actual-end" value="2016-10-11" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -418,7 +448,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-10-12" />
           <camunda:property name="bw-actual-start" value="2016-10-12" />
+          <camunda:property name="bw-scheduled-end" value="2017-06-05" />
           <camunda:property name="bw-actual-end" value="2017-06-05" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -429,6 +461,7 @@
     <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0z4eb1x" name="EE Application">
       <bpmn:extensionElements>
         <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-07-26" />
           <camunda:property name="bw-actual-start" value="2017-07-26" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -442,7 +475,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-09-30" />
           <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-scheduled-end" value="2018-02-05" />
           <camunda:property name="bw-actual-end" value="2018-02-05" />
         </camunda:properties>
       </bpmn:extensionElements>
@@ -470,7 +505,9 @@
         <camunda:properties>
           <camunda:property name="bw-role" value="Architect" />
           <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-09-30" />
           <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-scheduled-end" value="2018-02-05" />
           <camunda:property name="bw-actual-end" value="2018-02-05" />
         </camunda:properties>
       </bpmn:extensionElements>

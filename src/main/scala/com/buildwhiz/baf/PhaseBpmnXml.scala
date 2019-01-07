@@ -95,7 +95,10 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         "waiting2"
       else
         activity.status[String]
-      val (activityStart, activityEnd) = (activity.bpmn_start_date[String], activity.bpmn_end_date[String])
+      val activityStart = if (activity.bpmn_actual_start_date[String].isEmpty)
+        activity.bpmn_scheduled_start_date[String] else s"${activity.bpmn_actual_start_date[String]} (A)"
+      val activityEnd = if (activity.bpmn_actual_end_date[String].isEmpty)
+        activity.bpmn_scheduled_end_date[String] else s"${activity.bpmn_actual_end_date[String]} (A)"
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").

@@ -208,7 +208,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def getActivityNameRoleDescriptionDurationAndId(processNameAndDom: (String, dom.Document)):
-      Seq[(String, String, String, String, String, String, String, String)] = {
+      Seq[(String, String, String, String, String, String, String, String, String, String)] = {
     // bpmn, activity-name, role, description, id
     BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
@@ -221,7 +221,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
 
       def getNameRoleDescriptionAndDuration(callActivity: Element):
-          (String, String, String, String, String, String, String, String) = {
+          (String, String, String, String, String, String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
         val name = callActivity.getAttributes.getNamedItem("name").getTextContent.
             replaceAll("\\s+", " ").replaceAll("&#10;", " ")
@@ -238,15 +238,24 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           case d +: _ => valueAttribute(d).replaceAll("\"", "\'")
           case Nil | null => s"$name (no description provided)"
         }
-        val bpmnStart = extensionProperties(callActivity, "bw-actual-start") match {
+        val bpmnActualStart = extensionProperties(callActivity, "bw-actual-start") match {
           case Nil | null => ""
           case start +: _ => valueAttribute(start)
         }
-        val bpmnEnd = extensionProperties(callActivity, "bw-actual-end") match {
+        val bpmnActualEnd = extensionProperties(callActivity, "bw-actual-end") match {
           case Nil | null => ""
           case end +: _ => valueAttribute(end)
         }
-        (processNameAndDom._1, name, role, description, duration, bpmnStart, bpmnEnd, bpmnId)
+        val bpmnScheduledStart = extensionProperties(callActivity, "bw-scheduled-start") match {
+          case Nil | null => ""
+          case start +: _ => valueAttribute(start)
+        }
+        val bpmnScheduledEnd = extensionProperties(callActivity, "bw-scheduled-end") match {
+          case Nil | null => ""
+          case end +: _ => valueAttribute(end)
+        }
+        (processNameAndDom._1, name, role, description, duration, bpmnScheduledStart, bpmnScheduledEnd,
+            bpmnActualStart, bpmnActualEnd, bpmnId)
       }
 
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
@@ -326,15 +335,16 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val namesRolesAndDescriptions = allProcessNameAndDoms.flatMap(getActivityNameRoleDescriptionDurationAndId)
-      for ((bpmn, activityName, activityRole, activityDescription, activityDuration, bpmnStart, bpmnEnd, bpmnId) <-
-             namesRolesAndDescriptions) {
+      for ((bpmn, activityName, activityRole, activityDescription, activityDuration,
+            bpmnScheduledStart, bpmnScheduledEnd, bpmnActualStart, bpmnActualEnd, bpmnId) <- namesRolesAndDescriptions) {
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
           "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
           "assignee_person_id" -> adminPersonOid, "duration" -> activityDuration, "start" -> "00:00:00", "end" -> "00:00:00")
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
           "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration,
-          "bpmn_start_date" -> bpmnStart, "bpmn_end_date" -> bpmnEnd)
+          "bpmn_scheduled_start_date" -> bpmnScheduledStart, "bpmn_scheduled_end_date" -> bpmnScheduledEnd,
+          "bpmn_actual_start_date" -> bpmnActualStart, "bpmn_actual_end_date" -> bpmnActualEnd)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

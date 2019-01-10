@@ -29,9 +29,9 @@ class PreloadedDocumentsList extends HttpServlet with HttpUtils {
   }.asJava
 
   private def activityOidToPhaseAndProject(activityOid: ObjectId): (DynDoc, DynDoc) = {
-    val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val phase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
     val phaseOid = phase._id[ObjectId]
-    val project = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+    val project = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
     (phase, project)
   }
 

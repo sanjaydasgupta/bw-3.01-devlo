@@ -37,10 +37,10 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
     try {
       setupEssentials(de)
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val bpmnName = getBpmnName(de)
       if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
           Map("$set" -> Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis),
             "$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "parent_name" -> "",
               "status" -> "running", "timestamps" -> Map("start" -> System.currentTimeMillis)))))
@@ -51,7 +51,7 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
         val bpmnTimestamps: Seq[DynDoc] = thePhase.bpmn_timestamps[Many[Document]]
         val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName &&
           ts.parent_name[String] == callerBpmnName)
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> thePhase._id[ObjectId]), Map("$set" ->
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> thePhase._id[ObjectId]), Map("$set" ->
           Map(s"bpmn_timestamps.$idx.status" -> "running",
           s"bpmn_timestamps.$idx.timestamps.start" -> System.currentTimeMillis)))
         if (updateResult.getModifiedCount == 0)

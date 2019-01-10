@@ -131,7 +131,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       }
       copyModelToOutput()
       val xml = new String(byteBuffer.toArray)
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val processVariables = getVariables(phase, bpmnFileName)
       val processTimers = getTimers(phase, bpmnFileName)
       val processActivities = getActivities(phase, bpmnFileName, userOid)

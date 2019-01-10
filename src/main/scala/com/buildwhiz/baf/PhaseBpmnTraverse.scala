@@ -24,7 +24,7 @@ class PhaseBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val bpmnModel = bpmnModelInstance(bpmnFileName)
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val offset = PhaseBpmnTraverse.scheduleBpmnElements(bpmnModel, phase, bpmnFileName, request)
       response.getWriter.println(bson2json(new Document("min", ms2duration(offset._1)).
         append("max", ms2duration(offset._2))))
@@ -55,7 +55,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
       t.bpmn_id[String] == ted.getParentElement.getAttributeValue("id"))
     val averageOffset = (entryOffset._1 + entryOffset._2) / 2
     val (start, end) = (ms2duration(averageOffset), ms2duration(averageOffset + delay))
-    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
+    val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phase._id[ObjectId]),
       Map("$set" -> Map(s"timers.$idx.offset" -> Map("min" -> entryOffset._1, "max" -> entryOffset._2),
       s"timers.$idx.start" -> start, s"timers.$idx.end" -> end, s"timers.$idx.on_critical_path" -> onCriticalPath)))
     if (updateResult.getMatchedCount == 0)
@@ -128,7 +128,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
     val end = ms2duration((exitOffset._1 + exitOffset._2) / 2)
     val bpmnTimestamps: Seq[DynDoc] = phase.bpmn_timestamps[Many[Document]]
     val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == calledElement && ts.parent_name[String] == bpmnName)
-    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]), Map("$set" ->
+    val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phase._id[ObjectId]), Map("$set" ->
       Map(s"bpmn_timestamps.$idx.offset" -> Map("start" -> start, "end" -> end),
         s"bpmn_timestamps.$idx.on_critical_path" -> onCriticalPath)))
     if (updateResult.getMatchedCount == 0)
@@ -137,7 +137,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
 
   def scheduleBpmnElements(bpmnName: String, phaseOid: ObjectId, request: HttpServletRequest): (Long, Long) = {
     val bpmnModel = bpmnModelInstance(bpmnName)
-    val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
     scheduleBpmnElements(bpmnModel, phase, bpmnName, request)
   }
 
@@ -225,7 +225,7 @@ object PhaseBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils 
     val endEvents: Seq[EndEvent] = topLevelBpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     val offset = getTimeOffset(endEvents.head, (0, 0), topLevelBpmnName, onCriticalPath = true, Set.empty[FlowNode])
     val end = ms2duration(duration2ms(phase.start[String]) + (offset._1 + offset._2) / 2)
-    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]),
+    val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phase._id[ObjectId]),
       Map("$set" -> Map("end" -> end)))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")

@@ -39,8 +39,8 @@ class GetDashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils 
     })
 
     val allPhases: Seq[DynDoc] = projects.flatMap(project => {
-      val phaseOids = project.phase_ids[Many[ObjectId]]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      val phaseOids = project.process_ids[Many[ObjectId]]
+      val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       phases
     })
 

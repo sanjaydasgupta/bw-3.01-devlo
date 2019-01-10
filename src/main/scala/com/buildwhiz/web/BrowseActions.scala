@@ -24,8 +24,8 @@ class BrowseActions extends HttpServlet with HttpUtils {
         "black"
       } else {
         val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectIds)))
-        val phaseIds = projects.flatMap(_.phase_ids[Many[ObjectId]])
-        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
+        val phaseIds = projects.flatMap(_.process_ids[Many[ObjectId]])
+        val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseIds)))
         val activityIds = phases.flatMap(_.activity_ids[Many[ObjectId]])
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
         val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]]).
@@ -71,8 +71,8 @@ class BrowseActions extends HttpServlet with HttpUtils {
     val projectOids = person.project_ids[Many[ObjectId]]
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> Map("$in" -> projectOids)))
     for (project <- projects) {
-      val phaseOids: Many[ObjectId] = project.phase_ids[Many[ObjectId]]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      val phaseOids: Many[ObjectId] = project.process_ids[Many[ObjectId]]
+      val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       for (phase <- phases) {
         val activityOids: Many[ObjectId] = phase.activity_ids[Many[ObjectId]]
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
@@ -150,7 +150,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
       s"""<tr><td style="text-align: center; color: white; background-color: blue; font-weight: bold; font-size: large;">
          |${action.name[String]} (${action.status[String]}) Duration: ${action.duration[String]}</td></tr>""".stripMargin
     if (action.assignee_person_id[ObjectId] == personOid) {
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
       val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phase._id[ObjectId])).head
       val isRelevant = action.assignee_person_id[ObjectId] == personOid
       if (isRelevant) {

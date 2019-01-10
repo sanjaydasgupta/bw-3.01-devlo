@@ -17,7 +17,7 @@ class TimerDurationFetch extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val bpmnName = parameters("bpmn_name")
       val timersInBpmn: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(t => t.bpmn_name[String] == bpmnName)
       val theTimer: DynDoc = (parameters.get("timer_id"), parameters.get("timer_name")) match {

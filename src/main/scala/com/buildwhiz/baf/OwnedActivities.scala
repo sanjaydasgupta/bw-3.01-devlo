@@ -18,7 +18,7 @@ class OwnedActivities extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val activityOids = phase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
       val bpmnName = parameters("bpmn_name")

@@ -18,7 +18,7 @@ class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
       val subject = s"RFI $reqOrResp received"
       val message = s"You have a RFI $reqOrResp for action '${action.name[String]}'"
       val recipientPersonOid: ObjectId = if (isRequest) {
-        val phase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+        val phase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
         phase.admin_person_id[ObjectId]
       } else {
         action.assignee_person_id[ObjectId]

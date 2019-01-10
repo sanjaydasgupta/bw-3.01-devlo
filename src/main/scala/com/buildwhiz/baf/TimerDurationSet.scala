@@ -43,7 +43,7 @@ object TimerDurationSet extends DateTimeUtils {
 
   def set(request: HttpServletRequest, phaseOid: ObjectId, timerId: Option[String], timerName: Option[String],
           bpmnName: String, inDuration: String): Unit = {
-    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
     val timers: Seq[DynDoc] = thePhase.timers[Many[Document]]
     val timerIdx: Int = (timerId, timerName) match {
       case (Some(tid), _) => timers.indexWhere(t => t.bpmn_id[String] == tid &&
@@ -62,7 +62,7 @@ object TimerDurationSet extends DateTimeUtils {
         val processInstanceId = thePhase.process_instance_id[String]
         rts.setVariable(processInstanceId, timers(timerIdx).variable[String], duration2iso(duration))
       }
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"timers.$timerIdx.duration" -> duration)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

@@ -97,7 +97,7 @@ class OwnedProcesses extends HttpServlet with HttpUtils with DateTimeUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val activityOids = phase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
       activities.foreach(a => a.is_relevant = a.actions[Many[Document]].exists(_.assignee_person_id[ObjectId] == personOid))

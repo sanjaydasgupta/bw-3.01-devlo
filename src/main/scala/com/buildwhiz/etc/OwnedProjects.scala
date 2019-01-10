@@ -39,14 +39,14 @@ object OwnedProjects {
 
   def processProject(project: DynDoc, personOid: ObjectId): DynDoc = {
     def canEnd(project: DynDoc): Boolean = {
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> project.phase_ids[Many[ObjectId]])))
+      val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> project.process_ids[Many[ObjectId]])))
       !phases.exists(_.status[String] == "running")
     }
 
     project.is_managed = project.admin_person_id[ObjectId] == personOid
     project.can_end = canEnd(project)
-    val phaseOids = project.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+    val phaseOids = project.process_ids[Many[ObjectId]]
+    val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
     val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]]).asJava
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
@@ -56,7 +56,7 @@ object OwnedProjects {
       project.display_status = "waiting2"
     else
       project.display_status = project.status[String]
-    project.asDoc.remove("phase_ids")
+    project.asDoc.remove("process_ids")
     project
   }
 

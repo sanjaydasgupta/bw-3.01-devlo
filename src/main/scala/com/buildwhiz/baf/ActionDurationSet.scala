@@ -59,7 +59,7 @@ object ActionDurationSet {
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     else {
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
       val phaseOid = thePhase._id[ObjectId]
       val topLevelBpmn = thePhase.bpmn_name[String]
       PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)

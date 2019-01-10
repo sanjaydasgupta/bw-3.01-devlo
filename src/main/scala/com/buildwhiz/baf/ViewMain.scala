@@ -37,8 +37,8 @@ class ViewMain extends HttpServlet with HttpUtils {
     val project: DynDoc = proj
     project.is_manager = project.admin_person_id[ObjectId] == personId
     project.displayDetails = project.status[String] matches "waiting|defined"
-    val phaseIds: Many[ObjectId] = project.phase_ids
-    val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseIds)))
+    val phaseIds: Many[ObjectId] = project.process_ids
+    val allPhases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseIds)))
     val relevantPhases = mutable.Buffer.empty[DynDoc]
     for (phase <- allPhases) {
       val isWaiting = phase.status[String] == "waiting"

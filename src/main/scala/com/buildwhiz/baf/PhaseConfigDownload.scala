@@ -174,7 +174,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val bpmnName = parameters("bpmn_name")
       val workbook = new XSSFWorkbook()
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val taskNbr = addTasksSheet(workbook, phase, bpmnName)
       val varNbr = addVariablesSheet(workbook, phase, bpmnName)
       val timerNbr = addTimersSheet(workbook, phase, bpmnName)

@@ -14,7 +14,7 @@ class MilestoneEvent extends ExecutionListener with BpmnUtils {
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val bpmnTimestamps: Seq[DynDoc] = thePhase.bpmn_timestamps[Many[Document]]
       val bpmnName = getBpmnName(de)
 //      if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {

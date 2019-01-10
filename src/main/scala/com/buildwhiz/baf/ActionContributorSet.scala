@@ -42,7 +42,7 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
       val assignedPersonOid = new ObjectId(parameters("person_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
-      val parentPhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+      val parentPhase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
       val user: DynDoc = getUser(request)
       if (user._id[ObjectId] != parentPhase.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
@@ -55,7 +55,7 @@ class ActionContributorSet extends HttpServlet with HttpUtils with MailUtils {
         Map("$set" -> Map(s"actions.$actionIdx.assignee_person_id" -> assignedPersonOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      val parentProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> parentPhase._id[ObjectId])).head
+      val parentProject: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> parentPhase._id[ObjectId])).head
       Project.renewUserAssociations(request, Some(parentProject._id[ObjectId]))
       saveAndSendMail(assignedPersonOid, deAssignedPersonOid, new ObjectId(parameters("project_id")), actionName, request)
       response.setStatus(HttpServletResponse.SC_OK)

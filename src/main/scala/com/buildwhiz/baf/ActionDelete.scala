@@ -38,7 +38,7 @@ object ActionDelete {
       Map("$pull" -> Map("actions" -> Map("name" -> actionName))))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val thePhase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
     val topLevelBpmn = thePhase.bpmn_name[String]
     PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, thePhase._id[ObjectId], request)
     BWMongoDB3.document_master.deleteMany(Map("activity_id" -> activityOid, "action_name" -> actionName))

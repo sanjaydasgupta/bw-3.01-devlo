@@ -15,8 +15,8 @@ class PhaseConfigurationSet extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phase._id[ObjectId])).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phase._id[ObjectId])).head
       val user: DynDoc = getUser(request)
       if (user._id[ObjectId] != phase.admin_person_id[ObjectId] &&
           user._id[ObjectId] != project.admin_person_id[ObjectId])
@@ -32,7 +32,7 @@ class PhaseConfigurationSet extends HttpServlet with HttpUtils {
         val roleName = r.role_name[String]
         Map("person_id" -> personOid, "role_name" -> roleName)
       })
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map("description" -> description, "assigned_roles" -> roles)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")

@@ -26,7 +26,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
   }
 
   private def documentsByPhase(user: DynDoc, phaseOid: ObjectId): Seq[DynDoc] = {
-    val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
     val userHasPhaseRole = Phase.phaseLevelUsers(phase).contains(user._id[ObjectId])
     val activityOids = Phase.allActivityOids(phase)
     val documents: Seq[DynDoc] = if (userHasPhaseRole) {
@@ -77,8 +77,8 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
     val docsInManagedProjects: Seq[DynDoc] = BWMongoDB3.document_master.
         find(Map("project_id" -> Map("$in" -> managedProjectIds), "name" -> Map("$exists" -> true)))
 
-    val idsOfPhasesInNonManagedProjects: Seq[ObjectId] = nonManagedProjects.flatMap(_.phase_ids[Many[ObjectId]])
-    val phasesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.phases.
+    val idsOfPhasesInNonManagedProjects: Seq[ObjectId] = nonManagedProjects.flatMap(_.process_ids[Many[ObjectId]])
+    val phasesInNonManagedProjects: Seq[DynDoc] = BWMongoDB3.processes.
         find(Map("_id" -> Map("$in" -> idsOfPhasesInNonManagedProjects)))
     val (managedPhases, nonManagedPhases) = phasesInNonManagedProjects.
         partition(_.admin_person_id[ObjectId] == user._id[ObjectId])

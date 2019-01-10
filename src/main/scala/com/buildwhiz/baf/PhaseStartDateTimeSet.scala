@@ -18,14 +18,14 @@ class PhaseStartDateTimeSet extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       if (userOid != thePhase.admin_person_id[ObjectId] && userOid != theProject.admin_person_id[ObjectId])
         throw new IllegalArgumentException("No permission")
       if (thePhase.status[String] != "defined")
         throw new IllegalArgumentException("Wrong state")
       val dateTime = parameters("datetime").toLong
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"timestamps.planned_start" -> dateTime)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

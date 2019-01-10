@@ -21,10 +21,10 @@ class TimerTransitions extends ExecutionListener with BpmnUtils {
         case "start" => ("start", "running")
         case "end" => ("end", "ended")
       }
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val timers: Seq[DynDoc] = phase.timers[Many[Document]]
       val timerIdx = timers.indexWhere(t => t.bpmn_id[String] == timerId && t.bpmn_name[String] == bpmnName)
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
           Map("$set" -> Map(s"timers.$timerIdx.status" -> status),
           "$addToSet" -> Map(s"timers.$timerIdx.timestamps" -> Map(event -> System.currentTimeMillis))))
       if (updateResult.getModifiedCount == 0)

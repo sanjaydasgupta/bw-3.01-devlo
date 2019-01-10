@@ -16,12 +16,12 @@ class PhaseEnd extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val phaseId = parameters("phase_id")
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> new ObjectId(phaseId))).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> new ObjectId(phaseId))).head
       val isHealthy = OwnedPhases.healthy(thePhase)
       if (isHealthy) {
         BWLogger.log(getClass.getName, "doPost", "EXIT-OK process healthy, made no changes", request)
       } else {
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> new ObjectId(phaseId)),
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> new ObjectId(phaseId)),
           Map("$set" -> Map("status" -> "ended")))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

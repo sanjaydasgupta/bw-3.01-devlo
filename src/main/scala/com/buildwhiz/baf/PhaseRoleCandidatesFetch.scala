@@ -24,7 +24,7 @@ class PhaseRoleCandidatesFetch extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val roleName = parameters("role_name")
       val candidates: Seq[DynDoc] = getRoleCandidates(phase, roleName)
       response.getWriter.println(candidates.map(d => d.asDoc.toJson).mkString("[", ", ", "]"))

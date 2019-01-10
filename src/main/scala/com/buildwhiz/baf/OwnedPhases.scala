@@ -29,8 +29,8 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectIsPublic = (project has "public") && project.public[Boolean]
-      val phaseOids = project.phase_ids[Many[ObjectId]]
-      val allPhases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      val phaseOids = project.process_ids[Many[ObjectId]]
+      val allPhases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       val phases = if (isAdmin || projectIsPublic || project.admin_person_id[ObjectId] == personOid)
         allPhases
       else

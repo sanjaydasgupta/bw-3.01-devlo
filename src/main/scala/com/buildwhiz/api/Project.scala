@@ -32,7 +32,7 @@ class Project extends HttpServlet with RestUtils {
         throw new IllegalArgumentException("Type of 'admin_person_id' not ObjectId")
       project.timestamps = new Document("created", System.currentTimeMillis)
       project.status = "defined" // Initial status on creation
-      project.phase_ids = new java.util.ArrayList[ObjectId]
+      project.process_ids = new java.util.ArrayList[ObjectId]
       BWMongoDB3.projects.insertOne(project.asDoc)
 
       BWMongoDB3.persons.updateOne(Map("_id" -> project.admin_person_id[ObjectId]),
@@ -64,11 +64,11 @@ class Project extends HttpServlet with RestUtils {
         case _ => throw new IllegalArgumentException("Id not found")
       }
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val phaseOids: Seq[ObjectId] = theProject.phase_ids[Many[ObjectId]]
-      val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+      val phaseOids: Seq[ObjectId] = theProject.process_ids[Many[ObjectId]]
+      val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]])
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
-      BWMongoDB3.phases.deleteMany(Map("_id" -> Map("$in" -> phaseOids)))
+      BWMongoDB3.processes.deleteMany(Map("_id" -> Map("$in" -> phaseOids)))
       BWMongoDB3.mails.deleteMany(Map("project_id" -> projectOid))
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
@@ -95,9 +95,9 @@ class Project extends HttpServlet with RestUtils {
 
 object Project {
 
-  def allPhaseOids(project: DynDoc): Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
+  def allPhaseOids(project: DynDoc): Seq[ObjectId] = project.process_ids[Many[ObjectId]]
   def allPhases(project: DynDoc): Seq[DynDoc] = allPhaseOids(project).
-      map(phaseOid => BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head)
+      map(phaseOid => BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head)
 
   def allActivities(project: DynDoc): Seq[DynDoc] = allPhases(project).flatMap(Phase.allActivities)
 

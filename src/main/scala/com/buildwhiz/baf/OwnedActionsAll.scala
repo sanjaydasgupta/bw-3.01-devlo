@@ -50,8 +50,8 @@ class OwnedActionsAll extends HttpServlet with HttpUtils {
       //val actionOrder = Map("prerequisite" -> 1, "main" -> 2, "review" -> 3)
       val allActions = mutable.Buffer.empty[DynDoc]
       for (project <- projects) {
-        val phaseOids = project.phase_ids[Many[ObjectId]]
-        val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+        val phaseOids = project.process_ids[Many[ObjectId]]
+        val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
         for (phase <- phases) {
           val activityOids = phase.activity_ids[Many[ObjectId]]
           val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))

@@ -34,7 +34,7 @@ object VariableValueSet extends HttpUtils {
   def set(request: HttpServletRequest, response: HttpServletResponse, phaseOid: ObjectId, label: String,
         bpmnName: String, value: String): Unit = {
 
-    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+    val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
     val user: DynDoc = getUser(request)
     if (user._id[ObjectId] != thePhase.admin_person_id[ObjectId])
       throw new IllegalArgumentException("Not permitted")
@@ -59,7 +59,7 @@ object VariableValueSet extends HttpUtils {
         val processInstanceId = thePhase.process_instance_id[String]
         rts.setVariable(processInstanceId, variables(variableIdx).name[String], typedValue)
       }
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

@@ -28,11 +28,11 @@ class Phase extends HttpServlet with RestUtils {
       phaseDocument.asScala("status") = "defined" // Initial status on creation
       phaseDocument.asScala("timestamps") = new Document("created", System.currentTimeMillis)
       //val parentProjectSelector = Map("_id", phaseDocument.get("parent_project_id"))
-      BWMongoDB3.phases.insertOne(phaseDocument)
+      BWMongoDB3.processes.insertOne(phaseDocument)
       //val newPhaseId = phaseDocument.getObjectId("_id")
 
       BWMongoDB3.projects.updateOne(Map("_id" -> phaseDocument.get("parent_project_id")),
-        Map("$push" -> Map("phase_ids" -> phaseDocument.getObjectId("_id"))))
+        Map("$push" -> Map("process_ids" -> phaseDocument.getObjectId("_id"))))
       response.setContentType("text/plain")
       response.getWriter.print(s"${request.getRequestURI}/${phaseDocument.getObjectId("_id")}")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -68,8 +68,8 @@ class Phase extends HttpServlet with RestUtils {
         case idString +: "Phase" +: _ => new ObjectId(idString)
         case _ => throw new IllegalArgumentException("Id not found")
       }
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val theProject: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
+      val theProject: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       //val preDeleteParticipantOids = projectParticipantOids(theProject)
       val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]]
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
@@ -80,9 +80,9 @@ class Phase extends HttpServlet with RestUtils {
           Map("activity_id" -> activityOid, "action_name" -> Map("$in" -> actionNames)))
       }
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
-      BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
+      BWMongoDB3.processes.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),
-        Map("$pull" -> Map("phase_ids" -> phaseOid)))
+        Map("$pull" -> Map("process_ids" -> phaseOid)))
       //val postDeleteParticipantOids = projectParticipantOids(theProject)
       //val affectedPersonOids = preDeleteParticipantOids.diff(postDeleteParticipantOids)
       //BWMongoDB3.persons.updateMany(Map("_id" -> Map("$in" -> affectedPersonOids)),

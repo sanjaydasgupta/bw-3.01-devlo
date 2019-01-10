@@ -64,7 +64,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       val activityOid = new ObjectId(activityId)
       val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
       val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
-      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       actions.find(_.name[String] == taskName) match {
         case None => throw new IllegalArgumentException(s"unknown task: '$taskName'")
         case Some(action) =>
@@ -122,7 +122,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       phaseOid: ObjectId, bpmnName: String): String = {
 
     def setVariable(name: String, typ: String, value: String): Unit = {
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val variables: Option[DynDoc] = phase.variables[Many[Document]].
         find(v => v.bpmn_name[String] == bpmnName && v.label[String] == name)
       if (variables.isEmpty)
@@ -151,7 +151,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       phaseOid: ObjectId, bpmnName: String): String = {
 
     def setTimer(name: String, typ: String, duration: String): Unit = {
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val timers: Option[DynDoc] = phase.timers[Many[Document]].
         find(t => t.bpmn_name[String] == bpmnName && t.name[String] == name)
       if (timers.isEmpty)
@@ -191,16 +191,16 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
     def setRole(roleName: String, personName: String, personId: String): Unit = {
       val personOid = new ObjectId(personId)
       validatePerson(personName, personOid)
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val assignedRoles: Seq[DynDoc] = if (phase.has("assigned_roles"))
         phase.assigned_roles[Many[Document]] else Seq.empty[DynDoc]
       val updateResult = assignedRoles.indexWhere(_.role_name[String] == roleName) match {
         case -1 =>
           val newRoleAssignment = Map("role_name" -> roleName, "person_id" -> personOid)
-          BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+          BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
             Map("$push" -> Map("assigned_roles" -> newRoleAssignment)))
         case idx =>
-          BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+          BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
             Map("$set" -> Map(s"assigned_roles.$idx.person_id" -> personOid)))
       }
       if (updateResult.getModifiedCount == 0 && updateResult.getMatchedCount == 0 && updateResult.getUpsertedId == null)
@@ -230,7 +230,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val user: DynDoc = getUser(request)
       if (user._id[ObjectId] != phase.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")

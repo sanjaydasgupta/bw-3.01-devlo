@@ -73,7 +73,7 @@ object ActionAdd {
       Map("$push" -> Map("actions" -> action)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> activityOid)).head
+    val thePhase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
     val (phaseOid, topLevelBpmn) = (thePhase._id[ObjectId], thePhase.bpmn_name[String])
     PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)
     val actionNameType = s"'${action.y.name[String]}' (${action.y.`type`[String]})"

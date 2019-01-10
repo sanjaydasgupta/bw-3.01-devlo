@@ -20,8 +20,8 @@ class OwnedTasksStatusSummary extends HttpServlet with HttpUtils {
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val projectOids: Seq[ObjectId] = person.project_ids[Many[ObjectId]]
       val projects: Seq[DynDoc] = projectOids.flatMap(oid => BWMongoDB3.projects.find(Map("_id" -> oid)))
-      val phaseOids: Seq[ObjectId] = projects.flatMap(_.phase_ids[Many[ObjectId]])
-      val phases: Seq[DynDoc] = phaseOids.flatMap(oid => BWMongoDB3.phases.find(Map("_id" -> oid)))
+      val phaseOids: Seq[ObjectId] = projects.flatMap(_.process_ids[Many[ObjectId]])
+      val phases: Seq[DynDoc] = phaseOids.flatMap(oid => BWMongoDB3.processes.find(Map("_id" -> oid)))
       val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]])
       val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
       val allActions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])

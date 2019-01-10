@@ -51,7 +51,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
 
           Thread.sleep(500)
 
-          val thePhase: DynDoc = BWMongoDB3.phases.find(Map("activity_ids" -> theActivity._id[ObjectId])).head
+          val thePhase: DynDoc = BWMongoDB3.processes.find(Map("activity_ids" -> theActivity._id[ObjectId])).head
           val bpmnName = theActivity.bpmn_name[String]
           val topBpmnName = thePhase.bpmn_name[String]
           val allProcessesComplete = thePhase.bpmn_timestamps[Many[Document]].

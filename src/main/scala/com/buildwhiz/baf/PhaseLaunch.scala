@@ -19,15 +19,15 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val phaseId = parameters("phase_id")
       val phaseOid = new ObjectId(phaseId)
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       if (user._id[ObjectId] != thePhase.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
       val bpmnName = thePhase.bpmn_name[String]
-      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val project: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
       val processInstance = rts.startProcessInstanceByKey(bpmnName,
         Map("project_id" -> project._id[ObjectId].toString, "phase_id" -> phaseId, "top_level_bpmn" -> bpmnName))
-      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
         Map("$set" -> Map("process_instance_id" -> processInstance.getProcessInstanceId)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

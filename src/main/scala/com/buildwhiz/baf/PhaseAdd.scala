@@ -328,10 +328,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "activity_ids" -> new util.ArrayList[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables,
         "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00")
-      BWMongoDB3.phases.insertOne(newPhase)
+      BWMongoDB3.processes.insertOne(newPhase)
       val phaseOid = newPhase.y._id[ObjectId]
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
-        Map("$push" -> Map("phase_ids" -> phaseOid)))
+        Map("$push" -> Map("process_ids" -> phaseOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val namesRolesAndDescriptions = allProcessNameAndDoms.flatMap(getActivityNameRoleDescriptionDurationAndId)
@@ -347,7 +347,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "bpmn_actual_start_date" -> bpmnActualStart, "bpmn_actual_end_date" -> bpmnActualEnd)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
           Map("$push" -> Map("activity_ids" -> activityOid)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

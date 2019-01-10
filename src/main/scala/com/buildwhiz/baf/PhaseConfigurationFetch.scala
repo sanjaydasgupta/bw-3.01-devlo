@@ -15,7 +15,7 @@ class PhaseConfigurationFetch extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val phase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
       val description = if (phase.has("description")) phase.description[String] else ""
       val roleNames: Seq[String] = if (phase.has("role_names")) {
         phase.role_names[Many[String]]

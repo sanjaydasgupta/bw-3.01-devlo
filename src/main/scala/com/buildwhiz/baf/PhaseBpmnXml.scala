@@ -95,10 +95,18 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
         "waiting2"
       else
         activity.status[String]
-      val activityStart = if (activity.bpmn_actual_start_date[String].isEmpty)
-        activity.bpmn_scheduled_start_date[String] else s"${activity.bpmn_actual_start_date[String]} (A)"
-      val activityEnd = if (activity.bpmn_actual_end_date[String].isEmpty)
-        activity.bpmn_scheduled_end_date[String] else s"${activity.bpmn_actual_end_date[String]} (A)"
+      val activityStart = if (activity.has("bpmn_actual_start_date") && activity.bpmn_actual_start_date[String].nonEmpty) {
+        s"${activity.bpmn_actual_start_date[String]} (A)"
+      } else if (activity.has("bpmn_scheduled_start_date") && activity.bpmn_scheduled_start_date[String].nonEmpty) {
+        activity.bpmn_scheduled_start_date[String]
+      } else
+        ""
+      val activityEnd = if (activity.has("bpmn_actual_end_date") && activity.bpmn_actual_end_date[String].nonEmpty) {
+        activity.bpmn_actual_end_date[String]
+      } else if (activity.has("bpmn_scheduled_end_date") && activity.bpmn_scheduled_end_date[String].nonEmpty) {
+        s"${activity.bpmn_scheduled_end_date[String]} (A)"
+      } else
+        ""
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").

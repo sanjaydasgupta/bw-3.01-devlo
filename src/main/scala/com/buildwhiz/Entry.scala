@@ -14,13 +14,18 @@ class Entry extends HttpServlet {
   private def permitted(request: HttpServletRequest): Boolean = {
     val session = request.getSession(true)
     val uriParts = request.getRequestURI.split("/")
-    val loggingIn = uriParts.last.matches("LoginPost|Environment") && uriParts.init.last == "etc"
+    val loggingIn = (uriParts.last, uriParts.init.last) match {
+      case ("LoginPost", "etc") => true
+      case ("Environment", "etc") => true
+      case ("Login", "baf2") => true
+      case _ => false
+    }
     session.getAttribute("bw-user") != null || loggingIn
   }
 
   private def log(event: String, request: HttpServletRequest): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
-    urlParts.zipWithIndex.find(_._1.matches("api|baf|dot|etc|tools|web")) match {
+    urlParts.zipWithIndex.find(_._1.matches("api|baf2?|dot|etc|tools|web")) match {
       case Some((_, pkgIdx)) =>
         val apiPath = s"${urlParts(pkgIdx)}/${urlParts(pkgIdx + 1)}"
         BWLogger.log(apiPath, request.getMethod, event, request)
@@ -33,7 +38,7 @@ class Entry extends HttpServlet {
         delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
-      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf|dot|etc|tools|web")).head._2
+      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf2?|dot|etc|tools|web")).head._2
       val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
       Entry.cache.get(className) match {
         case Some(httpServlet) => delegateTo(httpServlet)

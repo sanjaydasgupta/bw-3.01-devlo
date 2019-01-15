@@ -27,6 +27,15 @@
     <url-pattern>/old/api/*</url-pattern>
     <url-pattern>/old/web/*</url-pattern>
     <url-pattern>/old/etc/*</url-pattern>
+
+    <url-pattern>/baf2/*</url-pattern>
+
+    <!--url-pattern>/old123/dot/*</url-pattern>
+    <url-pattern>/old123/baf/*</url-pattern>
+    <url-pattern>/old123/api/*</url-pattern>
+    <url-pattern>/old123/web/*</url-pattern>
+    <url-pattern>/old123/etc/*</url-pattern>
+    <url-pattern>/old123/tools/*</url-pattern-->
   </servlet-mapping>
 
   <filter>

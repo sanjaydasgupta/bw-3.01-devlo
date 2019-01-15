@@ -30,13 +30,23 @@ class Project extends HttpServlet with RestUtils {
         throw new IllegalArgumentException("No 'admin_person_id' found")
       if (!project.admin_person_id[AnyRef].isInstanceOf[ObjectId])
         throw new IllegalArgumentException("Type of 'admin_person_id' not ObjectId")
+      project.description = s"This is the description of the '${project.name[String]}' project. " * 5
+      val latLong: DynDoc = Map("latitude" -> 37.7857971, "longitude" -> -122.4142195)
+      project.gps_location = latLong.asDoc
+      val address: DynDoc = Map("line1" -> "First line of the address", "line2" -> "Second line of the address",
+        "line3" -> "Third line of the address", "state" -> Map("name" -> "California", "code" -> "CA"),
+        "country" -> Map("name" -> "United States", "code" -> "US"), "postal_code" -> "94102")
+      project.address = address.asDoc
+      project.phase_ids = new java.util.ArrayList[ObjectId]
+      project.assigned_roles = new java.util.ArrayList[ObjectId]
+      project.system_labels = new java.util.ArrayList[ObjectId]
       project.timestamps = new Document("created", System.currentTimeMillis)
       project.status = "defined" // Initial status on creation
       project.process_ids = new java.util.ArrayList[ObjectId]
       BWMongoDB3.projects.insertOne(project.asDoc)
 
       BWMongoDB3.persons.updateOne(Map("_id" -> project.admin_person_id[ObjectId]),
-        Map("$push" -> Map("project_ids" -> project._id[ObjectId])))
+        Map("$addToSet" -> Map("project_ids" -> project._id[ObjectId])))
 
       val adminPersonOid = project.admin_person_id[ObjectId]
       response.getWriter.println(bson2json(OwnedProjects.processProject(project, adminPersonOid).asDoc))

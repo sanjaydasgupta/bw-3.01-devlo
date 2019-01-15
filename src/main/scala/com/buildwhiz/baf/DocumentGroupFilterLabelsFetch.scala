@@ -53,10 +53,10 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
           val userLabels = if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid) else Seq.empty[String]
           val systemLabels = if (docOid2SystemLabels.contains(oid)) docOid2SystemLabels(oid) else Seq.empty[String]
           val logicLabels = GetDocumentsSummary.getLogicalLabels(userLabels ++ systemLabels, person)
-          val labelsMessage = s"userLabels: ${userLabels.mkString("[", ",", "]")}," +
-              s"systemLabels: ${systemLabels.mkString("[", ",", "]")})" +
-              s"logicLabels: ${logicLabels.mkString("[", ",", "]")})"
-          BWLogger.log(getClass.getName, "labelsFetch", labelsMessage, request)
+          //val labelsMessage = s"userLabels: ${userLabels.mkString("[", ",", "]")}," +
+          //    s"systemLabels: ${systemLabels.mkString("[", ",", "]")})" +
+          //    s"logicLabels: ${logicLabels.mkString("[", ",", "]")})"
+          //BWLogger.log(getClass.getName, "labelsFetch", labelsMessage, request)
           userLabels ++ logicLabels
         } else {
           Seq.empty[String]

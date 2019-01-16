@@ -154,4 +154,23 @@ object Project {
 
   }
 
+  def canEnd(project: DynDoc): Boolean = {
+    val projectAlreadyEnded = project.status[String] == "ended"
+    val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> project.process_ids[Many[ObjectId]])))
+    !phases.exists(_.status[String] == "running") && !projectAlreadyEnded
+  }
+
+  def hasRoleInProject(personOid: ObjectId, project: DynDoc): Boolean =
+      project.admin_person_id[ObjectId] == personOid ||
+      project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)
+
+  def isProjectManager(personOid: ObjectId, project: DynDoc): Boolean =
+      project.admin_person_id[ObjectId] == personOid || project.assigned_roles[Many[Document]].
+      exists(proj => proj.person_id[ObjectId] == personOid && proj.role_name[String] == "Project-Manager")
+
+  def projectsByUser(personOid: ObjectId): Seq[DynDoc] = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
+    projects.filter(project => hasRoleInProject(personOid, project))
+  }
+
 }

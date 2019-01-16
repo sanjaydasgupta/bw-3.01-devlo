@@ -102,9 +102,9 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       } else
         ""
       val activityEnd = if (activity.has("bpmn_actual_end_date") && activity.bpmn_actual_end_date[String].nonEmpty) {
-        activity.bpmn_actual_end_date[String]
+        s"${activity.bpmn_actual_end_date[String]} (A)"
       } else if (activity.has("bpmn_scheduled_end_date") && activity.bpmn_scheduled_end_date[String].nonEmpty) {
-        s"${activity.bpmn_scheduled_end_date[String]} (A)"
+        activity.bpmn_scheduled_end_date[String]
       } else
         ""
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).

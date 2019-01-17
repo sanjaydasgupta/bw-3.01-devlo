@@ -1,6 +1,5 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.api.Project
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
@@ -10,6 +9,9 @@ import org.bson.types.ObjectId
 
 class ProjectList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+
+    def project2json(project: DynDoc) = s"""{"_id": "${project._id[ObjectId]}", "name": "${project.name[String]}"}"""
+
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
@@ -19,11 +21,9 @@ class ProjectList extends HttpServlet with HttpUtils {
       val projects: Seq[DynDoc] = if (isAdmin) {
         BWMongoDB3.projects.find()
       } else {
-        Project.projectsByUser(personOid)
+        ProjectApi.projectsByUser(personOid)
       }
-      val projectBsons = projects.
-          map(project => s"""{"_id": "${project._id[ObjectId]}", "name": "${project.name[String]}"}""")
-      response.getWriter.print(projectBsons.mkString("[", ", ", "]"))
+      response.getWriter.print(projects.map(project2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)

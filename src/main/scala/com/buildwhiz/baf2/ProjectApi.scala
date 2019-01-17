@@ -112,7 +112,8 @@ object ProjectApi {
 
   def allPhaseOids(parentProject: DynDoc): Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
 
-  def allPhases(parentProject: DynDoc): Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> allPhaseOids(parentProject)))
+  def allPhases(parentProject: DynDoc): Seq[DynDoc] =
+      BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject))))
 
   def phasesByUser(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] =
     allPhases(parentProject).filter(phase => PhaseApi.hasRoleInPhase(userOid, phase))

@@ -17,6 +17,8 @@ import org.xml.sax.InputSource
 import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 
+import java.util.Calendar
+
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
@@ -220,6 +222,31 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         case Some(s) => s.toInt
       }
 
+      def trueDuration(actualStart: String, actualEnd: String, schedStart: String, schedEnd: String,
+          duration: String): String = {
+        def dates2duration(start: String, end: String): String = {
+          def yyyymmdd2ms(yms: String): Long = {
+            val parts = yms.split("[^0-9]+").map(_.toInt)
+            val cal = Calendar.getInstance()
+            cal.set(parts(0), parts(1) - 1, parts(2))
+            cal.getTimeInMillis
+          }
+          val msDifference = yyyymmdd2ms(end) - yyyymmdd2ms(start)
+          val days = msDifference / 86400000L
+          val residue = msDifference - days * 86400000L
+          val hours = residue / 3600000L
+          val minutes = (residue - hours * 3600000L) / 60000L
+          f"$days%02d:${hours.toInt}%02d:$minutes%02d"
+        }
+        (actualStart.nonEmpty, actualEnd.nonEmpty, schedStart.nonEmpty, schedEnd.nonEmpty) match {
+          case (true, true, _, _) => dates2duration(actualStart, actualEnd)
+          case (true, false, _, true) => dates2duration(actualStart, schedEnd)
+          case (false, true, true, _) => dates2duration(schedStart, actualEnd)
+          case (false, false, true, true) => dates2duration(schedStart, schedEnd)
+          case _ => duration
+        }
+      }
+
       def getNameRoleDescriptionAndDuration(callActivity: Element):
           (String, String, String, String, String, String, String, String, String, String) = {
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
@@ -230,7 +257,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           case r +: _ => valueAttribute(r)
           case Nil | null => "phase-manager"
         }
-        val duration = extensionProperties(callActivity, "bw-duration") match {
+        val bpmnDuration = extensionProperties(callActivity, "bw-duration") match {
           case dur +: _ => valueAttribute(dur)
           case Nil | null => "00:00:00"
         }
@@ -254,6 +281,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
           case Nil | null => ""
           case end +: _ => valueAttribute(end)
         }
+        val duration = trueDuration(bpmnActualStart, bpmnActualEnd, bpmnScheduledStart, bpmnScheduledEnd,
+          bpmnDuration)
         (processNameAndDom._1, name, role, description, duration, bpmnScheduledStart, bpmnScheduledEnd,
             bpmnActualStart, bpmnActualEnd, bpmnId)
       }

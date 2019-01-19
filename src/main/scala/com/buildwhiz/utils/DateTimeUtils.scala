@@ -18,13 +18,11 @@ trait DateTimeUtils {
   }
 
   def ms2duration(ms: Long): String = {
-    val seconds = ms / 1000
-    val minutes = seconds / 60
-    val minutesDisplay = minutes % 60
-    val hours = minutes / 60
-    val hoursDisplay = hours % 24
-    val days = hours / 24
-    f"$days%02d:$hoursDisplay%02d:$minutesDisplay%02d"
+    val days = ms / 86400000L
+    val residue = ms - days * 86400000L
+    val hours = residue / 3600000L
+    val minutes = (residue - hours * 3600000L) / 60000L
+    f"$days%02d:$hours%02d:$minutes%02d"
   }
 
   def duration2iso(duration: String): String = {

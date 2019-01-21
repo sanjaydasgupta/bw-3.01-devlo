@@ -48,7 +48,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
   private def addMenuItems(person: DynDoc): Unit = {
     val menuItems: Seq[Document] = Seq(
       Map("name" -> "RFIs", "url" -> "/rfi", "icon" -> "rfis"),
-      Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
+      //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
       Map("name" -> "Tasks", "url" -> "/tasks", "icon" -> "tasks"),
       Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
       Map("name" -> "Help", "url" -> "/help", "icon" -> "help")
@@ -77,7 +77,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
             addMenuItems(personRecord)
             if (!personRecord.containsKey("document_filter_labels"))
               personRecord.put("document_filter_labels", Seq.empty[String])
-            val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id", "project_ids",
+            val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id"/*, "project_ids"*/,
               "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => personRecord.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap)
             recordLoginTime(personRecord)

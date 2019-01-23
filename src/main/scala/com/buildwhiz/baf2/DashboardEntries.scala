@@ -23,58 +23,41 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
     val timeZone = user.tz[String]
     val userOid = user._id[ObjectId]
 
-
     val projects: Seq[DynDoc] = ProjectApi.projectsByUser(userOid)
-    val dashboardProjects: Seq[DynDoc] = projects.map(project => {
-      val projectName = project.name[String]
-      val projectStatus = project.status[String] match {
-        case "defined" | "idle" => "urgent"
-        case "running" => "normal"
-        case _ => "important"
-      }
-      val statusTime = project.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
-      val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "projects", "description" -> s"Project '$projectName' is ${project.status[String]}",
-        "status_date" -> statusDate, "status" -> projectStatus, "due_date" -> "0000-00-00")
-    })
+    val projectPhasePairs: Seq[(DynDoc, DynDoc)] = projects.
+      flatMap(project => ProjectApi.phasesByUser(userOid, project).map(phase => (project, phase)))
 
-    val phases: Seq[DynDoc] = projects.flatMap(project => ProjectApi.phasesByUser(userOid, project))
-    val dashboardPhases: Seq[DynDoc] = phases.map(phase => {
-      val phaseName = phase.name[String]
-      val phaseStatus = phase.status[String] match {
+    val dashboardEntries: Seq[DynDoc] = projectPhasePairs.map(ppp => {
+      val projectName = ppp._1.name[String]
+      val phaseName = ppp._2.name[String]
+      val params = s"?project_id=${ppp._1._id[ObjectId]}&phase_id=${ppp._2._id[ObjectId]}"
+      val phaseStatus = ppp._2.status[String] match {
         case "defined" => "urgent"
         case "running" => "normal"
         case _ => "important"
       }
-      val statusTime = phase.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
+      val statusTime = ppp._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("url" -> "phases", "description" -> s"Phase '$phaseName' is ${phase.status[String]}",
-        "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00")
+      Map("project" -> projectName, "phase" -> phaseName,
+        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/tasks" + params)),
+        "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params)),
+        "issues_open" -> Map("value" -> "000", "url" -> "/etc"),
+        "submittals_pending" -> Map("value" -> "000", "url" -> "/etc"),
+        "submittals_unapproved" -> Map("value" -> "000", "url" -> "/etc"),
+        "new_docs" -> Map("value" -> "000", "url" -> ("/documents" + params)),
+        "material_issues" -> Map("value" -> "000", "url" -> "/etc"),
+        "equipment_issues" -> Map("value" -> "000", "url" -> "/etc"),
+        "invoices_payable" -> Map("value" -> "000", "url" -> "/etc"),
+        "budget" -> Map("value" -> "000", "url" -> "/etc"),
+        "expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
+        "excess_expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
+
+        "url" -> ("/phases" + params), "description" -> "???",
+        "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00"
+      )
     })
 
-    //val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]])
-    //val allActivities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
-    //val allActions: Seq[DynDoc] = allActivities.flatMap(_.actions[Many[Document]])
-
-//    val dashboardActions: Seq[Document] = allActions.
-//        filter(_.assignee_person_id[ObjectId] == user._id[ObjectId]).map(action => {
-//      val actionName = action.name[String]
-//      val actionStatus = action.status[String] match {
-//        case "waiting" => "urgent"
-//        case "ended" => "normal"
-//        case _ => "important"
-//      }
-//      val statusDate = if (action.has("timestamps")) {
-//        val statusTime = action.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
-//        dateTimeString(statusTime, Some(timeZone))
-//      } else {
-//        "0000-00-00"
-//      }
-//      Map("url" -> "tasks", "description" -> s"Task '$actionName' is ${action.status[String]}",
-//        "status_date" -> statusDate, "status" -> actionStatus, "due_date" -> "0000-00-00")
-//    })
-
-    (dashboardProjects ++ dashboardPhases /*++ dashboardActions*/).sortWith(compareDashboardEntries)
+    dashboardEntries.sortWith(compareDashboardEntries)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

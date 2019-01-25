@@ -18,7 +18,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
         exists(role => role.person_id[ObjectId] == userOid && role.role_name[String] == "Project-Manager")
   }
 
-  private def phaseInformtion(project: DynDoc): Many[Document] = {
+  private def phaseInformation(project: DynDoc): Many[Document] = {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
@@ -44,7 +44,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val constAreaSqFt: Document = new Document("editable", editable).append("value", project.construction_area_sqft[Double])
     val landAreaAcres: Document = new Document("editable", editable).append("value", project.land_area_acres[Double])
     val maxBldgHeightFt: Document = new Document("editable", editable).append("value", project.max_building_height_ft[Double])
-    val phaseInfo: Document = new Document("editable", false).append("value", phaseInformtion(project))
+    val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
         append("address", address).append("status", status).append("system_labels", systemLabels).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).

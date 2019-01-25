@@ -14,15 +14,17 @@ class PhaseAdd extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val projectOid = new ObjectId(parameters("project_id"))
-      if (BWMongoDB3.projects.find(Map("_id" -> projectOid)).isEmpty)
-        throw new IllegalArgumentException(s"Unknown project-id: '$projectOid'")
+      val parentProjectOid = new ObjectId(parameters("project_id"))
+      val parentProject: Option[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> parentProjectOid)).headOption
+      if (parentProject.isEmpty)
+        throw new IllegalArgumentException(s"Unknown project-id: '$parentProjectOid'")
 
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
       val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
-      if (!isAdmin)
+      val isProjectAdministrator = parentProject.get.admin_person_id[ObjectId] == userOid
+      if (!isAdmin && !isProjectAdministrator)
         throw new IllegalArgumentException("Not permitted")
 
       val phaseName = parameters("phase_name")
@@ -39,7 +41,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
           "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.phases.insertOne(newPhaseRecord)
 
-      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
+      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> parentProjectOid),
           Map("$addToSet" -> Map("phase_ids" -> newPhaseRecord.y._id[ObjectId])))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

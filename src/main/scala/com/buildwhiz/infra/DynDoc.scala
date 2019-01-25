@@ -1,5 +1,7 @@
 package com.buildwhiz.infra
 
+import java.util
+
 import org.bson.Document
 
 import scala.collection.JavaConverters._
@@ -41,6 +43,7 @@ object DynDoc {
       case m: Map[String, Any] @unchecked => mapToDocument(m)
       case s: Seq[_] => seq2javaList(s)
       case dd: DynDoc => dd.asDoc
+      case Nil => Nil.asJava
       case other => other
     }).asJava
 
@@ -51,6 +54,7 @@ object DynDoc {
           case m: Map[String, Any] @unchecked => mapToDocument(m)
           case seq: Seq[_] => seq2javaList(seq)
           case dd: DynDoc => dd.asDoc
+          case Nil => Nil.asJava
           case other => other
         })
         pairs2document(tail, document)

@@ -1,6 +1,7 @@
 package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -13,14 +14,21 @@ class ProjectCreate extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
+      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      if (!isAdmin)
+        throw new IllegalArgumentException("Not permitted")
+
       val projectName = parameters("name")
       val description = parameters.get("description") match {
         case Some(desc) => desc
         case None => s"This is the description of the '$projectName' project."
       }
-      val user: DynDoc = getUser(request)
+
       val adminPersonOid = parameters.get("admin_person_id") match {
-        case None => user._id[ObjectId]
+        case None => userOid
         case Some(id) => new ObjectId(id)
       }
       val address: DynDoc = Map("line1" -> "First line of the address", "line2" -> "Second line of the address",

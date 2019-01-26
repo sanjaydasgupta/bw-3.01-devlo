@@ -107,7 +107,7 @@ object Project {
 
   def allPhaseOids(project: DynDoc): Seq[ObjectId] = project.process_ids[Many[ObjectId]]
   def allPhases(project: DynDoc): Seq[DynDoc] = allPhaseOids(project).
-      map(phaseOid => BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head)
+    flatMap(phaseOid => BWMongoDB3.processes.find(Map("_id" -> phaseOid)).headOption)
 
   def allActivities(project: DynDoc): Seq[DynDoc] = allPhases(project).flatMap(Phase.allActivities)
 

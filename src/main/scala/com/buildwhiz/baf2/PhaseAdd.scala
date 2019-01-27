@@ -46,6 +46,8 @@ class PhaseAdd extends HttpServlet with HttpUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
+      response.getWriter.print(bson2json(newPhaseRecord))
+      response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

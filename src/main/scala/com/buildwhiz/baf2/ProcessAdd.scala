@@ -24,7 +24,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   private def extensionProperties(e: Element, name: String) = e.getElementsByTagName("camunda:property").
     filter(_.getAttributes.getNamedItem("name").getTextContent == name)
 
-  private def validatePhase(namesAndDoms: Seq[(String, dom.Document)]): Seq[String] = {
+  private def validateProcess(namesAndDoms: Seq[(String, dom.Document)]): Seq[String] = {
 
     def validateBpmn(name: String, processDom: dom.Document): Seq[String] = {
       val prefix = processDom.getDocumentElement.getTagName.split(":")(0)
@@ -99,9 +99,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         (processNameAndDocument._1, parts(0), parts(1), converters(parts(1))(parts(2)), parts(3))
       }
 
-      val phaseVariableNodes: Seq[Node] = processNameAndDocument._2.getElementsByTagName("camunda:property").
+      val processVariableNodes: Seq[Node] = processNameAndDocument._2.getElementsByTagName("camunda:property").
         filter(_.getAttributes.getNamedItem("name").getTextContent == "bw-variable")
-      val variableNamesAndTypes = phaseVariableNodes.map(getVariableNameAndType)
+      val variableNamesAndTypes = processVariableNodes.map(getVariableNameAndType)
       BWLogger.log(getClass.getName, "getVariableDefinitions", s"""EXIT-OK (${variableNamesAndTypes.mkString(", ")})""")
       variableNamesAndTypes
     } catch {
@@ -157,9 +157,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
 
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
-      val phaseTimerNodes: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
+      val processTimerNodes: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
         filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
-      val timerNamesAndVariables = phaseTimerNodes.map(n => getNameVariableNameAndId(n, prefix))
+      val timerNamesAndVariables = processTimerNodes.map(n => getNameVariableNameAndId(n, prefix))
       BWLogger.log(getClass.getName, "getTimerDefinitions", s"""EXIT-OK (${timerNamesAndVariables.mkString(", ")})""")
       timerNamesAndVariables
     } catch {
@@ -312,10 +312,10 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     try {
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = parameters("process_name")
-      val projectOid = new ObjectId(parameters("project_id"))
+      val phaseOid = new ObjectId(parameters("phase_id"))
       val adminPersonOid = new ObjectId(parameters("admin_person_id"))
       val allProcessNameAndDoms = getBpmnDomByName(bpmnName)
-      val validationErrors = validatePhase(allProcessNameAndDoms)
+      val validationErrors = validateProcess(allProcessNameAndDoms)
       val validationMessage = if (validationErrors.isEmpty) "Validation OK" else s"""Validation ERRORS: ${validationErrors.mkString(", ")}"""
       BWLogger.log(getClass.getName, "doPost", validationMessage, request)
       val variables: Many[Document] = allProcessNameAndDoms.flatMap(getVariableDefinitions).map(kv =>
@@ -333,7 +333,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00")
       BWMongoDB3.processes.insertOne(newProcess)
       val processOid = newProcess.y._id[ObjectId]
-      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
+      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
         Map("$push" -> Map("process_ids" -> processOid)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
@@ -356,12 +356,12 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
       ProcessBpmnTraverse.scheduleBpmnElements(bpmnName, processOid, request)
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val newPhaseDocument = ProcessApi.processProcess(newProcess, project, adminPersonOid).asDoc
-      response.getWriter.println(bson2json(newPhaseDocument))
+      val project: DynDoc = BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+      val newProcessDocument = ProcessApi.processProcess(newProcess, project, adminPersonOid).asDoc
+      response.getWriter.println(bson2json(newProcessDocument))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.audit(getClass.getName, "doPost", s"""Added Phase ${newProcess.get("name")}""", request)
+      BWLogger.audit(getClass.getName, "doPost", s"""Added Process ${newProcess.get("name")}""", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

@@ -76,6 +76,20 @@ object ProjectApi {
   }
 */
 
+  def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => ProcessApi.isActive(phase))
+
+  def delete(project: DynDoc, request: HttpServletRequest): Unit = {
+    val projectOid = project._id[ObjectId]
+    if (isActive(project))
+      throw new IllegalArgumentException(s"Project '$projectOid' is still active")
+    allPhases(project).foreach(phase => PhaseApi.delete(phase, request))
+    val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
+    if (projectDeleteResult.getDeletedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $projectDeleteResult")
+    val message = s"Deleted project '${project.name[String]}' (${project._id[ObjectId]})"
+    BWLogger.audit(getClass.getName, request.getMethod, message, request)
+  }
+
   def hasRoleInProject(personOid: ObjectId, project: DynDoc): Boolean =
       project.admin_person_id[ObjectId] == personOid ||
       project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)

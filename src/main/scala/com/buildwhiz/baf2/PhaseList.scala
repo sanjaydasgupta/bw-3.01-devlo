@@ -5,12 +5,11 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import org.bson.Document
 import org.bson.types.ObjectId
 
 class PhaseList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-
-    def phase2json(phase: DynDoc) = s"""{"_id": "${phase._id[ObjectId]}", "name": "${phase.name[String]}"}"""
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
@@ -26,7 +25,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       } else {
         ProjectApi.phasesByUser(personOid, parentProject)
       }
-      response.getWriter.print(phases.map(phase2json).mkString("[", ", ", "]"))
+      response.getWriter.print(phases.map(phase2json(_, parentProject, personOid)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${phases.length})", request)
@@ -36,6 +35,24 @@ class PhaseList extends HttpServlet with HttpUtils {
         //t.printStackTrace()
         throw t
     }
+  }
+
+  def phase2json(phase: DynDoc, project: DynDoc, personOid: ObjectId): String = {
+    val processes: Seq[DynDoc] = PhaseApi.allProcesses(phase)
+    val activities: Seq[DynDoc] = processes.flatMap(process => ProcessApi.allActivities(process))
+    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
+    val isManaged = phase.admin_person_id[ObjectId] == personOid
+    val displayStatus: String = if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
+      "waiting"
+    else if (actions.exists(action => action.status[String] == "waiting"))
+      "waiting2"
+    else
+      phase.status[String]
+    val projectDocument = new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
+      append("status", phase.status[String]).append("display_status", displayStatus).
+      append("is_managed", isManaged).
+      append("docsUrl", s"docs?project_id=${project._id[ObjectId]}&${phase._id[ObjectId]}")
+    bson2json(projectDocument)
   }
 
 }

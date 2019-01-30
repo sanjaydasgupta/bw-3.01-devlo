@@ -15,22 +15,17 @@ class RoleList extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     def oid(id: String) = new ObjectId(id)
 
-    val activities: (String, Seq[DynDoc]) = if (parameters.contains("process_id")) {
-      ("process_id", ProcessApi.allActivities(oid(parameters("process_id"))))
+    val activities: Seq[DynDoc] = if (parameters.contains("process_id")) {
+      ProcessApi.allActivities(oid(parameters("process_id")))
     } else if (parameters.contains("phase_id")) {
-      ("phase_id", PhaseApi.allActivities(oid(parameters("phase_id"))))
+      PhaseApi.allActivities(oid(parameters("phase_id")))
     } else if (parameters.contains("project_id")) {
-      ("project_id", ProjectApi.allActivities(oid(parameters("project_id"))))
+      ProjectApi.allActivities(oid(parameters("project_id")))
     } else {
-      ("", Seq.empty[DynDoc])
+      Seq.empty[DynDoc]
     }
 
-    BWLogger.log(getClass.getName, "getRoles",
-      s"**** ${activities._1}: ${activities._2.length} ****", request)
-
-    val results = activities._2.map(_.actions[Many[Document]].head.assignee_role[String])
-    BWLogger.log(getClass.getName, "getRoles", s"**** ${results.length} ****", request)
-    results
+    activities.map(_.actions[Many[Document]].find(_.`type`[String] == "main").get.assignee_role[String])
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

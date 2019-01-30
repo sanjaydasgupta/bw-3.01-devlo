@@ -66,9 +66,9 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val liveProjects: Seq[DynDoc] = BWMongoDB3.projects.find()
     val projectOids: Seq[ObjectId] = liveProjects.map(_._id[ObjectId])
-    val projectQualifier = Map("project_id" -> Map("$in" -> projectOids))
+    val qualifier = Map("project_id" -> Map("$in" -> projectOids), "name" -> Map("$exists" -> true))
 
-    BWMongoDB3.document_master.find(projectQualifier ++ mongoQuery)
+    BWMongoDB3.document_master.find(qualifier ++ mongoQuery)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

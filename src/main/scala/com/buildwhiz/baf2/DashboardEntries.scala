@@ -38,7 +38,9 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       val statusTime = ppp._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      Map("project" -> projectName, "phase" -> phaseName,
+      Map(
+        "project" -> Map("value" -> projectName, "url" -> s"/project?project_id=${ppp._1._id[ObjectId]}"),
+        "phase" -> Map("value" -> phaseName, "url" -> s"/phase?phase_id=${ppp._2._id[ObjectId]}"),
         "tasks_overdue" -> Map("value" -> "000", "url" -> ("/tasks" + params)),
         "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params)),
         "issues_open" -> Map("value" -> "000", "url" -> "/etc"),

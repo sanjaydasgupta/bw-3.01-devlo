@@ -15,15 +15,28 @@ import scala.collection.JavaConverters._
 
 object ProjectApi {
 
+  def projectById(projectOid: ObjectId): DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+
+  def exists(projectOid: ObjectId): Boolean = BWMongoDB3.projects.find(Map("_id" -> projectOid)).nonEmpty
+
   def allPhaseOids(parentProject: DynDoc): Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
 
   def allPhases(parentProject: DynDoc): Seq[DynDoc] =
       BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject))))
 
+  def allProcesses(parentProject: DynDoc): Seq[DynDoc] =
+      BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject)))).
+      flatMap(phase => PhaseApi.allProcesses(phase))
+
+  def allProcesses(parentProjectOid: ObjectId): Seq[DynDoc] = allProcesses(projectById(parentProjectOid))
+
   def phasesByUser(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] =
     allPhases(parentProject).filter(phase => PhaseApi.hasRoleInPhase(userOid, phase))
 
-  //def allActivities(project: DynDoc): Seq[DynDoc] = allPhases(project).flatMap(Phase.allActivities)
+  def allActivities(project: DynDoc): Seq[DynDoc] = allProcesses(project).
+      flatMap(phase => ProcessApi.allActivities(phase))
+
+  def allActivities(pOid: ObjectId): Seq[DynDoc] = allActivities(projectById(pOid))
 
   //def allActions(project: DynDoc): Seq[DynDoc] = allActivities(project).flatMap(Activity.allActions)
 
@@ -82,10 +95,10 @@ object ProjectApi {
     val projectOid = project._id[ObjectId]
     if (isActive(project))
       throw new IllegalArgumentException(s"Project '$projectOid' is still active")
-    allPhases(project).foreach(phase => PhaseApi.delete(phase, request))
     val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
     if (projectDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $projectDeleteResult")
+    allPhases(project).foreach(phase => PhaseApi.delete(phase, request))
     val message = s"Deleted project '${project.name[String]}' (${project._id[ObjectId]})"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }

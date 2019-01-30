@@ -11,34 +11,41 @@ import org.camunda.bpm.engine.ProcessEngines
 
 object ProcessApi {
 
+  def processById(processOid: ObjectId): DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
+
+  def exists(processOid: ObjectId): Boolean = BWMongoDB3.processes.find(Map("_id" -> processOid)).nonEmpty
+
   def allActivityOids(process: DynDoc): Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
+
   def allActivities(process: DynDoc): Seq[DynDoc] = {
     val activityOids = allActivityOids(process)
     BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
   }
 
+  def allActivities(pOid: ObjectId): Seq[DynDoc] = allActivities(processById(pOid))
+
   def delete(process: DynDoc, request: HttpServletRequest): Unit = {
     val processOid = process._id[ObjectId]
     if (isActive(process))
       throw new IllegalArgumentException(s"Process '$processOid' is still active")
-    val activityOids = allActivities(process)
-    val activityDeleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
-    if (activityDeleteResult.getDeletedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB error: $activityDeleteResult")
-    val deleteMessage = s"Deleted ${activityDeleteResult.getDeletedCount} activities"
-    BWLogger.audit(getClass.getName, request.getMethod, deleteMessage, request)
+
+    val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
+      Map("$pull" -> Map("process_ids" -> processOid)))
+
     val processDeleteResult = BWMongoDB3.processes.deleteOne(Map("_id" -> processOid))
     if (processDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $processDeleteResult")
-    val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid), Map("$pull" -> Map("process_ids" -> processOid)))
-    if (phaseUpdateResult.getModifiedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB error: $phaseUpdateResult")
-    val message = s"Deleted process '${process.name[String]}' (${process._id[ObjectId]})"
+
+    val activityOids: Seq[ObjectId] = allActivities(process).map(_._id[ObjectId])
+    val activityDeleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
+
+    val message = s"Deleted process '${process.name[String]}' (${process._id[ObjectId]}). " +
+      s"Also updated ${phaseUpdateResult.getModifiedCount} phase records, " +
+      s"and deleted ${activityDeleteResult.getDeletedCount} activities"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 
-  def parentPhase(process: DynDoc): DynDoc = {
-    val processOid = process._id[ObjectId]
+  def parentPhase(processOid: ObjectId): DynDoc = {
     BWMongoDB3.phases.find(Map("process_ids" -> processOid)).head
   }
 
@@ -57,18 +64,7 @@ object ProcessApi {
       false
   }
 
-  def isHealthy(process: DynDoc): Boolean = {
-    if (process.status[String] == "running") {
-      val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-      try {
-        rts.getVariables(process.process_instance_id[String])
-        true
-      } catch {
-        case _: AnyRef => false
-      }
-    } else
-      true
-  }
+  def isHealthy(process: DynDoc): Boolean = (process.status[String] == "running") == isActive(process)
 
   def processProcess(process: DynDoc, project: DynDoc, personOid: ObjectId): DynDoc = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.

@@ -81,7 +81,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private def getVariableDefinitions(processNameAndDocument: (String, dom.Document)):
       Seq[(String, String, String, Any, String)] = { // bpmn-name, variable-name, type, default-value, label
-    BWLogger.log(getClass.getName, "getVariableDefinitions", "ENTRY")
+    //BWLogger.log(getClass.getName, "getVariableDefinitions", "ENTRY")
     try {
 
       val converters: Map[String, String => Any] =
@@ -102,7 +102,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val processVariableNodes: Seq[Node] = processNameAndDocument._2.getElementsByTagName("camunda:property").
         filter(_.getAttributes.getNamedItem("name").getTextContent == "bw-variable")
       val variableNamesAndTypes = processVariableNodes.map(getVariableNameAndType)
-      BWLogger.log(getClass.getName, "getVariableDefinitions", s"""EXIT-OK (${variableNamesAndTypes.mkString(", ")})""")
+      //BWLogger.log(getClass.getName, "getVariableDefinitions", s"""EXIT-OK (${variableNamesAndTypes.mkString(", ")})""")
       variableNamesAndTypes
     } catch {
       case t: Throwable =>
@@ -113,7 +113,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def getCallDefinitions(processNameAndDom: (String, dom.Document)): Seq[(String, String, String)] = {
-    BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
+    //BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
       def callerCalleeAndCalleeId(callNode: Element, prefix: String): (String, String, String) = {
@@ -128,7 +128,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val subProcCallElements = callActivities.
         filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler")
       val subProcessCalls = subProcCallElements.map(n => callerCalleeAndCalleeId(n.asInstanceOf[Element], prefix))
-      BWLogger.log(getClass.getName, "getCallerCalleeAndId", s"""EXIT-OK (${subProcessCalls.mkString(", ")})""")
+      //BWLogger.log(getClass.getName, "getCallerCalleeAndId", s"""EXIT-OK (${subProcessCalls.mkString(", ")})""")
       subProcessCalls
     } catch {
       case t: Throwable =>
@@ -139,7 +139,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def getTimerDefinitions(processNameAndDom: (String, dom.Document)): Seq[(String, String, String, String, String)] = {
-    BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
+    //BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
       def getNameVariableNameAndId(timerNode: Element, prefix: String): (String, String, String, String, String) = {
@@ -160,7 +160,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val processTimerNodes: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:intermediateCatchEvent").
         filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
       val timerNamesAndVariables = processTimerNodes.map(n => getNameVariableNameAndId(n, prefix))
-      BWLogger.log(getClass.getName, "getTimerDefinitions", s"""EXIT-OK (${timerNamesAndVariables.mkString(", ")})""")
+      //BWLogger.log(getClass.getName, "getTimerDefinitions", s"""EXIT-OK (${timerNamesAndVariables.mkString(", ")})""")
       timerNamesAndVariables
     } catch {
       case t: Throwable =>
@@ -186,7 +186,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   private def getActivityNameRoleDescriptionDurationAndId(processNameAndDom: (String, dom.Document)):
       Seq[(String, String, String, String, String, String, String, String, String, String)] = {
     // bpmn, activity-name, role, description, id
-    BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
+    //BWLogger.log(getClass.getName, "getActivityNamesAndRoles", "ENTRY")
     try {
 
       def sequence(callActivity: Element): Int = callActivity.getElementsByTagName("camunda:property").
@@ -268,7 +268,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         getTextContent == "Infra-Activity-Handler")
       val activityNamesRolesDescriptionsAndDurations = buildWhizActivities.sortWith((a, b) => sequence(a) < sequence(b)).
         map(getNameRoleDescriptionAndDuration)
-      BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesRolesDescriptionsAndDurations.mkString(", ")})""")
+      //BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesRolesDescriptionsAndDurations.mkString(", ")})""")
       activityNamesRolesDescriptionsAndDurations
     } catch {
       case t: Throwable =>
@@ -288,7 +288,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       (bpmnName, domParser.getDocument)
     }
 
-    BWLogger.log(getClass.getName, "getInvolvedProcesses", "ENTRY")
+    //BWLogger.log(getClass.getName, "getInvolvedProcesses", "ENTRY")
     try {
       val processNameAndDom = nameAndDom(processName)
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
@@ -296,7 +296,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val calledElementNames = callActivities.map(_.getAttributes.getNamedItem("calledElement").getTextContent)
       val subProcessNames = calledElementNames.filterNot(_ == "Infra-Activity-Handler")
       val allProcessDocuments = subProcessNames.foldLeft(processDocuments)((docs, name) => getBpmnDomByName(name, docs))
-      BWLogger.log(getClass.getName, "getInvolvedProcesses", s"""EXIT-OK (${subProcessNames.mkString(", ")})""")
+      //BWLogger.log(getClass.getName, "getInvolvedProcesses", s"""EXIT-OK (${subProcessNames.mkString(", ")})""")
       processNameAndDom +: allProcessDocuments
     } catch {
       case t: Throwable =>
@@ -313,7 +313,13 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = parameters("process_name")
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val adminPersonOid = new ObjectId(parameters("admin_person_id"))
+      if (!PhaseApi.exists(phaseOid))
+        throw new IllegalArgumentException(s"Bad phase ID '$phaseOid'")
+      val adminPersonOid: ObjectId = parameters.get("admin_person_id") match {
+        case None => val user: DynDoc = getUser(request)
+          user._id[ObjectId]
+        case Some(id) => new ObjectId(id)
+      }
       val allProcessNameAndDoms = getBpmnDomByName(bpmnName)
       val validationErrors = validateProcess(allProcessNameAndDoms)
       val validationMessage = if (validationErrors.isEmpty) "Validation OK" else s"""Validation ERRORS: ${validationErrors.mkString(", ")}"""

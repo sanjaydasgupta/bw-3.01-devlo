@@ -10,18 +10,23 @@ import org.bson.types.ObjectId
 
 object PhaseApi {
 
-  def allProcessOids(phase: DynDoc): Seq[ObjectId] = phase.process_ids[Many[ObjectId]]
+  def phaseById(phaseOid: ObjectId): DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
 
-  def allProcesses(phaseOid: ObjectId): Seq[DynDoc] = {
-    val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-    val processOids = allProcessOids(thePhase)
-    BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> processOids)))
-  }
+  def exists(phaseOid: ObjectId): Boolean = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).nonEmpty
+
+  def allProcessOids(phase: DynDoc): Seq[ObjectId] = phase.process_ids[Many[ObjectId]]
 
   def allProcesses(phase: DynDoc): Seq[DynDoc] = {
     val processOids = allProcessOids(phase)
     BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> processOids)))
   }
+
+  def allProcesses(phaseOid: ObjectId): Seq[DynDoc] = allProcesses(phaseById(phaseOid))
+
+  def allActivities(phase: DynDoc): Seq[DynDoc] = allProcesses(phase).
+      flatMap(phase => PhaseApi.allActivities(phase))
+
+  def allActivities(phaseOid: ObjectId): Seq[DynDoc] = allActivities(phaseById(phaseOid))
 
   def isActive(phase: DynDoc): Boolean = allProcesses(phase).exists(process => ProcessApi.isActive(process))
 
@@ -44,14 +49,14 @@ object PhaseApi {
       throw new IllegalArgumentException(s"MongoDB error: $phaseDeleteResult")
     val projectUpdateResult = BWMongoDB3.projects.updateOne(Map("phase_ids" -> phaseOid),
         Map("$pull" -> Map("phase_ids" -> phaseOid)))
-    if (projectUpdateResult.getModifiedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB error: $projectUpdateResult")
-    val message = s"Deleted phase '${phase.name[String]}' (${phase._id[ObjectId]})"
+    //if (projectUpdateResult.getModifiedCount == 0)
+    //  throw new IllegalArgumentException(s"MongoDB error: $projectUpdateResult")
+    val message = s"Deleted phase '${phase.name[String]}' (${phase._id[ObjectId]}). " +
+      s"Also updated ${projectUpdateResult.getModifiedCount} project records"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 
-  def parentProject(phase: DynDoc): DynDoc = {
-    val phaseOid = phase._id[ObjectId]
+  def parentProject(phaseOid: ObjectId): DynDoc = {
     BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
   }
 

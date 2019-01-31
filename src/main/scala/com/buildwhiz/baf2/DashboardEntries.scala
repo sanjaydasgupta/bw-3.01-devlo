@@ -27,20 +27,22 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
     val projectPhasePairs: Seq[(DynDoc, DynDoc)] = projects.
       flatMap(project => ProjectApi.phasesByUser(userOid, project).map(phase => (project, phase)))
 
-    val dashboardEntries: Seq[DynDoc] = projectPhasePairs.map(ppp => {
-      val projectName = ppp._1.name[String]
-      val phaseName = ppp._2.name[String]
-      val params = s"?project_id=${ppp._1._id[ObjectId]}&phase_id=${ppp._2._id[ObjectId]}"
-      val phaseStatus = ppp._2.status[String] match {
+    val dashboardEntries: Seq[DynDoc] = projectPhasePairs.map(pair => {
+      val (projectName, projectOid) = (pair._1.name[String], pair._1._id[ObjectId])
+      val (phaseName, phaseOid) = (pair._2.name[String], pair._2._id[ObjectId])
+      val params = s"?project_id=${pair._1._id[ObjectId]}&phase_id=${pair._2._id[ObjectId]}"
+      val phaseStatus = pair._2.status[String] match {
         case "defined" => "urgent"
         case "running" => "normal"
         case _ => "important"
       }
-      val statusTime = ppp._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
+      val statusTime = pair._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
       Map(
-        "project" -> Map("value" -> projectName, "url" -> s"/project?project_id=${ppp._1._id[ObjectId]}"),
-        "phase" -> Map("value" -> phaseName, "url" -> s"/phase?phase_id=${ppp._2._id[ObjectId]}"),
+        "project_name" -> projectName,
+        "project_id" -> projectOid.toString,
+        "phase_name" -> phaseName,
+        "phase_id" -> phaseOid.toString,
         "tasks_overdue" -> Map("value" -> "000", "url" -> ("/tasks" + params)),
         "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params)),
         "issues_open" -> Map("value" -> "000", "url" -> "/etc"),
@@ -54,7 +56,7 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         "expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
         "excess_expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
 
-        "url" -> ("/phases" + params), "description" -> "???",
+        //"url" -> ("/phases" + params), "description" -> "???",
         "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00"
       )
     })

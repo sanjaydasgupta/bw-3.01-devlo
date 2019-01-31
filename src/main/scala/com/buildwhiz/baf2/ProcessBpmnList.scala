@@ -105,7 +105,7 @@ class ProcessBpmnList extends HttpServlet with HttpUtils with DateTimeUtils {
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       response.getWriter.print(processes.map(process => bson2json(process.asDoc)).mkString("[", ", ", "]"))
-      BWLogger.log(this.getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(this.getClass.getName, request.getMethod, s"EXIT-OK (${processes.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

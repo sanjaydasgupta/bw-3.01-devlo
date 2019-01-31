@@ -17,7 +17,8 @@ class ProcessList extends HttpServlet with HttpUtils {
       val adminName = s"${adminPerson.first_name[String]} ${adminPerson.last_name[String]}"
       val processDoc = new Document("_id", process._id[ObjectId]).append("name", process.name[String]).
           append("status", process.status[String]).append("start_time", "0000-00-00 00:00").
-          append("end_time", "0000-00-00 00:00").append("manager", adminName)
+          append("end_time", "0000-00-00 00:00").append("admin_person_id", adminPersonOid.toString).
+          append("manager", adminName)
       bson2json(processDoc)
     }
 

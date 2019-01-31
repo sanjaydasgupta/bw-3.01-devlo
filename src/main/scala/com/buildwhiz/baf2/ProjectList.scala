@@ -51,6 +51,7 @@ class ProjectList extends HttpServlet with HttpUtils {
     val projectDocument = new Document("name", project.name[String]).append("_id", project._id[ObjectId].toString).
         append("status", project.status[String]).append("display_status", displayStatus).
         append("is_managed", project.admin_person_id[ObjectId] == userPersonOid).
+        append("admin_person_id", project.admin_person_id[ObjectId].toString).
         append("docsUrl", s"docs?project_id=${project._id[ObjectId]}").
         append("can_end", !processes.exists(_.status[String] == "running") && project.status[String] != "ended")
     bson2json(projectDocument)

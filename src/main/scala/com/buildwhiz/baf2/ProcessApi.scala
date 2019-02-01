@@ -92,4 +92,7 @@ object ProcessApi {
     process
   }
 
+  def isAdmin(personOid: ObjectId, process: DynDoc): Boolean =
+    process.admin_person_id[ObjectId] == personOid
+
 }

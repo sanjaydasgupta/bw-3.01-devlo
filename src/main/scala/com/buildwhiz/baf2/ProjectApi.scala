@@ -103,9 +103,8 @@ object ProjectApi {
       project.admin_person_id[ObjectId] == personOid ||
       project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)
 
-  def isProjectManager(personOid: ObjectId, project: DynDoc): Boolean =
-      project.admin_person_id[ObjectId] == personOid || project.assigned_roles[Many[Document]].
-      exists(proj => proj.person_id[ObjectId] == personOid && proj.role_name[String] == "Project-Manager")
+  def isAdmin(personOid: ObjectId, project: DynDoc): Boolean =
+      project.admin_person_id[ObjectId] == personOid
 
   def projectsByUser(personOid: ObjectId): Seq[DynDoc] = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()

@@ -62,9 +62,8 @@ object PhaseApi {
       phase.admin_person_id[ObjectId] == personOid ||
       phase.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)
 
-  def isPhaseManager(personOid: ObjectId, phase: DynDoc): Boolean =
-    phase.admin_person_id[ObjectId] == personOid || phase.assigned_roles[Many[Document]].
-      exists(proj => proj.person_id[ObjectId] == personOid && proj.role_name[String] == "Project-Manager")
+  def isAdmin(personOid: ObjectId, phase: DynDoc): Boolean =
+    phase.admin_person_id[ObjectId] == personOid
 
   def phasesByUser(personOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] = {
     val phaseOids: Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]

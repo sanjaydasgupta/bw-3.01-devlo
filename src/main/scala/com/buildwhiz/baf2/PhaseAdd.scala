@@ -1,6 +1,5 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -15,16 +14,13 @@ class PhaseAdd extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val parentProjectOid = new ObjectId(parameters("project_id"))
-      val parentProject: Option[DynDoc] = BWMongoDB3.projects.find(Map("_id" -> parentProjectOid)).headOption
-      if (parentProject.isEmpty)
+      if (!ProjectApi.exists(parentProjectOid))
         throw new IllegalArgumentException(s"Unknown project-id: '$parentProjectOid'")
 
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
-      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
-      val isProjectAdministrator = parentProject.get.admin_person_id[ObjectId] == userOid
-      if (!isAdmin && !isProjectAdministrator)
+      val isProjectAdmin = ProjectApi.isAdmin(userOid, ProjectApi.projectById(parentProjectOid))
+      if (!PersonApi.isBuildWhizAdmin(userOid) && !isProjectAdmin)
         throw new IllegalArgumentException("Not permitted")
 
       val phaseName = parameters("phase_name")
@@ -33,8 +29,8 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         case None => userOid
         case Some(oid) => oid
       }
-      if (BWMongoDB3.persons.find(Map("_id" -> trueAdminPersonOid)).isEmpty)
-        throw new IllegalArgumentException(s"Unknown person-id: '$optionalAdminPersonOid'")
+      if (!PersonApi.exists(trueAdminPersonOid))
+        throw new IllegalArgumentException(s"Unknown person-id: '$trueAdminPersonOid'")
 
       val newPhaseRecord: Document = Map("name" -> phaseName, "admin_person_id" -> trueAdminPersonOid,
           "process_ids" -> Seq.empty[ObjectId], "assigned_roles" -> Seq.empty[Document], "status" -> "defined",

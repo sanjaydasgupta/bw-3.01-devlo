@@ -43,14 +43,12 @@ object PhaseApi {
     val phaseOid = phase._id[ObjectId]
     if (isActive(phase))
       throw new IllegalArgumentException(s"Phase '${phase.name[String]}' is still active")
-    allProcesses(phase).foreach(process => ProcessApi.delete(process, request))
     val phaseDeleteResult = BWMongoDB3.phases.deleteOne(Map("_id" -> phaseOid))
     if (phaseDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $phaseDeleteResult")
     val projectUpdateResult = BWMongoDB3.projects.updateOne(Map("phase_ids" -> phaseOid),
         Map("$pull" -> Map("phase_ids" -> phaseOid)))
-    //if (projectUpdateResult.getModifiedCount == 0)
-    //  throw new IllegalArgumentException(s"MongoDB error: $projectUpdateResult")
+    allProcesses(phase).foreach(process => ProcessApi.delete(process, request))
     val message = s"Deleted phase '${phase.name[String]}' (${phase._id[ObjectId]}). " +
       s"Also updated ${projectUpdateResult.getModifiedCount} project records"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)

@@ -1,17 +1,12 @@
 package com.buildwhiz.baf2
 
-import java.net.URI
-
-import com.amazonaws.services.s3.model.S3ObjectSummary
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.utils.BWLogger
+import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
-
-import scala.collection.JavaConverters._
 
 object ProjectApi {
 
@@ -25,8 +20,7 @@ object ProjectApi {
       BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject))))
 
   def allProcesses(parentProject: DynDoc): Seq[DynDoc] =
-      BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject)))).
-      flatMap(phase => PhaseApi.allProcesses(phase))
+      allPhases(parentProject).flatMap(phase => PhaseApi.allProcesses(phase))
 
   def allProcesses(parentProjectOid: ObjectId): Seq[DynDoc] = allProcesses(projectById(parentProjectOid))
 
@@ -92,9 +86,11 @@ object ProjectApi {
   def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => ProcessApi.isActive(phase))
 
   def delete(project: DynDoc, request: HttpServletRequest): Unit = {
+    if (project.status[String] != "ended")
+      throw new IllegalArgumentException(s"Project '${project.name[String]}' is still active")
     val projectOid = project._id[ObjectId]
     if (isActive(project))
-      throw new IllegalArgumentException(s"Project '$projectOid' is still active")
+      throw new IllegalArgumentException(s"Project '${project.name[String]}' is still active")
     val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
     if (projectDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $projectDeleteResult")

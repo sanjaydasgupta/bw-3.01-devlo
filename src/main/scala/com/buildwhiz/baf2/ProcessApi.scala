@@ -27,21 +27,24 @@ object ProcessApi {
   def delete(process: DynDoc, request: HttpServletRequest): Unit = {
     val processOid = process._id[ObjectId]
     if (isActive(process))
-      throw new IllegalArgumentException(s"Process '$processOid' is still active")
-
-    val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
-      Map("$pull" -> Map("process_ids" -> processOid)))
+      throw new IllegalArgumentException(s"Process '${process.name[String]}' is still active")
 
     val processDeleteResult = BWMongoDB3.processes.deleteOne(Map("_id" -> processOid))
     if (processDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $processDeleteResult")
 
+    val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
+      Map("$pull" -> Map("process_ids" -> processOid)))
+
     val activityOids: Seq[ObjectId] = allActivities(process).map(_._id[ObjectId])
-    val activityDeleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
+    val activityDeleteCount = if (activityOids.nonEmpty)
+      BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
+    else
+      0
 
     val message = s"Deleted process '${process.name[String]}' (${process._id[ObjectId]}). " +
       s"Also updated ${phaseUpdateResult.getModifiedCount} phase records, " +
-      s"and deleted ${activityDeleteResult.getDeletedCount} activities"
+      s"and deleted $activityDeleteCount activities"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 

@@ -144,8 +144,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
 
     def getTimeOffset(node: FlowNode, processOffset: (Long, Long), bpmnName: String, onCriticalPath: Boolean,
         seenNodes: Set[FlowNode]): (Long, Long) = {
-      BWLogger.log(getClass.getName, "getTimeOffset",
-        s"ENTRY(${node.getName})", request)
+      //BWLogger.log(getClass.getName, "getTimeOffset", s"ENTRY(${node.getName})", request)
 
       def predecessors(node: FlowNode): Seq[FlowNode] = {
         val incomingFlows: Seq[SequenceFlow] = node.getIncoming.asScala.toSeq

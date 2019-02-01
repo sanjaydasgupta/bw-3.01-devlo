@@ -22,6 +22,13 @@
   self.selectedPhase = null;
   self.phaseManagers = [];
   self.selectedPhaseManager = null;
+  self.newPhaseName = '';
+
+  self.processes = [];
+  self.selectedProcess = null;
+  self.processManagers = [];
+  self.selectedProcessManager = null;
+  self.newProcessName = '';
 
   self.bpmnTraversalData = '';
 
@@ -53,7 +60,8 @@
     self.selectedProject = null;
     self.selectedPhase = null;
     self.phases = [];
-    query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
+    //query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
+    query = 'baf2/ProjectList';
     $log.log('GET ' + query);
     self.busy = true;
     $http.get(query).then(
@@ -74,8 +82,11 @@
 
   self.selectProject = function(projectId, phaseId) {
     $log.log('Called selectProject(' + projectId + ', ' + phaseId + ')');
+    self.selectedProcess = null;
+    self.processes = [];
     if (projectId) {
-      query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + projectId;
+      //query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + projectId;
+      query = 'baf2/PhaseList?'+ '&project_id=' + projectId;
       $log.log('GET ' + query);
       self.busy = true;
       $http.get(query).then(
@@ -105,19 +116,20 @@
 
   self.createNewProject = function() {
     $log.log('Called createNewProject()');
-    var postData = '{"name": "' + self.newProjectName + '", "status": "created", ' +
-        '"admin_person_id": ObjectId("' + AuthService.data._id + '")}';
+    //var postData = '{"name": "' + self.newProjectName + '", "status": "created", ' +
+    //    '"admin_person_id": ObjectId("' + AuthService.data._id + '")}';
+    var q = 'baf2/ProjectCreate?name=' + self.newProjectName;
     self.busy = true;
-    $http.post('api/Project', postData).then(
+    $http.post(q).then(
       function(resp) {
         self.busy = false;
-        $log.log('OK POST api/Project');
+        $log.log('OK POST ' + q);
         self.newProjectName = '';
         self.fetchProjects(resp.data._id);
       },
       function() {
         self.busy = false;
-        $log.log('ERROR POST api/Project');
+        $log.log('ERROR POST ' + q);
       }
     )
   }
@@ -158,7 +170,7 @@
 
   self.endSelectedProject = function() {
     var project = self.selectedProject;
-    var query = 'baf/ProjectEnd?project_id=' + project._id;
+    var query = 'baf2/ProjectEnd?project_id=' + project._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -175,18 +187,19 @@
   }
 
   self.deleteSelectedProject = function() {
-    var query = 'api/Project/' + self.selectedProject._id;
-    $log.log('calling DELETE ' + query)
+    var project = self.selectedProject;
+    var query = 'baf2/ProjectDelete?project_id=' + project._id;
+    $log.log('calling POST ' + query)
     self.busy = true;
-    $http.delete(query).then(
+    $http.post(query).then(
       function(resp) {
         self.busy = false;
-        $log.log('OK DELETE ' + query);
+        $log.log('OK POST ' + query);
         self.fetchProjects();
       },
       function(errResponse) {
         self.busy = false;
-        $log.log('ERROR DELETE ' + query);
+        $log.log('ERROR POST ' + query);
       }
     );
   }
@@ -197,14 +210,16 @@
   }
 
   self.projectManagerSet = function() {
-    var query = 'baf/ProjectAdministratorSet?person_id=' + self.selectedProjectManager._id +
+//    var query = 'baf/ProjectAdministratorSet?person_id=' + self.selectedProjectManager._id +
+//        '&project_id=' + self.selectedProject._id;
+    var query = 'baf2/ProjectAdminSet?person_id=' + self.selectedProjectManager._id +
         '&project_id=' + self.selectedProject._id;
     self.busy = true;
     $http.post(query).then(
       function(resp) {
         self.busy = false;
         //self.selectProject(self.selectedProject._id, self.selectedPhase._id);
-        //self.selectedPhase.admin_person_id = self.selectedPhaseManager._id;
+        self.selectedProject.admin_person_id = self.selectedProjectManager._id;
         $log.log('OK POST ' + query);
       },
       function(resp) {
@@ -227,12 +242,108 @@
     return project == self.selectedProject ? 'yellow' : 'white';
   }
 
+  self.canAddPhase = function() {
+    return self.isBuildWhizAdmin();
+  }
+
+  self.addNewPhase = function() {
+    $log.log('Called addNewPhase()');
+    var query = 'baf2/PhaseAdd?project_id=' + self.selectedProject._id + '&phase_name=' + self.newPhaseName;
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK POST ' + query);
+        self.selectProject(self.selectedProject._id, resp.data._id);
+        self.newPhaseName = '';
+      },
+      function() {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    )
+  }
+
   self.addPhaseDisabled = function() {
     return self.selectedProject.status == 'ended' || self.newPhaseName.trim() == '' ||
         self.selectedBpmnName == 'Select BPMN';
   }
 
-  self.addPhase = function(name) {
+  self.selectPhase = function(phaseId, processId) {
+    $log.log('Called selectPhase(' + phaseId + ', ' + processId + ')');
+    if (phaseId) {
+      //query = 'baf/OwnedPhases?person_id=' + AuthService.data._id + '&project_id=' + projectId;
+      query = 'baf2/ProcessList?'+ '&phase_id=' + phaseId;
+      $log.log('GET ' + query);
+      self.busy = true;
+      $http.get(query).then(
+        function(resp) {
+          self.busy = false;
+          self.processes = resp.data;
+          $log.log('OK GET ' + query + ' (' + self.processes.length + ') objects');
+          self.selectedPhase = self.phases.filter(function(p){return p._id == phaseId;})[0];
+          self.selectedPhaseManager = self.phaseManagers.
+                    filter(function(pm){return pm._id == self.selectedPhase.admin_person_id})[0];
+          self.selectedProcess = processId ? self.processes.filter(function(p){return p._id == processId;})[0] : null;
+          if (processId) {
+            self.selectedProcessManager = self.phaseManagers.
+              filter(function(pm){return pm._id == self.selectedProcess.admin_person_id})[0];
+          }
+        },
+        function(errResponse) {
+          self.busy = false;
+          alert("ERROR GET " + query);
+        }
+      );
+    } else {
+      self.selectedPhase = null;
+      self.selectedProcess = null;
+    }
+  }
+
+  self.deleteSelectedPhase = function() {
+    var phase = self.selectedPhase;
+    var query = 'baf2/PhaseDelete?phase_id=' + phase._id;
+    $log.log('calling POST ' + query)
+    self.busy = true;
+    $http.post(query).then(
+      function(resp) {
+        self.busy = false;
+        $log.log('OK POST ' + query);
+        self.fetchProjects();
+      },
+      function(errResponse) {
+        self.busy = false;
+        $log.log('ERROR POST ' + query);
+      }
+    );
+  }
+
+  self.fetchPhases = function(phaseIdToSelect) {
+    self.selectedPhase = null;
+    self.selectedProcess = null;
+    self.processes = [];
+    //query = 'baf/OwnedProjects?person_id=' + AuthService.data._id;
+    query = 'baf2/PhaseList?project_id=' + self.selectedProject._id;
+    $log.log('GET ' + query);
+    self.busy = true;
+    $http.get(query).then(
+      function(resp) {
+        self.busy = false;
+        self.phases = resp.data;
+        $log.log('OK GET ' + query + ' (' + self.phases.length + ') objects');
+        if (phaseIdToSelect) {
+          self.selectPhase(phaseIdToSelect);
+        }
+      },
+      function(errResponse) {
+        self.busy = false;
+        alert("ERROR(collection-details): " + errResponse);
+      }
+    );
+  }
+
+  self.addProcess = function(name) {
     $log.log('Called addPhase()');
     var query = 'baf/PhaseAdd?bpmn_name=' + self.selectedBpmnName + '&project_id=' + self.selectedProject._id +
         '&admin_person_id=' + AuthService.data._id + '&phase_name=' + self.newPhaseName;
@@ -251,7 +362,7 @@
     )
   }
 
-  self.selectedPhaseEnd = function(name) {
+  self.selectedProcessEnd = function(name) {
     var query = 'baf/PhaseEnd?phase_id=' + self.selectedPhase._id;
     self.busy = true;
     $http.post(query).then(
@@ -271,15 +382,15 @@
     $log.log('Called bpmnNameSet(' + name + ')');
   }
 
-  self.selectPhase = function(phase) {
-    $log.log('Called selectPhase(' + phase.name + ')');
-    self.selectedPhase = phase;
-    $log.log('phase.admin_person_id: ' + phase.admin_person_id);
-    self.selectedPhaseManager = self.phaseManagers.filter(function(p){return p._id == phase.admin_person_id;})[0];
-    $log.log('selectedPhaseManager: ' + JSON.stringify(self.selectedPhaseManager));
+  self.selectProcess = function(process) {
+    $log.log('Called selectProcess(' + process.name + ')');
+    self.selectedProcess = process;
+    $log.log('process.admin_person_id: ' + process.admin_person_id);
+    self.selectedProcessManager = self.phaseManagers.filter(function(p){return p._id == process.admin_person_id;})[0];
+    $log.log('selectedProcessManager: ' + JSON.stringify(self.selectedProcessManager));
   }
 
-  self.isPhaseManager = function() {
+  self.isProcessManager = function() {
     return self.selectedPhase != null && AuthService.data._id == self.selectedPhase.admin_person_id;
   }
 
@@ -293,13 +404,15 @@
   }
 
   self.phaseManagerSet = function() {
-    var query = 'baf/PhaseAdministratorSet?person_id=' + self.selectedPhaseManager._id +
-        '&project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id;
+//    var query = 'baf/PhaseAdministratorSet?person_id=' + self.selectedPhaseManager._id +
+//        '&project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id;
+    var query = 'baf2/PhaseAdminSet?person_id=' + self.selectedPhaseManager._id +
+        '&phase_id=' + self.selectedPhase._id;
     self.busy = true;
     $http.post(query).then(
       function(resp) {
         self.busy = false;
-        self.selectProject(self.selectedProject._id, self.selectedPhase._id);
+        //self.selectPhase(self.selectedPhase._id, self.selectedProcess._id);
         self.selectedPhase.admin_person_id = self.selectedPhaseManager._id;
         $log.log('OK POST ' + query);
       },
@@ -311,7 +424,7 @@
     $log.log('Called phaseManagerSet(' + self.selectedPhaseManager.name + ')');
   }
 
-  self.selectedPhaseLaunch = function() {
+  self.selectedProcessLaunch = function() {
     $log.log('Called selectedPhaseLaunch(' + self.selectedPhase.name + ')');
     var query = 'baf/PhaseLaunch?project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id +
         '&phase_bpmn_name=' + self.selectedPhase.bpmn_name;
@@ -330,16 +443,16 @@
     );
   }
 
-  self.selectedPhaseDeletable = function() {
+  self.selectedProcessDeletable = function() {
     var deletable = new RegExp('defined|ended')
     return deletable.test(self.selectedPhase.status);
   }
 
-  self.selectedPhaseCanLaunch = function() {
+  self.selectedProcessCanLaunch = function() {
     return self.selectedPhase.status == 'defined' && self.selectedProject.status == 'running';
   }
 
-  self.selectedPhaseDelete = function() {
+  self.selectedProcessDelete = function() {
     $log.log('Called selectedPhaseDelete(' + self.selectedPhase.name + ')');
     var query = 'api/Phase/' + self.selectedPhase._id;
     $log.log('calling DELETE ' + query)

@@ -19,8 +19,8 @@
             <tr><th class="bg-primary text-center">Projects ({{projectsCtrl.projects.length}})</th></tr>
             <tr data-ng-repeat="project in projectsCtrl.projects" style="background-color:{{projectsCtrl.projectRowColor(project)}};">
               <td class="cursor: pointer;">
-                <span style="width:20px; background-color:{{projectsCtrl.statusColor(project.display_status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.display_status}})</a>
+                <span style="width:20px; background-color:{{projectsCtrl.statusColor(project.status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProject(project._id)">{{project.name}} ({{project.status}})</a>
               </td>
             </tr>
             <tr data-ng-if="projectsCtrl.canCreateProject()">
@@ -35,11 +35,33 @@
             <tr><th class="bg-primary text-center">Phases ({{projectsCtrl.phases.length}})</th></tr>
             <tr data-ng-repeat="phase in projectsCtrl.phases" style="background-color:{{projectsCtrl.phaseRowColor(phase)}};">
               <td>
-                <span style="width:20px; background-color:{{projectsCtrl.statusColor(phase.display_status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
-                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase)">{{phase.name}} ({{phase.status}})</a>
+                <span style="width:20px; background-color:{{projectsCtrl.statusColor(phase.status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectPhase(phase._id)">{{phase.name}} ({{phase.status}})</a>
+              </td>
+            </tr>
+            <tr data-ng-if="projectsCtrl.canAddPhase()">
+              <td>
+                <input data-ng-model="projectsCtrl.newPhaseName" placeholder="New phase name"/>
+                <button data-ng-disabled="projectsCtrl.newPhaseName == ''" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.addNewPhase()">Add</button>
               </td>
             </tr>
           </table>
+          <!-- Processes -->
+          <table class="table table-condensed table-bordered table-hover">
+                <tr><th class="bg-primary text-center">Processes ({{projectsCtrl.processes.length}})</th></tr>
+                <tr data-ng-repeat="process in projectsCtrl.processes" style="background-color:{{projectsCtrl.phaseRowColor(phase)}};">
+                    <td>
+                        <span style="width:20px; background-color:{{projectsCtrl.statusColor(process.status)}}; border:2px solid #663300; border-radius:5px;">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                        <a href="javascript:void(0);" data-ng-click="projectsCtrl.selectProcess(process)">{{process.name}} ({{process.status}})</a>
+                    </td>
+                </tr>
+                <!--tr data-ng-if="projectsCtrl.canAddPhase()">
+                    <td>
+                        <input data-ng-model="projectsCtrl.newPhaseName" placeholder="New phase name"/>
+                        <button data-ng-disabled="projectsCtrl.newPhaseName == ''" class="btn btn-xs btn-success" data-ng-click="projectsCtrl.addNewPhase()">Add</button>
+                    </td>
+                </tr-->
+            </table>
         </div>
         <!-- Detail Pane -->
         <div class="col-xs-12 col-sm-8 col-md-8 col-lg-9 col-xl-9">
@@ -71,21 +93,6 @@
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                     data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
                 <label style="width:25px;"></label>
-                <div class="btn-group" data-uib-dropdown>
-                  <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
-                      data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
-                    {{projectsCtrl.selectedBpmnName}} <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                    <li data-ng-repeat="bpmnName in projectsCtrl.bpmnNames" role="menuitem">
-                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.bpmnNameSet(bpmnName)">{{bpmnName}}</a>
-                    </li>
-                  </ul>
-                </div>
-                <input data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
-                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
-                    data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> New Phase</button>
-                <label style="width:25px;"></label>
                 <label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label>
                 <label style="width:25px;"></label>
                 <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.endSelectedProject()"
@@ -100,14 +107,14 @@
           </table>
           <!-- Phase Selected -->
           <table data-ng-if="projectsCtrl.selectedPhase != null"
-              class="table table-condensed table-bordered table-hover">
-            <tr><th class="bg-primary text-center">Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})</th></tr>
-            <!-- Project Manager's Part -->
-            <tr data-ng-if="projectsCtrl.isProjectManager()">
-              <td>
-                Manager: <div class="btn-group" data-uib-dropdown>
-                  <button id="phase-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
-                      data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'">
+                   class="table table-condensed table-bordered table-hover">
+                <tr>
+                    <th class="bg-primary text-center">
+                        Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})
+                        <label style="width:25px;"></label>
+                        <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
+                  Manager: <div class="btn-group" data-uib-dropdown>
+                  <button id="phase-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
                     {{projectsCtrl.selectedPhaseManager.name}} <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="phase-manager-dropdown">
@@ -115,19 +122,74 @@
                       <a href="javascript:void(0)" data-ng-click="projectsCtrl.phaseManagerSelect(phaseManager)">{{phaseManager.name}}</a>
                     </li>
                   </ul>
+                  </div>
+                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()">
+                    <span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+                </span>
+                    </th>
+                </tr>
+                <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isBuildWhizAdmin()">
+                    <td>
+                        <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
+                                data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
+                        <!--label style="width:25px;"></label>
+                        <div class="btn-group" data-uib-dropdown>
+                          <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
+                              data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
+                            {{projectsCtrl.selectedBpmnName}} <span class="caret"></span>
+                          </button>
+                          <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="single-button">
+                            <li data-ng-repeat="bpmnName in projectsCtrl.bpmnNames" role="menuitem">
+                              <a href="javascript:void(0)" data-ng-click="projectsCtrl.bpmnNameSet(bpmnName)">{{bpmnName}}</a>
+                            </li>
+                          </ul>
+                        </div>
+                        <input data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
+                        < button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
+                            data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> New Phase</button-->
+                        <label style="width:25px;"></label>
+                        <!--label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label-->
+                        <label style="width:25px;"></label>
+                        <!--button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.endSelectedProject()"
+                                data-ng-disabled="!projectsCtrl.selectedProject.can_end || projectsCtrl.selectedProject.status == 'ended'"><span class="glyphicon glyphicon-pause"></span> End</button-->
+                        <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.deleteSelectedPhase()"
+                                data-ng-disabled="!projectsCtrl.selectedPhase.can_delete"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
+                    </td>
+                </tr>
+                <tr data-ng-if="!projectsCtrl.isProjectManager() && !projectsCtrl.isBuildWhizAdmin">
+                    <td align="center"><span style="color:red;">No access to this part</span></td>
+                </tr>
+            </table>
+          <!-- Process Selected -->
+          <table data-ng-if="projectsCtrl.selectedProcess != null"
+              class="table table-condensed table-bordered table-hover">
+            <tr><th class="bg-primary text-center">Process '{{projectsCtrl.selectedProcess.name}}' ({{projectsCtrl.selectedProcess.status}})</th></tr>
+            <!-- Project Manager's Part -->
+            <tr data-ng-if="projectsCtrl.isProjectManager()">
+              <td>
+                Manager: <div class="btn-group" data-uib-dropdown>
+                  <button id="process-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
+                      data-ng-disabled="projectsCtrl.selectedProcess.status != 'defined'">
+                    {{projectsCtrl.selectedProcessManager.name}} <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="process-manager-dropdown">
+                    <li data-ng-repeat="processManager in projectsCtrl.phaseManagers" role="menuitem">
+                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.processManagerSelect(processManager)">{{processManager.name}}</a>
+                    </li>
+                  </ul>
                 </div>
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()"
-                    data-ng-disabled="projectsCtrl.selectedPhase.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+                    data-ng-disabled="projectsCtrl.selectedProcess.status != 'defined'"><span class="glyphicon glyphicon-ok-circle"></span> Set</button>
                 <label style="width:25px;"></label>
-                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.selectedPhaseLaunch()"
-                        data-ng-disabled="!projectsCtrl.selectedPhaseCanLaunch()"><span class="glyphicon glyphicon-play"></span> Launch</button>
+                <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.selectedProcessLaunch()"
+                        data-ng-disabled="!projectsCtrl.selectedProcessCanLaunch()"><span class="glyphicon glyphicon-play"></span> Launch</button>
                 <label style="width:25px;"></label>
-                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseDelete()"
-                        data-ng-disabled="!projectsCtrl.selectedPhaseDeletable()">
+                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedProcessDelete()"
+                        data-ng-disabled="!projectsCtrl.selectedProcessDeletable()">
                   <span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
-                <button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseEnd()"
+                <!--button class="btn btn-danger btn-xs" data-ng-click="projectsCtrl.selectedPhaseEnd()"
                         data-ng-disabled="projectsCtrl.selectedPhase.healthy">
-                  <span class="glyphicon glyphicon-remove-circle"></span> End</button>
+                  <span class="glyphicon glyphicon-remove-circle"></span> End</button-->
               </td>
             </tr>
             <!-- Phase Manager's Part -->
@@ -140,17 +202,17 @@
               <tr style="text-align:center; font-weight:bold;"><td width="40%">BPMN Name</td><td width="10%">Status</td><td width="15%">Start</td>
                 <td width="15%">End</td><td width="20%">Configuration Excel</td></tr>
               <tr style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{projectsCtrl.selectedPhase.bpmn_name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedPhase.bpmn_name}}</a>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a>
                 </td>
-                <td>{{projectsCtrl.selectedPhase.status}}</td>
-                <td>{{projectsCtrl.selectedPhase.start}}</td>
-                <td>{{projectsCtrl.selectedPhase.end}}</td>
+                <td>{{projectsCtrl.selectedProcess.status}}</td>
+                <td>{{projectsCtrl.selectedProcess.start}}</td>
+                <td>{{projectsCtrl.selectedProcess.end}}</td>
                 <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
                        download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{projectsCtrl.selectedPhase.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
                        <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(projectsCtrl.selectedPhase.bpmn_name)">Upload</button></td>
                 <input id="configuration-upload-button" type="file" style="display:none;" />
               </tr>
-              <tr data-ng-repeat="b in projectsCtrl.selectedPhase.sub_bpmns" style="text-align:center;">
+              <tr data-ng-repeat="b in projectsCtrl.selectedProcess.sub_bpmns" style="text-align:center;">
                 <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
                 <td>{{b.status}}</td>
                 <td>{{b.offset.start}}</td>

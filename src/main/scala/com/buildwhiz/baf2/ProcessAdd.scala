@@ -313,13 +313,18 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = parameters("process_name")
       val phaseOid = new ObjectId(parameters("phase_id"))
+      val user: DynDoc = getUser(request)
       if (!PhaseApi.exists(phaseOid))
         throw new IllegalArgumentException(s"Bad phase ID '$phaseOid'")
       val adminPersonOid: ObjectId = parameters.get("admin_person_id") match {
-        case None => val user: DynDoc = getUser(request)
-          user._id[ObjectId]
+        case None => user._id[ObjectId]
         case Some(id) => new ObjectId(id)
       }
+      val parentProject = PhaseApi.parentProject(phaseOid)
+      if (!PhaseApi.isAdmin(user._id[ObjectId], PhaseApi.phaseById(phaseOid)) &&
+          !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(user._id[ObjectId]))
+        throw new IllegalArgumentException("Not permitted")
+
       val allProcessNameAndDoms = getBpmnDomByName(bpmnName)
       val validationErrors = validateProcess(allProcessNameAndDoms)
       val validationMessage = if (validationErrors.isEmpty) "Validation OK" else s"""Validation ERRORS: ${validationErrors.mkString(", ")}"""

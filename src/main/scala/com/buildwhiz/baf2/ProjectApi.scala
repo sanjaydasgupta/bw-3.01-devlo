@@ -25,7 +25,7 @@ object ProjectApi {
   def allProcesses(parentProjectOid: ObjectId): Seq[DynDoc] = allProcesses(projectById(parentProjectOid))
 
   def phasesByUser(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] =
-    allPhases(parentProject).filter(phase => PhaseApi.hasRoleInPhase(userOid, phase))
+    allPhases(parentProject).filter(phase => PhaseApi.hasRole(userOid, phase))
 
   def allActivities(project: DynDoc): Seq[DynDoc] = allProcesses(project).
       flatMap(phase => ProcessApi.allActivities(phase))
@@ -99,16 +99,17 @@ object ProjectApi {
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 
-  def hasRoleInProject(personOid: ObjectId, project: DynDoc): Boolean =
-      project.admin_person_id[ObjectId] == personOid ||
-      project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)
+  def hasRole(personOid: ObjectId, project: DynDoc): Boolean = {
+    isAdmin(personOid, project) || project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
+    allPhases(project).exists(phase => PhaseApi.hasRole(personOid, phase))
+  }
 
   def isAdmin(personOid: ObjectId, project: DynDoc): Boolean =
       project.admin_person_id[ObjectId] == personOid
 
   def projectsByUser(personOid: ObjectId): Seq[DynDoc] = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
-    projects.filter(project => hasRoleInProject(personOid, project))
+    projects.filter(project => hasRole(personOid, project))
   }
 
 }

@@ -92,6 +92,10 @@ object ProcessApi {
     process
   }
 
+  def hasRole(personOid: ObjectId, process: DynDoc): Boolean = {
+    isAdmin(personOid, process) || allActivities(process).exists(activity => ActivityApi.hasRole(personOid, activity))
+  }
+
   def isAdmin(personOid: ObjectId, process: DynDoc): Boolean =
     process.admin_person_id[ObjectId] == personOid
 

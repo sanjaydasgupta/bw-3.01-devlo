@@ -66,6 +66,14 @@ object PhaseApi {
   def isAdmin(personOid: ObjectId, phase: DynDoc): Boolean =
     phase.admin_person_id[ObjectId] == personOid
 
+  def isManager(personOid: ObjectId, phase: DynDoc): Boolean = phase.assigned_roles[Many[Document]].
+    exists(ar => ar.person_id[ObjectId] == personOid &&
+      ar.role_name[String].matches("(?i)(?:project-|phase-)?manager"))
+
+  def canManage(personOid: ObjectId, phase: DynDoc): Boolean =
+      isManager(personOid, phase) || isAdmin(personOid, phase) ||
+      ProjectApi.canManage(personOid, parentProject(phase._id[ObjectId]))
+
   def phasesByUser(personOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] = {
     val phaseOids: Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> phaseOids))

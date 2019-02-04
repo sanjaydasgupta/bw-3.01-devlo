@@ -99,4 +99,12 @@ object ProcessApi {
   def isAdmin(personOid: ObjectId, process: DynDoc): Boolean =
     process.admin_person_id[ObjectId] == personOid
 
+  def isManager(personOid: ObjectId, process: DynDoc): Boolean = process.assigned_roles[Many[Document]].
+    exists(ar => ar.person_id[ObjectId] == personOid &&
+      ar.role_name[String].matches("(?i)(?:project-|phase-|process-)?manager"))
+
+  def canManage(personOid: ObjectId, process: DynDoc): Boolean =
+      isManager(personOid, process) || isAdmin(personOid, process) ||
+      PhaseApi.canManage(personOid, parentPhase(process._id[ObjectId]))
+
 }

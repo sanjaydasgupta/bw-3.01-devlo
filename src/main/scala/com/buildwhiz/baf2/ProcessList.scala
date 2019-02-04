@@ -27,7 +27,18 @@ class ProcessList extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val processes: Seq[DynDoc] = PhaseApi.allProcesses(phaseOid)
-      response.getWriter.print(processes.map(process2json).mkString("[", ", ", "]"))
+      val detail = parameters.get("detail") match {
+        case None => false
+        case Some(dv) => dv.toBoolean
+      }
+      if (detail) {
+        val parentProject = PhaseApi.parentProject(phaseOid)
+        val user: DynDoc = getUser(request)
+        response.getWriter.print(processes.map(process =>
+          bson2json(ProcessApi.processProcess(process, parentProject, user._id[ObjectId]).asDoc)).mkString("[", ", ", "]"))
+      } else {
+        response.getWriter.print(processes.map(process2json).mkString("[", ", ", "]"))
+      }
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${processes.length})", request)

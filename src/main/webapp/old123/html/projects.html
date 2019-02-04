@@ -73,7 +73,7 @@
               Project '{{projectsCtrl.selectedProject.name}}' ({{projectsCtrl.selectedProject.status}})
                 <label style="width:25px;"></label>
                 <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
-                  Manager: <div class="btn-group" data-uib-dropdown>
+                  Admin: <div class="btn-group" data-uib-dropdown>
                   <button id="project-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
                     {{projectsCtrl.selectedProjectManager.name}} <span class="caret"></span>
                   </button>
@@ -88,7 +88,7 @@
                 </span>
               </th>
             </tr>
-            <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isBuildWhizAdmin()">
+            <tr data-ng-if="projectsCtrl.isProjectAdmin() || projectsCtrl.isBuildWhizAdmin()">
               <td>
                 <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                     data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
@@ -101,7 +101,7 @@
                         data-ng-disabled="projectsCtrl.selectedProject.status != 'ended'"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
               </td>
             </tr>
-            <tr data-ng-if="!projectsCtrl.isProjectManager() && !projectsCtrl.isBuildWhizAdmin">
+            <tr data-ng-if="!projectsCtrl.isProjectAdmin() && !projectsCtrl.isBuildWhizAdmin">
               <td align="center"><span style="color:red;">No access to this part</span></td>
             </tr>
           </table>
@@ -112,27 +112,28 @@
                     <th class="bg-primary text-center">
                         Phase '{{projectsCtrl.selectedPhase.name}}' ({{projectsCtrl.selectedPhase.status}})
                         <label style="width:25px;"></label>
-                        <span data-ng-if="projectsCtrl.isBuildWhizAdmin()">
-                  Manager: <div class="btn-group" data-uib-dropdown>
-                  <button id="phase-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
-                    {{projectsCtrl.selectedPhaseManager.name}} <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="phase-manager-dropdown">
-                    <li data-ng-repeat="phaseManager in projectsCtrl.phaseManagers" role="menuitem">
-                      <a href="javascript:void(0)" data-ng-click="projectsCtrl.phaseManagerSelect(phaseManager)">{{phaseManager.name}}</a>
-                    </li>
-                  </ul>
-                  </div>
-                  <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()">
-                    <span class="glyphicon glyphicon-ok-circle"></span> Set</button>
-                </span>
+                        <span data-ng-if="projectsCtrl.isBuildWhizAdmin()"></span>
                     </th>
                 </tr>
-                <tr data-ng-if="projectsCtrl.isProjectManager() || projectsCtrl.isBuildWhizAdmin()">
+                <tr data-ng-if="projectsCtrl.isPhaseAdmin() || projectsCtrl.isProjectAdmin() || projectsCtrl.isBuildWhizAdmin()">
                     <td>
-                        <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
+                      Admin: <div class="btn-group" data-uib-dropdown>
+                      <button id="phase-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle>
+                        {{projectsCtrl.selectedPhaseManager.name}} <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="phase-manager-dropdown">
+                        <li data-ng-repeat="phaseManager in projectsCtrl.phaseManagers" role="menuitem">
+                          <a href="javascript:void(0)" data-ng-click="projectsCtrl.phaseManagerSelect(phaseManager)">{{phaseManager.name}}</a>
+                        </li>
+                      </ul>
+                      </div>
+                      <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.phaseManagerSet()">
+                        <span class="glyphicon glyphicon-ok-circle"></span> Set</button>
+
+                      <label style="width:25px;"></label>
+                        <!--button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                                 data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
-                        <!--label style="width:25px;"></label>
+                        <label style="width:25px;"></label>
                         <div class="btn-group" data-uib-dropdown>
                           <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
                               data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
@@ -156,7 +157,7 @@
                                 data-ng-disabled="!projectsCtrl.selectedPhase.can_delete"><span class="glyphicon glyphicon-remove-circle"></span> Delete</button>
                     </td>
                 </tr>
-                <tr data-ng-if="!projectsCtrl.isProjectManager() && !projectsCtrl.isBuildWhizAdmin">
+                <tr data-ng-if="!projectsCtrl.isProjectAdmin() && !projectsCtrl.isBuildWhizAdmin">
                     <td align="center"><span style="color:red;">No access to this part</span></td>
                 </tr>
             </table>
@@ -165,9 +166,9 @@
               class="table table-condensed table-bordered table-hover">
             <tr><th class="bg-primary text-center">Process '{{projectsCtrl.selectedProcess.name}}' ({{projectsCtrl.selectedProcess.status}})</th></tr>
             <!-- Project Manager's Part -->
-            <tr data-ng-if="projectsCtrl.isProjectManager()">
+            <tr data-ng-if="projectsCtrl.isProjectAdmin()">
               <td>
-                Manager: <div class="btn-group" data-uib-dropdown>
+                Admin: <div class="btn-group" data-uib-dropdown>
                   <button id="process-manager-dropdown" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
                       data-ng-disabled="projectsCtrl.selectedProcess.status != 'defined'">
                     {{projectsCtrl.selectedProcessManager.name}} <span class="caret"></span>
@@ -193,7 +194,7 @@
               </td>
             </tr>
             <!-- Phase Manager's Part -->
-            <!--tr data-ng-if="projectsCtrl.isPhaseManager()">
+            <!--tr data-ng-if="projectsCtrl.isPhaseAdmin()">
               <td>
               </td>
             </tr-->
@@ -202,7 +203,7 @@
               <tr style="text-align:center; font-weight:bold;"><td width="40%">BPMN Name</td><td width="10%">Status</td><td width="15%">Start</td>
                 <td width="15%">End</td><td width="20%">Configuration Excel</td></tr>
               <tr style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&phase_manager={{projectsCtrl.isPhaseAdmin()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a>
                 </td>
                 <td>{{projectsCtrl.selectedProcess.status}}</td>
                 <td>{{projectsCtrl.selectedProcess.start}}</td>
@@ -213,7 +214,7 @@
                 <input id="configuration-upload-button" type="file" style="display:none;" />
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedProcess.sub_bpmns" style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectManager()}}&phase_manager={{projectsCtrl.isPhaseManager()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&phase_manager={{projectsCtrl.isPhaseAdmin()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
                 <td>{{b.status}}</td>
                 <td>{{b.offset.start}}</td>
                 <td>{{b.offset.end}}</td>

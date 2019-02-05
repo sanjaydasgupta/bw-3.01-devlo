@@ -1,9 +1,9 @@
 package com.buildwhiz.jelly
 
+import com.buildwhiz.baf2.ProcessApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, DateTimeUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -29,18 +29,18 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
         }
       }
     }
-    Seq("project_id", "phase_id").foreach(oneVariable)
+    Seq("project_id", "process_id").foreach(oneVariable)
   }
 
   def notify(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       setupEssentials(de)
-      val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
+      val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
+      val theProcess: DynDoc = ProcessApi.processById(processOid)
       val bpmnName = getBpmnName(de)
       if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {
-        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
           Map("$set" -> Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis),
             "$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "parent_name" -> "",
               "status" -> "running", "timestamps" -> Map("start" -> System.currentTimeMillis)))))
@@ -48,21 +48,21 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       } else {
         val callerBpmnName = getBpmnName(de.getSuperExecution)
-        val bpmnTimestamps: Seq[DynDoc] = thePhase.bpmn_timestamps[Many[Document]]
+        val bpmnTimestamps: Seq[DynDoc] = theProcess.bpmn_timestamps[Many[Document]]
         val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName &&
           ts.parent_name[String] == callerBpmnName)
-        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> thePhase._id[ObjectId]), Map("$set" ->
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> theProcess._id[ObjectId]), Map("$set" ->
           Map(s"bpmn_timestamps.$idx.status" -> "running",
           s"bpmn_timestamps.$idx.timestamps.start" -> System.currentTimeMillis)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }
-      if (thePhase has "timers") {
-        val timers: Seq[DynDoc] = thePhase.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
+      if (theProcess has "timers") {
+        val timers: Seq[DynDoc] = theProcess.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         timers.foreach(t => de.setVariable(t.variable[String], duration2iso(t.duration[String])))
       }
-      if (thePhase has "variables") {
-        val variables: Seq[DynDoc] = thePhase.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
+      if (theProcess has "variables") {
+        val variables: Seq[DynDoc] = theProcess.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnName)
         variables.foreach(t => de.setVariable(t.name[String], t.value[Any]))
       }
       BWLogger.log(getClass.getName, "notify()", "EXIT-OK", de)

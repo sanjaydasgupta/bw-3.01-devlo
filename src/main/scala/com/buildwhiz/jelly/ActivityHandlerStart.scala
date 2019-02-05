@@ -2,12 +2,12 @@ package com.buildwhiz.jelly
 
 import java.util.{ArrayList => JArrayList}
 
+import com.buildwhiz.baf2.{ActivityApi, ProcessApi}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
-import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
@@ -23,26 +23,27 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
             val msg = s"ERROR: Failed to find SuperExecution. Searching value of '$v'"
             BWLogger.log(getClass.getName, "setupVariables()", msg, de)
             throw new IllegalArgumentException(msg)
-          case superExec => superExec.hasVariable(v) match {
-            case false =>
+          case superExec =>
+            if (superExec.hasVariable(v)) {
+              de.setVariable(v, superExec.getVariable(v))
+            } else {
               val msg = s"ERROR: Failed to find value of '$v' in SuperExecution"
               BWLogger.log(getClass.getName, "setupVariables()", msg, de)
               throw new IllegalArgumentException(msg)
-            case true => de.setVariable(v, superExec.getVariable(v))
+            }
           }
         }
       }
-    }
-    Seq("project_id", "phase_id").foreach(oneVariable)
+    Seq("project_id", "process_id").foreach(oneVariable)
   }
 
   def execute(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       setupEssentials(de)
-      val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
-      val activityOids: Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
+      val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
+      val process: DynDoc = ProcessApi.processById(processOid)
+      val activityOids: Seq[ObjectId] = ProcessApi.allActivities(process).map(_._id[ObjectId])
       //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
       val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de.getSuperExecution)
@@ -51,7 +52,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 
       de.setVariable("activity_id", activity._id[ObjectId].toString)
 
-      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
+      val actions: Seq[DynDoc] = ActivityApi.allActions(activity)
 
       val prerequisiteNames: Seq[String] = actions.filter(_.`type`[String] == "prerequisite").map(_.name[String])
       val prerequisiteNamesList = new JArrayList[String]()

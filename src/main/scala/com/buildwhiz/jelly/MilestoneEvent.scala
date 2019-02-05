@@ -1,6 +1,6 @@
 package com.buildwhiz.jelly
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.baf2.ProcessApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils}
@@ -13,9 +13,9 @@ class MilestoneEvent extends ExecutionListener with BpmnUtils {
   def notify(de: DelegateExecution): Unit = {
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
-      val phaseOid = new ObjectId(de.getVariable("phase_id").asInstanceOf[String])
-      val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
-      val bpmnTimestamps: Seq[DynDoc] = thePhase.bpmn_timestamps[Many[Document]]
+      val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
+      val theProcess: DynDoc = ProcessApi.processById(processOid)
+      val bpmnTimestamps: Seq[DynDoc] = theProcess.bpmn_timestamps[Many[Document]]
       val bpmnName = getBpmnName(de)
 //      if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {
 //        val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName && ts.parent_name[String] == "")

@@ -414,6 +414,24 @@
     return self.selectedPhase != null && AuthService.data._id == self.selectedPhase.admin_person_id;
   }
 
+  self.bpmnPanelUrl = function(subBpmn) {
+    var bpmnName = null;
+    if (subBpmn) {
+      bpmnName = subBpmn.name;
+    } else {
+      bpmnName = projectsCtrl.selectedProcess.bpmn_name;
+    }
+    var urlWithParams = '#/bpmn' +
+        '?project_manager=' + self.isProjectAdmin() +
+        '&project_id=' + projectsCtrl.selectedProject._id +
+        '&project_name=' + projectsCtrl.selectedProject.name +
+        '&process_manager=' + projectsCtrl.isProcessAdmin() +
+        '&process_name=' + projectsCtrl.selectedProcess.bpmn_name +
+        '&process_id=' + projectsCtrl.selectedProcess._id +
+        '&bpmn_name=' + bpmnName;
+    return '"' + urlWithParams + '"';
+  }
+
   self.phaseRowColor = function(phase) {
     return phase == self.selectedPhase ? 'yellow' : 'white';
   }

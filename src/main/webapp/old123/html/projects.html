@@ -203,23 +203,22 @@
               <tr style="text-align:center; font-weight:bold;"><td width="40%">BPMN Name</td><td width="10%">Status</td><td width="15%">Start</td>
                 <td width="15%">End</td><td width="20%">Configuration Excel</td></tr>
               <tr style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&phase_manager={{projectsCtrl.isPhaseAdmin()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a>
-                </td>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&process_manager={{projectsCtrl.isProcessManager()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&process_id={{projectsCtrl.selectedProcess._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a></td>
                 <td>{{projectsCtrl.selectedProcess.status}}</td>
                 <td>{{projectsCtrl.selectedProcess.start}}</td>
                 <td>{{projectsCtrl.selectedProcess.end}}</td>
-                <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
-                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{projectsCtrl.selectedPhase.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
+                <td><a href="baf2/ProcessConfigDownload?process_id={{projectsCtrl.selectedProcess._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
+                       download="{{projectsCtrl.selectedProcess.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
                        <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(projectsCtrl.selectedPhase.bpmn_name)">Upload</button></td>
                 <input id="configuration-upload-button" type="file" style="display:none;" />
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedProcess.sub_bpmns" style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&phase_manager={{projectsCtrl.isPhaseAdmin()}}&process={{b.name}}&phase_name={{projectsCtrl.selectedPhase.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&phase_id={{projectsCtrl.selectedPhase._id}}">{{b.name}}</a></td>
+                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&process_manager={{projectsCtrl.isProcessManager()}}&process={{b.name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&process_id={{projectsCtrl.selectedProcess._id}}">{{b.name}}</a></td>
                 <td>{{b.status}}</td>
                 <td>{{b.offset.start}}</td>
                 <td>{{b.offset.end}}</td>
-                <td><a href="baf/PhaseConfigDownload?project_id={{projectsCtrl.selectedProject._id}}&phase_id={{projectsCtrl.selectedPhase._id}}&bpmn_name={{b.name}}"
-                       download="{{projectsCtrl.selectedProject.name}}#{{projectsCtrl.selectedPhase.name}}#{{b.name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
+                <td><a href="baf2/ProcessConfigDownload?process_id={{projectsCtrl.selectedProcess._id}}&bpmn_name={{b.name}}"
+                       download="{{projectsCtrl.selectedProcess.name}}#{{b.name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
                        <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(b.name)">Upload</button></td>
               </tr>
             </table></td></tr>

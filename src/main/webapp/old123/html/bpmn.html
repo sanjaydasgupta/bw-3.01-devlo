@@ -1,10 +1,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <div class="panel panel-primary">
     <div class="panel-heading">
-        <span style="font-weight: bold;">BPMN (Project <i>{{bpmnCtrl.projectName}}</i> / Phase <i>{{bpmnCtrl.phaseName}}</i> / BPMN <i>{{bpmnCtrl.processName}}</i>)</span>
+        <span style="font-weight: bold;">BPMN (Project <i>{{bpmnCtrl.projectName}}</i> / Process <i>{{bpmnCtrl.proveName}}</i> / BPMN <i>{{bpmnCtrl.processName}}</i>)</span>
         <button class="pull-right btn btn-xs btn-info" style="margin-left: 10px" data-ng-click="bpmnCtrl.refresh()">
             <span class="glyphicon glyphicon-refresh"></span>Refresh</button>
-        <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&phase_id={{bpmnCtrl.phaseId}}"
+        <a class="pull-right" href="#/projects?project_id={{bpmnCtrl.projectId}}&process_id={{bpmnCtrl.processId}}"
             style="font-weight: bold; color: white;">Back</a>
         <span class="pull-right"><span style="color: white;" class="glyphicon glyphicon-arrow-left"></span>&nbsp;</span>
     </div>
@@ -123,11 +123,11 @@
                 <div data-ng-if="bpmnCtrl.selectedItemType == 'process'">
                     <table class="table">
                         <tr>
-                            <td>Phase Manager</td>
+                            <td>Process Manager</td>
                             <td>
                                 <div class="btn-group" data-uib-dropdown data-is-open="manager.isopen">
                                     <button id="manager-button" type="button" class="btn btn-primary btn-xs" data-uib-dropdown-toggle
-                                            data-ng-init="bpmnCtrl.SelectedProcessPhaseManager(bpmnCtrl.adminPersonId);"
+                                            data-ng-init="bpmnCtrl.SelectedProcessProcessManager(bpmnCtrl.adminPersonId);"
                                             data-ng-disabled="bpmnCtrl.processControlsDisabled()">
                                         {{ bpmnCtrl.ManagerName || 'Select the Manager' }}
 							<span class="caret"></span>
@@ -135,14 +135,14 @@
                                     <ul class="dropdown-menu" data-uib-dropdown-menu role="menu" aria-labelledby="manager-button" style="max-height:200px;overflow-y:auto;">
                                         <li role="menuitem" data-ng-repeat="manager in bpmnCtrl.persons">
                                             <a href="" data-ng-if="$index === 0">Select</a>
-                                            <a href="" data-ng-click="bpmnCtrl.ProcessPhaseManager_SelectedIndexChanged(manager._id,manager.first_name,manager.last_name)">{{manager.first_name}} {{manager.last_name}}</a>
+                                            <a href="" data-ng-click="bpmnCtrl.ProcessProcessManager_SelectedIndexChanged(manager._id,manager.first_name,manager.last_name)">{{manager.first_name}} {{manager.last_name}}</a>
                                         </li>
                                     </ul>
                                 </div>
                             </td>
 
                             <td>
-                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessPhaseManager(bpmnCtrl.adminPersonId)"
+                                <button class="btn btn-success btn-xs" data-ng-click="bpmnCtrl.setProcessProcessManager(bpmnCtrl.adminPersonId)"
                                         data-ng-disabled="bpmnCtrl.processControlsDisabled()">Set</button></td>
                         </tr>
 

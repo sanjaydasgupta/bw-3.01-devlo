@@ -14,13 +14,13 @@ angular.module('BuildWhizApp')
             self.selectedItemType = '';
             self.selectedItem = null;
 
-            self.processName = $routeParams.process;
+            self.bpmnName = $routeParams.process;
             self.projectId = $routeParams.project_id;
             self.projectName = $routeParams.project_name;
-            self.phaseId = $routeParams.phase_id;
-            self.phaseName = $routeParams.phase_name;
+            self.processId = $routeParams.process_id;
+            self.processName = $routeParams.process_name;
             self.isProjectManager = $routeParams.project_manager == 'true';
-            self.isPhaseManager = $routeParams.phase_manager == 'true';
+            self.isProcessManager = $routeParams.process_manager == 'true';
 
             self.newActionName = '';
             self.newActionType = null;
@@ -43,10 +43,10 @@ angular.module('BuildWhizApp')
             $log.log('Process-Name: ' + self.processName);
             $log.log('Project-Id: ' + self.projectId);
             $log.log('Project-Name: ' + self.projectName);
-            $log.log('Phase-Id: ' + self.phaseId);
-            $log.log('Phase-Name: ' + self.phaseName);
+            $log.log('Process-Id: ' + self.processId);
+            $log.log('Process-Name: ' + self.processName);
             $log.log('Is-Project-Manager: ' + self.isProjectManager);
-            $log.log('Is-Phase-Manager: ' + self.isPhaseManager);
+            $log.log('Is-Process-Manager: ' + self.isProcessManager);
             //--------END COMMON VARIABLES-------//
 
             //Date picker options
@@ -115,7 +115,7 @@ angular.module('BuildWhizApp')
             var processActivities = [];
             var processCalls = [];
             var adminPersonId = null;
-            var phaseStatus = null;
+            var processStatus = null;
 
             var bpmnElements = [];
             var clickableObjects = {};
@@ -128,7 +128,7 @@ angular.module('BuildWhizApp')
             }
 
             //Initialize bpmn
-            var initUrl = 'baf/PhaseBpmnXml?bpmn_name=' + self.processName + '&phase_id=' + self.phaseId;
+            var initUrl = 'baf2/ProcessBpmnXml?bpmn_name=' + self.bpmnName + '&process_id=' + self.processId;
             $http.get(initUrl).then(
               function (response) {
                   bpmnViewer.importXML(response.data.xml, function (err) {
@@ -146,7 +146,7 @@ angular.module('BuildWhizApp')
                           processCalls = response.data.calls;
                           adminPersonId = response.data.admin_person_id;
                           self.processStartDatetime = new Date(response.data.start_datetime);
-                          phaseStatus = response.data.phase_status;
+                          processStatus = response.data.process_status;
 
                           //timers loop
                           processTimers.forEach(function (processTimer) {
@@ -318,7 +318,7 @@ angular.module('BuildWhizApp')
 						var processName = selectedProcess.name;
 				        var dtIdx = $window.location.href.indexOf('bpmn?');
 				        var href = $window.location.href.substring(0, dtIdx + 5);
-						var newHref = href + 'project_id=' + self.projectId + '&phase_id=' + self.phaseId + '&process=' + processName;
+						var newHref = href + 'project_id=' + self.projectId + '&process_id=' + self.processId + '&process=' + processName;
 						$window.location.href = newHref;
 					}
 				}
@@ -352,7 +352,7 @@ angular.module('BuildWhizApp')
 
             //Set Timer Duration
             self.setTimerDuration = function () {
-                var requestUrl = 'baf/TimerDurationSet/?' + 'phase_id=' + self.phaseId +
+                var requestUrl = 'baf/TimerDurationSet/?' + 'process_id=' + self.processId +
                 '&bpmn_name=' + self.processName + '&timer_id=' + self.selectedItem.id +
                 "&duration=" + self.selectedItem.duration;
 
@@ -416,7 +416,7 @@ angular.module('BuildWhizApp')
             }
 
             self.actionControlsDisabled = function() {
-                var rv = !((self.selectedItem.status == 'defined') && (self.isPhaseManager || self.isProjectManager));
+                var rv = !((self.selectedItem.status == 'defined') && (self.isProcessManager || self.isProjectManager));
                 $log.log('returns: ' + rv);
                 return rv;
             }
@@ -428,27 +428,27 @@ angular.module('BuildWhizApp')
             var ManagerName = null;
 
             self.processControlsDisabled = function() {
-                var rv = !((phaseStatus == 'defined') && (self.isPhaseManager || self.isProjectManager));
+                var rv = !((processStatus == 'defined') && (self.isProcessManager || self.isProjectManager));
                 $log.log('returns: ' + rv);
                 return rv;
             }
 
-            //Set Selected Phase Manager to dropdown on bind
-            self.SelectedProcessPhaseManager = function (id) {
+            //Set Selected Process Manager to dropdown on bind
+            self.SelectedProcessProcessManager = function (id) {
                 var managerdata = $filter('filter')(self.persons, { _id: id })[0];
                 self.ManagerName = managerdata.first_name + ' ' + managerdata.last_name;
             }
             
-            //Set Selected Phase Manager To Dropdown on change
-            self.ProcessPhaseManager_SelectedIndexChanged = function (id, firstname, lastname) {
+            //Set Selected Process Manager To Dropdown on change
+            self.ProcessProcessManager_SelectedIndexChanged = function (id, firstname, lastname) {
                 self.adminPersonId = id;
                 self.ManagerName = firstname + ' ' + lastname;
             }
 
-            //Udate Phase Manager
-            self.setProcessPhaseManager = function (person_id) {
+            //Udate Process Manager
+            self.setProcessProcessManager = function (person_id) {
 
-                var requestUrl = 'baf/PhaseAdministratorSet?' + "method=1&phase_id=" + self.phaseId + "&person_id=" + person_id + "&project_id=" + self.projectId;
+                var requestUrl = 'baf2/ProcessAdministratorSet?' + "method=1&process_id=" + self.processId + "&person_id=" + person_id + "&project_id=" + self.projectId;
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
                     $log.log('Success....');
                 }).error(function (data, status, headers, config) {
@@ -460,7 +460,7 @@ angular.module('BuildWhizApp')
             self.setProcessStartDateTime = function (dt) {
                 //SDG var timestamp = self.selectedDate.getTime(dt);
                 /*SDG*/ var timestamp = self.processStartDatetime.getTime();
-                var requestUrl = 'baf/PhaseStartDateTimeSet/?' + "method=1&phase_id=" + self.phaseId + "&datetime=" + timestamp;
+                var requestUrl = 'baf2/ProcessStartDateTimeSet/?' + "method=1&process_id=" + self.processId + "&datetime=" + timestamp;
                 $log.log(requestUrl);
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
@@ -473,7 +473,7 @@ angular.module('BuildWhizApp')
 
             //Update Variable Value
             self.setProcessVariableValue = function (variable) {
-                var requestUrl = 'baf/VariableValueSet/?' + "method=1&phase_id=" + self.phaseId + "&label=" + variable.label + "&bpmn_name=" + self.processName + "&value=" + variable.value;
+                var requestUrl = 'baf/VariableValueSet/?' + "method=1&process_id=" + self.processId + "&label=" + variable.label + "&bpmn_name=" + self.processName + "&value=" + variable.value;
 
                 $http({ method: 'POST', url: requestUrl }).success(function (data) {
                     $log.log('Success....');

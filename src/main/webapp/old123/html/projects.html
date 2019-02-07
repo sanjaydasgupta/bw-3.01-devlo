@@ -133,7 +133,7 @@
                       <label style="width:25px;"></label>
                         <!--button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.launchSelectedProject()"
                                 data-ng-disabled="projectsCtrl.selectedProject.status != 'defined'"><span class="glyphicon glyphicon-play"></span> Launch</button>
-                        <label style="width:25px;"></label>
+                        <label style="width:25px;"></label-->
                         <div class="btn-group" data-uib-dropdown>
                           <button id="single-button" type="button" class="btn btn-info btn-xs" data-uib-dropdown-toggle
                               data-ng-disabled="projectsCtrl.selectedProject.status == 'ended'">
@@ -145,9 +145,9 @@
                             </li>
                           </ul>
                         </div>
-                        <input data-ng-model="projectsCtrl.newPhaseName" placeholder="phase-name">
-                        < button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addPhase()"
-                            data-ng-disabled="projectsCtrl.addPhaseDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> New Phase</button-->
+                        <input data-ng-model="projectsCtrl.newProcessName" placeholder="process-name" />
+                        <button class="btn btn-success btn-xs" data-ng-click="projectsCtrl.addProcess()"
+                            data-ng-disabled="projectsCtrl.addProcessDisabled()"><span class="glyphicon glyphicon-plus-sign"></span> Add Process</button>
                         <label style="width:25px;"></label>
                         <!--label><input type="checkbox" data-ng-model="projectsCtrl.selectedProject.public" data-ng-change="projectsCtrl.projectPublicChanged()">Public</label-->
                         <label style="width:25px;"></label>

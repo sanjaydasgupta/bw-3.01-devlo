@@ -32,16 +32,6 @@
 
   self.bpmnPanelUrl = '';
 
-  $http.get('baf/PhaseBpmnNamesFetch').then(
-    function(resp) {
-      self.bpmnNames = resp.data;
-      $log.log('OK GET baf/PhaseBpmnNamesFetch (' + self.bpmnNames.length + ') objects');
-    },
-    function() {
-      $log.log('ERROR GET baf/PhaseBpmnNamesFetch');
-    }
-  )
-
   $http.get('api/Person').then(
     function(resp) {
       self.phaseManagers = resp.data.map(function(p){return {_id: p._id, name: p.first_name + ' ' + p.last_name};});
@@ -276,6 +266,19 @@
     return self.selectedProject.status == 'ended' || self.newPhaseName.trim() == '';
   }
 
+  self.fetchProcessNames = function() {
+    var query = 'baf2/BpmnList?phase_id=' + self.selectedPhase._id;
+    $http.get(query).then(
+      function(resp) {
+        self.bpmnNames = resp.data;
+        $log.log('OK GET ' + query + ' (' + self.bpmnNames.length + ') objects');
+      },
+      function() {
+        $log.log('ERROR GET ' + query);
+      }
+    )
+  }
+
   self.selectPhase = function(phaseId, processId) {
     $log.log('Called selectPhase(' + phaseId + ', ' + processId + ')');
     if (phaseId) {
@@ -296,6 +299,7 @@
             self.selectedProcessManager = self.phaseManagers.
               filter(function(pm){return pm._id == self.selectedProcess.admin_person_id})[0];
           }
+          self.fetchProcessNames();
         },
         function(errResponse) {
           self.busy = false;
@@ -360,6 +364,10 @@
 
   self.canAddProcess = function() {
     return self.isBuildWhizAdmin() || self.isProjectAdmin() || self.isPhaseAdmin();
+  }
+
+  self.addProcessDisabled = function() {
+    return self.selectedProject.status == 'ended' || self.newProcessName.trim() == '';
   }
 
   self.addProcess = function(name) {
@@ -481,7 +489,7 @@
   }
 
   self.selectedProcessCanLaunch = function() {
-    return self.selectedPhase.status == 'defined' && self.selectedProject.status == 'running';
+    return self.selectedProcess.status == 'defined' && self.selectedProject.status == 'running';
   }
 
   self.selectedProcessDelete = function() {

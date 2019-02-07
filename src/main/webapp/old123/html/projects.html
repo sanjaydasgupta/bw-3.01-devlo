@@ -203,7 +203,7 @@
               <tr style="text-align:center; font-weight:bold;"><td width="40%">BPMN Name</td><td width="10%">Status</td><td width="15%">Start</td>
                 <td width="15%">End</td><td width="20%">Configuration Excel</td></tr>
               <tr style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&process_manager={{projectsCtrl.isProcessManager()}}&process={{projectsCtrl.selectedProcess.bpmn_name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&process_id={{projectsCtrl.selectedProcess._id}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a></td>
+                <td><a href="#/bpmn{{projectsCtrl.bpmnPanelUrl}}&bpmn_name={{projectsCtrl.selectedProcess.bpmn_name}}">{{projectsCtrl.selectedProcess.bpmn_name}}</a></td>
                 <td>{{projectsCtrl.selectedProcess.status}}</td>
                 <td>{{projectsCtrl.selectedProcess.start}}</td>
                 <td>{{projectsCtrl.selectedProcess.end}}</td>
@@ -213,7 +213,7 @@
                 <input id="configuration-upload-button" type="file" style="display:none;" />
               </tr>
               <tr data-ng-repeat="b in projectsCtrl.selectedProcess.sub_bpmns" style="text-align:center;">
-                <td><a href="#/bpmn?project_manager={{projectsCtrl.isProjectAdmin()}}&process_manager={{projectsCtrl.isProcessManager()}}&process={{b.name}}&process_name={{projectsCtrl.selectedProcess.name}}&project_id={{projectsCtrl.selectedProject._id}}&project_name={{projectsCtrl.selectedProject.name}}&process_id={{projectsCtrl.selectedProcess._id}}">{{b.name}}</a></td>
+                <td><a href="#/bpmn?{{projectsCtrl.bpmnPanelUrl}}&bpmn_name={{b.name}}">{{b.name}}</a></td>
                 <td>{{b.status}}</td>
                 <td>{{b.offset.start}}</td>
                 <td>{{b.offset.end}}</td>

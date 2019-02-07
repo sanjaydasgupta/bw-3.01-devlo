@@ -14,9 +14,10 @@ angular.module('BuildWhizApp')
             self.selectedItemType = '';
             self.selectedItem = null;
 
-            self.bpmnName = $routeParams.process;
+            self.bpmnName = $routeParams.bpmn_name;
             self.projectId = $routeParams.project_id;
             self.projectName = $routeParams.project_name;
+            self.phaseId = $routeParams.phase_id;
             self.processId = $routeParams.process_id;
             self.processName = $routeParams.process_name;
             self.isProjectManager = $routeParams.project_manager == 'true';

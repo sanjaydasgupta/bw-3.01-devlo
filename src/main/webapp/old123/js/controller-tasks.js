@@ -26,18 +26,21 @@
   }
 
   self.fetchActions = function(filter) {
+    $log.log('Called fetchActions()');
     var filterKey = filter ? filter : 'All';
-    var query = 'baf/OwnedActionsSummary?person_id=' + AuthService.data._id + '&filter_key=' + filterKey.toLowerCase();
-    //var query = 'baf/OwnedTasksAll?person_id=' + AuthService.data._id + '&filter_key=' + filterKey.toLowerCase();
-    $log.log('TasksCtrl: GET ' + query);
+    var query = 'baf2/ActionList?filter_key=' + filterKey.toLowerCase();
+    $log.log('Calling GET ' + query);
     $http.get(query).then(
       function(resp) {
         self.taskList = resp.data;
         self.currentFilterKey = filterKey;
-        $log.log('OK-TasksCtrl: got ' + self.taskList.length + ' objects');
+        $log.log('OK ' + query + ' (' + self.taskList.length + ' objects)');
         self.selectTask(); // select none
       },
-      function(errResponse) {alert("TasksCtrl: ERROR(collection-details): " + errResponse);}
+      function(errResponse) {
+        $log.log('ERROR ' + query);
+        alert('ERROR ' + query);
+      }
     );
   }
 
@@ -108,7 +111,7 @@
 
   self.actionComplete = function() {
     $log.log('TasksCtrl: taskComplete() Called');
-    var query = 'baf/ActionComplete?activity_id=' + self.selectedTask.activity_id +
+    var query = 'baf2/ActionComplete?activity_id=' + self.selectedTask.activity_id +
         '&action_name=' + self.selectedTask.name +
         '&completion_message=' + self.selectedTask.completion_message +
         '&review_ok=' + (self.selectedTask.reviewOk ? 'OK' : 'Not-Ok');

@@ -8,6 +8,7 @@
 
   self.initialProjectId = $routeParams.hasOwnProperty("project_id") ? $routeParams.project_id : null;
   self.initialPhaseId = $routeParams.hasOwnProperty("phase_id") ? $routeParams.phase_id : null;
+  self.initialProcessId = $routeParams.hasOwnProperty("process_id") ? $routeParams.process_id : null;
 
   self.newPhaseName = '';
   self.bpmnNames = [];
@@ -46,7 +47,7 @@
     return AuthService.data.roles.join(',').indexOf('BW-Create-Project') != -1;
   }
 
-  self.fetchProjects = function(projectIdToSelect, phaseIdToSelect) {
+  self.fetchProjects = function(projectIdToSelect, phaseIdToSelect, processIdToSelect) {
     self.selectedProject = null;
     self.selectedPhase = null;
     self.phases = [];
@@ -60,7 +61,7 @@
         self.projects = resp.data;
         $log.log('OK GET ' + query + ' (' + self.projects.length + ') objects');
         if (projectIdToSelect) {
-          self.selectProject(projectIdToSelect, phaseIdToSelect);
+          self.selectProject(projectIdToSelect, phaseIdToSelect, processIdToSelect);
         }
       },
       function(errResponse) {
@@ -70,8 +71,8 @@
     );
   }
 
-  self.selectProject = function(projectId, phaseId) {
-    $log.log('Called selectProject(' + projectId + ', ' + phaseId + ')');
+  self.selectProject = function(projectId, phaseId, processId) {
+    $log.log('Called selectProject(' + projectId + ', ' + phaseId + ', ' + processId + ')');
     self.selectedProcess = null;
     self.processes = [];
     if (projectId) {
@@ -465,16 +466,15 @@
   }
 
   self.selectedProcessLaunch = function() {
-    $log.log('Called selectedPhaseLaunch(' + self.selectedPhase.name + ')');
-    var query = 'baf/PhaseLaunch?project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id +
-        '&phase_bpmn_name=' + self.selectedPhase.bpmn_name;
+    $log.log('Called selectedProcessLaunch(' + self.selectedProcess.name + ')');
+    var query = 'baf2/ProcessLaunch?process_id=' + self.selectedProcess._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
       function(resp) {
         self.busy = false;
         $log.log('OK POST ' + query);
-        self.selectProject(self.selectedProject._id, self.selectedPhase._id);
+        self.selectPhase(self.selectedPhase._id, self.selectedProcess._id);
       },
       function(resp) {
         self.busy = false;
@@ -493,19 +493,19 @@
   }
 
   self.selectedProcessDelete = function() {
-    $log.log('Called selectedPhaseDelete(' + self.selectedPhase.name + ')');
-    var query = 'api/Phase/' + self.selectedPhase._id;
-    $log.log('calling DELETE ' + query)
+    $log.log('Called selectedProcessDelete(' + self.selectedProcess.name + ')');
+    var query = 'baf2/ProcessDelete?process_id=' + self.selectedProcess._id;
+    $log.log('calling POST ' + query)
     self.busy = true;
-    $http.delete(query).then(
+    $http.post(query).then(
       function(resp) {
         self.busy = false;
-        $log.log('OK DELETE ' + query);
-        self.selectProject(self.selectedProject._id);
+        $log.log('OK POST ' + query);
+        self.selectPhase(self.selectedPhase._id);
       },
       function(resp) {
         self.busy = false;
-        $log.log('ERROR DELETE ' + query);
+        $log.log('ERROR POST ' + query);
       }
     );
   }
@@ -605,6 +605,6 @@
     $log.log('Exiting uploadBegin()');
   }
 
-  self.fetchProjects(self.initialProjectId, self.initialPhaseId);
+  self.fetchProjects(self.initialProjectId, self.initialPhaseId, self.initialProcessId);
 
 }]);

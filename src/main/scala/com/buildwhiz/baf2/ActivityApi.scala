@@ -16,6 +16,16 @@ object ActivityApi {
 
   def allActions(activityOid: ObjectId): Seq[DynDoc] = allActions(activityById(activityOid))
 
+  def actionsByUser(userOid: ObjectId): Seq[DynDoc] = {
+    val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val actions: Seq[DynDoc] = activities.flatMap(activity => {
+      val actions = activity.actions[Many[Document]]
+      actions.foreach(_.activity_id = activity._id[ObjectId])
+      actions
+    })
+    actions.filter(_.assignee_person_id[ObjectId] == userOid)
+  }
+
   def parentProcess(activityOid: ObjectId): DynDoc = {
     BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
   }

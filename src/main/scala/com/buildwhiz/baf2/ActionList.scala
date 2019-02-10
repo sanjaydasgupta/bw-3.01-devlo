@@ -28,23 +28,30 @@ class ActionList extends HttpServlet with HttpUtils {
 
   private def getViewObjects(action: DynDoc): Document = {
     val activityOid = action.activity_id[ObjectId]
-    val theActivity = ActivityApi.activityById(activityOid)
-    val theProcess = ActivityApi.parentProcess(activityOid)
-    val thePhase = ProcessApi.parentPhase(theProcess._id[ObjectId])
-    val theProject = PhaseApi.parentProject(thePhase._id[ObjectId])
     val viewAction: DynDoc = new Document()
     viewAction.name = action.name[String]
     viewAction.completion_message = if (action has "completion_message") action.completion_message[String] else ""
     viewAction.reviewOk = if (action has "review_ok") action.review_ok[Boolean] else false
     viewAction.`type` = action.`type`[String]
     viewAction.status = action.status[String]
+
+    val theProcess = ActivityApi.parentProcess(activityOid)
+    viewAction.process_name = theProcess.name[String]
+    viewAction.process_id = theProcess._id[ObjectId]
+
+    val thePhase = ProcessApi.parentPhase(theProcess._id[ObjectId])
+    viewAction.phase_name = thePhase.name[String]
+    viewAction.phase_id = thePhase._id[ObjectId]
+
+    val theProject = PhaseApi.parentProject(thePhase._id[ObjectId])
     viewAction.project_name = theProject.name[String]
     viewAction.project_id = theProject._id[ObjectId]
-    viewAction.phase_name = theProcess.name[String]
-    viewAction.phase_id = theProcess._id[ObjectId]
+
+    val theActivity = ActivityApi.activityById(activityOid)
     viewAction.activity_name = theActivity.name[String]
     viewAction.activity_id = theActivity._id[ObjectId]
     viewAction.activity_description = theActivity.description[String]
+
     viewAction.group_name = s"${theProject.name[String]}/${theProcess.name[String]}/${action.bpmn_name[String]}"
     val p0 = if (theProject has "timestamps") {
       val timestamps: DynDoc = theProject.timestamps[Document]
@@ -59,7 +66,6 @@ class ActionList extends HttpServlet with HttpUtils {
     viewAction.out_documents = outDocs
     viewAction.is_ready = (action.`type`[String] == "review") ||
       outDocs.forall(doc => doc.is_ready[Boolean] || doc._id[ObjectId] == rfiRequestOid)
-    //BWLogger.log(getClass.getName, "getViewObjects()", bson2json(viewAction.asDoc), request)
     viewAction.asDoc
   }
 

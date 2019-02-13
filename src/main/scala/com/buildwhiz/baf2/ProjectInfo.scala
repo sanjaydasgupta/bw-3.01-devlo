@@ -28,6 +28,12 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     returnValue.asJava
   }
 
+  private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean): Document = {
+    val names = structuredName.split("/").map(_.trim)
+    val value = names.init.foldLeft(project.asDoc)((dd, s) => dd.get(s, classOf[Document])).get(names.last).toString
+    new Document("editable", editable).append("value", value)
+  }
+
   private def project2json(project: DynDoc, editable: Boolean): String = {
     val bareSystemLabels: Many[String] = if (project.has("system_labels"))
       project.system_labels[Many[String]]
@@ -37,7 +43,14 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val description = new Document("editable", editable).append("value", project.description[String])
     val status = new Document("editable", false).append("value", project.status[String])
     val name = new Document("editable", editable).append("value", project.name[String])
-    val address: Document = new Document("editable", editable).append("value", project.address[Document])
+    val postalCode = fieldSpecification(project, "address/postal_code", editable)
+    val line1 = fieldSpecification(project, "address/line1", editable)
+    val line2 = fieldSpecification(project, "address/line2", editable)
+    val line3 = fieldSpecification(project, "address/line3", editable)
+    val latitude = fieldSpecification(project, "address/gps_location/latitude", editable)
+    val longitude = fieldSpecification(project, "address/gps_location/longitude", editable)
+    val stateName = fieldSpecification(project, "address/state/name", editable)
+    val countryName = fieldSpecification(project, "address/country/name", editable)
     val constructionType: Document = new Document("editable", editable).append("value", project.construction_type[String])
     val `type`: Document = new Document("editable", editable).append("value", project.`type`[String])
     val budgetMmUsd: Document = new Document("editable", editable).append("value", project.budget_mm_usd[Double])
@@ -46,10 +59,13 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val maxBldgHeightFt: Document = new Document("editable", editable).append("value", project.max_building_height_ft[Double])
     val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("address", address).append("status", status).append("system_labels", systemLabels).
+        append("status", status).append("system_labels", systemLabels).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
-        append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo)
+        append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).
+        append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
+        append("gps_latitude", latitude).append("gps_longitude", longitude).
+        append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
     projectDoc.toJson
   }
 

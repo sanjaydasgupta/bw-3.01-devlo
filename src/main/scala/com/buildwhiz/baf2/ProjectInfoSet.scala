@@ -12,17 +12,16 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      val parameterConverters: Map[String, String => Any] = Map(
-        ("name", s => s), ("description", s => s),
-        ("address.state.name", s => s), ("address.state.code", s => s),
-        ("address.country.name", s => s), ("address.country.code", s => s),
-        ("address.gps_location.latitude", _.toDouble), ("address.gps_location.longitude", _.toDouble),
-        ("address.line1", s => s), ("address.line2", s => s), ("address.line3", s => s),
-        ("address.postal_code", s => s),
-        ("construction_type", s => s), ("type", s => s), ("budget_mm_usd", _.toDouble),
-        ("construction_area_sqft", _.toDouble), ("land_area_acres", _.toDouble),
-        ("max_building_height_ft", _.toDouble), ("project_id", s => s))
-      val parameterNames = parameterConverters.keys.toSeq
+      val fullNames: Map[String, String] = Map(
+        ("name", "name"), ("description", "description"),
+        ("state_name", "address.state.name"), ("country_name", "address.country.name"),
+        ("gps_latitude", "address.gps_location.latitude"), ("gps_longitude", "address.gps_location.longitude"),
+        ("address_line1", "address.line1"), ("address_line2", "address.line2"), ("address_line3", "address.line3"),
+        ("postal_code", "address.postal_code"),
+        ("construction_type", "construction_type"), ("type", "type"), ("budget_mm_usd", "budget_mm_usd"),
+        ("construction_area_sqft", "construction_area_sqft"), ("land_area_acres", "land_area_acres"),
+        ("max_building_height_ft", "max_building_height_ft"), ("project_id", "project_id"))
+      val parameterNames = fullNames.keys.toSeq
       val postData = Document.parse(getStreamData(request))
       val unknownParameters = postData.keySet.toArray.filterNot(parameterNames.contains)
       if (unknownParameters.nonEmpty)
@@ -30,16 +29,16 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
       if (!postData.containsKey("project_id"))
         throw new IllegalArgumentException("project_id not provided")
       val projectOid = new ObjectId(postData.remove("project_id").asInstanceOf[String])
-      val paramNameValuePairs = parameterNames.filter(postData.containsKey).
-          map(paramName => (paramName, parameterConverters(paramName)(postData.getString(paramName))))
-      if (paramNameValuePairs.isEmpty)
+      val mongoDbNameValuePairs = parameterNames.filter(postData.containsKey).
+          map(paramName => (fullNames(paramName), postData.getString(paramName)))
+      if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
-          Map("$set" -> paramNameValuePairs.toMap))
+          Map("$set" -> mongoDbNameValuePairs.toMap))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${paramNameValuePairs.length}", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${mongoDbNameValuePairs.length}", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

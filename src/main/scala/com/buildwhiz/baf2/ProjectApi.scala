@@ -119,4 +119,7 @@ object ProjectApi {
     projects.filter(project => hasRole(personOid, project))
   }
 
+  def documentTags(project: DynDoc): Seq[String] =
+    if (project.has("document_tags")) project.document_tags[Many[String]] else Seq.empty[String]
+
 }

@@ -31,7 +31,7 @@ class DocumentTagAdd extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val tagType = parameters("tag_type")
-      val tagName: String = parameters("label_name")
+      val tagName: String = parameters("tag_name")
       if (tagType == "user") {
         addUserTag(tagName, request)
         BWLogger.audit(getClass.getName, request.getMethod, s"Added user document-tag '$tagName'", request)

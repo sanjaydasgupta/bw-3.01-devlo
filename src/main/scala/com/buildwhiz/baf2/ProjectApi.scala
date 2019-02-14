@@ -3,12 +3,12 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.BWLogger
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
-object ProjectApi {
+object ProjectApi extends HttpUtils {
 
   def projectById(projectOid: ObjectId): DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
 
@@ -121,5 +121,35 @@ object ProjectApi {
 
   def documentTags(project: DynDoc): Seq[String] =
     if (project.has("document_tags")) project.document_tags[Many[String]] else Seq.empty[String]
+
+  def removeDocumentTag(tagName: String, project: DynDoc, request: HttpServletRequest): Unit = {
+    val tags = documentTags(project)
+    if (!tags.contains(tagName))
+      throw new IllegalArgumentException(s"Unknown tag: '$tagName'")
+    val user: DynDoc = getUser(request)
+    val userOid = user._id[ObjectId]
+    if (!ProjectApi.isAdmin(userOid, project))
+      throw new IllegalArgumentException("Not permitted")
+    val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> project._id[ObjectId]),
+      Map("$pull" -> Map("document_tags" -> tagName)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    // Remove tag from documents?
+  }
+
+  def addDocumentTag(tagName: String, project: DynDoc, request: HttpServletRequest): Unit = {
+    val tags = documentTags(project)
+    if (tags.contains(tagName))
+      throw new IllegalArgumentException(s"Tag: '$tagName' already exists")
+    val user: DynDoc = getUser(request)
+    val userOid = user._id[ObjectId]
+    if (!ProjectApi.isAdmin(userOid, project))
+      throw new IllegalArgumentException("Not permitted")
+    val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> project._id[ObjectId]),
+      Map("$addToSet" -> Map("document_tags" -> tagName)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    // Remove tag from documents?
+  }
 
 }

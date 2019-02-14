@@ -35,11 +35,11 @@ class ProjectInfo extends HttpServlet with HttpUtils {
   }
 
   private def project2json(project: DynDoc, editable: Boolean): String = {
-    val bareSystemLabels: Many[String] = if (project.has("system_labels"))
-      project.system_labels[Many[String]]
+    val bareDocumentTags: Many[String] = if (project.has("document_tags"))
+      project.document_tags[Many[String]]
     else
       Seq.empty[String].asJava
-    val systemLabels = new Document("editable", false).append("value", bareSystemLabels)
+    val documentTags = new Document("editable", false).append("value", bareDocumentTags)
     val description = new Document("editable", editable).append("value", project.description[String])
     val status = new Document("editable", false).append("value", project.status[String])
     val name = new Document("editable", editable).append("value", project.name[String])
@@ -59,7 +59,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val maxBldgHeightFt: Document = new Document("editable", editable).append("value", project.max_building_height_ft[Double])
     val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("system_labels", systemLabels).
+        append("status", status).append("document_tags", documentTags).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).

@@ -40,7 +40,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         "admin_person_id" -> adminPersonOid, "type" -> "Housing Facility", "construction_type" -> "steel-frame",
         "budget_mm_usd" -> 0.0, "construction_area_sqft" -> 0.0, "land_area_acres" -> 0.0,
         "max_building_height_ft" -> 0.0, "address" -> address, "process_ids" -> Seq.empty[ObjectId],
-        "phase_ids" -> Seq.empty[ObjectId], "assigned_roles" -> Seq.empty[Document], "system_labels"-> Seq.empty[String],
+        "phase_ids" -> Seq.empty[ObjectId], "assigned_roles" -> Seq.empty[Document], "document_tags"-> Seq.empty[String],
         "timestamps" -> Map("created" -> System.currentTimeMillis), "status" -> "defined")
       BWMongoDB3.projects.insertOne(projectDocument)
 

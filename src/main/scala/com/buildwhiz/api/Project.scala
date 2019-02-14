@@ -39,7 +39,7 @@ class Project extends HttpServlet with RestUtils {
       project.address = address.asDoc
       project.phase_ids = new java.util.ArrayList[ObjectId]
       project.assigned_roles = new java.util.ArrayList[ObjectId]
-      project.system_labels = new java.util.ArrayList[ObjectId]
+      project.document_tags = new java.util.ArrayList[ObjectId]
       project.timestamps = new Document("created", System.currentTimeMillis)
       project.status = "defined" // Initial status on creation
       project.process_ids = new java.util.ArrayList[ObjectId]

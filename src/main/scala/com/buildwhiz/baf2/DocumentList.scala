@@ -24,6 +24,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val allLabelsCsv = (systemLabels ++ allUserLabels).mkString(",")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
       val hasVersions = versions.nonEmpty
+      val versionCount = versions.length
       val documentProperties: Document = if (hasVersions) {
         val lastVersion: DynDoc = versions.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
         val fileType = lastVersion.file_name[String].split("\\.").last
@@ -35,12 +36,13 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> lastVersion.timestamp[Long],
-          "has_versions" -> true)
+          "has_versions" -> true, "version_count" -> versionCount, "size" -> "???")
       } else {
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> "???", "author" -> "???", "date" -> "???", "project_id" -> d.project_id[ObjectId].toString,
-          "project_name" -> project.name[String], "timestamp" -> 0L, "has_versions" -> false)
+          "project_name" -> project.name[String], "timestamp" -> 0L, "has_versions" -> false,
+          "version_count" -> versionCount, "size" -> "???")
       }
       documentProperties
     })

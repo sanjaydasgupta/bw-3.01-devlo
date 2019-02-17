@@ -21,26 +21,28 @@ object DocumentApi extends HttpUtils {
   def exists(documentOid: ObjectId): Boolean = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).nonEmpty
 
   def createProjectDocumentRecord(name: String, description: String, fileType: String, systemLabels: Seq[String],
-      projectOid: ObjectId, phaseOid: Option[ObjectId] = None, action: Option[(ObjectId, String)] = None): ObjectId = {
+      projectOid: ObjectId, phaseOid: Option[ObjectId] = None, action: Option[(ObjectId, String)] = None,
+      optCategory: Option[String] = None): ObjectId = {
 
-    val query = ((phaseOid, action) match {
-      case (Some(phOid), Some((actOid, actName))) => Map("phase_id" -> phOid, "activity_id" -> actOid,
-        "action_name" -> actName)
-      case (Some(phOid), None) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
+    val query = ((phaseOid, action, optCategory) match {
+      case (Some(phOid), Some((actOid, actName)), Some(category)) => Map("phase_id" -> phOid, "activity_id" -> actOid,
+        "action_name" -> actName, "category" -> category)
+      case (Some(phOid), None, _) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
         "action_name" -> Map("$exists" -> false))
-      case (None, Some((activityOid, actionName))) => Map("phase_id" -> Map("$exists" -> false),
-        "activity_id" -> activityOid, "action_name" -> actionName)
-      case (None, None) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
+      case (None, Some((activityOid, actionName)), Some(category)) => Map("phase_id" -> Map("$exists" -> false),
+        "activity_id" -> activityOid, "action_name" -> actionName, "category" -> category)
+      case (None, None, _) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
         "action_name" -> Map("$exists" -> false))
+      case _ => throw new IllegalArgumentException("Unsupported parameter combination")
     }) ++ Map("project_id" -> projectOid, "name" -> name)
 
     if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
       throw new IllegalArgumentException(s"File named '$name' already exists")
 
     val assertions = query.toSeq.filterNot(_._2.isInstanceOf[Map[_, _]]).toMap
-    val newDocumentRecord = new Document(Map("name" -> name, "description" -> description, "project_id" -> projectOid,
-      "type" -> fileType, "timestamp" -> System.currentTimeMillis, "versions" -> Seq.empty[Document],
-      "labels" -> systemLabels) ++ assertions)
+    val newDocumentRecord = new Document(Map("description" -> description, "type" -> fileType,
+      "labels" -> systemLabels, "timestamp" -> System.currentTimeMillis, "versions" -> Seq.empty[Document]) ++
+      assertions)
     BWMongoDB3.document_master.insertOne(newDocumentRecord)
     newDocumentRecord.getObjectId("_id")
   }

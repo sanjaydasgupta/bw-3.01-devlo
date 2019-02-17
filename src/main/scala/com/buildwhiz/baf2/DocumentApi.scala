@@ -5,18 +5,101 @@ import java.io.{File, FileOutputStream, InputStream}
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
 import BWMongoDB3._
 import DynDoc._
-import com.buildwhiz.utils.BWLogger
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.HttpServletRequest
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.util.parsing.combinator.RegexParsers
 
-object DocumentApi {
+object DocumentApi extends HttpUtils {
 
   def documentById(documentOid: ObjectId): DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
 
   def exists(documentOid: ObjectId): Boolean = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).nonEmpty
+
+  def createProjectDocumentRecord(name: String, description: String, fileType: String, systemLabels: Seq[String],
+      projectOid: ObjectId, phaseOid: Option[ObjectId] = None, action: Option[(ObjectId, String)] = None): ObjectId = {
+
+    val query = ((phaseOid, action) match {
+      case (Some(phOid), Some((actOid, actName))) => Map("phase_id" -> phOid, "activity_id" -> actOid,
+        "action_name" -> actName)
+      case (Some(phOid), None) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
+        "action_name" -> Map("$exists" -> false))
+      case (None, Some((activityOid, actionName))) => Map("phase_id" -> Map("$exists" -> false),
+        "activity_id" -> activityOid, "action_name" -> actionName)
+      case (None, None) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
+        "action_name" -> Map("$exists" -> false))
+    }) ++ Map("project_id" -> projectOid, "name" -> name)
+
+    if (BWMongoDB3.document_master.find(query).asScala.nonEmpty)
+      throw new IllegalArgumentException(s"File named '$name' already exists")
+
+    val assertions = query.toSeq.filterNot(_._2.isInstanceOf[Map[_, _]]).toMap
+    val newDocumentRecord = new Document(Map("name" -> name, "description" -> description, "project_id" -> projectOid,
+      "type" -> fileType, "timestamp" -> System.currentTimeMillis, "versions" -> Seq.empty[Document],
+      "labels" -> systemLabels) ++ assertions)
+    BWMongoDB3.document_master.insertOne(newDocumentRecord)
+    newDocumentRecord.getObjectId("_id")
+  }
+
+  def documentsByProjectId(request: HttpServletRequest): Seq[DynDoc] = {
+    //val user: DynDoc = getUser(request)
+    val parameters = getParameterMap(request)
+    val parameterValues = Array("action_name", "activity_id", "process_id", "phase_id", "project_id").
+        map(n => parameters.get(n))
+    def oid(id: String): ObjectId = new ObjectId(id)
+
+    val allDocuments: Seq[DynDoc] = parameterValues match {
+      case Array(Some(actionName), Some(activityId), _, _, _) =>
+        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> actionName))
+      case Array(None, Some(activityId), _, _, _) =>
+        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> Map("$exists" -> false)))
+      case Array(None, None, Some(processId), _, _) =>
+        BWMongoDB3.document_master.find(Map("process_id" -> oid(processId), "activity_id" -> Map("$exists" -> false)))
+      case Array(None, None, None, Some(phaseId), _) =>
+        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
+          "activity_id" -> Map("$exists" -> false)))
+      case Array(None, None, None, None, Some(projectId)) =>
+        BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId), "phase_id" -> Map("$exists" -> false),
+          "process_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false)))
+      case _ => Seq.empty[DynDoc]
+    }
+    allDocuments.filter(_.has("name"))
+  }
+
+  def getSystemTags(doc: DynDoc): Seq[String] = {
+    def fix(str: String) = str.replaceAll("\\s+", "-")
+    val legacyLabels = if (doc.has("category") && doc.has("subcategory")) {
+      Seq(fix(doc.category[String]), fix(doc.subcategory[String]))
+    } else {
+      Seq.empty[String]
+    }
+    val documentLabels: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
+    (documentLabels ++ legacyLabels).distinct
+  }
+
+  def docOid2UserTags(user: DynDoc): Map[ObjectId, Seq[String]] = {
+    val userLabels: Seq[DynDoc] = if (user.has("labels")) user.labels[Many[Document]] else Seq.empty[DynDoc]
+    userLabels.filter(label => {!label.has("logic") || label.logic[String].trim.isEmpty}).
+      flatMap(label => {
+        val labelName = label.name[String]
+        val docOids: Seq[ObjectId] = label.document_ids[Many[ObjectId]]
+        docOids.map(oid => (oid, labelName))
+      }).groupBy(_._1).map(t => (t._1, t._2.map(_._2)))
+  }
+
+  def getLogicalTags(nonLogicalLabels: Seq[String], user: DynDoc): Seq[String] = {
+    val userLabels: Seq[DynDoc] = if (user.has("labels"))
+      user.labels[Many[Document]]
+    else
+      Seq.empty[DynDoc]
+    val logicalLabels = userLabels.filter(label => label.has("logic") && label.logic[String].trim.nonEmpty).
+      filter(label => tagLogic.eval(label.logic[String], nonLogicalLabels.toSet))
+    logicalLabels.map(_.name[String])
+  }
 
   def storeAmazonS3(fileName: String, is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long,
       comments: String, authorOid: ObjectId, request: HttpServletRequest): (String, Long) = {

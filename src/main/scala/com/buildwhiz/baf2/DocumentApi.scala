@@ -99,7 +99,7 @@ object DocumentApi extends HttpUtils {
     else
       Seq.empty[DynDoc]
     val logicalLabels = userLabels.filter(label => label.has("logic") && label.logic[String].trim.nonEmpty).
-      filter(label => tagLogic.eval(label.logic[String], nonLogicalLabels.toSet))
+      filter(label => evaluateTagLogic(label.logic[String], nonLogicalLabels.toSet))
     logicalLabels.map(_.name[String])
   }
 
@@ -142,7 +142,11 @@ object DocumentApi extends HttpUtils {
     (s3key, fileLength)
   }
 
-  object tagLogic extends RegexParsers {
+  def labelIsValid(label: String): Boolean = tagLogicParser.labelIsValid(label)
+  def logicIsValid(logic: String): Boolean = tagLogicParser.logicIsValid(logic)
+  def evaluateTagLogic(expr: String, set: Set[String]): Boolean = tagLogicParser.eval(expr, set)
+
+  private object tagLogicParser extends RegexParsers {
 
     type TestSet = Set[String] => Boolean
 
@@ -165,7 +169,9 @@ object DocumentApi extends HttpUtils {
 
     def labelIsValid(label: String): Boolean = parseAll(LABEL, label).successful
 
-    def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
+    def logicIsValid(logic: String): Boolean = parse(logic).successful
+
+    private def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
 
     def eval(expr: String, set: Set[String]): Boolean = {
       parse(expr) match {

@@ -20,7 +20,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def taskStatusRecord(request: HttpServletRequest): String = {
-    val changeLog = changeLogItems(request: HttpServletRequest).map(bson2json).mkString("[", ", ", "]")
+    val changeLog = changeLogItems(request: HttpServletRequest)
     val record = new Document("status", "running").append("on_critical_path", true).
         append("estimated_duration", 33).append("actual_duration", 35).
         append("estimated_start_date", "2018-MM-DD").append("actual_start_date", "2018-MM-DD").

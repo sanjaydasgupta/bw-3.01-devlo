@@ -42,13 +42,12 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def taskDocumentRecord(request: HttpServletRequest): String = {
-    val checkList = checkListItems(request: HttpServletRequest).map(bson2json).mkString("[", ", ", "]")
-    val requiredDocuments = requiredDocumentItems(request: HttpServletRequest).map(bson2json).mkString("[", ", ", "]")
-    val additionalDocuments = additionalDocumentItems(request: HttpServletRequest).
-        map(bson2json).mkString("[", ", ", "]")
-    val record = new Document("taskSpecUrl", "???").append("checkList", checkList).
-        append("requiredDocuments", requiredDocuments).
-        append("additionalDocuments", additionalDocuments)
+    val checkList = checkListItems(request: HttpServletRequest)
+    val requiredDocuments = requiredDocumentItems(request: HttpServletRequest)
+    val additionalDocuments = additionalDocumentItems(request: HttpServletRequest)
+    val record = new Document("task_specification_url", "???").append("check_list", checkList).
+        append("required_documents", requiredDocuments).
+        append("additional_documents", additionalDocuments)
     bson2json(record)
   }
 

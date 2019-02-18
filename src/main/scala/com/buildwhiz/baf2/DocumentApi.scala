@@ -144,7 +144,7 @@ object DocumentApi extends HttpUtils {
 
   def labelIsValid(label: String): Boolean = tagLogicParser.labelIsValid(label)
   def logicIsValid(logic: String): Boolean = tagLogicParser.logicIsValid(logic)
-  def evaluateTagLogic(expr: String, set: Set[String]): Boolean = tagLogicParser.eval(expr, set)
+  def evaluateTagLogic(expr: String, set: Set[String]): Boolean = tagLogicParser.evaluateTagLogic(expr, set)
 
   private object tagLogicParser extends RegexParsers {
 
@@ -173,7 +173,7 @@ object DocumentApi extends HttpUtils {
 
     private def parse(str: String): ParseResult[TestSet] = parseAll(topExpr, str)
 
-    def eval(expr: String, set: Set[String]): Boolean = {
+    def evaluateTagLogic(expr: String, set: Set[String]): Boolean = {
       parse(expr) match {
         case Success(test, _) => test(set)
         case _ => false

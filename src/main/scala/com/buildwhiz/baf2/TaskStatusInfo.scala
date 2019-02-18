@@ -20,12 +20,18 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def taskStatusRecord(request: HttpServletRequest): String = {
+    def wrap(rawValue: Any, editable: Boolean): Document = {
+      new Document("editable", editable).append("value", rawValue)
+    }
     val changeLog = changeLogItems(request: HttpServletRequest)
-    val record = new Document("status", "running").append("on_critical_path", true).
-        append("estimated_duration", 33).append("actual_duration", 35).
-        append("estimated_start_date", "2018-MM-DD").append("actual_start_date", "2018-MM-DD").
-        append("estimated_end_date", "2019-MM-DD").append("actual_end_date", "2019-MM-DD").
-        append("reporting_interval", "weekly").
+    val record = new Document("status", "running"). append("on_critical_path", true).
+        append("estimated_duration", wrap(33, editable = false)).
+        append("actual_duration", wrap(35, editable = false)).
+        append("estimated_start_date", wrap("2018-MM-DD", editable = false)).
+        append("actual_start_date", wrap("2018-MM-DD", editable = false)).
+        append("estimated_end_date", wrap("2019-MM-DD", editable = false)).
+        append("actual_end_date", wrap("2019-MM-DD", editable = false)).
+        append("reporting_interval", wrap("weekly", editable = false)).
         append("change_log", changeLog)
     bson2json(record)
   }

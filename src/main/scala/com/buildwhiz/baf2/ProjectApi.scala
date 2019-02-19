@@ -139,7 +139,8 @@ object ProjectApi extends HttpUtils {
       Map("$pull" -> Map("document_tags" -> Map("name" -> tagName))))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    // Remove tag from documents?
+    BWMongoDB3.document_master.updateOne(Map("project_id" -> project._id[ObjectId]),
+      Map("$pull" -> Map("labels" -> tagName)))
   }
 
   def addDocumentTag(tagName: String, project: DynDoc, optLogic: Option[String], request: HttpServletRequest): Unit = {

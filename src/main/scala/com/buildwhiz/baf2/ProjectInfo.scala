@@ -35,11 +35,11 @@ class ProjectInfo extends HttpServlet with HttpUtils {
   }
 
   private def project2json(project: DynDoc, editable: Boolean): String = {
-    val bareDocumentTags: Many[String] = if (project.has("document_tags"))
-      project.document_tags[Many[String]]
+    val bareDocumentTags: Seq[String] = if (project.has("document_tags"))
+      project.document_tags[Many[Document]].map(_.name[String])
     else
       Seq.empty[String].asJava
-    val documentTags = new Document("editable", false).append("value", bareDocumentTags)
+    val documentTags = new Document("editable", false).append("value", bareDocumentTags.asJava)
     val description = new Document("editable", editable).append("value", project.description[String])
     val status = new Document("editable", false).append("value", project.status[String])
     val name = new Document("editable", editable).append("value", project.name[String])

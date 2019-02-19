@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -10,23 +10,13 @@ class DocumentTagDelete extends HttpServlet with HttpUtils {
 
   private def deleteSystemTag(tagName: String, projectOid: ObjectId, request: HttpServletRequest): Unit = {
     val project: DynDoc = ProjectApi.projectById(projectOid)
-    ProjectApi.removeDocumentTag(tagName, project, request)
+    ProjectApi.deleteDocumentTag(tagName, project, request)
   }
 
   private def deleteUserTag(tagName: String, request: HttpServletRequest): Unit = {
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
-    val freshUserRecord: DynDoc = PersonApi.personById(userOid)
-    val userTags: Seq[String] = PersonApi.documentTags(freshUserRecord)
-    if (!userTags.contains(tagName))
-      throw new IllegalArgumentException(s"Unknown tag '$tagName'")
-    val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> user._id[ObjectId]),
-      Map("$pull" -> Map("labels" -> Map("name" -> tagName))))
-    if (updateResult.getModifiedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    BWMongoDB3.persons.updateOne(Map("_id" -> user._id[ObjectId],
-      "document_filter_labels" -> Map("$exists" -> true)),
-      Map("$pull" -> Map("document_filter_labels" -> tagName)))
+    PersonApi.deleteDocumentTag(userOid, tagName)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

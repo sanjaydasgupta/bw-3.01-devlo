@@ -23,8 +23,8 @@ class DocumentTagInfo extends HttpServlet with HttpUtils with BpmnUtils {
 
       val isSystemUser = ProjectApi.canManage(userOid, project)
 
-      val returnValue = new Document("is_system_user", isSystemUser).append("user_tags", userTags).
-          append("system_tags", systemTags)
+      val returnValue = new Document("is_system_user", isSystemUser).append("user_tags", userTags.map(_.name[String])).
+          append("system_tags", systemTags.map(_.name[String]))
 
       response.getWriter.print(bson2json(returnValue))
       response.setContentType("application/json")

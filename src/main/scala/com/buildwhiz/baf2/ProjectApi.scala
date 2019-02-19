@@ -119,34 +119,43 @@ object ProjectApi extends HttpUtils {
     projects.filter(project => hasRole(personOid, project))
   }
 
-  def documentTags(project: DynDoc): Seq[String] =
-    if (project.has("document_tags")) project.document_tags[Many[String]] else Seq.empty[String]
+  def documentTags(project: DynDoc): Seq[DynDoc] = {
+    if (project.has("document_tags")) {
+      project.document_tags[Many[Document]]
+    } else {
+      Seq.empty[Document]
+    }
+  }
 
-  def removeDocumentTag(tagName: String, project: DynDoc, request: HttpServletRequest): Unit = {
+  def deleteDocumentTag(tagName: String, project: DynDoc, request: HttpServletRequest): Unit = {
     val tags = documentTags(project)
-    if (!tags.contains(tagName))
+    if (!tags.exists(_.name[String] == tagName))
       throw new IllegalArgumentException(s"Unknown tag: '$tagName'")
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
     if (!ProjectApi.isAdmin(userOid, project))
       throw new IllegalArgumentException("Not permitted")
     val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> project._id[ObjectId]),
-      Map("$pull" -> Map("document_tags" -> tagName)))
+      Map("$pull" -> Map("document_tags" -> Map("name" -> tagName))))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     // Remove tag from documents?
   }
 
-  def addDocumentTag(tagName: String, project: DynDoc, request: HttpServletRequest): Unit = {
+  def addDocumentTag(tagName: String, project: DynDoc, optLogic: Option[String], request: HttpServletRequest): Unit = {
     val tags = documentTags(project)
-    if (tags.contains(tagName))
+    if (tags.exists(_.name[String] == tagName))
       throw new IllegalArgumentException(s"Tag: '$tagName' already exists")
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
     if (!ProjectApi.isAdmin(userOid, project))
       throw new IllegalArgumentException("Not permitted")
+    val tagRecord = optLogic match {
+      case None => new Document("name", tagName)
+      case Some(logic) => new Document("name", tagName).append("logic", logic)
+    }
     val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> project._id[ObjectId]),
-      Map("$addToSet" -> Map("document_tags" -> tagName)))
+      Map("$addToSet" -> Map("document_tags" -> tagRecord)))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     // Remove tag from documents?

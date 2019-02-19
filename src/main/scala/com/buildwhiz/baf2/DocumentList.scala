@@ -1,6 +1,5 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.dot.GetDocumentVersionsList
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -15,7 +14,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
     val docOid2labels: Map[ObjectId, Seq[String]] = DocumentApi.docOid2UserTags(user)
     val docRecords: Seq[DynDoc] = DocumentApi.documentsByProjectId(request)
     val docProperties: Seq[Document] = docRecords.map(d => {
-      val versions: Seq[DynDoc] = GetDocumentVersionsList.versions(d)
+      val versions: Seq[DynDoc] = DocumentApi.versions(d)
       val systemLabels = DocumentApi.getSystemTags(d)
       val userLabels = docOid2labels.getOrElse(d._id[ObjectId], Seq.empty[String])
       val logicalLabels = DocumentApi.getLogicalTags(systemLabels ++ userLabels, user)

@@ -1,6 +1,5 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.dot.GetDocumentsSummary
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -43,15 +42,15 @@ class DocumentGroupUserLabels extends HttpServlet with HttpUtils {
 
       val documentRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("_id" -> Map("$in" -> docOids)))
 
-      val docOid2UserLabels: Map[ObjectId, Seq[String]] = GetDocumentsSummary.docOid2UserLabels(person)
+      val docOid2UserLabels: Map[ObjectId, Seq[String]] = DocumentApi.docOid2UserTags(person)
       val docOid2SystemLabels: Map[ObjectId, Seq[String]] = documentRecords.
-          map(docRec => (docRec._id[ObjectId], GetDocumentsSummary.getSystemLabels(docRec))).toMap
+          map(docRec => (docRec._id[ObjectId], DocumentApi.getSystemTags(docRec))).toMap
 
       val allUserLabels: Seq[String] = docOids.flatMap(oid =>
         if (docOid2UserLabels.contains(oid) || docOid2SystemLabels.contains(oid)) {
           val userLabels = if (docOid2UserLabels.contains(oid)) docOid2UserLabels(oid) else Seq.empty[String]
           val systemLabels = if (docOid2SystemLabels.contains(oid)) docOid2SystemLabels(oid) else Seq.empty[String]
-          val logicLabels = GetDocumentsSummary.getLogicalLabels(userLabels ++ systemLabels, person)
+          val logicLabels = DocumentApi.getLogicalTags(userLabels ++ systemLabels, person)
           userLabels ++ logicLabels
         } else {
           Seq.empty[String]

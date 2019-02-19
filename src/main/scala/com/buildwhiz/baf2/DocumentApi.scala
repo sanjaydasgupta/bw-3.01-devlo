@@ -20,6 +20,13 @@ object DocumentApi extends HttpUtils {
 
   def exists(documentOid: ObjectId): Boolean = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).nonEmpty
 
+  def versions(doc: DynDoc): Seq[DynDoc] = {
+    val allVersions: Seq[DynDoc] =
+      if (doc.has("versions")) doc.versions[Many[Document]] else Seq.empty[DynDoc]
+    val requiredFields = Seq("author_person_id", "file_name", "timestamp")
+    allVersions.filter(version => requiredFields.forall(field => version.has(field)))
+  }
+
   def createProjectDocumentRecord(name: String, description: String, fileType: String, systemLabels: Seq[String],
       projectOid: ObjectId, phaseOid: Option[ObjectId] = None, action: Option[(ObjectId, String)] = None,
       optCategory: Option[String] = None): ObjectId = {

@@ -59,7 +59,7 @@ class DocumentGroupUserTags extends HttpServlet with HttpUtils {
       response.getWriter.println(userTagsJsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      userTagsJsonString.length
+      userTagsStatus.length
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

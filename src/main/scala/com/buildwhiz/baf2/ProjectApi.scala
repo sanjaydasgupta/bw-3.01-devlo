@@ -162,4 +162,33 @@ object ProjectApi extends HttpUtils {
     // Remove tag from documents?
   }
 
+  def documentGroupManageLabels(project: DynDoc, documentOids: Seq[ObjectId], tagNames: Seq[String],
+       operation: String): Unit = {
+    val allSystemTags = documentTags(project)
+    val badTagNames = tagNames.filter(tagName => !allSystemTags.exists(_.name[String] == tagName))
+    if (badTagNames.nonEmpty)
+      throw new IllegalArgumentException(s"""Bad tag-names: ${badTagNames.mkString(", ")}""")
+
+    val badDocumentOids = documentOids.filter(oid => !DocumentApi.exists(oid))
+    if (badDocumentOids.nonEmpty)
+      throw new IllegalArgumentException(s"""Bad document-ids: ${badDocumentOids.mkString(", ")}""")
+
+    if (operation == "add") {
+      for (docOid <- documentOids) {
+        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> docOid),
+          Map("$addToSet" -> Map("labels" -> Map("$each" -> tagNames))))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
+    } else if (operation == "remove") {
+      for (docOid <- documentOids) {
+        val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> docOid),
+          Map("$pullAll" -> Map("labels" -> tagNames)))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
+    } else
+      throw new IllegalArgumentException(s"Bad operation: '$operation'")
+  }
+
 }

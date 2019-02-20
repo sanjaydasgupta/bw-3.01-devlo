@@ -54,4 +54,33 @@ object PersonApi {
     }
   }
 
+  def documentGroupManageLabels(person: DynDoc, documentOids: Seq[ObjectId], tagNames: Seq[String],
+      operation: String): Unit = {
+    val allUserTags = documentTags(person)
+    val badTagNames = tagNames.filter(tagName => !allUserTags.exists(_.name[String] == tagName))
+    if (badTagNames.nonEmpty)
+      throw new IllegalArgumentException(s"""Bad tag-names: ${badTagNames.mkString(", ")}""")
+
+    val badDocumentOids = documentOids.filter(oid => !DocumentApi.exists(oid))
+    if (badDocumentOids.nonEmpty)
+      throw new IllegalArgumentException(s"""Bad document-ids: ${badDocumentOids.mkString(", ")}""")
+
+    if (operation == "add") {
+      tagNames.map(tagName => person.labels[Many[Document]].indexWhere(_.name[String] == tagName)).foreach(idx => {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+          Map("$addToSet" -> Map(s"labels.$idx.document_ids" -> Map("$each" -> documentOids))))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      })
+    } else if (operation == "remove") {
+      tagNames.map(tagName => person.labels[Many[Document]].indexWhere(_.name[String] == tagName)).foreach(idx => {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> person._id[ObjectId]),
+          Map("$pullAll" -> Map(s"labels.$idx.document_ids" -> documentOids)))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      })
+    } else
+      throw new IllegalArgumentException(s"Bad operation: '$operation'")
+  }
+
 }

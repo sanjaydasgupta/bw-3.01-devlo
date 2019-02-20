@@ -64,7 +64,7 @@ class DocumentGroupSystemTags extends HttpServlet with HttpUtils {
       response.getWriter.println(systemTagsJsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      systemTagsJsonString.length
+      systemTagsStatus.length
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

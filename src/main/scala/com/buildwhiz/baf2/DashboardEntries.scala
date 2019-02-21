@@ -43,7 +43,7 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         "project_id" -> projectOid.toString,
         "phase_name" -> phaseName,
         "phase_id" -> phaseOid.toString,
-        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/tasks" + params)),
+        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/task-list" + "?type=overdue")),
         "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params)),
         "issues_open" -> Map("value" -> "000", "url" -> "/etc"),
         "submittals_pending" -> Map("value" -> "000", "url" -> "/etc"),
@@ -56,7 +56,6 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         "expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
         "excess_expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
 
-        //"url" -> ("/phases" + params), "description" -> "???",
         "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00"
       )
     })

@@ -24,7 +24,7 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
     else
       BWMongoDB3.rfi_messages.find(Map("members" -> userOid))
     val rfiProperties: Seq[Document] = allRfi.map(rfi => {
-      val priority = if (rfi.has("priority")) rfi.priority[String] else "NA"
+      val priority = if (rfi.has("priority")) rfi.priority[String] else "LOW"
       val messages: Seq[DynDoc] = rfi.messages[Many[Document]]
       val originatorOid: ObjectId = messages.head.sender[ObjectId]
       val closeable: Boolean = userOid == originatorOid
@@ -35,7 +35,7 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       new Document(Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName,
         "question" -> rfi.question[String], "state" -> rfi.status[String], "assigned_to" -> "Unknown Unknown",
-        "origination_date" -> originationTime, "due_date" -> "NA", "response_date" -> "NA",
+        "origination_date" -> originationTime, "due_date" -> originationTime, "response_date" -> originationTime,
         "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable))
     })
     rfiProperties

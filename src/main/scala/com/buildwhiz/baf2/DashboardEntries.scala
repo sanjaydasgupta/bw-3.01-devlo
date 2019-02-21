@@ -30,7 +30,12 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
     val dashboardEntries: Seq[DynDoc] = projectPhasePairs.map(pair => {
       val (projectName, projectOid) = (pair._1.name[String], pair._1._id[ObjectId])
       val (phaseName, phaseOid) = (pair._2.name[String], pair._2._id[ObjectId])
-      val params = s"?project_id=${pair._1._id[ObjectId]}&phase_id=${pair._2._id[ObjectId]}"
+      val params: String = Seq(
+        s"project_id=${pair._1._id[ObjectId]}",
+        s"project_name=${pair._1.name[String]}",
+        s"phase_id=${pair._2._id[ObjectId]}",
+        s"phase_name=${pair._2.name[String]}"
+      ).mkString("?", "&", "")
       val phaseStatus = pair._2.status[String] match {
         case "defined" => "urgent"
         case "running" => "normal"
@@ -43,18 +48,18 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         "project_id" -> projectOid.toString,
         "phase_name" -> phaseName,
         "phase_id" -> phaseOid.toString,
-        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/task-list" + "?type=overdue")),
-        "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params)),
-        "issues_open" -> Map("value" -> "000", "url" -> "/etc"),
-        "submittals_pending" -> Map("value" -> "000", "url" -> "/etc"),
-        "submittals_unapproved" -> Map("value" -> "000", "url" -> "/etc"),
+        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/task-list" + params + "?type=overdue")),
+        "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params + "?type=open")),
+        "issues_open" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=open")),
+        "submittals_pending" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=pending")),
+        "submittals_unapproved" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=unapproved")),
         "new_docs" -> Map("value" -> "000", "url" -> ("/documents" + params)),
-        "material_issues" -> Map("value" -> "000", "url" -> "/etc"),
-        "equipment_issues" -> Map("value" -> "000", "url" -> "/etc"),
-        "invoices_payable" -> Map("value" -> "000", "url" -> "/etc"),
-        "budget" -> Map("value" -> "000", "url" -> "/etc"),
-        "expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
-        "excess_expenses_so_far" -> Map("value" -> "000", "url" -> "/etc"),
+        "material_issues" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=issues")),
+        "equipment_issues" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=issues")),
+        "invoices_payable" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=payable")),
+        "budget" -> Map("value" -> "000", "url" -> ("/etc" + params)),
+        "expenses_so_far" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=so_far")),
+        "excess_expenses_so_far" -> Map("value" -> "000", "url" -> ("/etc" + params + "?type=excess_so_far")),
 
         "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00"
       )

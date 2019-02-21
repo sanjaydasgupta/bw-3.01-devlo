@@ -11,7 +11,8 @@ import org.bson.types.ObjectId
 
 class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def requiredDocumentItems(request: HttpServletRequest): Seq[Document] = {
+  private def requiredDocumentItems(user: DynDoc, activity: DynDoc, process: DynDoc, phase: DynDoc, project: DynDoc):
+      Seq[Document] = {
     (1 to 7).map(n => {
       val docType = Seq("pdf", "excel")(n % 2)
       val count = Seq(0, 1)(n % 2)
@@ -22,7 +23,8 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
-  private def additionalDocumentItems(request: HttpServletRequest): Seq[Document] = {
+  private def additionalDocumentItems(user: DynDoc, activity: DynDoc, process: DynDoc, phase: DynDoc, project: DynDoc):
+      Seq[Document] = {
     (1 to 2).map(n => {
       val docType = Seq("word", "excel")(n % 2)
       val count = Seq(0, 1)(n % 2)
@@ -33,7 +35,8 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
-  private def checkListItems(request: HttpServletRequest): Seq[Document] = {
+  private def checkListItems(user: DynDoc, activity: DynDoc, process: DynDoc, phase: DynDoc, project: DynDoc):
+      Seq[Document] = {
     (1 to 5).map(n => {
       val complete = (n % 2) == 0
       val itemNumber = n.toString * 5
@@ -41,13 +44,16 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
-  private def taskDocumentRecord(request: HttpServletRequest): String = {
-    val checkList = checkListItems(request: HttpServletRequest)
-    val requiredDocuments = requiredDocumentItems(request: HttpServletRequest)
-    val additionalDocuments = additionalDocumentItems(request: HttpServletRequest)
+  private def taskDocumentRecord(user: DynDoc, activity: DynDoc, process: DynDoc, phase: DynDoc, project: DynDoc):
+      String = {
+    val checkList = checkListItems(user, activity, process, phase, project)
+    val requiredDocuments = requiredDocumentItems(user, activity, process, phase, project)
+    val additionalDocuments = additionalDocumentItems(user, activity, process, phase, project)
+    val enableAddButtons = PersonApi.isBuildWhizAdmin(user._id[ObjectId]) ||
+        ProcessApi.canManage(user._id[ObjectId], process)
     val record = new Document("task_specification_url", "???").append("check_list", checkList).
-        append("required_documents", requiredDocuments).
-        append("additional_documents", additionalDocuments)
+        append("required_documents", requiredDocuments).append("additional_documents", additionalDocuments).
+        append("enable_add_buttons", enableAddButtons)
     bson2json(record)
   }
 
@@ -55,10 +61,14 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      //val activityOid = new ObjectId(parameters("activity_id"))
-      //val user: DynDoc = getUser(request)
-      //val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      response.getWriter.print(taskDocumentRecord(request))
+      val activityOid = new ObjectId(parameters("activity_id"))
+      val theActivity = ActivityApi.activityById(activityOid)
+      val parentProcess = ActivityApi.parentProcess(activityOid)
+      val ancestorPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
+      val ancestorProject = PhaseApi.parentProject(ancestorPhase._id[ObjectId])
+      val user: DynDoc = getUser(request)
+      val freshUserRecord = PersonApi.personById(user._id[ObjectId])
+      response.getWriter.print(taskDocumentRecord(freshUserRecord, theActivity, parentProcess, ancestorPhase, ancestorProject))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

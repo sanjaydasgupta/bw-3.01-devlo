@@ -24,6 +24,11 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
 
       val phaseName = parameters("phase_name")
+      val description = parameters.get("description") match {
+        case Some(desc) => desc
+        case None => s"No description provided for '$phaseName'"
+      }
+
       val optionalAdminPersonOid: Option[ObjectId] = parameters.get("admin_person_id").map(new ObjectId(_))
       val trueAdminPersonOid = optionalAdminPersonOid match {
         case None => userOid
@@ -34,7 +39,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
 
       val newPhaseRecord: Document = Map("name" -> phaseName, "admin_person_id" -> trueAdminPersonOid,
           "process_ids" -> Seq.empty[ObjectId], "assigned_roles" -> Seq.empty[Document], "status" -> "defined",
-          "timestamps" -> Map("created" -> System.currentTimeMillis))
+          "timestamps" -> Map("created" -> System.currentTimeMillis), "description" -> description)
       BWMongoDB3.phases.insertOne(newPhaseRecord)
 
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> parentProjectOid),

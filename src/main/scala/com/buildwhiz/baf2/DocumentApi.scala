@@ -34,12 +34,24 @@ object DocumentApi extends HttpUtils {
     val query = ((phaseOid, action, optCategory) match {
       case (Some(phOid), Some((actOid, actName)), Some(category)) => Map("phase_id" -> phOid, "activity_id" -> actOid,
         "action_name" -> actName, "category" -> category)
-      case (Some(phOid), None, _) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
+      case (Some(phOid), Some((actOid, actName)), None) => Map("phase_id" -> phOid, "activity_id" -> actOid,
+        "action_name" -> actName)
+
+      case (Some(phOid), None, Some(category)) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
+        "action_name" -> Map("$exists" -> false), "category" -> category)
+      case (Some(phOid), None, None) => Map("phase_id" -> phOid, "activity_id" -> Map("$exists" -> false),
         "action_name" -> Map("$exists" -> false))
+
       case (None, Some((activityOid, actionName)), Some(category)) => Map("phase_id" -> Map("$exists" -> false),
         "activity_id" -> activityOid, "action_name" -> actionName, "category" -> category)
-      case (None, None, _) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
+      case (None, Some((activityOid, actionName)), None) => Map("phase_id" -> Map("$exists" -> false),
+        "activity_id" -> activityOid, "action_name" -> actionName)
+
+      case (None, None, Some(category)) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
+        "action_name" -> Map("$exists" -> false), "category" -> category)
+      case (None, None, None) => Map("phase_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false),
         "action_name" -> Map("$exists" -> false))
+
       case _ => throw new IllegalArgumentException("Unsupported parameter combination")
     }) ++ Map("project_id" -> projectOid, "name" -> name)
 

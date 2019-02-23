@@ -42,6 +42,8 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
         val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
           docOid, millisNow, "-", user._id[ObjectId], request)
         Seq(new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", millisNow))
+      } else if (request.getContentType.contains("multipart") && request.getParts.size > 1) {
+        throw new IllegalArgumentException(s"Multiple attachments not supported")
       } else {
         Seq.empty[Document]
       }

@@ -30,11 +30,10 @@ class RfiDetails extends HttpServlet with HttpUtils with MailUtils with DateTime
       val messages: Seq[DynDoc] = rfiExchange.messages[Many[Document]]
       val user: DynDoc = getUser(request)
       val messageLines: Seq[Document] = messages.sortBy(m => -m.timestamp[Long]).map(message => {
-        val own = message.sender[ObjectId] == user._id[ObjectId]
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).head
         val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
         val clientTimezone = user.tz[String]
-        new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)), "own" -> own,
+        new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)),
           "text" -> (if (message.text[Any] == null) "" else message.text[String]),
           "sender" -> senderName, "attachments" -> getAttachments(message)))
       })

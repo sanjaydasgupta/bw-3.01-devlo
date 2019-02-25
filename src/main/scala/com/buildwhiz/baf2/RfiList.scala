@@ -32,8 +32,9 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       val originationTime = dateTimeString(timestamps.start[Long], Some(user.tz[String]))
       val originator: DynDoc = BWMongoDB3.persons.find(Map("_id" -> originatorOid)).head
       val originatorName = s"${originator.first_name[String]} ${originator.last_name[String]}"
+      val own = originatorOid == user._id[ObjectId]
       new Document(Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
-        "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName,
+        "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,
         "question" -> rfi.question[String], "state" -> rfi.status[String], "assigned_to" -> "Unknown Unknown",
         "origination_date" -> originationTime, "due_date" -> originationTime, "response_date" -> originationTime,
         "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable))

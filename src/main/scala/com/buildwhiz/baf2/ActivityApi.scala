@@ -8,7 +8,10 @@ import org.bson.types.ObjectId
 
 object ActivityApi {
 
-  def activityById(activityOid: ObjectId): DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+  def activityById(activityOid: ObjectId): DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
+    case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
+    case Some(activity) => activity
+  }
 
   def exists(activityOid: ObjectId): Boolean = BWMongoDB3.activities.find(Map("_id" -> activityOid)).nonEmpty
 

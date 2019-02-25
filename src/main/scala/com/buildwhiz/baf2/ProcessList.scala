@@ -20,9 +20,9 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       val (startTime, endTime) = if (timestamps.has("end")) {
         (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
       } else if (timestamps.has("start")) {
-        (dateTimeString(timestamps.start[Long], Some(timeZone)), "???")
+        (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
       } else {
-        ("???", "???")
+        ("NA", "NA")
       }
       val processDoc = new Document("_id", process._id[ObjectId]).append("name", process.name[String]).
           append("status", process.status[String]).append("start_time", startTime).

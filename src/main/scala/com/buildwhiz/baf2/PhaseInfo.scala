@@ -3,14 +3,14 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class PhaseInfo extends HttpServlet with HttpUtils {
+class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
@@ -18,21 +18,30 @@ class PhaseInfo extends HttpServlet with HttpUtils {
       role.person_id[ObjectId] == userOid && role.role_name[String].matches("(Project|Phase)-Manager"))
   }
 
-  private def processInformation(phase: DynDoc): Many[Document] = {
+  private def processInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
     val processes: Seq[DynDoc] = PhaseApi.allProcesses(phase._id[ObjectId])
     val returnValue: Seq[Document] = processes.map(process => {
+      val timestamps: DynDoc = process.timestamps[Document]
+      val timeZone = user.tz[String]
+      val (startTime, endTime) = if (timestamps.has("end")) {
+        (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
+      } else if (timestamps.has("start")) {
+        (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
+      } else {
+        ("NA", "NA")
+      }
       Map("name" -> process.name[String], "status" -> process.status[String],
-          "start_date" -> "???", "end_date" -> "???")
+          "start_date" -> startTime, "end_date" -> endTime)
     })
     returnValue.asJava
   }
 
-  private def phase2json(phase: DynDoc, editable: Boolean): String = {
+  private def phase2json(phase: DynDoc, user: DynDoc, editable: Boolean): String = {
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
     val name = new Document("editable", editable).append("value", phase.name[String])
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("process_info", processInformation(phase))
+        append("status", status).append("process_info", processInformation(phase, user))
     projectDoc.toJson
   }
 
@@ -45,7 +54,7 @@ class PhaseInfo extends HttpServlet with HttpUtils {
       val phaseRecord: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
       val user: DynDoc = getUser(request)
       val phaseIsEditable = isEditable(phaseRecord, user)
-      response.getWriter.print(phase2json(phaseRecord, phaseIsEditable))
+      response.getWriter.print(phase2json(phaseRecord, user, phaseIsEditable))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

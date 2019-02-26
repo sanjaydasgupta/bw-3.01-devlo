@@ -54,6 +54,7 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       val category: Option[String] = parameters.get("category") match {
         case Some(str) if str.matches("(?i)required") => Some("required")
         case Some(str) if str.matches("(?i)additional") => Some("additional")
+        case Some(other) => throw new IllegalArgumentException(s"Bad category: '$other")
         case None => if (action.isDefined)
             throw new IllegalArgumentException("Not found: category")
           else

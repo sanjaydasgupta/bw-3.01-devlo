@@ -52,8 +52,8 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       }
 
       val category: Option[String] = parameters.get("category") match {
-        case Some(required) if required.matches("(?i)required") => Some("required")
-        case Some(additional) if additional.matches("(?i)additional") => Some("additional")
+        case Some(str) if str.matches("(?i)required") => Some("required")
+        case Some(str) if str.matches("(?i)additional") => Some("additional")
         case None => if (action.isDefined)
             throw new IllegalArgumentException("Not found: category")
           else
@@ -75,12 +75,10 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         else
           submittedFilename
         val inputStream = part.getInputStream
+        val comment: String = parameters.getOrElse("version_comment", "NA")
         val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
-          docOid, timestamp, "-", authorOid, request)
+          docOid, timestamp, comment, authorOid, request)
         val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
-        BWLogger.audit(getClass.getName, request.getMethod, message, request)
-      } else {
-        val message = s"Created new document record for '$name'"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
       }
 

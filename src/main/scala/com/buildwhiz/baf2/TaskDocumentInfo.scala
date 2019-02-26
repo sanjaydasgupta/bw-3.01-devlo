@@ -49,11 +49,10 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val specificationDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "specification"))
     val specificationUrl = specificationDocuments.headOption match {
       case None => ""
-      case Some(doc) => doc.get("specification_url").asInstanceOf[String]
+      case Some(doc) => doc.get("download_url").asInstanceOf[String]
     }
     val enableAddButtons = PersonApi.isBuildWhizAdmin(user._id[ObjectId]) ||
         ProcessApi.canManage(user._id[ObjectId], process)
-    // ToDo: task-specification-url incomplete
     val record = new Document("task_specification_url", specificationUrl).append("check_list", checkList).
         append("required_documents", requiredDocuments).append("additional_documents", additionalDocuments).
         append("enable_add_buttons", enableAddButtons)
@@ -67,11 +66,12 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity = ActivityApi.activityById(activityOid)
       val actions = ActivityApi.allActions(theActivity)
-      val actionName = parameters("action_name")
-      val theAction = actions.find(_.name[String] == actionName) match {
+//      val actionName = parameters("action_name")
+      val theAction = actions.find(_.`type`[String] == "main") match {
         case Some(a) => a
-        case None => throw new IllegalArgumentException(s"Bad action-name: '$actionName'")
+        case None => throw new IllegalArgumentException(s"Could not find 'main' action")
       }
+      val actionName = theAction.name[String]
       val parentProcess = ActivityApi.parentProcess(activityOid)
       val ancestorPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
       val ancestorProject = PhaseApi.parentProject(ancestorPhase._id[ObjectId])

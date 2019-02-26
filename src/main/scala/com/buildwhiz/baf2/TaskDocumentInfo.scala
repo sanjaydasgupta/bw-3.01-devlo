@@ -34,8 +34,8 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def checkListItems(user: DynDoc, activity: DynDoc, actionName: String, theAction: DynDoc): Seq[Document] = {
-    if (theAction.has("check_list")) {
-      theAction.check_list[Many[Document]]
+    if (activity.has("check_list")) {
+      activity.check_list[Many[Document]]
     } else
       Seq.empty[Document]
   }

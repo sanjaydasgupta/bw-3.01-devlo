@@ -17,7 +17,7 @@ class TaskChecklistItemAdd extends HttpServlet with HttpUtils with DateTimeUtils
       val theActivity = ActivityApi.activityById(activityOid)
       val checkListItemName = parameters("checklist_item_name")
       if (theActivity.has("check_list") &&
-          theActivity.check_list[Many[Document]].exists(_.name == checkListItemName))
+          theActivity.check_list[Many[Document]].exists(_.name[String] == checkListItemName))
         throw new IllegalArgumentException(s"Check list item already exists")
       val checkListItem = Map("name" -> checkListItemName, "status" -> false)
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),

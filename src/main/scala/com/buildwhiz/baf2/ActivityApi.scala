@@ -38,8 +38,10 @@ object ActivityApi {
 
   def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
       percentComplete: Option[Int] = None): Unit = {
-    if (userOid.map(PersonApi.exists).forall(_ == false))
-      throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
+    userOid.map(PersonApi.exists) match {
+      case Some(false) => throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
+      case _ => // Ok
+    }
     val timestamp = System.currentTimeMillis
     val changeLogEntry = (userOid, percentComplete) match {
       case (None, None) => Map("timestamp" -> timestamp, "description" -> description)

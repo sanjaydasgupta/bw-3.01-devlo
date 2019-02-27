@@ -1,37 +1,66 @@
 package com.buildwhiz.baf2
 
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def changeLogItems(request: HttpServletRequest): Seq[Document] = {
-    (1 to 10).map(n => {
-      val dateTime = s"2019-01-2$n 00:00"
-      val updatedBy = "FirstName LastName"
-      val (percentComplete, description) = if (n % 3 == 0)
-        ("-", "one two three four five six seven eight nine ten")
-      else
-        (s"${(n - 1) * 10}", s"The update for $n on the date of ????")
-      new Document("date_time", dateTime).append("updated_by", updatedBy).append("pct_complete", percentComplete).
-        append("description", description)
+  private def changeLogItems(user: DynDoc, theActivity: DynDoc, theAction: DynDoc): Seq[Document] = {
+    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
+      theActivity.change_log[Many[Document]]
+    else
+      Seq.empty[DynDoc]
+    changeLogEntries.map(entry => {
+      val dateTime = dateTimeString(entry.timestamp[Long], Some(user.tz[String]))
+      val updatedBy = if (entry.has("updater_person_id")) {
+        val updaterOid = entry.updater_person_id[ObjectId]
+        val updater = PersonApi.personById(updaterOid)
+        s"${updater.first_name} ${updater.last_name}"
+      } else
+        "-"
+      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[String] else "-"
+      new Document("date_time", dateTime).append("updated_by", updatedBy).append("percent_complete", percentComplete).
+        append("description", entry.description[String])
     })
   }
 
-  private def taskStatusRecord(request: HttpServletRequest): String = {
+  private def taskStatusRecord(user: DynDoc, theActivity: DynDoc, theAction: DynDoc, request: HttpServletRequest): String = {
     def wrap(rawValue: Any, editable: Boolean): Document = {
       new Document("editable", editable).append("value", rawValue)
     }
-    val changeLog = changeLogItems(request: HttpServletRequest)
-    val record = new Document("status", "running"). append("on_critical_path", true).
-        append("estimated_duration", wrap(33, editable = false)).
+
+    val reportingInterval = if (theActivity.has("reporting_interval"))
+      theActivity.reporting_interval[String]
+    else
+      "NA"
+
+    val (actualStartDate, actualEndDate) = if (theAction.has("timestamps")) {
+      val timestamps: DynDoc = theAction.timestamps[Document]
+      if (timestamps.has("end")) {
+        (timestamps.start[Long], timestamps.end[Long])
+      } else if (timestamps.has("start")) {
+        (timestamps.start[Long], "NA")
+      } else {
+        ("NA", "NA")
+      }
+    } else {
+      ("NA", "NA")
+    }
+
+    val changeLog = changeLogItems(user, theActivity, theAction)
+    val record = new Document("status", wrap(theAction.status[String], editable = false)).
+        append("on_critical_path", wrap(theAction.on_critical_path[String], editable = false)).
+        append("estimated_duration", wrap(theAction.duration[String], editable = false)).
         append("actual_duration", wrap(35, editable = false)).
         append("estimated_start_date", wrap("2018-MM-DD", editable = false)).
-        append("actual_start_date", wrap("2018-MM-DD", editable = false)).
+        append("actual_start_date", wrap(actualStartDate, editable = false)).
         append("estimated_end_date", wrap("2019-MM-DD", editable = false)).
-        append("actual_end_date", wrap("2019-MM-DD", editable = false)).
-        append("reporting_interval", wrap("weekly", editable = false)).
+        append("actual_end_date", wrap(actualEndDate, editable = false)).
+        append("reporting_interval", wrap(reportingInterval, editable = false)).
         append("change_log", changeLog)
     bson2json(record)
   }
@@ -40,10 +69,17 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      //val activityOid = new ObjectId(parameters("activity_id"))
-      //val user: DynDoc = getUser(request)
-      //val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      response.getWriter.print(taskStatusRecord(request))
+      val activityOid = new ObjectId(parameters("activity_id"))
+      val theActivity = ActivityApi.activityById(activityOid)
+      val actions = ActivityApi.allActions(theActivity)
+      val theAction = actions.find(_.`type`[String] == "main") match {
+        case Some(a) => a
+        case None => throw new IllegalArgumentException(s"Could not find 'main' action")
+      }
+      val actionName = theAction.name[String]
+      val user: DynDoc = getUser(request)
+      val freshUserRecord = PersonApi.personById(user._id[ObjectId])
+      response.getWriter.print(taskStatusRecord(freshUserRecord, theActivity, theAction, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

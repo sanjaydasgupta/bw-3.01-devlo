@@ -26,10 +26,12 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val versionDate = dateTimeString(versionTimestamp, Some(timezone))
       val fileName = currentVersion.file_name[String]
       val fileType = if (fileName.contains(".")) fileName.split("\\.").last else "???"
-      val downloadUrl = s"baf2/DocumentVersionDownload?document_master_id=${document._id[ObjectId]}" +
+      val documentOid = document._id[ObjectId]
+      val downloadUrl = s"baf2/DocumentVersionDownload?document_master_id=$documentOid" +
           s"&timestamp=$versionTimestamp"
       new Document("name", document.name[String]).append("type", fileType).append("version_date", versionDate).
-        append("version_count", versions.length).append("download_url", downloadUrl)
+          append("version_count", versions.length).append("download_url", downloadUrl).append("_id", documentOid).
+          append("timestamp", versionTimestamp)
     })
   }
 

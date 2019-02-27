@@ -24,10 +24,11 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       } else {
         ("NA", "NA")
       }
+      val canLaunch = process.status[String] == "defined" && adminPersonOid == user._id[ObjectId]
       val processDoc = new Document("_id", process._id[ObjectId]).append("name", process.name[String]).
           append("status", process.status[String]).append("start_time", startTime).
           append("end_time", endTime).append("admin_person_id", adminPersonOid.toString).
-          append("manager", adminName)
+          append("manager", adminName).append("can_launch", canLaunch)
       bson2json(processDoc)
     }
 

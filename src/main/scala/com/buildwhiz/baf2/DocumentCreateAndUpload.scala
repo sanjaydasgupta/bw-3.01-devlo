@@ -79,8 +79,28 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         val comment: String = parameters.getOrElse("version_comment", "NA")
         val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
           docOid, timestamp, comment, authorOid, request)
+
+        (action, category) match {
+          case (Some((activityOid, _)), Some(theCategory)) =>
+            ActivityApi.addChangeLogEntry(activityOid,
+              s"Document '$name' ($theCategory) created and uploaded", Some(user._id[ObjectId]))
+          case (Some((activityOid, _)), None) =>
+            ActivityApi.addChangeLogEntry(activityOid,
+              s"Document '$name' created and uploaded", Some(user._id[ObjectId]))
+          case _ =>
+        }
+
         val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      } else if (partCount == 0) {
+        (action, category) match {
+          case (Some((activityOid, _)), Some(theCategory)) =>
+            ActivityApi.addChangeLogEntry(activityOid, s"Document '$name' ($theCategory) created",
+              Some(user._id[ObjectId]))
+          case (Some((activityOid, _)), None) =>
+            ActivityApi.addChangeLogEntry(activityOid, s"Document '$name' created", Some(user._id[ObjectId]))
+          case _ =>
+        }
       }
 
       response.setStatus(HttpServletResponse.SC_OK)

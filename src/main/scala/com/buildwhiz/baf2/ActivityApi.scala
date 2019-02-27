@@ -36,4 +36,25 @@ object ActivityApi {
   def hasRole(personOid: ObjectId, activity: DynDoc): Boolean =
     allActions(activity).exists(_.assignee_person_id[ObjectId] == personOid)
 
+  def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
+      percentComplete: Option[Int] = None): Unit = {
+    if (userOid.map(PersonApi.exists).forall(_ == false))
+      throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
+    val timestamp = System.currentTimeMillis
+    val changeLogEntry = (userOid, percentComplete) match {
+      case (None, None) => Map("timestamp" -> timestamp, "description" -> description)
+      case (Some(updaterOid), None) =>
+        Map("timestamp" -> timestamp, "updater_person_id" -> updaterOid, "description" -> description)
+      case (Some(updaterOid), Some(pct)) =>
+        if (pct < 0 || pct > 100)
+          throw new IllegalArgumentException(s"Bad percent-complete: $pct")
+        Map("timestamp" -> timestamp, "updater_person_id" -> updaterOid, "description" -> description,
+          "percent_complete" -> pct)
+      case (None, Some(_)) => // Never possible!
+    }
+    val updateResult = BWMongoDB3.activities.
+      updateOne(Map("_id" -> activityOid), Map("$push" -> Map("change_log" -> changeLogEntry)))
+    if (updateResult.getModifiedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+  }
 }

@@ -67,10 +67,12 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       val mainActionName: String = actions.filter(_.`type`[String] == "main").map(_.name[String]).head
       de.setVariable("action_name", mainActionName)
 
+      val timestamp = System.currentTimeMillis()
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map("$set" ->
-        Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis())))
+        Map("status" -> "running", "timestamps.start" -> timestamp)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+      ActivityApi.addChangeLogEntry(activity._id[ObjectId], s"Started Execution")
 
       BWLogger.log(getClass.getName, "notify()", "EXIT-OK", de)
     } catch {

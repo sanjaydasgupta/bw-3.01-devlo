@@ -20,17 +20,19 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   private def uiFormattedRecords(user: DynDoc, documents: Seq[DynDoc]): Seq[Document] = {
     documents.map(document => {
       val versions: Seq[DynDoc] = document.versions[Many[Document]]
-      val currentVersion: DynDoc = versions.last
-      val timezone = user.tz[String]
-      val versionTimestamp = currentVersion.timestamp[Long]
-      val versionDate = dateTimeString(versionTimestamp, Some(timezone))
-      val fileName = currentVersion.file_name[String]
-      val fileType = if (fileName.contains(".")) fileName.split("\\.").last else "???"
+      val (versionTimestamp, versionDate, fileType) = if (versions.nonEmpty) {
+        val currentVersion: DynDoc = versions.last
+        val timezone = user.tz[String]
+        val versionTimestamp = currentVersion.timestamp[Long]
+        val versionDate = dateTimeString(versionTimestamp, Some(timezone))
+        val fileName = currentVersion.file_name[String]
+        val fileType = if (fileName.contains(".")) fileName.split("\\.").last else "???"
+        (versionTimestamp, versionDate, fileType)
+      } else
+        ("NA", "NA", "NA")
       val documentOid = document._id[ObjectId]
-      val downloadUrl = s"baf2/DocumentVersionDownload?document_master_id=$documentOid" +
-          s"&timestamp=$versionTimestamp"
       new Document("name", document.name[String]).append("type", fileType).append("version_date", versionDate).
-          append("version_count", versions.length).append("download_url", downloadUrl).append("_id", documentOid).
+          append("version_count", versions.length).append("_id", documentOid).
           append("timestamp", versionTimestamp)
     })
   }

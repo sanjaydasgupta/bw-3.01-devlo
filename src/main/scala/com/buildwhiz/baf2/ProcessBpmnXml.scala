@@ -106,9 +106,19 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         activity.bpmn_scheduled_end_date[String]
       } else
         ""
+      val hoverInfo = Seq(
+        new Document("name", "Start").append("value", activityStart),
+        new Document("name", "End").append("value", activityEnd),
+        new Document("name", "Status").append("value", status),
+        new Document("name", "Start").append("value", activityStart),
+        new Document("name", "End").append("value", activityEnd),
+        new Document("name", "Status").append("value", status)
+      )
+
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
+        append("hover_info", hoverInfo).
         append("on_critical_path",
             if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })

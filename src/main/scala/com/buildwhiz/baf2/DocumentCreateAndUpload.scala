@@ -4,7 +4,6 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import org.bson.Document
 import org.bson.types.ObjectId
 
 class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils {
@@ -38,16 +37,13 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       }
 
       val action: Option[(ObjectId, String)] = parameters.get("activity_id") match {
-        case Some(id) => parameters.get("action_name") match {
-          case Some(actionName) =>
-            val activityOid = new ObjectId(id)
-            val theActivity: DynDoc = ActivityApi.activityById(activityOid)
-            val actions: Seq[DynDoc] = theActivity.actions[Many[Document]]
-            if (!actions.exists(_.name[String] == actionName))
-              throw new IllegalArgumentException(s"unknown task: '$actionName'")
-            Some((activityOid, actionName))
-          case None => throw new IllegalArgumentException("action_name not provided")
-        }
+        case Some(id) =>
+          val activityOid = new ObjectId(id)
+          val theActivity: DynDoc = ActivityApi.activityById(activityOid)
+          val actions: Seq[DynDoc] = ActivityApi.allActions(theActivity)
+          val mainAction = actions.find(_.`type`[String] == "main").get
+          val mainActionName = mainAction.name[String]
+          Some((activityOid, mainActionName))
         case None => None
       }
 

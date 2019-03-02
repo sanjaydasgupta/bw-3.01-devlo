@@ -36,6 +36,76 @@ object ActivityApi {
   def hasRole(personOid: ObjectId, activity: DynDoc): Boolean =
     allActions(activity).exists(_.assignee_person_id[ObjectId] == personOid)
 
+  def scheduledStart(activity: DynDoc): Option[Long] = {
+    if (activity.has("bpmn_scheduled_start_date")) {
+      val date = activity.bpmn_scheduled_start_date[Long]
+      if (date == -1)
+        None
+      else
+        Some(date)
+    } else
+      None
+  }
+
+  def scheduledEnd(activity: DynDoc): Option[Long] = {
+    if (activity.has("bpmn_scheduled_end_date")) {
+      val date = activity.bpmn_scheduled_end_date[Long]
+      if (date == -1)
+        None
+      else
+        Some(date)
+    } else
+      None
+  }
+
+  def scheduledDuration(activity: DynDoc): Float = {
+    (scheduledStart(activity), scheduledEnd(activity)) match {
+      case (Some(start), Some(end)) => (end - start) / 86400000L
+      case _ => -1
+    }
+  }
+
+  def actualStart(activity: DynDoc): Option[Long] = {
+    if (activity.has("bpmn_actual_start_date")) {
+      val date = activity.bpmn_actual_start_date[Long]
+      if (date == -1)
+        None
+      else
+        Some(date)
+    } else if (activity.has("timestamps")) {
+      val timestamps: DynDoc = activity.timestamps[Document]
+      if (timestamps.has("start"))
+        Some(timestamps.start[Long])
+      else
+        None
+    } else
+      None
+  }
+
+  def actualEnd(activity: DynDoc): Option[Long] = {
+    if (activity.has("bpmn_actual_end_date")) {
+      val date = activity.bpmn_actual_end_date[Long]
+      if (date == -1)
+        None
+      else
+        Some(date)
+    } else if (activity.has("timestamps")) {
+      val timestamps: DynDoc = activity.timestamps[Document]
+      if (timestamps.has("end"))
+        Some(timestamps.end[Long])
+      else
+        None
+    } else
+      None
+  }
+
+  def actualDuration(activity: DynDoc): Float = {
+    (actualStart(activity), actualEnd(activity)) match {
+      case (Some(start), Some(end)) => (end - start) / 86400000L
+      case _ => -1
+    }
+  }
+
   def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
       percentComplete: Option[Int] = None): Unit = {
     userOid.map(PersonApi.exists) match {

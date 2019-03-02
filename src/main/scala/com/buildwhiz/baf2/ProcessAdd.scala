@@ -306,6 +306,17 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
+  private def date2long(date: String): Long = {
+    if (date.isEmpty)
+      -1L
+    else {
+      val Array(year, month, day) = date.split("-").map(_.toInt)
+      val calendar = java.util.Calendar.getInstance()
+      calendar.set(year, month - 1, day)
+      calendar.getTimeInMillis
+    }
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
@@ -358,8 +369,10 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
           "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration,
-          "bpmn_scheduled_start_date" -> bpmnScheduledStart, "bpmn_scheduled_end_date" -> bpmnScheduledEnd,
-          "bpmn_actual_start_date" -> bpmnActualStart, "bpmn_actual_end_date" -> bpmnActualEnd)
+          "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart),
+          "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd),
+          "bpmn_actual_start_date" -> date2long(bpmnActualStart),
+          "bpmn_actual_end_date" -> date2long(bpmnActualEnd))
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),

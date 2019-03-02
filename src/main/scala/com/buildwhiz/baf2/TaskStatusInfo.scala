@@ -36,7 +36,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val reportingInterval = if (theActivity.has("reporting_interval"))
       theActivity.reporting_interval[String]
     else
-      "NA"
+      "weekly"
 
     val (actualStartDate, actualEndDate) = if (theAction.has("timestamps")) {
       val timestamps: DynDoc = theAction.timestamps[Document]

@@ -21,20 +21,9 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
       if (!ProjectApi.exists(projectOid))
         throw new IllegalArgumentException(s"unknown project-id: ${projectOid.toString}")
 
-      val systemTags = parameters("tags").split(",").toSeq
+      val systemTags = parameters("tags").split(",").map(_.trim).toSeq
 
       val user: DynDoc = getUser(request)
-      val authorOid = parameters.get("author_id") match {
-        case Some(id) => new ObjectId(id)
-        case None => user._id[ObjectId]
-      }
-      if (!PersonApi.exists(authorOid))
-        throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
-
-      val timestamp = parameters.get("timestamp") match {
-        case Some(ts) => ts.toLong
-        case None => System.currentTimeMillis
-      }
 
       val action: Option[(ObjectId, String)] = parameters.get("activity_id") match {
         case Some(id) =>
@@ -73,6 +62,17 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
           submittedFilename
         val inputStream = part.getInputStream
         val comment: String = parameters.getOrElse("version_comment", "NA")
+        val authorOid = parameters.get("author_id") match {
+          case Some(id) => new ObjectId(id)
+          case None => user._id[ObjectId]
+        }
+        if (!PersonApi.exists(authorOid))
+          throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
+        val timestamp = parameters.get("timestamp") match {
+          case Some(ts) => ts.toLong
+          case None => System.currentTimeMillis
+        }
+
         val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
           docOid, timestamp, comment, authorOid, request)
 

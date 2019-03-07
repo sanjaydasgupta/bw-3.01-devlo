@@ -1,7 +1,7 @@
 package com.buildwhiz.utils
 
 import java.text.SimpleDateFormat
-import java.util.{Date, TimeZone}
+import java.util.{Date, TimeZone, Calendar}
 
 trait DateTimeUtils {
 
@@ -9,6 +9,13 @@ trait DateTimeUtils {
     val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
     timeZoneCode.foreach(tzc => simpleDateFormat.setTimeZone(TimeZone.getTimeZone(tzc)))
     simpleDateFormat.format(new Date(milliSeconds))
+  }
+
+  def milliseconds(yyyymmdd: String): Long = {
+    val Array(year, month, date) = yyyymmdd.split("-").map(_.toInt)
+    val calendar = Calendar.getInstance()
+    calendar.set(year, month - 1, date)
+    calendar.getTimeInMillis
   }
 
   private val durationRe = "(\\d+):(\\d+):(\\d+)".r

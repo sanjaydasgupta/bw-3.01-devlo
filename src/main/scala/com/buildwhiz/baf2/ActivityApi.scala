@@ -129,4 +129,20 @@ object ActivityApi {
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
+
+  def userAccessLevel(user: DynDoc, activity: DynDoc, action: DynDoc): String = {
+    if (PersonApi.isBuildWhizAdmin(user._id[ObjectId])) {
+      "all"
+    } else {
+      val process = parentProcess(activity._id[ObjectId])
+      if (ProcessApi.canManage(user._id[ObjectId], process)) {
+        "manage"
+      } else if (action.assignee_person_id[ObjectId] == user._id[ObjectId]) {
+        "contribute"
+      } else {
+        "none"
+      }
+    }
+  }
+
 }

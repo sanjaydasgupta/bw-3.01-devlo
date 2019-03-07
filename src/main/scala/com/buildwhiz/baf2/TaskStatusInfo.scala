@@ -33,6 +33,8 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       new Document("editable", editable).append("value", rawValue)
     }
 
+    val accessLevel: String = ActivityApi.userAccessLevel(user, theActivity, theAction)
+
     val reportingInterval = if (theActivity.has("reporting_interval"))
       theActivity.reporting_interval[String]
     else
@@ -57,17 +59,23 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       case None => "NA"
       case Some(ms) => dateTimeString(ms, Some(timezone)).split(" ").head
     }
+    val percentComplete = if (theActivity.has("percent_complete"))
+      theActivity.percent_complete[Int]
+    else
+      0
 
     val record = new Document("status", wrap(theAction.status[String], editable = false)).
         append("on_critical_path", wrap(theAction.on_critical_path[String], editable = false)).
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
         append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
-        append("estimated_start_date", wrap(scheduledStart, editable = false)).
+        append("estimated_start_date", wrap(scheduledStart, accessLevel.matches("all|manage"))).
         append("actual_start_date", wrap(actualStart, editable = false)).
-        append("estimated_end_date", wrap(scheduledEnd, editable = false)).
+        append("estimated_end_date", wrap(scheduledEnd, accessLevel.matches("all|manage"))).
         append("actual_end_date", wrap(actualEnd, editable = false)).
-        append("reporting_interval", wrap(reportingInterval, editable = false)).
-        append("change_log", changeLog)
+        append("reporting_interval", wrap(reportingInterval, accessLevel.matches("all|manage"))).
+        append("percent_complete", wrap(percentComplete, editable = false)).append("change_log", changeLog).
+        append("enable_edit_button", accessLevel.matches("all|manage")).
+        append("enable_update_status_button", accessLevel.matches("all|manage|contribute"))
     bson2json(record)
   }
 

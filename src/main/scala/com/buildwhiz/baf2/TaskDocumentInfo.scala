@@ -29,7 +29,7 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         val fileType = if (fileName.contains(".")) fileName.split("\\.").last else "???"
         (versionTimestamp, versionDate, fileType)
       } else
-        ("NA", "NA", "NA")
+        (0L, "NA", "NA")
       val documentOid = document._id[ObjectId]
       new Document("name", document.name[String]).append("type", fileType).append("version_date", versionDate).
           append("version_count", versions.length).append("_id", documentOid).
@@ -51,15 +51,12 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val requiredDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "required"))
     val additionalDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "additional"))
     val specificationDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "specification"))
-    val specificationUrl = specificationDocuments.headOption match {
-      case None => ""
-      case Some(doc) => doc.get("download_url").asInstanceOf[String]
-    }
+    val submittalDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "submittal"))
     val enableAddButtons = PersonApi.isBuildWhizAdmin(user._id[ObjectId]) ||
         ProcessApi.canManage(user._id[ObjectId], process)
-    val record = new Document("task_specification_url", specificationUrl).append("check_list", checkList).
+    val record = new Document("specification_documents", specificationDocuments).append("check_list", checkList).
         append("required_documents", requiredDocuments).append("additional_documents", additionalDocuments).
-        append("enable_add_buttons", enableAddButtons)
+        append("submittal_documents", submittalDocuments).append("enable_add_buttons", enableAddButtons)
     bson2json(record)
   }
 

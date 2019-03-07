@@ -6,7 +6,7 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-class TaskInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
+class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def date2ms(date: String) = milliseconds(date)
 

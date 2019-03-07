@@ -41,7 +41,10 @@ class ProjectInfo extends HttpServlet with HttpUtils {
       Seq.empty[String].asJava
     val documentTags = new Document("editable", false).append("value", bareDocumentTags.asJava)
     val description = new Document("editable", editable).append("value", project.description[String])
-    val status = new Document("editable", false).append("value", project.status[String])
+    val rawStatus = project.status[String]
+    val status = new Document("editable", false).append("value", rawStatus)
+    val displayStatus = new Document("editable", false).
+        append("value", if (rawStatus == "defined") "pre-launch" else "launched")
     val name = new Document("editable", editable).append("value", project.name[String])
     val postalCode = fieldSpecification(project, "address/postal_code", editable)
     val line1 = fieldSpecification(project, "address/line1", editable)
@@ -51,15 +54,18 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val longitude = fieldSpecification(project, "address/gps_location/longitude", editable)
     val stateName = fieldSpecification(project, "address/state/name", editable)
     val countryName = fieldSpecification(project, "address/country/name", editable)
-    val constructionType: Document = new Document("editable", editable).append("value", project.construction_type[String])
+    val constructionType: Document = new Document("editable", editable).
+        append("value", project.construction_type[String])
     val `type`: Document = new Document("editable", editable).append("value", project.`type`[String])
     val budgetMmUsd: Document = new Document("editable", editable).append("value", project.budget_mm_usd[Double])
-    val constAreaSqFt: Document = new Document("editable", editable).append("value", project.construction_area_sqft[Double])
+    val constAreaSqFt: Document = new Document("editable", editable).
+        append("value", project.construction_area_sqft[Double])
     val landAreaAcres: Document = new Document("editable", editable).append("value", project.land_area_acres[Double])
-    val maxBldgHeightFt: Document = new Document("editable", editable).append("value", project.max_building_height_ft[Double])
+    val maxBldgHeightFt: Document = new Document("editable", editable).
+        append("value", project.max_building_height_ft[Double])
     val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("document_tags", documentTags).
+        append("status", status).append("display_status", displayStatus).append("document_tags", documentTags).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).

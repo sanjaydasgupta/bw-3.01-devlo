@@ -67,7 +67,6 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity = ActivityApi.activityById(activityOid)
       val actions = ActivityApi.allActions(theActivity)
-//      val actionName = parameters("action_name")
       val theAction = actions.find(_.`type`[String] == "main") match {
         case Some(a) => a
         case None => throw new IllegalArgumentException(s"Could not find 'main' action")

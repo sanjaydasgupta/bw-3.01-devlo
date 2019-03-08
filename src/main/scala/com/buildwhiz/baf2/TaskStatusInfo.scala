@@ -64,18 +64,34 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     else
       0
 
+    val userCanManage = accessLevel.matches("all|manage")
+    val userCanContribute = accessLevel.matches("contribute")
+
+    val untilStart = theActivity.status[String].matches("defined")
+    val untilEnd = theActivity.status[String].matches("defined|running")
+
+    val enableEditUntilStart = userCanManage && untilStart
+    val enableEditUntilEnd = userCanManage && untilEnd
+    val enableEditButton = userCanManage && untilEnd
+
+    val enableUpdateStatusButton = theActivity.status[String] == "running" && (userCanManage ||
+        (userCanContribute && user._id[ObjectId] == theAction.assignee_person_id[ObjectId]))
+
+    val updateReportOptions = Seq("Complete, In-Progress")
+
     val record = new Document("status", wrap(theAction.status[String], editable = false)).
         append("on_critical_path", wrap(theAction.on_critical_path[String], editable = false)).
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
         append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
-        append("estimated_start_date", wrap(scheduledStart, accessLevel.matches("all|manage"))).
+        append("estimated_start_date", wrap(scheduledStart, enableEditUntilStart)).
         append("actual_start_date", wrap(actualStart, editable = false)).
-        append("estimated_end_date", wrap(scheduledEnd, accessLevel.matches("all|manage"))).
+        append("estimated_end_date", wrap(scheduledEnd, enableEditUntilEnd)).
         append("actual_end_date", wrap(actualEnd, editable = false)).
-        append("reporting_interval", wrap(reportingInterval, accessLevel.matches("all|manage"))).
+        append("reporting_interval", wrap(reportingInterval, enableEditUntilEnd)).
         append("percent_complete", wrap(percentComplete, editable = false)).append("change_log", changeLog).
-        append("enable_edit_button", accessLevel.matches("all|manage")).
-        append("enable_update_status_button", accessLevel.matches("all|manage|contribute"))
+        append("enable_edit_button", enableEditButton).
+        append("enable_update_status_button", enableUpdateStatusButton).
+        append("update_report_options", updateReportOptions)
     bson2json(record)
   }
 

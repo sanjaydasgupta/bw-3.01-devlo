@@ -66,37 +66,49 @@ object ActivityApi {
   }
 
   def actualStart(activity: DynDoc): Option[Long] = {
+
+    def timestampStart: Option[Long] = {
+      if (activity.has("timestamps")) {
+        val timestamps: DynDoc = activity.timestamps[Document]
+        if (timestamps.has("start"))
+          Some(timestamps.start[Long])
+        else
+          None
+      } else
+        None
+    }
+
     if (activity.has("bpmn_actual_start_date")) {
       val date = activity.bpmn_actual_start_date[Long]
       if (date == -1)
-        None
+        timestampStart
       else
         Some(date)
-    } else if (activity.has("timestamps")) {
-      val timestamps: DynDoc = activity.timestamps[Document]
-      if (timestamps.has("start"))
-        Some(timestamps.start[Long])
-      else
-        None
     } else
-      None
+      timestampStart
   }
 
   def actualEnd(activity: DynDoc): Option[Long] = {
+
+    def timestampEnd: Option[Long] = {
+      if (activity.has("timestamps")) {
+        val timestamps: DynDoc = activity.timestamps[Document]
+        if (timestamps.has("end"))
+          Some(timestamps.end[Long])
+        else
+          None
+      } else
+        None
+    }
+
     if (activity.has("bpmn_actual_end_date")) {
       val date = activity.bpmn_actual_end_date[Long]
       if (date == -1)
-        None
+        timestampEnd
       else
         Some(date)
-    } else if (activity.has("timestamps")) {
-      val timestamps: DynDoc = activity.timestamps[Document]
-      if (timestamps.has("end"))
-        Some(timestamps.end[Long])
-      else
-        None
     } else
-      None
+      timestampEnd
   }
 
   def actualDuration(activity: DynDoc): Float = {

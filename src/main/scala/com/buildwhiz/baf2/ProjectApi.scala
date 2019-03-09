@@ -83,7 +83,7 @@ object ProjectApi extends HttpUtils {
   }
 */
 
-  def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => ProcessApi.isActive(phase))
+  def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => PhaseApi.isActive(phase))
 
   def delete(project: DynDoc, request: HttpServletRequest): Unit = {
     if (project.status[String] != "ended")
@@ -189,6 +189,13 @@ object ProjectApi extends HttpUtils {
       }
     } else
       throw new IllegalArgumentException(s"Bad operation: '$operation'")
+  }
+
+  def displayStatus(project: DynDoc): String = {
+    if (isActive(project))
+      "active"
+    else
+      "dormant"
   }
 
 }

@@ -22,7 +22,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
-      Map("name" -> phase.name[String], "status" -> phase.status[String],
+      Map("name" -> phase.name[String], "status" -> PhaseApi.displayStatus(phase),
           "start_date" -> "???", "end_date" -> "???")
     })
     returnValue.asJava
@@ -43,8 +43,6 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)
-    val displayStatus = new Document("editable", false).
-        append("value", if (rawStatus == "defined") "pre-launch" else "launched")
     val name = new Document("editable", editable).append("value", project.name[String])
     val postalCode = fieldSpecification(project, "address/postal_code", editable)
     val line1 = fieldSpecification(project, "address/line1", editable)
@@ -65,7 +63,8 @@ class ProjectInfo extends HttpServlet with HttpUtils {
         append("value", project.max_building_height_ft[Double])
     val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("display_status", displayStatus).append("document_tags", documentTags).
+        append("status", status).append("display_status", ProjectApi.displayStatus(project)).
+        append("document_tags", documentTags).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).

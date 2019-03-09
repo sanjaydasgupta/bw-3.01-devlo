@@ -31,6 +31,7 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         ("NA", "NA")
       }
       Map("name" -> process.name[String], "status" -> process.status[String],
+          "display_status" -> ProcessApi.displayStatus(process),
           "start_date" -> startTime, "end_date" -> endTime)
     })
     returnValue.asJava
@@ -41,7 +42,8 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val status = new Document("editable", false).append("value", phase.status[String])
     val name = new Document("editable", editable).append("value", phase.name[String])
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("process_info", processInformation(phase, user))
+        append("status", status).append("display_status", PhaseApi.displayStatus(phase)).
+        append("process_info", processInformation(phase, user))
     projectDoc.toJson
   }
 

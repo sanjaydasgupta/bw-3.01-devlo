@@ -80,4 +80,11 @@ object PhaseApi {
     phases.filter(phase => hasRole(personOid, phase))
   }
 
+  def displayStatus(phase: DynDoc): String = {
+    if (isActive(phase))
+      "active"
+    else
+      "dormant"
+  }
+
 }

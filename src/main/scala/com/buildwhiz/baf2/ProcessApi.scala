@@ -107,4 +107,11 @@ object ProcessApi {
       isManager(personOid, process) || isAdmin(personOid, process) ||
       PhaseApi.canManage(personOid, parentPhase(process._id[ObjectId]))
 
+  def displayStatus(process: DynDoc): String = {
+    if (isActive(process))
+      "active"
+    else
+      "dormant"
+  }
+
 }

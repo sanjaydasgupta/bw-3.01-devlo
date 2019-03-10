@@ -46,6 +46,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)
+    val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus(project))
     val name = new Document("editable", editable).append("value", project.name[String])
     val postalCode = fieldSpecification(project, "address/postal_code", editable)
     val line1 = fieldSpecification(project, "address/line1", editable)
@@ -67,7 +68,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
       0.0)
     val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("display_status", ProjectApi.displayStatus(project)).
+        append("status", status).append("display_status", displayStatus).
         append("document_tags", documentTags).
         append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).

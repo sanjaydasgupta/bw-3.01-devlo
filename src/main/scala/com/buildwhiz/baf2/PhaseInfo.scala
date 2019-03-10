@@ -40,9 +40,10 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   private def phase2json(phase: DynDoc, user: DynDoc, editable: Boolean): String = {
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
+    val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
     val name = new Document("editable", editable).append("value", phase.name[String])
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("display_status", PhaseApi.displayStatus(phase)).
+        append("status", status).append("display_status", displayStatus).
         append("process_info", processInformation(phase, user))
     projectDoc.toJson
   }

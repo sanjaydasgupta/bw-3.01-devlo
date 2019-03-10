@@ -28,9 +28,12 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     returnValue.asJava
   }
 
-  private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean): Document = {
+  private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean, defaultValue: Any = ""):
+      Document = {
     val names = structuredName.split("/").map(_.trim)
-    val value = names.init.foldLeft(project.asDoc)((dd, s) => dd.get(s, classOf[Document])).get(names.last).toString
+    val value = names.init.foldLeft(project.asDoc)((dd, s) =>
+        dd.getOrDefault(s, new Document()).asInstanceOf[Document]).
+        getOrDefault(names.last, defaultValue.toString).toString
     new Document("editable", editable).append("value", value)
   }
 
@@ -51,17 +54,18 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val latitude = fieldSpecification(project, "address/gps_location/latitude", editable)
     val longitude = fieldSpecification(project, "address/gps_location/longitude", editable)
     val stateName = fieldSpecification(project, "address/state/name", editable)
-    val countryName = fieldSpecification(project, "address/country/name", editable)
-    val constructionType: Document = new Document("editable", editable).
-        append("value", project.construction_type[String])
-    val `type`: Document = new Document("editable", editable).append("value", project.`type`[String])
-    val budgetMmUsd: Document = new Document("editable", editable).append("value", project.budget_mm_usd[Double])
-    val constAreaSqFt: Document = new Document("editable", editable).
-        append("value", project.construction_area_sqft[Double])
-    val landAreaAcres: Document = new Document("editable", editable).append("value", project.land_area_acres[Double])
-    val maxBldgHeightFt: Document = new Document("editable", editable).
-        append("value", project.max_building_height_ft[Double])
-    val phaseInfo: Document = new Document("editable", false).append("value", phaseInformation(project))
+    val countryName = fieldSpecification(project, "address/country/name", editable,
+      "United States")
+    val constructionType = fieldSpecification(project, "construction_type", editable,
+      "concrete")
+    val `type` = fieldSpecification(project, "type", editable, "Mixed-Use Facility")
+    val budgetMmUsd = fieldSpecification(project, "budget_mm_usd", editable, 0.0)
+    val constAreaSqFt = fieldSpecification(project, "construction_area_sqft", editable,
+      0.0)
+    val landAreaAcres = fieldSpecification(project, "land_area_acres", editable, 0.0)
+    val maxBldgHeightFt = fieldSpecification(project, "max_building_height_ft", editable,
+      0.0)
+    val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
         append("status", status).append("display_status", ProjectApi.displayStatus(project)).
         append("document_tags", documentTags).

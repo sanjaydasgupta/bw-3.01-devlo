@@ -43,7 +43,7 @@ class PhaseList extends HttpServlet with HttpUtils {
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     val isActive = PhaseApi.isActive(phase)
     val isManaged = phase.admin_person_id[ObjectId] == personOid
-    val displayStatus: String = if (actions.exists(action => action.status[String] == "waiting" &&
+    val legacyStatus: String = if (actions.exists(action => action.status[String] == "waiting" &&
         action.assignee_person_id[ObjectId] == personOid))
       "waiting"
     else if (actions.exists(action => action.status[String] == "waiting"))
@@ -51,7 +51,8 @@ class PhaseList extends HttpServlet with HttpUtils {
     else
       phase.status[String]
     val projectDocument = new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
-      append("status", phase.status[String]).append("display_status", displayStatus).
+      append("status", phase.status[String]).append("legacy_status", legacyStatus).
+      append("display_status", PhaseApi.displayStatus(phase)).
       append("is_managed", isManaged).append("admin_person_id", phase.admin_person_id[ObjectId].toString).
       append("can_delete", !isActive).append("docsUrl", s"docs?phase_id=${phase._id[ObjectId]}")
     bson2json(projectDocument)

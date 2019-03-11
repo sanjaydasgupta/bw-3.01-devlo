@@ -108,10 +108,15 @@ object ProcessApi {
       PhaseApi.canManage(personOid, parentPhase(process._id[ObjectId]))
 
   def displayStatus(process: DynDoc): String = {
-    if (isActive(process))
+    if (isActive(process)) {
       "active"
-    else
-      "dormant"
+    } else {
+      val timestamps: DynDoc = process.timestamps[Document]
+      if (timestamps.has("end"))
+        "ended"
+      else
+        "dormant"
+    }
   }
 
 }

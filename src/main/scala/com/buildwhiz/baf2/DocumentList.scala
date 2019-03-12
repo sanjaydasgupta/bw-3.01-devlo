@@ -28,8 +28,10 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
         val fileSize = lastVersion.asDoc.getOrDefault("size", "???").toString
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
-        val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-        val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+        val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {
+          case None => "Unknown Unknown"
+          case Some(author) => s"${author.first_name[String]} ${author.last_name[String]}"
+        }
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,

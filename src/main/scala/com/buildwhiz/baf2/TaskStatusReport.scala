@@ -21,7 +21,7 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
       val comments = parameters("comments")
       val status = parameters("status")
       if (!status.matches("(?i)complete|accepted|rejected|in-progress"))
-        throw new IllegalArgumentException(s"Bad status: 'status'")
+        throw new IllegalArgumentException(s"Bad status: '$status'")
 
       ActivityApi.addChangeLogEntry(activityOid, comments, Some(user._id[ObjectId]), Some(percentComplete))
       if (status.matches("(?i)complete")) {

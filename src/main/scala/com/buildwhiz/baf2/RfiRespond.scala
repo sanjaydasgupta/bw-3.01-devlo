@@ -7,6 +7,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 class RfiRespond extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -20,26 +22,21 @@ class RfiRespond extends HttpServlet with HttpUtils with DateTimeUtils {
       val rfiOid = new ObjectId(parameters("rfi_id"))
       val rfiRecord = RfiApi.rfiById(rfiOid)
       val projectOid = rfiRecord.project_id[ObjectId]
-
-      val attachments = if (request.getContentType.contains("multipart") && request.getParts.size == 1) {
-        val part = request.getParts.iterator.next()
-        val submittedFilename = part.getSubmittedFileName
+      val parts = request.getParts.iterator.asScala.toList
+      val attachments = parts.zipWithIndex.map(part => {
+        val submittedFilename = part._1.getSubmittedFileName
         val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
           "unknown.tmp"
         else
           submittedFilename
         val fileType = if (fullFileName.contains(".")) fullFileName.split("\\.").last.trim else "tmp"
-        val docOid = DocumentApi.createProjectDocumentRecord(f"RFI-Attachment-$timestamp%x",
+        val docOid = DocumentApi.createProjectDocumentRecord(f"RFI-Attachment-$timestamp%x-${part._2}",
           "", fileType, Seq.empty[String], projectOid, None, None, Some("SYSTEM"))
-        val inputStream = part.getInputStream
+        val inputStream = part._1.getInputStream
         val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
           docOid, timestamp, "-", senderOid, request)
-        Seq(new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", timestamp))
-      } else if (request.getContentType.contains("multipart") && request.getParts.size > 1) {
-        throw new IllegalArgumentException(s"Multiple attachments not supported")
-      } else {
-        Seq.empty[Document]
-      }
+        new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", timestamp)
+      })
 
       val message = Map("text" -> messageText, "sender" -> user._id[ObjectId],
         "read_person_ids" -> Seq.empty[ObjectId], "attachments" -> attachments, "timestamp" -> timestamp)

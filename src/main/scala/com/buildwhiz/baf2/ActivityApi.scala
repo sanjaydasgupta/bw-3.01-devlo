@@ -119,7 +119,7 @@ object ActivityApi {
   }
 
   def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
-      percentComplete: Option[Int] = None): Unit = {
+      percentComplete: Option[String] = None): Unit = {
     userOid.map(PersonApi.exists) match {
       case Some(false) => throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
       case _ => // Ok
@@ -130,7 +130,7 @@ object ActivityApi {
       case (Some(updaterOid), None) =>
         Map("timestamp" -> timestamp, "updater_person_id" -> updaterOid, "description" -> description)
       case (Some(updaterOid), Some(pct)) =>
-        if (pct < 0 || pct > 100)
+        if (pct.toInt < 0 || pct.toInt > 100)
           throw new IllegalArgumentException(s"Bad percent-complete: $pct")
         Map("timestamp" -> timestamp, "updater_person_id" -> updaterOid, "description" -> description,
           "percent_complete" -> pct)

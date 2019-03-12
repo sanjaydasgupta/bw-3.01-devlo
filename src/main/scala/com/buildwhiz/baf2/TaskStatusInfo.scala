@@ -22,7 +22,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         s"${updater.first_name} ${updater.last_name}"
       } else
         "-"
-      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[String] else "-"
+      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[Any].toString else "-"
       new Document("date_time", dateTime).append("updated_by", updatedBy).append("percent_complete", percentComplete).
         append("description", entry.description[String])
     })
@@ -59,10 +59,10 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       case None => "NA"
       case Some(ms) => dateTimeString(ms, Some(timezone)).split(" ").head
     }
-    val percentComplete = if (theActivity.has("percent_complete"))
-      theActivity.percent_complete[Int]
-    else
-      0
+    val percentComplete = changeLog.reverse.find(_.has("percent_complete")) match {
+      case None => "0"
+      case Some(d) => d.get("percent_complete", classOf[Any]).toString
+    }
 
     val userCanManage = accessLevel.matches("all|manage")
     val userCanContribute = accessLevel.matches("contribute")

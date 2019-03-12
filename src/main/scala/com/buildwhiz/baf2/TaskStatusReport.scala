@@ -15,8 +15,8 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val user: DynDoc = getUser(request)
       val activityOid = new ObjectId(parameters("activity_id"))
-      val percentComplete = parameters("percent_complete").toInt
-      if (percentComplete < 0 || percentComplete > 100)
+      val percentComplete = parameters("percent_complete")
+      if (percentComplete.toInt < 0 || percentComplete.toInt > 100)
         throw new IllegalArgumentException(s"Bad percent-complete: '$percentComplete'")
       val comments = parameters("comments")
       val status = parameters("status")

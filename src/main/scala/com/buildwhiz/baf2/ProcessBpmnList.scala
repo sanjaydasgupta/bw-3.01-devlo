@@ -41,15 +41,15 @@ class ProcessBpmnList extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def listProcesses(process: DynDoc, user: DynDoc): Seq[DynDoc] = {
+    val displayStatus = ProcessApi.displayStatus(process)
+    val Seq(topStart, topEnd) = Seq(startTime(process), endTime(process)).map(t => time2string(t, user))
+    val topLevelProcess: DynDoc = Map("status" -> process.status[String], "display_status" -> displayStatus,
+      "bpmn_name" -> process.bpmn_name[String], "start_time" -> topStart, "end_time" -> topEnd)
     val bpmnTimestamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]]
-    bpmnTimestamps match {
-      case Nil =>
-        val displayStatus = ProcessApi.displayStatus(process)
-        val Seq(topStart, topEnd) = Seq(startTime(process), endTime(process)).map(t => time2string(t, user))
-        val topLevelProcess: DynDoc = Map("status" -> process.status[String], "display_status" -> displayStatus,
-          "bpmn_name" -> process.bpmn_name[String], "start_time" -> topStart, "end_time" -> topEnd)
-        Seq(topLevelProcess)
-      case timestamps => timestamps.map(ts => {
+    if (bpmnTimestamps.isEmpty) {
+      Seq(topLevelProcess)
+    } else {
+      val subProcesses: Seq[DynDoc] = bpmnTimestamps.map(ts => {
         val Seq(timeStart, timeEnd) = Seq(startTime(ts), endTime(ts)).map(t => time2string(t, user))
         val displayStatus = (timeStart, timeEnd) match {
           case ("NA", "NA") => "dormant"
@@ -61,6 +61,12 @@ class ProcessBpmnList extends HttpServlet with HttpUtils with DateTimeUtils {
         Map("status" -> ts.status[String], "display_status" -> displayStatus,
           "bpmn_name" -> ts.name[String], "start_time" -> timeStart, "end_time" -> timeEnd)
       })
+
+      if (ProcessApi.isActive(process)) {
+        subProcesses
+      } else {
+        topLevelProcess +: subProcesses
+      }
     }
   }
 

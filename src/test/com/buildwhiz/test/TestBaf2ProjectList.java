@@ -10,7 +10,7 @@ import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestMyServlet extends Mockito {
+public class TestBaf2ProjectList extends Mockito {
 
     @Test
     public void findSomeProjects() throws Exception {

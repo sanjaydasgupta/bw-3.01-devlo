@@ -65,6 +65,8 @@ object VariableValueSet extends HttpUtils {
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      response.getWriter.print(value)
+      response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val variableLog = s"'${variables(variableIdx).label[String]}'"
       BWLogger.audit(getClass.getName, "doPost", s"""Set value of variable '$variableLog' to '$value'""", request)

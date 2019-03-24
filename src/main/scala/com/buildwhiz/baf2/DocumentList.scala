@@ -21,28 +21,40 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val allUserLabels = userLabels ++ logicalLabels
       val allLabelsCsv = (systemLabels ++ allUserLabels).mkString(",")
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
+      val phaseName = if (d.has("phase_id")) {
+        val thePhase = PhaseApi.phaseById(d.phase_id[ObjectId])
+        thePhase.name[String]
+      } else {
+        "NA"
+      }
+      val taskName = if (d.has("activity_id")) {
+        val theActivity = ActivityApi.activityById(d.activity_id[ObjectId])
+        theActivity.name[String]
+      } else {
+        "NA"
+      }
       val versionCount = versions.length
       val documentProperties: Document = if (versionCount != 0) {
         val lastVersion: DynDoc = versions.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
         val fileType = lastVersion.file_name[String].split("\\.").last
-        val fileSize = lastVersion.asDoc.getOrDefault("size", "???").toString
+        val fileSize = lastVersion.asDoc.getOrDefault("size", "NA").toString
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
         val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {
           case None => "Unknown Unknown"
           case Some(author) => s"${author.first_name[String]} ${author.last_name[String]}"
         }
-        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
+        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> phaseName,
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> lastVersion.timestamp[Long],
-          "has_versions" -> true, "version_count" -> versionCount, "size" -> fileSize)
+          "has_versions" -> true, "version_count" -> versionCount, "size" -> fileSize, "task_name" -> taskName)
       } else {
-        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
+        Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> phaseName,
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
-          "type" -> "???", "author" -> "???", "date" -> "???", "project_id" -> d.project_id[ObjectId].toString,
+          "type" -> "NA", "author" -> "NA", "date" -> "NA", "project_id" -> d.project_id[ObjectId].toString,
           "project_name" -> project.name[String], "timestamp" -> 0L, "has_versions" -> false,
-          "version_count" -> versionCount, "size" -> "???")
+          "version_count" -> versionCount, "size" -> "NA", "task_name" -> taskName)
       }
       documentProperties
     })

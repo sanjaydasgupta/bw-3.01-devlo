@@ -15,9 +15,13 @@ class VariableValueSet extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val phaseOid = new ObjectId(parameters("phase_id"))
+      val processOid = new ObjectId(parameters("process_id"))
+      val theProcess = ProcessApi.processById(processOid)
+      val user: DynDoc = getUser(request)
+      if (!ProcessApi.canManage(user._id[ObjectId], theProcess))
+        throw new IllegalArgumentException("Not permitted")
       val (label, bpmnName, value) = (parameters("label"), parameters("bpmn_name"), parameters("value"))
-      VariableValueSet.set(request, response, phaseOid, label, bpmnName, value)
+      VariableValueSet.set(request, response, processOid, label, bpmnName, value)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -29,15 +33,15 @@ class VariableValueSet extends HttpServlet with HttpUtils {
 
 object VariableValueSet extends HttpUtils {
 
-  def set(request: HttpServletRequest, response: HttpServletResponse, phaseOid: ObjectId, label: String,
-        bpmnName: String, value: String): Unit = {
+  def set(request: HttpServletRequest, response: HttpServletResponse, processOid: ObjectId, label: String,
+          bpmnName: String, value: String): Unit = {
 
-    val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
+    val theProcess: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
     val user: DynDoc = getUser(request)
-    if (user._id[ObjectId] != thePhase.admin_person_id[ObjectId])
+    if (user._id[ObjectId] != theProcess.admin_person_id[ObjectId])
       throw new IllegalArgumentException("Not permitted")
 
-    val variables: Seq[DynDoc] = thePhase.variables[Many[Document]]
+    val variables: Seq[DynDoc] = theProcess.variables[Many[Document]]
     val labelsAndBpmnNames: Seq[(String, String)] = variables.map(v => (v.label[String], v.bpmn_name[String]))
     val variableIdx = labelsAndBpmnNames.indexOf((label, bpmnName))
 
@@ -51,16 +55,18 @@ object VariableValueSet extends HttpUtils {
       case "S" => value
     }
 
-    if (thePhase.status[String] != "ended") {
-      if (thePhase.has("process_instance_id")) {
+    if (theProcess.status[String] != "ended") {
+      if (theProcess.has("process_instance_id")) {
         val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-        val processInstanceId = thePhase.process_instance_id[String]
+        val processInstanceId = theProcess.process_instance_id[String]
         rts.setVariable(processInstanceId, variables(variableIdx).name[String], typedValue)
       }
-      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> phaseOid),
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      response.getWriter.print(value)
+      response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val variableLog = s"'${variables(variableIdx).label[String]}'"
       BWLogger.audit(getClass.getName, "doPost", s"""Set value of variable '$variableLog' to '$value'""", request)

@@ -15,6 +15,10 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
+      val theProcess = ProcessApi.processById(processOid)
+      val user: DynDoc = getUser(request)
+      if (!ProcessApi.canManage(user._id[ObjectId], theProcess))
+        throw new IllegalArgumentException("Not permitted")
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))
       val (timerId, timerName) = (parameters.get("timer_id"), parameters.get("timer_name"))
       TimerDurationSet.set(request, processOid, timerId, timerName, bpmnName, duration)

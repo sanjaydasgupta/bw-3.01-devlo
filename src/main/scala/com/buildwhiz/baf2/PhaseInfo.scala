@@ -30,9 +30,9 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       } else {
         ("NA", "NA")
       }
-      Map("name" -> process.name[String], "status" -> process.status[String],
-          "display_status" -> ProcessApi.displayStatus(process),
-          "start_date" -> startTime, "end_date" -> endTime)
+      Map("_id" -> process._id[ObjectId].toString, "name" -> process.name[String],
+          "bpmn_name" -> process.bpmn_name[String], "status" -> process.status[String],
+          "display_status" -> ProcessApi.displayStatus(process), "start_date" -> startTime, "end_date" -> endTime)
     })
     returnValue.asJava
   }

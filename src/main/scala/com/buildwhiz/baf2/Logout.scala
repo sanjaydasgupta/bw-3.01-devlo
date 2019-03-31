@@ -17,9 +17,9 @@ class Logout extends HttpServlet with HttpUtils {
         val userNameAndId = f"${user.first_name[String]}%s ${user.last_name[String]}%s (${user._id[ObjectId]}%s)"
         BWLogger.log(getClass.getName, request.getMethod, s"EXIT (Logout $userNameAndId)", request)
       } else {
-        request.getSession.invalidate()
         BWLogger.log(getClass.getName, request.getMethod, "EXIT (Logout unknown user)", request)
       }
+      request.getSession.invalidate()
     } catch {
       case t: Throwable =>
         val parameters = getParameterMap(request)

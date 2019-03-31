@@ -18,6 +18,7 @@ class Entry extends HttpServlet {
       case ("LoginPost", "etc") => true
       case ("Environment", "etc") => true
       case ("Login", "baf2") => true
+      case ("Logout", "baf2") => true
       case _ => false
     }
     session.getAttribute("bw-user") != null || loggingIn

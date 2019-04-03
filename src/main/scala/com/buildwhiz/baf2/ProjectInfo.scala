@@ -23,7 +23,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
       Map("name" -> phase.name[String], "status" -> PhaseApi.displayStatus(phase),
-          "start_date" -> "???", "end_date" -> "???")
+          "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString)
     })
     returnValue.asJava
   }

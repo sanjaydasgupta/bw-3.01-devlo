@@ -24,6 +24,10 @@ class UserPropertyFetch extends HttpServlet with HttpUtils {
         case Some(ph) => ph.phone[String]
         case None => ""
       }
+      val phoneCanText = phones.find(_.`type`[String] == "work") match {
+        case Some(ph) => if (ph.has("can_text")) ph.can_text[Boolean] else false
+        case None => false
+      }
       val phoneMobile = phones.find(_.`type`[String] == "mobile") match {
         case Some(ph) => ph.phone[String]
         case None => ""
@@ -52,9 +56,14 @@ class UserPropertyFetch extends HttpServlet with HttpUtils {
       else
         false
 
+      val defaultTimezone: String = if (freshUserRecord.has("default_timezone"))
+        freshUserRecord.default_timezone[String]
+      else
+        "project"
+
       val resultFields: Document = Map("email_enabled" -> emailEnabled,
-          "text_enabled" -> textEnabled,
-          "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile,
+          "text_enabled" -> textEnabled, "default_timezone" -> defaultTimezone,
+          "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile, "phone_can_text" -> phoneCanText,
           "email_work" -> emailWork, "email_other" -> emailOther)
 
       response.getWriter.print(resultFields.toJson)

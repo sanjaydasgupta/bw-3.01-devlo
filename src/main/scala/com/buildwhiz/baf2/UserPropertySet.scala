@@ -14,19 +14,21 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     val enabledRe = "(enabled)".r
     val emailEnabledRe = "(email_enabled)".r
     val textEnabledRe = "(text_enabled)".r
-    //val firstNameRe = "(first_name)".r
-    //val lastNameRe = "(last_name)".r
+    val booleanRe = "(true|false)".r
+    val defaultTimezoneRe = "(default_timezone)".r
+    val timezoneRe = "(user|project)".r
     val emailTypeRe = "email_(work|other)".r
     val phoneTypeRe = "phone_(work|mobile)".r
-    //val roleRe = "role:(.+)".r
+    val phoneCanTextRe = "(phone_can_text)".r
     val role2Re = "(view|edit):(.+)".r
-    val setterSpec = property match {
-      case textEnabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
-      case emailEnabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
-      case enabledRe(enabled) => Map("$set" -> Map(enabled -> value.toBoolean))
-      //case firstNameRe(fn) => Map("$set" -> Map(fn -> value))
-      //case lastNameRe(ln) => Map("$set" -> Map(ln -> value))
-      case emailTypeRe(emailType) =>
+    val setterSpec = (property, value) match {
+      case (textEnabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
+      case (emailEnabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
+      case (enabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
+      case (defaultTimezoneRe(propName), timezoneRe(timeZone)) => Map("$set" -> Map(propName -> timeZone))
+      case (phoneCanTextRe(propName), booleanRe(enabled)) =>
+        Map("$set" -> Map(propName -> enabled.toBoolean))
+      case (emailTypeRe(emailType), _) =>
         val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
         val emails: Seq[DynDoc] = person.emails[Many[Document]]
         val idx = emails.indexWhere(_.`type`[String] == emailType)
@@ -35,7 +37,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         } else {
           Map("$set" -> Map(s"emails.$idx.email" -> value))
         }
-      case phoneTypeRe(phoneType) =>
+      case (phoneTypeRe(phoneType), _) =>
         val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
         val phones: Seq[DynDoc] = person.phones[Many[Document]]
         val idx = phones.indexWhere(_.`type`[String] == phoneType)
@@ -45,7 +47,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
           Map("$set" -> Map(s"phones.$idx.phone" -> value))
         }
       //case roleRe(roleName) => Map((if (value.toBoolean) "$addToSet" else "$pull") -> Map("roles" -> roleName))
-      case role2Re(qualifier, roleName) => if (value.toBoolean)
+      case (role2Re(qualifier, roleName), _) => if (value.toBoolean)
         Map("$addToSet" -> Map("roles" -> s"$qualifier:$roleName")) else
         Map("$pullAll" -> Map("roles" -> Seq(s"$qualifier:$roleName", roleName)))
     }
@@ -63,8 +65,8 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         case None => userRecord._id[ObjectId]
         case Some(pid) => new ObjectId(pid)
       }
-      val properties = parameters("property").split("\\|")
-      val values = parameters("value").split("\\|")
+      val properties = parameters("property").split("\\|").map(_.trim)
+      val values = parameters("value").split("\\|").map(_.trim)
       if (properties.length != values.length)
         throw new IllegalArgumentException("Unmatched properties and values")
       if (userRecord._id[ObjectId] != personOid && !userRecord.roles[Many[String]].contains("BW-Admin"))

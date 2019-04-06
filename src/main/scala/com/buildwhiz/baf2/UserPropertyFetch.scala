@@ -62,10 +62,15 @@ class UserPropertyFetch extends HttpServlet with HttpUtils {
       else
         false
 
+      val fontSize: String = if (freshUserRecord.has("font_size"))
+        freshUserRecord.font_size[String]
+      else
+        "normal"
+
       val resultFields: Document = Map("email_enabled" -> emailEnabled,
           "text_enabled" -> textEnabled, "default_timezone" -> defaultTimezone,
           "phone_work" -> phoneWork, "phone_mobile" -> phoneMobile, "phone_can_text" -> phoneCanText,
-          "email_work" -> emailWork, "email_other" -> emailOther)
+          "email_work" -> emailWork, "email_other" -> emailOther, "font_size" -> fontSize)
 
       response.getWriter.print(resultFields.toJson)
       response.setContentType("application/json")

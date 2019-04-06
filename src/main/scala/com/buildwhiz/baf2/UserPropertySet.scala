@@ -17,6 +17,8 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     val booleanRe = "(true|false)".r
     val defaultTimezoneRe = "(default_timezone)".r
     val timezoneRe = "(user|project)".r
+    val fontSizePropertyRe = "(font_size)".r
+    val fontSizeRe = "(small|normal|large)".r
     val emailTypeRe = "email_(work|other)".r
     val phoneTypeRe = "phone_(work|mobile)".r
     val phoneCanTextRe = "(phone_can_text)".r
@@ -26,6 +28,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       case (emailEnabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
       case (enabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
       case (defaultTimezoneRe(propName), timezoneRe(timeZone)) => Map("$set" -> Map(propName -> timeZone))
+      case (fontSizePropertyRe(propName), fontSizeRe(size)) => Map("$set" -> Map(propName -> size))
       case (phoneCanTextRe(propName), booleanRe(enabled)) =>
         Map("$set" -> Map(propName -> enabled.toBoolean))
       case (emailTypeRe(emailType), _) =>

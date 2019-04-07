@@ -9,16 +9,18 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class OrganizationAdd extends HttpServlet with HttpUtils {
+class OrganizationCreate extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      //val user: DynDoc = getUser(request)
-      //val userOid = user._id[ObjectId]
-      //if (!PersonApi.isBuildWhizAdmin(userOid))
-      //  throw new IllegalArgumentException("Not permitted")
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
+      if (!PersonApi.isBuildWhizAdmin(userOid)) {
+        // Disabled temporarily for testing ...
+        //  throw new IllegalArgumentException("Not permitted")
+      }
 
       val organizationName = parameters("name")
       if (OrganizationApi.fetch(name=Some(organizationName)).nonEmpty)
@@ -61,25 +63,17 @@ class OrganizationAdd extends HttpServlet with HttpUtils {
         case None => false
       }
 
-      //val optionalAdminPersonOid: Option[ObjectId] = parameters.get("admin_person_id").map(new ObjectId(_))
-      //val trueAdminPersonOid = optionalAdminPersonOid match {
-      //  case None => userOid
-      //  case Some(oid) => oid
-      //}
-      //if (!PersonApi.exists(trueAdminPersonOid))
-      //  throw new IllegalArgumentException(s"Unknown person-id: '$trueAdminPersonOid'")
-
       val newOrganizationRecord: Document = Map("name" -> organizationName, "reference" -> reference,
           "years_experience" -> yearsExperience, "rating" -> ratingValue, "skills" -> skillsValue.asJava,
-        "active" -> activeValue, "timestamps" -> Map("created" -> System.currentTimeMillis))
+          "active" -> activeValue, "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.organizations.insertOne(newOrganizationRecord)
 
-      BWMongoDB3.projects.insertOne(newOrganizationRecord)
-
-      response.getWriter.print(bson2json(newOrganizationRecord))
+      val organizationString = bson2json(newOrganizationRecord)
+      response.getWriter.print(organizationString)
       response.setContentType("application/json")
+      val message = s"Created organization '$organizationString'"
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

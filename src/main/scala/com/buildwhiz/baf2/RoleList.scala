@@ -26,7 +26,7 @@ class RoleList extends HttpServlet with HttpUtils {
       allProjects.flatMap(ProjectApi.allActivities)
     }
 
-    activities.map(_.actions[Many[Document]].find(_.`type`[String] == "main").get.assignee_role[String])
+    activities.map(_.role[String]).distinct.sorted
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

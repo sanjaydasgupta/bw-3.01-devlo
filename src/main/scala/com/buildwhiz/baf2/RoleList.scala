@@ -22,7 +22,8 @@ class RoleList extends HttpServlet with HttpUtils {
     } else if (parameters.contains("project_id")) {
       ProjectApi.allActivities(oid(parameters("project_id")))
     } else {
-      Seq.empty[DynDoc]
+      val allProjects = ProjectApi.fetch()
+      allProjects.flatMap(ProjectApi.allActivities)
     }
 
     activities.map(_.actions[Many[Document]].find(_.`type`[String] == "main").get.assignee_role[String])

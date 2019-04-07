@@ -14,6 +14,13 @@ object ProjectApi extends HttpUtils {
 
   def exists(projectOid: ObjectId): Boolean = BWMongoDB3.projects.find(Map("_id" -> projectOid)).nonEmpty
 
+  def fetch(oid: Option[ObjectId] = None, name: Option[String] = None): Seq[DynDoc] =
+    (oid, name) match {
+      case (Some(theOid), _) => BWMongoDB3.projects.find(Map("_id" -> theOid))
+      case (None, Some(theName)) => BWMongoDB3.projects.find(Map("name" -> theName))
+      case _ => BWMongoDB3.projects.find()
+    }
+
   def allPhaseOids(parentProject: DynDoc): Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
 
   def allPhases(parentProject: DynDoc): Seq[DynDoc] =

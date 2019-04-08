@@ -79,7 +79,8 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
             if (!personRecord.containsKey("document_filter_labels"))
               personRecord.put("document_filter_labels", Seq.empty[String])
             val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id"/*, "project_ids"*/,
-              "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => personRecord.containsKey(f))
+                "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size").
+                filter(f => personRecord.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap)
             recordLoginTime(personRecord)
             BWLogger.audit(getClass.getName, "doPost", "Login OK", request)

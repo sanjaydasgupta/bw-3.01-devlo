@@ -17,16 +17,20 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
     organizations.map(org => {
       new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).
         append("reference", org.reference[String]).append("years_experience", org.years_experience[Double]).
-        append("rating", org.rating[Int]).append("skills", org.skills[Seq[String]])
+        append("rating", org.rating[Int]).append("skills", org.skills[Seq[String]]).
+        append("active", org.active[Boolean])
     })
   }
 
   private def dummyOrganizationList(n: Int): Seq[Document] = {
     (0 until n).map(i => {
-      val skills = if ((i % 2) == 0) "Alpha, Beta" else "Gamma, Delta, Zeta"
+      val (skills, active) = if ((i % 2) == 0)
+        ("Alpha, Beta", true)
+      else
+        ("Gamma, Delta, Zeta", false)
       new Document("name", s"Dummy Organization ${i * 1111}").append("reference", s"Ref-${i * 1111}").
         append("skills", skills).append("years_experience", 9 - math.abs(i - 5)).append("rating", math.abs(i - 5)).
-        append("_id", "000000000000000000000000")
+        append("_id", "000000000000000000000000").append("active", active)
     })
   }
 

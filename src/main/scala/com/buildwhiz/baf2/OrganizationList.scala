@@ -1,8 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -12,8 +11,8 @@ import scala.collection.JavaConverters._
 
 class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def organizationList(): Seq[Document] = {
-    val organizations = OrganizationApi.fetch()
+  private def organizationList(optRole: Option[String] = None): Seq[Document] = {
+    val organizations = OrganizationApi.fetch(None, None, optRole)
     organizations.map(org => {
       new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).
         append("reference", org.reference[String]).append("years_experience", org.years_experience[Double]).
@@ -42,6 +41,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
+      val roleParameter = parameters.get("role")
 
       val allOrganizations = {
         val dbOrganizations = organizationList()
@@ -51,10 +51,11 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
           dbOrganizations
       }
 
-      val organizations: Seq[Document] = (optActivityOid, optPhaseOid, optProjectOid) match {
-        case (Some(activityOid), _, _) => allOrganizations
-        case (_, Some(phaseOid), _) => allOrganizations
-        case (_, _, Some(projectOid)) => allOrganizations
+      val organizations: Seq[Document] = (roleParameter, optActivityOid, optPhaseOid, optProjectOid) match {
+        case (Some(_), _, _, _) => organizationList(roleParameter)
+        case (_, Some(activityOid), _, _) => allOrganizations
+        case (_, _, Some(phaseOid), _) => allOrganizations
+        case (_, _, _, Some(projectOid)) => allOrganizations
         case _ => allOrganizations
       }
       //val organizations: Seq[DynDoc] = Seq.empty[DynDoc]

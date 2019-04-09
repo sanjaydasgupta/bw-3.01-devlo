@@ -2,14 +2,14 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class PersonCreate extends HttpServlet with HttpUtils {
+class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -68,7 +68,7 @@ class PersonCreate extends HttpServlet with HttpUtils {
 
       val newPersonRecord: Document = Map("organization_id" -> organizationOid, "first_name" -> firstName,
           "last_name" -> lastName, "years_experience" -> yearsExperience, "rating" -> ratingValue,
-          "skills" -> skillsValue.asJava, "active" -> activeValue,
+          "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
           "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 

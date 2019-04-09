@@ -17,6 +17,18 @@ object PersonApi {
     userRecord.roles[Many[String]].contains("BW-Admin")
   }
 
+  def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None, optRole: Option[String] = None): Seq[DynDoc] = {
+    (optWorkEmail, optOrganizationOid, optRole) match {
+      case (Some(workEmail), _, _) =>
+        BWMongoDB3.persons.find(Map("emails" -> Map("$elemMatch" ->
+          Map("$eq" -> Map("type" -> "work", "email" -> workEmail)))))
+      case (None, Some(organizationOid), _) =>
+        BWMongoDB3.persons.find(Map("organization_id" -> organizationOid))
+      case (None, None, Some(role)) => BWMongoDB3.persons.find(Map("skills" -> role))
+      case _ => BWMongoDB3.persons.find()
+    }
+  }
+
   def deleteDocumentTag(personOid: ObjectId, tagName: String): Unit = {
     val userRecord: DynDoc = personById(personOid)
     val userTags: Seq[DynDoc] = documentTags(userRecord)

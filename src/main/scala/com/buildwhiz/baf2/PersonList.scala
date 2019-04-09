@@ -5,7 +5,6 @@ import BWMongoDB3._
 import DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import org.bson.types.ObjectId
 
 class PersonList extends HttpServlet with HttpUtils {
 
@@ -18,10 +17,8 @@ class PersonList extends HttpServlet with HttpUtils {
         case Some(role) => Map("roles" -> role)
       }
       val persons: Seq[DynDoc] = BWMongoDB3.persons.find(query)
-      val personJsons = persons.map(person => {
-        s"""{"name": "${person.first_name[String]} ${person.last_name[String]}", "_id": "${person._id[ObjectId]}"}"""
-      })
-      response.getWriter.print(personJsons.mkString("[", ", ", "]"))
+      val personDocuments = persons.map(PersonApi.person2document)
+      response.getWriter.print(personDocuments.map(bson2json).mkString("[", ",", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${persons.length})", request)

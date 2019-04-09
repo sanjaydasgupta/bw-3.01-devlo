@@ -83,4 +83,12 @@ object PersonApi {
       throw new IllegalArgumentException(s"Bad operation: '$operation'")
   }
 
+  def person2document(person: DynDoc): Document = {
+    val name = s"${person.first_name[String]} ${person.last_name[String]}"
+
+    new Document("_id", person._id[ObjectId]).append("name", name).append("skills", person.skills[Many[String]]).
+        append("years_experience", person.years_experience[Int]).append("rating", person.rating[Double]).
+        append("active", person.active[Boolean])
+  }
+
 }

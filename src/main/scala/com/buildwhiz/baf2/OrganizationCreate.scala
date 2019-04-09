@@ -33,7 +33,7 @@ class OrganizationCreate extends HttpServlet with HttpUtils {
 
       val yearsExperience: Double = parameters.get("years_experience") match {
         case Some(experience) =>
-          if (experience.matches("\\d+(?:\\.\\d+)"))
+          if (experience.matches("\\d+(?:\\.\\d*)?"))
             experience.toDouble
           else
             throw new IllegalArgumentException(s"Bad experience value: '$experience'")

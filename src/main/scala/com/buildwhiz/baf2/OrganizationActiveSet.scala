@@ -26,14 +26,12 @@ class OrganizationActiveSet extends HttpServlet with HttpUtils {
       if (!OrganizationApi.exists(organizationOid))
         throw new IllegalArgumentException(s"Bad organization_id '$organizationOid'")
 
-      val activeValue: Boolean = parameters.get("active") match {
-        case Some(active) =>
-          if (active.matches("true|false"))
-            active.toBoolean
-          else
-            throw new IllegalArgumentException(s"Bad active value: '$active'")
-        case None => false
-      }
+      val activeString = parameters("active")
+
+      val activeValue = if (activeString.matches("true|false"))
+        activeString.toBoolean
+      else
+        throw new IllegalArgumentException(s"Bad active value: '$activeString'")
 
       val updateResult = BWMongoDB3.organizations.updateOne(Map("_id" -> organizationOid),
         Map("$set" -> Map("active" -> activeValue)))

@@ -49,7 +49,9 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
     val menuItems: Seq[Document] = Seq(
       Map("name" -> "Documents", "urls" -> "/documents", "icon" -> "documents"),
       Map("name" -> "RFIs", "url" -> "/rfis", "icon" -> "rfis"),
-      //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
+      Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
+      Map("name" -> "Contacts", "url" -> "/contacts", "icon" -> "contact"),
+      Map("name" -> "Team", "url" -> "/team", "icon" -> "project_team"),
       Map("name" -> "Tasks", "url" -> "/task-list", "icon" -> "tasks"),
       Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
       Map("name" -> "Help", "url" -> "/help", "icon" -> "help")

@@ -69,6 +69,8 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       val newPersonRecord: Document = Map("organization_id" -> organizationOid, "first_name" -> firstName,
           "last_name" -> lastName, "years_experience" -> yearsExperience, "rating" -> ratingValue,
           "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
+          "emails" -> Seq(new Document("type", "work").append("email", workEmail)).asJava,
+          "phones" -> Seq.empty[Document].asJava,
           "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 

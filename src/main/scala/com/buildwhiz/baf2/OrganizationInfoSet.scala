@@ -26,7 +26,7 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
         ("name", noop),
         ("reference", noop),
         ("rating", rating2int),
-        ("skills", _.split(",").map(_.trim).toSeq.asJava),
+        ("skills", _.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava),
         ("years_experience", _.toDouble),
         ("active", _.toBoolean),
         ("areas_of_operation", noop),

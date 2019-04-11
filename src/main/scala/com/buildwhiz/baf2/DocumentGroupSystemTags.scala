@@ -31,7 +31,7 @@ class DocumentGroupSystemTags extends HttpServlet with HttpUtils {
         parameters("document_ids")
       } else {
         getStreamData(request)
-      }).split(",").map(_.trim)
+      }).split(",").map(_.trim).filter(_.nonEmpty)
 
       val docOids: Seq[ObjectId] = docIds.map(id => new ObjectId(id.trim))
 

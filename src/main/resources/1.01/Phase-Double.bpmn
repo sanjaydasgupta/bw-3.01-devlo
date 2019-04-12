@@ -13,6 +13,7 @@
           <camunda:property name="bw-variable" value="d_two:D:3.14:D-Two" />
           <camunda:property name="bw-sequence" value="2" />
           <camunda:property name="bw-duration" value="12:34:56" />
+          <camunda:property name="bw-role" value="role-beta" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
@@ -40,6 +41,7 @@
           <camunda:property name="bw-variable" value="d_one:L:99999999:D-One" />
           <camunda:property name="bw-sequence" value="1" />
           <camunda:property name="bw-duration" value="65:43:21" />
+          <camunda:property name="bw-role" value="role-alpha" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>

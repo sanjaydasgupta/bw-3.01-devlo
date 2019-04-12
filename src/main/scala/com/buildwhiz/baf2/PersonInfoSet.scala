@@ -1,0 +1,73 @@
+package com.buildwhiz.baf2
+
+import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import org.bson.types.ObjectId
+
+import scala.collection.JavaConverters._
+
+class PersonInfoSet extends HttpServlet with HttpUtils {
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    try {
+
+      val noop = (s: String) => s
+      def rating2int(rating: String): Int = {
+        if (rating.matches("[1-5]"))
+          rating.toInt
+        else
+          throw new IllegalArgumentException(s"bad rating: '$rating'")
+      }
+
+      val parameterConverters: Map[String, String => Any] = Map(
+        ("first_name", noop),
+        ("last_name", noop),
+        ("work_address", noop),
+        ("rating", rating2int),
+        ("skills", _.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava),
+        ("years_experience", _.toDouble),
+        ("active", _.toBoolean),
+        //("work_email", noop),
+        //("work_phone", noop),
+        ("person_id", new ObjectId(_))
+      )
+      val parameterMap = getParameterMap(request)
+
+      val unknownParameters = parameterMap.keySet.toArray.filterNot(parameterConverters.contains)
+      if (unknownParameters.nonEmpty)
+        throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
+
+      if (!parameterMap.contains("person_id"))
+        throw new IllegalArgumentException("person_id not provided")
+
+      val parameterValues = parameterConverters.map(pc => {
+        val paramName = pc._1
+        val paramConverter = pc._2
+        val exists = parameterMap.contains(paramName)
+        (paramName, paramConverter, exists)
+      }).filter(_._3).map(t => (t._1, t._2(parameterMap(t._1))))
+
+      val (parameterNamesAndValues, personIdAndValue) = parameterValues.partition(_._1 != "organization_id")
+
+      if (parameterNamesAndValues.isEmpty)
+        throw new IllegalArgumentException("No parameters found")
+
+      val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personIdAndValue.head._2),
+          Map("$set" -> parameterNamesAndValues.toMap))
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${parameterNamesAndValues.size}", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+}

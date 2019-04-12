@@ -36,7 +36,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
 
       val yearsExperience: Double = parameters.get("years_experience") match {
         case Some(experience) =>
-          if (experience.matches("\\d+(?:\\.\\d+)"))
+          if (experience.matches("\\d+(?:\\.\\d+)?"))
             experience.toDouble
           else
             throw new IllegalArgumentException(s"Bad experience value: '$experience'")
@@ -66,12 +66,31 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
         case None => false
       }
 
+      val phoneCanText: Boolean = parameters.get("phone_can_text") match {
+        case Some(canText) =>
+          if (canText.matches("true|false"))
+            canText.toBoolean
+          else
+            throw new IllegalArgumentException(s"Bad phone_can_text value: '$canText'")
+        case None => false
+      }
+
+      val workAddress: String = parameters.get("work_address") match {
+        case Some(wrkAddr) => wrkAddr
+        case None => ""
+      }
+
+      val phones: java.util.Collection[Document] = parameters.get("work_phone") match {
+        case Some(wrkPhone) => Seq(new Document("type", "work").append("phone", wrkPhone)).asJava
+        case None => Seq.empty[Document].asJava
+      }
+
       val newPersonRecord: Document = Map("organization_id" -> organizationOid, "first_name" -> firstName,
           "last_name" -> lastName, "years_experience" -> yearsExperience, "rating" -> ratingValue,
           "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
           "emails" -> Seq(new Document("type", "work").append("email", workEmail)).asJava,
-          "phones" -> Seq.empty[Document].asJava,
-          "timestamps" -> Map("created" -> System.currentTimeMillis))
+          "phone_can_text" -> phoneCanText, "work_address" -> workAddress,
+          "phones" -> phones, "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 
       val personString = bson2json(newPersonRecord)

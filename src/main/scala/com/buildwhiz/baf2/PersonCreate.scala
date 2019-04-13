@@ -93,6 +93,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
           "phones" -> phones, "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 
+      newPersonRecord.remove("password")
       val personString = bson2json(newPersonRecord)
       response.getWriter.print(personString)
       response.setContentType("application/json")

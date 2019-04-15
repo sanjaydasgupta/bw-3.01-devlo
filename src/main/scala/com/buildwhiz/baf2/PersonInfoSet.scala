@@ -52,12 +52,13 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
 
       val parameterValues = parameterConverters.map(pc => {
         val paramName = pc._1
-        val paramConverter = pc._2
+        val paramConverter = pc._2._1
+        val fieldName = pc._2._2
         val exists = parameterMap.contains(paramName)
-        (paramName, paramConverter, exists)
-      }).filter(_._3).map(t => (t._1, t._2(parameterMap(t._1))))
+        (paramName, paramConverter, fieldName, exists)
+      }).filter(_._4).map(t => (t._3, t._2(parameterMap(t._1))))
 
-      val (parameterNamesAndValues, personIdAndValue) = parameterValues.partition(_._1 != "organization_id")
+      val (personIdAndValue, parameterNamesAndValues) = parameterValues.partition(_._1 == "person_id")
 
       if (parameterNamesAndValues.isEmpty)
         throw new IllegalArgumentException("No parameters found")
@@ -68,7 +69,9 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${parameterNamesAndValues.size}", request)
+      val message = s"Changed ${person.first_name[String]} ${person.last_name[String]}'s " +
+          s"parameters: ${parameterNamesAndValues.toMap}"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

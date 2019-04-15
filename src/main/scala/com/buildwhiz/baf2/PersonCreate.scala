@@ -82,7 +82,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
 
       val phones: java.util.Collection[Document] = parameters.get("work_phone") match {
         case Some(wrkPhone) => Seq(new Document("type", "work").append("phone", wrkPhone)).asJava
-        case None => Seq.empty[Document].asJava
+        case None => Seq(new Document("type", "work").append("phone", "")).asJava
       }
 
       val newPersonRecord: Document = Map("organization_id" -> organizationOid, "first_name" -> firstName,

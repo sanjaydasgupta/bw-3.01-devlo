@@ -5,6 +5,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
+import org.bson.Document
 
 import scala.collection.JavaConverters._
 
@@ -14,6 +15,11 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
 
+      val parameterMap = getParameterMap(request)
+
+      val personOid = new ObjectId(parameterMap("person_id"))
+      val person = PersonApi.personById(personOid)
+
       val noop = (s: String) => s
       def rating2int(rating: String): Int = {
         if (rating.matches("[1-5]"))
@@ -21,27 +27,28 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         else
           throw new IllegalArgumentException(s"bad rating: '$rating'")
       }
+      val workEmailIndex = person.emails[Many[Document]].indexWhere(_.`type`[String] == "work")
+      if (workEmailIndex == -1)
+        throw new IllegalArgumentException("Work email not pre-defined in user record")
+      val workPhoneIndex = person.phones[Many[Document]].indexWhere(_.`type`[String] == "work")
+      if (workPhoneIndex == -1)
+        throw new IllegalArgumentException("Work phone not pre-defined in user record")
 
-      val parameterConverters: Map[String, String => Any] = Map(
-        ("first_name", noop),
-        ("last_name", noop),
-        ("work_address", noop),
-        ("rating", rating2int),
-        ("skills", _.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava),
-        ("years_experience", _.toDouble),
-        ("active", _.toBoolean),
-        //("work_email", noop),
-        //("work_phone", noop),
-        ("person_id", new ObjectId(_))
+      val parameterConverters: Map[String, (String => Any, String)] = Map(
+        ("first_name", (noop, "first_name")),
+        ("last_name", (noop, "last_name")),
+        ("work_address", (noop, "work_address")),
+        ("rating", (rating2int, "rating")),
+        ("skills", (_.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava, "skills")),
+        ("years_experience", (_.toDouble, "years_experience")),
+        ("active", (_.toBoolean, "active")),
+        ("work_email", (noop, s"emails.$workEmailIndex.email")),
+        ("work_phone", (noop, s"phones.$workPhoneIndex.phone")),
+        ("person_id", (new ObjectId(_), "person_id"))
       )
-      val parameterMap = getParameterMap(request)
-
       val unknownParameters = parameterMap.keySet.toArray.filterNot(parameterConverters.contains)
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
-
-      if (!parameterMap.contains("person_id"))
-        throw new IllegalArgumentException("person_id not provided")
 
       val parameterValues = parameterConverters.map(pc => {
         val paramName = pc._1

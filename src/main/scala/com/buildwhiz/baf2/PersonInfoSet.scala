@@ -44,6 +44,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         ("active", (_.toBoolean, "active")),
         ("work_email", (noop, s"emails.$workEmailIndex.email")),
         ("work_phone", (noop, s"phones.$workPhoneIndex.phone")),
+        ("phone_can_text", (_.toBoolean, "phone_can_text")),
         ("person_id", (new ObjectId(_), "person_id"))
       )
       val unknownParameters = parameterMap.keySet.toArray.filterNot(parameterConverters.contains)

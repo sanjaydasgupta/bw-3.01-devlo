@@ -33,6 +33,7 @@ class PersonInfo extends HttpServlet with HttpUtils {
     val emails: Seq[DynDoc] = person.emails[Many[Document]]
     val workEmail = wrap(emails.find(_.`type`[String] == "work").get.email[String], editable)
     val phones: Seq[DynDoc] = person.phones[Many[Document]]
+    val phoneCanText = wrap(if(person.has("phone_can_text")) person.phone_can_text[Boolean] else false, editable)
     val bareWorkPhone = phones.find(_.`type`[String] == "work") match {
       case None => ""
       case Some(workPhoneRecord) => workPhoneRecord.phone[String]
@@ -46,7 +47,8 @@ class PersonInfo extends HttpServlet with HttpUtils {
     val personDoc = new Document("first_name", firstName).append("last_name", lastName).append("rating", rating).
         append("skills", skills).append("years_experience", yearsExperience).append("active", active).
         append("work_email", workEmail).append("work_phone", workPhone).append("work_address", workAddress).
-        append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava)
+        append("phone_can_text", phoneCanText).append("project_log", Seq.empty[Document].asJava).
+        append("review_log", Seq.empty[Document].asJava)
     bson2json(personDoc)
   }
 

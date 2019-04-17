@@ -52,11 +52,13 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val additionalDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "additional"))
     val specificationDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "specification"))
     val submittalDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "submittal"))
+    val contractDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "contract"))
     val enableAddButtons = PersonApi.isBuildWhizAdmin(user._id[ObjectId]) ||
         ProcessApi.canManage(user._id[ObjectId], process)
     val record = new Document("specification_documents", specificationDocuments).append("check_list", checkList).
         append("required_documents", requiredDocuments).append("additional_documents", additionalDocuments).
-        append("submittal_documents", submittalDocuments).append("enable_add_buttons", enableAddButtons)
+        append("submittal_documents", submittalDocuments).append("contract_documents", contractDocuments).
+        append("enable_add_buttons", enableAddButtons)
     bson2json(record)
   }
 

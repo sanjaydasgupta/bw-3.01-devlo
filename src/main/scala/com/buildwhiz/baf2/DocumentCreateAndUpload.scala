@@ -41,6 +41,7 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         case Some(str) if str.matches("(?i)additional") => Some("additional")
         case Some(str) if str.matches("(?i)specification") => Some("specification")
         case Some(str) if str.matches("(?i)submittal") => Some("submittal")
+        case Some(str) if str.matches("(?i)contract") => Some("contract")
         case Some(other) => throw new IllegalArgumentException(s"Bad category: '$other")
         case None => if (action.isDefined)
             throw new IllegalArgumentException("Not found: category")

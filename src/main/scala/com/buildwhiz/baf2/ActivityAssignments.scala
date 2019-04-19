@@ -14,6 +14,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       new Document("_id", activity._id[ObjectId].toString).append("name", activity.name[String]).
         append("role", activity.role[String]).append("organization_name", "Some Organization").
         append("individual_role", indRole).append("person_name", "Some Person").
+        append("process_name", "Some Process").
         append("person_id", "000000000000000000000000").append("organization_id", "000000000000000000000000").
         append("doc_access", "SomeCategory")
     })

@@ -17,7 +17,7 @@
       <bpmn:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
-          <camunda:property name="bw-role" value="Soils-Consultant" />
+          <camunda:property name="bw-role" value="Soil-Consultant" />
           <camunda:property name="bw-scheduled-start" value="2018-07-16" />
           <camunda:property name="bw-actual-start" value="2018-07-16" />
           <camunda:property name="bw-scheduled-end" value="2018-08-02" />

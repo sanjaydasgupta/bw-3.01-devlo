@@ -21,7 +21,7 @@
     <bpmn:callActivity id="DEIR-1-Review-by-Sponsor" name="DEIR-1 Review&#10;by Sponsor" calledElement="Infra-Activity-Handler">
       <bpmn:extensionElements>
         <camunda:properties>
-          <camunda:property name="bw-role" value="Project-M7anager" />
+          <camunda:property name="bw-role" value="Project-Manager" />
           <camunda:property name="bw-scheduled-start" value="2019-06-17" />
           <camunda:property name="bw-scheduled-end" value="2019-06-28" />
         </camunda:properties>

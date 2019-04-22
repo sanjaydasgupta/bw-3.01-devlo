@@ -22,12 +22,12 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:callActivity id="An-Activity" name="An Activity" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+    <bpmn2:callActivity id="An-Activity" name="An Activity" calledElement="Infra-Activity-Handler">
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
           <camunda:property name="bw-description" value="This is the [An Activity]. The next one has no description" />
-          <camunda:property name="bw-role" value="Electrical-Engineer" />
+          <camunda:property name="bw-role" value="simple-one" />
           <camunda:property name="bw-duration" value="03:12:00" />
         </camunda:properties>
       </bpmn2:extensionElements>
@@ -39,7 +39,7 @@
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
-          <camunda:property name="bw-role" value="Plumbing-Engineer" />
+          <camunda:property name="bw-role" value="simple-two" />
           <camunda:property name="bw-duration" value="01:12:00" />
         </camunda:properties>
       </bpmn2:extensionElements>

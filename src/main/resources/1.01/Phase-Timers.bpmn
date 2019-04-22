@@ -20,6 +20,7 @@
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
           <camunda:property name="bw-duration" value="11:22:33" />
+          <camunda:property name="bw-role" value="timer-beta" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_9</bpmn2:incoming>
@@ -62,12 +63,13 @@
       </bpmn2:timerEventDefinition>
     </bpmn2:intermediateCatchEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_8" name="" sourceRef="Alpha-Timer" targetRef="Alpha" />
-    <bpmn2:callActivity id="Alpha" name="Alpha" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+    <bpmn2:callActivity id="Alpha" name="Alpha" calledElement="Infra-Activity-Handler">
       <bpmn2:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
           <camunda:property name="bw-duration" value="10:20:30" />
+          <camunda:property name="bw-role" value="timer-alpha" />
         </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_8</bpmn2:incoming>

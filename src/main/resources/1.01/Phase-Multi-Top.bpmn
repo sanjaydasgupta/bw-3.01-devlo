@@ -67,7 +67,7 @@
       <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
     </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_7" name="" sourceRef="Double-Caller" targetRef="ParallelGateway_2" />
-    <bpmn2:callActivity id="Multi-Alpha" name="Multi Alpha" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+    <bpmn2:callActivity id="Multi-Alpha" name="Multi Alpha" calledElement="Infra-Activity-Handler" >
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />

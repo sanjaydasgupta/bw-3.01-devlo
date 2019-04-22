@@ -34,7 +34,7 @@
     </bpmn2:parallelGateway>
     <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="ParallelGateway_1" targetRef="D-One" />
     <bpmn2:sequenceFlow id="SequenceFlow_6" name="" sourceRef="ParallelGateway_1" targetRef="D-Two" />
-    <bpmn2:callActivity id="D-One" name="D-One" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+    <bpmn2:callActivity id="D-One" name="D-One" calledElement="Infra-Activity-Handler" >
       <bpmn2:extensionElements>
         <camunda:in variables="all" />
         <camunda:properties>

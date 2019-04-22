@@ -14,7 +14,7 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_05v4ax1</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:callActivity id="Activity-with-Dates" name="Activity with Dates" calledElement="Infra-Activity-Handler" camunda:class="com.buildwhiz.jd.ActivityStartTasks">
+    <bpmn2:callActivity id="Activity-with-Dates" name="Activity with Dates" calledElement="Infra-Activity-Handler" >
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />

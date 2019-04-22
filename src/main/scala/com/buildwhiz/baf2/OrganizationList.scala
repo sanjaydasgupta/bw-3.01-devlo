@@ -21,18 +21,6 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
-  private def dummyOrganizationList(n: Int): Seq[Document] = {
-    (0 until n).map(i => {
-      val (skills, active) = if ((i % 2) == 0)
-        ("Alpha, Beta", true)
-      else
-        ("Gamma, Delta, Zeta", false)
-      new Document("name", s"Dummy Organization ${i * 1111}").append("reference", s"Ref-${i * 1111}").
-        append("skills", skills).append("years_experience", 9 - math.abs(i - 5)).append("rating", math.abs(i - 5)).
-        append("_id", "000000000000000000000000").append("active", active)
-    })
-  }
-
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -43,13 +31,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
       val roleParameter = parameters.get("role")
 
-      val allOrganizations = {
-        val dbOrganizations = organizationList()
-        if (dbOrganizations.length < 10)
-          dbOrganizations ++ dummyOrganizationList(10 - dbOrganizations.length)
-        else
-          dbOrganizations
-      }
+      val allOrganizations = organizationList()
 
       val organizations: Seq[Document] = (roleParameter, optActivityOid, optPhaseOid, optProjectOid) match {
         case (Some(_), _, _, _) => organizationList(roleParameter)

@@ -13,9 +13,11 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
     val baseRole = activity.role[String]
     val process = ActivityApi.parentProcess(activity._id[ObjectId])
     if (activity.has("assignments")) {
-      val assignments: Seq[DynDoc] = activity.assignment[Many[Document]]
+      val assignments: Seq[DynDoc] = activity.assignments[Many[Document]]
       assignments.map(assignment => {
-        val assignmentDoc = new Document("role", assignment.role[String])
+        val assignmentDoc = new Document("role", assignment.role[String]).append("name", activity.name[String]).
+          append("_id", activity._id[ObjectId].toString).append("process_name", process.name[String]).
+          append("can_delete", assignment.role[String] != activity.role[String])
         if (assignment.has("organization_id")) {
           val orgOid = assignment.organization_id[ObjectId]
           assignmentDoc.append("organization_id", orgOid)
@@ -39,6 +41,12 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
           assignmentDoc.append("individual_role", indRole)
         } else {
           assignmentDoc.append("individual_role", "")
+        }
+        if (assignment.has("doc_access")) {
+          val docAccess = assignment.doc_access[String]
+          assignmentDoc.append("doc_access", docAccess)
+        } else {
+          assignmentDoc.append("doc_access", "")
         }
         assignmentDoc
       })

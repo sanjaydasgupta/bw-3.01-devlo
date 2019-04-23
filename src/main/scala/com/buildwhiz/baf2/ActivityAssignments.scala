@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 
 class ActivityAssignments extends HttpServlet with HttpUtils {
 
-  private def activityAssignments(activity: DynDoc): Seq[Document] = {
+  private def activityAssignments(activity: DynDoc, fill: Boolean): Seq[Document] = {
     val baseRole = activity.role[String]
     val process = ActivityApi.parentProcess(activity._id[ObjectId])
     if (activity.has("assignments")) {
@@ -25,7 +25,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
           assignmentDoc.append("organization_name", org.name[String])
         } else {
           assignmentDoc.append("organization_id", "")
-          assignmentDoc.append("organization_name", "")
+          assignmentDoc.append("organization_name", if (fill) "Some Organization" else "")
         }
         if (assignment.has("person_id")) {
           val personOid = assignment.person_id[ObjectId]
@@ -34,27 +34,28 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
           assignmentDoc.append("person_name", s"${person.first_name[String]} ${person.last_name[String]}")
         } else {
           assignmentDoc.append("person_id", "")
-          assignmentDoc.append("person_name", "")
+          assignmentDoc.append("person_name", if (fill) "Some Person" else "")
         }
         if (assignment.has("individual_role")) {
           val indRole = assignment.individual_role[String]
           assignmentDoc.append("individual_role", indRole)
         } else {
-          assignmentDoc.append("individual_role", "")
+          assignmentDoc.append("individual_role", if (fill) "Some Role" else "")
         }
         if (assignment.has("doc_access")) {
           val docAccess = assignment.doc_access[String]
           assignmentDoc.append("doc_access", docAccess)
         } else {
-          assignmentDoc.append("doc_access", "")
+          assignmentDoc.append("doc_access", if (fill) "Some Role" else "")
         }
         assignmentDoc
       })
     } else {
       Seq(new Document("_id", activity._id[ObjectId].toString).append("name", activity.name[String]).
-        append("role", baseRole).append("organization_name", "").
-        append("individual_role", "").append("person_name", "").append("process_name", process.name[String]).
-        append("person_id", "").append("organization_id", "").append("doc_access", "").append("can_delete", false))
+        append("role", baseRole).append("organization_name", if (fill) "Some Organization" else "").
+        append("individual_role", if (fill) "Some Role" else "").append("person_name", if (fill) "Some Person" else "").
+        append("process_name", process.name[String]).append("person_id", "").append("organization_id", "").
+        append("doc_access", if (fill) "Some Access" else "").append("can_delete", false))
     }
 
   }
@@ -72,7 +73,13 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         case (None, Some(projectOid)) => ProjectApi.allActivities(projectOid)
         case _ => Nil: Seq[DynDoc]
       }
-      val assignments = activities.flatMap(activityAssignments)
+      val fill = optPhaseOid match {
+        case None => false
+        case Some(poid) =>
+          val thePhase = PhaseApi.phaseById(poid)
+          thePhase.name[String] == "ntov-01-11"
+      }
+      val assignments = activities.flatMap(activityAssignments(_, fill))
 
       val assignmentList = assignments.map(bson2json).mkString("[", ", ", "]")
       response.getWriter.print(assignmentList)

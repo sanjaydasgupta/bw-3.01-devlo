@@ -36,10 +36,10 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
         case Some(organizationOid) =>
           if (!OrganizationApi.exists(organizationOid))
             throw new IllegalArgumentException(s"Bad organization_id: '$organizationOid'")
-          val orgRecord = OrganizationApi.organizationById(organizationOid)
-          val orgSkills: Seq[String] = orgRecord.skills[Many[String]]
-          if (!orgSkills.contains(newRole))
-            throw new IllegalArgumentException(s"Organization '$organizationOid' does not have skill '$newRole'")
+//          val orgRecord = OrganizationApi.organizationById(organizationOid)
+//          val orgSkills: Seq[String] = orgRecord.skills[Many[String]]
+//          if (!orgSkills.contains(newRole))
+//            throw new IllegalArgumentException(s"Organization '$organizationOid' does not have skill '$newRole'")
           Map("$push" -> Map("assignments" -> Map("role" -> newRole, "organization_id" -> organizationOid)))
       }
 

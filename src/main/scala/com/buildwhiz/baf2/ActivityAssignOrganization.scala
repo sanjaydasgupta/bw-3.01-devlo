@@ -26,22 +26,33 @@ class ActivityAssignOrganization extends HttpServlet with HttpUtils {
       }
 
       val theRole = parameters("role")
-      if (!assignments.exists(_.role[String] == theRole))
+      if (theRole != theActivity.role[String] && !assignments.exists(_.role[String] == theRole))
         throw new IllegalArgumentException(s"Bad role '$theRole'")
 
       val organizationOid = new ObjectId(parameters("organization_id"))
       if (!OrganizationApi.exists(organizationOid))
         throw new IllegalArgumentException(s"Bad organization_id '$organizationOid'")
 
-      val newRecord = Map("activity_id" -> activityOid, "role" -> theRole, "organization_id" -> organizationOid)
+//      if (!assignments.exists(assignment => assignment.role[String] == theRole &&
+//        assignment.organization_id[ObjectId] == organizationOid))
+//        throw new IllegalArgumentException(s"Bad organization_id '$organizationOid'")
 
-      val existingCount = BWMongoDB3.activities.count(newRecord)
+      val newRecord = Map("role" -> theRole, "organization_id" -> organizationOid)
+
+      val existingRecords = assignments.
+          filter(assignment => assignment.role[String] == theRole && assignment.has("organization_id"))
+      val existingCount = existingRecords.length
+
       if (existingCount > 0) {
-        val deleteResult = BWMongoDB3.activities.deleteMany(newRecord)
-        val deletedCount = deleteResult.getDeletedCount
-        if (deletedCount != existingCount)
-          throw new IllegalArgumentException(s"MongoDB error: deleted ${deleteResult.getDeletedCount} of $existingCount")
-        val message = s"Replaced $deletedCount records with (Organization $organizationOid, Activity $activityOid, role $theRole)"
+        val deleteResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+            Map("$pull" -> Map("assignments" -> Map("role" -> theRole, "organization_id" -> Map("$exists" -> true)))))
+        if (deleteResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB error: $deleteResult")
+        val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+          Map("$push" -> Map("assignments" -> newRecord)))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+        val message = s"Replaced $existingCount record(s) with (Activity $activityOid, Role $theRole, Organization $organizationOid)"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
       } else {
         val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),

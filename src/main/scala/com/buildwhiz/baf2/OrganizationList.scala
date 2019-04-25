@@ -11,8 +11,8 @@ import scala.collection.JavaConverters._
 
 class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def organizationList(optRole: Option[String] = None): Seq[Document] = {
-    val organizations = OrganizationApi.fetch(None, None, optRole)
+  private def organizationList(optSkill: Option[String] = None): Seq[Document] = {
+    val organizations = OrganizationApi.fetch(None, None, optSkill)
     organizations.map(org => {
       new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).
         append("reference", org.reference[String]).append("years_experience", org.years_experience[Double]).
@@ -29,12 +29,12 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
-      val roleParameter = parameters.get("role")
+      val skillParameter = parameters.get("skill")
 
       val allOrganizations = organizationList()
 
-      val organizations: Seq[Document] = (roleParameter, optActivityOid, optPhaseOid, optProjectOid) match {
-        case (Some(_), _, _, _) => organizationList(roleParameter)
+      val organizations: Seq[Document] = (skillParameter, optActivityOid, optPhaseOid, optProjectOid) match {
+        case (Some(_), _, _, _) => organizationList(skillParameter)
         case (_, Some(activityOid), _, _) => allOrganizations
         case (_, _, Some(phaseOid), _) => allOrganizations
         case (_, _, _, Some(projectOid)) => allOrganizations

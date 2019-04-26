@@ -6,6 +6,8 @@ import DynDoc._
 import org.bson.types.ObjectId
 import org.bson.Document
 
+import scala.collection.JavaConverters._
+
 object PersonApi {
 
   def personById(personOid: ObjectId): DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
@@ -98,10 +100,14 @@ object PersonApi {
   def person2document(person: DynDoc): Document = {
     val name = s"${person.first_name[String]} ${person.last_name[String]}"
     val active = if (person.has("enabled")) person.enabled[Boolean] else false
+    val individualRoles: java.util.Collection[String] = if (person.has("individual_roles"))
+      person.individual_roles[Many[String]]
+    else
+      Seq.empty[String].asJava
 
     new Document("_id", person._id[ObjectId]).append("name", name).append("skills", person.skills[Many[String]]).
         append("years_experience", person.years_experience[Int]).append("rating", person.rating[Double]).
-        append("active", active)
+        append("active", active).append("individual_roles", individualRoles)
   }
 
 }

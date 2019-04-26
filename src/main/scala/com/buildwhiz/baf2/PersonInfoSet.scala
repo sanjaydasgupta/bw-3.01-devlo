@@ -10,6 +10,16 @@ import org.bson.Document
 import scala.collection.JavaConverters._
 
 class PersonInfoSet extends HttpServlet with HttpUtils {
+
+  private def processIndividualRoles(individualRoles: String): Seq[String] = {
+    val theRoles = individualRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
+    theRoles.foreach(role =>
+      if (!PersonIndividualRolesList.possibleIndividualRoles.contains(role))
+        throw new IllegalArgumentException(s"Bad individual-role: '$role'")
+    )
+    theRoles
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -40,6 +50,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         ("work_address", (noop, "work_address")),
         ("rating", (rating2int, "rating")),
         ("skills", (_.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava, "skills")),
+        ("individual_roles", (role => processIndividualRoles(role).asJava, "individual_roles")),
         ("years_experience", (_.toDouble, "years_experience")),
         ("active", (_.toBoolean, "active")),
         ("work_email", (noop, s"emails.$workEmailIndex.email")),

@@ -19,7 +19,7 @@ class PersonInfo extends HttpServlet with HttpUtils {
   }
 
   private def wrap(value: Any, editable: Boolean): Document = {
-    new Document("editable", editable).append("value", value.toString)
+    new Document("editable", editable).append("value", value/*.toString*/)
   }
 
   private def person2json(person: DynDoc, editable: Boolean): String = {
@@ -43,12 +43,18 @@ class PersonInfo extends HttpServlet with HttpUtils {
       person.work_address[String]
     else
       "", editable)
+    val rawIndividualRoles: java.util.Collection[String] =
+      if (person.has("individual_roles"))
+        person.individual_roles[Many[String]]
+      else
+        Seq.empty[String].asJava
+    val individualRoles = wrap(rawIndividualRoles, editable)
 
     val personDoc = new Document("first_name", firstName).append("last_name", lastName).append("rating", rating).
         append("skills", skills).append("years_experience", yearsExperience).append("active", active).
         append("work_email", workEmail).append("work_phone", workPhone).append("work_address", workAddress).
-        append("phone_can_text", phoneCanText).append("project_log", Seq.empty[Document].asJava).
-        append("review_log", Seq.empty[Document].asJava)
+        append("phone_can_text", phoneCanText).append("individual_roles", individualRoles).
+        append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava)
     bson2json(personDoc)
   }
 

@@ -53,7 +53,18 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       }
 
       val skillsValue: Seq[String] = parameters.get("skills") match {
-        case Some(skills) => skills.split(",").map(_.trim)
+        case Some(skills) => skills.split(",").map(_.trim).filter(_.trim.nonEmpty)
+        case None => Seq.empty[String]
+      }
+
+      val individualRoles: Seq[String] = parameters.get("individual_roles") match {
+        case Some(indRoles) =>
+          val theRoles = indRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
+          theRoles.foreach(role =>
+            if (!PersonIndividualRolesList.possibleIndividualRoles.contains(role))
+              throw new IllegalArgumentException(s"Bad individual-role: '$role'")
+          )
+          theRoles
         case None => Seq.empty[String]
       }
 
@@ -89,7 +100,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
           "last_name" -> lastName, "years_experience" -> yearsExperience, "rating" -> ratingValue,
           "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
           "emails" -> Seq(new Document("type", "work").append("email", workEmail)).asJava,
-          "phone_can_text" -> phoneCanText, "work_address" -> workAddress,
+          "phone_can_text" -> phoneCanText, "work_address" -> workAddress, "individual_roles" -> individualRoles.asJava,
           "phones" -> phones, "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 

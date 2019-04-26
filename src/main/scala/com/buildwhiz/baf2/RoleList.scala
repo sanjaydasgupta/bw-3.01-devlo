@@ -1,12 +1,10 @@
 package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.DynDoc
-import DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import org.bson.types.ObjectId
-import org.bson.Document
 
 class RoleList extends HttpServlet with HttpUtils {
 
@@ -45,9 +43,4 @@ class RoleList extends HttpServlet with HttpUtils {
         throw t
     }
   }
-}
-
-object RoleTest extends App {
-  val roles = ProcessApi.allActivities(new ObjectId("5c51959d3c364b110df737f1"))
-  println(roles.length)
 }

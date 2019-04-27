@@ -24,7 +24,7 @@ object PhaseApi {
   def allProcesses(phaseOid: ObjectId): Seq[DynDoc] = allProcesses(phaseById(phaseOid))
 
   def allActivities(phase: DynDoc): Seq[DynDoc] = allProcesses(phase).
-      flatMap(phase => ProcessApi.allActivities(phase))
+      flatMap(process => ProcessApi.allActivities(process))
 
   def allActivities(phaseOid: ObjectId): Seq[DynDoc] = allActivities(phaseById(phaseOid))
 

@@ -21,7 +21,14 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
       if (!ActivityApi.exists(activityOid))
         throw new IllegalArgumentException(s"Bad activity_id: '$activityOid'")
 
-      ActivityApi.staffAssignmentRoleAdd(activityOid, newRole, parameters.get("organization_id").map(new ObjectId(_)))
+      val optOrganizationOid = parameters.get("organization_id").map(orgId => {
+        val orgOid = new ObjectId(orgId)
+        if (!OrganizationApi.exists(orgOid))
+          throw new IllegalArgumentException(s"Bad organization_id: '$orgId'")
+        orgOid
+      })
+
+      ActivityApi.staffAssignmentRoleAdd(activityOid, newRole, optOrganizationOid)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

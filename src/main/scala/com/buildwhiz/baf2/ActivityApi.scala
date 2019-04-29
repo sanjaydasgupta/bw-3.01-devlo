@@ -200,6 +200,60 @@ object ActivityApi {
       }
     }
 
+    def personAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId, personOid: ObjectId,
+        individualRole: String): Unit = {
+      def samePersonAndIndividualRole(assignment: DynDoc): Boolean = {
+        assignment.has("person_id") && assignment.person_id[ObjectId] == personOid &&
+            assignment.has("individual_role") && assignment.individual_role[String] == individualRole
+      }
+      val query = Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> organizationOid)
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.
+        find(query)
+      assignments.length match {
+        case 0 => throw new IllegalArgumentException("Role and organization must be added first")
+        case 1 => val assignment = assignments.head
+          if (assignment.has("person_id")) {
+            if (samePersonAndIndividualRole(assignment))
+              throw new IllegalArgumentException(s"Person and individual-role already assigned to this activity, role")
+            else
+              BWMongoDB3.activity_assignments.insertOne(query ++ Map("person_id" -> organizationOid,
+                "individual_role" -> individualRole))
+          } else {
+            val updateResult = BWMongoDB3.activity_assignments.updateOne(query,
+              Map("$set" -> Map("person_id" -> organizationOid, "individual_role" -> individualRole)))
+            if (updateResult.getMatchedCount == 0)
+              throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+          }
+        case _ =>
+          BWMongoDB3.activity_assignments.insertOne(query ++ Map("person_id" -> organizationOid,
+            "individual_role" -> individualRole))
+      }
+    }
+
+    def deleteAssignment(assignmentOid: ObjectId): Unit = {
+      val theAssignment: DynDoc = BWMongoDB3.activity_assignments.find(Map("_id" -> assignmentOid)).head
+      if (RoleListSecondary.secondaryRoles.contains(theAssignment.role[String])) {
+        val deleteResult = BWMongoDB3.activity_assignments.deleteOne(Map("_id" -> assignmentOid))
+        if (deleteResult.getDeletedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
+      } else {
+        val activityOid = theAssignment.activity_id[ObjectId]
+        val role = theAssignment.role[String]
+        val count = BWMongoDB3.activity_assignments.count(Map("activity_id" -> activityOid, "role" -> role))
+        if (count > 1) {
+          val deleteResult = BWMongoDB3.activity_assignments.deleteOne(Map("_id" -> assignmentOid))
+          if (deleteResult.getDeletedCount == 0)
+            throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
+        } else if (count == 1) {
+          val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
+            Map("$unset" -> Map("organization_id" -> true, "person_id" -> true, "individual_role" -> true)))
+          if (updateResult.getMatchedCount == 0)
+            throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        } else
+          throw new IllegalArgumentException("Severe system error")
+      }
+    }
+
   }
 
 }

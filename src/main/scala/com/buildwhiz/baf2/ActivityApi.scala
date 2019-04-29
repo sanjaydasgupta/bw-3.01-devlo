@@ -158,18 +158,18 @@ object ActivityApi {
   }
 
   object teamAssgnment {
-    def staffAssignmentList(activityOid: ObjectId): Seq[DynDoc] = {
+    def list(activityOid: ObjectId): Seq[DynDoc] = {
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
       if (assignments.nonEmpty) {
         assignments
       } else {
         val theActivity = activityById(activityOid)
         BWMongoDB3.activity_assignments.insertOne(Map("activity_id" -> activityOid, "role" -> theActivity.role[String]))
-        teamAssgnment.staffAssignmentList(activityOid)
+        teamAssgnment.list(activityOid)
       }
     }
 
-    def staffAssignmentRoleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId]): Unit = {
+    def roleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId]): Unit = {
       val baseRecord = Map("activity_id" -> activityOid, "role" -> roleName)
       if (BWMongoDB3.activity_assignments.count(baseRecord) == 0) {
         val fullRecord: Map[String, Any] = optOrganizationId match {

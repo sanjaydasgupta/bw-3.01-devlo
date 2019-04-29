@@ -29,7 +29,7 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
         orgOid
       })
 
-      teamAssgnment.staffAssignmentRoleAdd(activityOid, newRole, optOrganizationOid)
+      teamAssgnment.roleAdd(activityOid, newRole, optOrganizationOid)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

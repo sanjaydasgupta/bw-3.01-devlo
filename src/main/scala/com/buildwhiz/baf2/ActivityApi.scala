@@ -157,27 +157,29 @@ object ActivityApi {
     }
   }
 
-  def staffAssignmentList(activityOid: ObjectId): Seq[DynDoc] = {
-    val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
-    if (assignments.nonEmpty) {
-      assignments
-    } else {
-      val theActivity = activityById(activityOid)
-      BWMongoDB3.activity_assignments.insertOne(Map("activity_id" -> activityOid, "role" -> theActivity.role[String]))
-      staffAssignmentList(activityOid)
-    }
-  }
-
-  def staffAssignmentRoleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId]): Unit = {
-    val baseRecord = Map("activity_id" -> activityOid, "role" -> roleName)
-    if (BWMongoDB3.activity_assignments.count(baseRecord) == 0) {
-      val fullRecord: Map[String, Any] = optOrganizationId match {
-        case None => baseRecord
-        case Some(oid) => baseRecord ++ Map("organization_id" -> oid)
+  object teamAssgnment {
+    def staffAssignmentList(activityOid: ObjectId): Seq[DynDoc] = {
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
+      if (assignments.nonEmpty) {
+        assignments
+      } else {
+        val theActivity = activityById(activityOid)
+        BWMongoDB3.activity_assignments.insertOne(Map("activity_id" -> activityOid, "role" -> theActivity.role[String]))
+        teamAssgnment.staffAssignmentList(activityOid)
       }
-      BWMongoDB3.activity_assignments.insertOne(fullRecord)
-    } else {
-      throw new IllegalArgumentException(s"Role '$roleName' already exists")
+    }
+
+    def staffAssignmentRoleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId]): Unit = {
+      val baseRecord = Map("activity_id" -> activityOid, "role" -> roleName)
+      if (BWMongoDB3.activity_assignments.count(baseRecord) == 0) {
+        val fullRecord: Map[String, Any] = optOrganizationId match {
+          case None => baseRecord
+          case Some(oid) => baseRecord ++ Map("organization_id" -> oid)
+        }
+        BWMongoDB3.activity_assignments.insertOne(fullRecord)
+      } else {
+        throw new IllegalArgumentException(s"Role '$roleName' already exists")
+      }
     }
   }
 

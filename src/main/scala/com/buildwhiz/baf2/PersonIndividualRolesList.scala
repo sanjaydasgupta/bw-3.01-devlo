@@ -9,7 +9,7 @@ class PersonIndividualRolesList extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     //val parameters = getParameterMap(request)
     try {
-      val possibleRoles = PersonIndividualRolesList.possibleIndividualRoles
+      val possibleRoles = PersonApi.possibleIndividualRoles
       response.getWriter.print(possibleRoles.map(ir => "\"%s\"".format(ir)).mkString("[", ",", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -21,8 +21,4 @@ class PersonIndividualRolesList extends HttpServlet with HttpUtils {
         throw t
     }
   }
-}
-
-object PersonIndividualRolesList {
-  val possibleIndividualRoles: Seq[String] = Seq("Principal", "Admin", "Finance", "Contract", "Lead", "Contributor")
 }

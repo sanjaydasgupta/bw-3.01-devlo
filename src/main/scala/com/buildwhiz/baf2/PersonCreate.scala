@@ -61,7 +61,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
         case Some(indRoles) =>
           val theRoles = indRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
           theRoles.foreach(role =>
-            if (!PersonIndividualRolesList.possibleIndividualRoles.contains(role))
+            if (!PersonApi.possibleIndividualRoles.contains(role))
               throw new IllegalArgumentException(s"Bad individual-role: '$role'")
           )
           theRoles

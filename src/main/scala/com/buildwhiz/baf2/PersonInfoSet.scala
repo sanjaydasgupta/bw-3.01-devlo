@@ -14,7 +14,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
   private def processIndividualRoles(individualRoles: String): Seq[String] = {
     val theRoles = individualRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
     theRoles.foreach(role =>
-      if (!PersonIndividualRolesList.possibleIndividualRoles.contains(role))
+      if (!PersonApi.possibleIndividualRoles.contains(role))
         throw new IllegalArgumentException(s"Bad individual-role: '$role'")
     )
     theRoles

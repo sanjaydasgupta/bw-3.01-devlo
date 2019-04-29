@@ -157,7 +157,7 @@ object ActivityApi {
     }
   }
 
-  object teamAssgnment {
+  object teamAssignment {
 
     def list(activityOid: ObjectId): Seq[DynDoc] = {
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
@@ -166,7 +166,7 @@ object ActivityApi {
       } else {
         val theActivity = activityById(activityOid)
         BWMongoDB3.activity_assignments.insertOne(Map("activity_id" -> activityOid, "role" -> theActivity.role[String]))
-        teamAssgnment.list(activityOid)
+        teamAssignment.list(activityOid)
       }
     }
 

@@ -33,7 +33,7 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       if (!PersonApi.possibleIndividualRoles.contains(individualRole))
         throw new IllegalArgumentException(s"Bad individual_role: '$individualRole'")
 
-      ActivityApi.teamAssgnment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole)
+      ActivityApi.teamAssignment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole)
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

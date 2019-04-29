@@ -25,7 +25,7 @@ class ActivityAssignOrganization extends HttpServlet with HttpUtils {
       if (!OrganizationApi.exists(organizationOid))
         throw new IllegalArgumentException(s"Bad organization_id '$organizationOid'")
 
-      ActivityApi.teamAssgnment.organizationAdd(activityOid, theRole, organizationOid)
+      ActivityApi.teamAssignment.organizationAdd(activityOid, theRole, organizationOid)
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

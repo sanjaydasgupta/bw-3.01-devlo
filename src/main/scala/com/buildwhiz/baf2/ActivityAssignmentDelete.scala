@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.baf2.ActivityApi.teamAssgnment
+import com.buildwhiz.baf2.ActivityApi.teamAssignment
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -21,7 +21,7 @@ class ActivityAssignmentDelete extends HttpServlet with HttpUtils {
       if (BWMongoDB3.activity_assignments.count(Map("_id" -> assignmentOid)) == 0)
         throw new IllegalArgumentException(s"Bad assignment_id: '$assignmentOid'")
 
-      teamAssgnment.deleteAssignment(assignmentOid)
+      teamAssignment.deleteAssignment(assignmentOid)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

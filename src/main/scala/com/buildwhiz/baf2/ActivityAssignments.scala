@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.baf2.ActivityApi.teamAssgnment
+import com.buildwhiz.baf2.ActivityApi.teamAssignment
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -11,7 +11,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
 
   private def activityAssignments(activity: DynDoc, fill: Boolean): Seq[Document] = {
     val process = ActivityApi.parentProcess(activity._id[ObjectId])
-    val assignments: Seq[DynDoc] = teamAssgnment.list(activity._id[ObjectId])
+    val assignments: Seq[DynDoc] = teamAssignment.list(activity._id[ObjectId])
     assignments.map(assignment => {
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).

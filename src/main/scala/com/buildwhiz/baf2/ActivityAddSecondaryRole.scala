@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.baf2.ActivityApi.teamAssgnment
+import com.buildwhiz.baf2.ActivityApi.teamAssignment
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
@@ -29,7 +29,7 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
         orgOid
       })
 
-      teamAssgnment.roleAdd(activityOid, newRole, optOrganizationOid)
+      teamAssignment.roleAdd(activityOid, newRole, optOrganizationOid)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

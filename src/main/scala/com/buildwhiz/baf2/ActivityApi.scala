@@ -158,6 +158,7 @@ object ActivityApi {
   }
 
   object teamAssgnment {
+
     def list(activityOid: ObjectId): Seq[DynDoc] = {
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
       if (assignments.nonEmpty) {
@@ -181,6 +182,24 @@ object ActivityApi {
         throw new IllegalArgumentException(s"Role '$roleName' already exists")
       }
     }
+
+    def organizationAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId): Unit = {
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.
+        find(Map("activity_id" -> activityOid, "role" -> roleName))
+      assignments.length match {
+        case 0 => throw new IllegalArgumentException("Severe system error!")
+        case 1 => val assignment = assignments.head
+          if (assignment.has("organization_id"))
+            throw new IllegalArgumentException(s"Organization already assigned to this activity and role")
+          val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("activity_id" -> activityOid, "role" -> roleName),
+            Map("$set" -> Map("organization_id" -> organizationOid)))
+          if (updateResult.getMatchedCount == 0)
+            throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        case _ =>
+          throw new IllegalArgumentException("Wrong state for adding organization")
+      }
+    }
+
   }
 
 }

@@ -26,7 +26,9 @@ object PersonApi {
       case (Some(workEmail), _, _) =>
         BWMongoDB3.persons.find(Map("emails" -> Map("$elemMatch" ->
           Map("$eq" -> Map("type" -> "work", "email" -> workEmail)))))
-      case (None, Some(organizationOid), _) =>
+      case (None, Some(organizationOid), Some(skill)) =>
+        BWMongoDB3.persons.find(Map("organization_id" -> organizationOid, "skills" -> skill))
+      case (None, Some(organizationOid), None) =>
         BWMongoDB3.persons.find(Map("organization_id" -> organizationOid))
       case (None, None, Some(skill)) => BWMongoDB3.persons.find(Map("skills" -> skill))
       case _ => BWMongoDB3.persons.find()

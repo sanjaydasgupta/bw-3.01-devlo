@@ -2,6 +2,7 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.baf2.ActivityApi.teamAssignment
 import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -43,7 +44,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         assignmentDoc.append("individual_role", if (fill) "Some-Role" else "")
       }
       if (assignment.has("document_access")) {
-        val docAccess = assignment.doc_access[String]
+        val docAccess = assignment.document_access[Many[String]]
         assignmentDoc.append("document_access", docAccess)
       } else {
         assignmentDoc.append("document_access", if (fill) "Some, Doc, Access" else "")

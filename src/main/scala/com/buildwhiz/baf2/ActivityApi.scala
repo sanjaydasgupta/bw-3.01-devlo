@@ -262,7 +262,8 @@ object ActivityApi {
             throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
         } else if (count == 1) {
           val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
-            Map("$unset" -> Map("organization_id" -> true, "person_id" -> true, "individual_role" -> true)))
+            Map("$unset" -> Map("organization_id" -> true, "person_id" -> true, "individual_role" -> true,
+                "document_access" -> true)))
           if (updateResult.getMatchedCount == 0)
             throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
         } else

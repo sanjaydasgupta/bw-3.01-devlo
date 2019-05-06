@@ -16,7 +16,8 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).
         append("process_name", process.name[String]).
-        append("can_delete", assignment.role[String] != activity.role[String])
+        append("can_delete", true)
+        //append("can_delete", assignment.role[String] != activity.role[String])
       if (assignment.has("organization_id")) {
         val orgOid = assignment.organization_id[ObjectId]
         assignmentDoc.append("organization_id", orgOid)

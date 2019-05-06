@@ -33,7 +33,10 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       if (!PersonApi.possibleIndividualRoles.contains(individualRole))
         throw new IllegalArgumentException(s"Bad individual_role: '$individualRole'")
 
-      ActivityApi.teamAssignment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole)
+      val documentAccess = parameters("document_access").split(",").map(_.trim).filter(_.nonEmpty)
+
+      ActivityApi.teamAssignment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole,
+          documentAccess)
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

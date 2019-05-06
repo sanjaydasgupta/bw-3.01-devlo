@@ -39,13 +39,13 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         val indRole = assignment.individual_role[String]
         assignmentDoc.append("individual_role", indRole)
       } else {
-        assignmentDoc.append("individual_role", if (fill) "Some Role" else "")
+        assignmentDoc.append("individual_role", if (fill) "Some-Role" else "")
       }
-      if (assignment.has("doc_access")) {
+      if (assignment.has("document_access")) {
         val docAccess = assignment.doc_access[String]
-        assignmentDoc.append("doc_access", docAccess)
+        assignmentDoc.append("document_access", docAccess)
       } else {
-        assignmentDoc.append("doc_access", if (fill) "Some Role" else "")
+        assignmentDoc.append("document_access", if (fill) "Some, Doc, Access" else "")
       }
       assignmentDoc
     })

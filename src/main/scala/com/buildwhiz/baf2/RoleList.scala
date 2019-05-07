@@ -30,7 +30,9 @@ class RoleList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      val resultRoles = getRoles(request).map(r => s""""$r"""")
+      val primaryRoles: Seq[String] = getRoles(request)
+      val secondaryRoles: Seq[String] = RoleListSecondary.secondaryRoles
+      val resultRoles = (primaryRoles ++ secondaryRoles).sortBy(_.toLowerCase).map(r => s""""$r"""")
       BWLogger.log(getClass.getName, request.getMethod, s"**** ${resultRoles.length} ****", request)
       response.getWriter.println(resultRoles.mkString("[", ", ", "]"))
       response.setContentType("application/json")

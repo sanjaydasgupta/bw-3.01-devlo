@@ -213,12 +213,7 @@ object ActivityApi {
     }
 
     def personAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId, personOid: ObjectId,
-        individualRole: String, documentAccess: Seq[String]): Unit = {
-
-      def samePersonAndIndividualRole(assignment: DynDoc): Boolean = {
-        assignment.has("person_id") && assignment.person_id[ObjectId] == personOid &&
-            assignment.has("individual_role") && assignment.individual_role[String] == individualRole
-      }
+        individualRole: Seq[String], documentAccess: Seq[String]): Unit = {
 
       val query = Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> organizationOid)
       val baseRecord = query ++ parentFields(activityOid)
@@ -227,8 +222,8 @@ object ActivityApi {
         case 0 => throw new IllegalArgumentException("Role and organization must be added first")
         case 1 => val assignment = assignments.head
           if (assignment.has("person_id")) {
-            if (samePersonAndIndividualRole(assignment))
-              throw new IllegalArgumentException(s"Person and individual-role already assigned to this activity, role")
+            if (assignment.has("person_id") && assignment.person_id[ObjectId] == personOid)
+              throw new IllegalArgumentException(s"Person already assigned to this activity, role")
             else
               BWMongoDB3.activity_assignments.insertOne(baseRecord ++ Map("person_id" -> personOid,
                 "individual_role" -> individualRole, "document_access" -> documentAccess))

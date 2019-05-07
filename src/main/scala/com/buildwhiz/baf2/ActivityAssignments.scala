@@ -8,6 +8,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 class ActivityAssignments extends HttpServlet with HttpUtils {
 
   private def activityAssignments(activity: DynDoc, fill: Boolean): Seq[Document] = {
@@ -38,16 +40,18 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         assignmentDoc.append("person_name", if (fill) "Some Person" else "")
       }
       if (assignment.has("individual_role")) {
-        val indRole = assignment.individual_role[String]
+        val indRole = assignment.individual_role[Many[String]]
         assignmentDoc.append("individual_role", indRole)
       } else {
-        assignmentDoc.append("individual_role", if (fill) "Some-Role" else "")
+        val roleValue = if (fill) Seq("Some-Role") else Seq.empty[String]
+        assignmentDoc.append("individual_role", roleValue.asJava)
       }
       if (assignment.has("document_access")) {
         val docAccess = assignment.document_access[Many[String]]
         assignmentDoc.append("document_access", docAccess)
       } else {
-        assignmentDoc.append("document_access", if (fill) "Some, Doc, Access" else "")
+        val accessValue = if (fill) Seq("Some-Doc-Access") else Seq.empty[String]
+        assignmentDoc.append("document_access", accessValue.asJava)
       }
       assignmentDoc
     })

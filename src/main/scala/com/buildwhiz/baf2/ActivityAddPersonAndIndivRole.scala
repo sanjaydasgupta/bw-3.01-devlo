@@ -29,9 +29,10 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       if (!PersonApi.exists(personOid))
         throw new IllegalArgumentException(s"Bad person_id '$personOid'")
 
-      val individualRole = parameters("individual_role")
-      if (!PersonApi.possibleIndividualRoles.contains(individualRole))
-        throw new IllegalArgumentException(s"Bad individual_role: '$individualRole'")
+      val individualRole = parameters("individual_role").split(",").map(_.trim).filter(_.nonEmpty)
+      val badRoles = individualRole.filterNot(PersonApi.possibleIndividualRoles.contains(_))
+      if (badRoles.nonEmpty)
+        throw new IllegalArgumentException(s"""Bad individual_role(s): ${badRoles.mkString(", ")}""")
 
       val documentAccess = parameters("document_access").split(",").map(_.trim).filter(_.nonEmpty)
 

@@ -4,6 +4,7 @@ import com.buildwhiz.baf2.ActivityApi.teamAssignment
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
+import com.buildwhiz.infra.DynDoc
 
 class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
 
@@ -11,7 +12,8 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      //      val user: DynDoc = getUser(request)
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
       //      if (!ProcessApi.canManage(user._id[ObjectId], theActivity))
       //        throw new IllegalArgumentException("Not permitted")
       val newRole = parameters("role")
@@ -29,7 +31,7 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
         orgOid
       })
 
-      teamAssignment.roleAdd(activityOid, newRole, optOrganizationOid)
+      teamAssignment.roleAdd(activityOid, newRole, optOrganizationOid, userOid)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

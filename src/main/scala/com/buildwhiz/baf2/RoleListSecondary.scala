@@ -29,5 +29,5 @@ class RoleListSecondary extends HttpServlet with HttpUtils {
 }
 
 object RoleListSecondary {
-  val secondaryRoles: Seq[String] = Seq("pre-approval", "post-approval", "other")
+  val secondaryRoles: Seq[String] = Seq("Pre-Approval", "Post-Approval", "Other")
 }

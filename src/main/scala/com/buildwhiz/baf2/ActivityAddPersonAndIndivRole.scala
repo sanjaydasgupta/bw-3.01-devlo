@@ -1,6 +1,7 @@
 package com.buildwhiz.baf2
 
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.infra.DynDoc
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
@@ -10,7 +11,8 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      //      val user: DynDoc = getUser(request)
+      val user: DynDoc = getUser(request)
+      val userOid = user._id[ObjectId]
       //      if (!ProcessApi.canManage(user._id[ObjectId], theActivity))
       //        throw new IllegalArgumentException("Not permitted")
       val activityOid = new ObjectId(parameters("activity_id"))
@@ -37,7 +39,7 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       val documentAccess = parameters("document_access").split(",").map(_.trim).filter(_.nonEmpty)
 
       ActivityApi.teamAssignment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole,
-          documentAccess)
+          documentAccess, userOid)
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

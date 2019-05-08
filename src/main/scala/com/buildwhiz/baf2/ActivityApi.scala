@@ -159,6 +159,34 @@ object ActivityApi {
 
   object teamAssignment {
 
+    private def assignmentToString(assignment: Either[DynDoc, ObjectId]): String = {
+      val theAssignment: DynDoc = assignment match {
+        case Left(a) => a
+        case Right(oid) => BWMongoDB3.activity_assignments.find(Map("_id" -> oid)).head
+      }
+      val role = theAssignment.role[String]
+      val orgName = if (theAssignment.has("organization_id")) {
+        val orgOid = theAssignment.organization_id[ObjectId]
+        val theOrganization: DynDoc = BWMongoDB3.organizations.find(Map("_id" -> orgOid)).head
+        theOrganization.name[String]
+      } else {
+        "NA"
+      }
+      val personName = if (theAssignment.has("person_id")) {
+        val personOid = theAssignment.person_id[ObjectId]
+        val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+        s"${thePerson.first_name[String]} ${thePerson.last_name[String]}"
+      } else {
+        "NA"
+      }
+      val individualRole = if (theAssignment.has("individual_role")) {
+        theAssignment.individual_role[Many[String]].mkString(", ")
+      } else {
+        "NA"
+      }
+      s"Role: $role, Org: $orgName, Person: $personName, Individual-Role: $individualRole"
+    }
+
     private def parentFields(activityOid: ObjectId): Map[String, Any] = {
       val process = parentProcess(activityOid)
       val processOid = process._id[ObjectId]
@@ -180,7 +208,8 @@ object ActivityApi {
       }
     }
 
-    def roleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId]): Unit = {
+    def roleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId], userOid: ObjectId):
+        Unit = {
       val searchRecord = Map("activity_id" -> activityOid, "role" -> roleName)
       if (BWMongoDB3.activity_assignments.count(searchRecord) == 0) {
         val baseRecord = searchRecord ++ parentFields(activityOid)
@@ -189,34 +218,36 @@ object ActivityApi {
           case Some(oid) => baseRecord ++ Map("organization_id" -> oid)
         }
         BWMongoDB3.activity_assignments.insertOne(fullRecord)
+        val message = s"Added role to (${assignmentToString(Left(fullRecord))})"
+        addChangeLogEntry(activityOid, message, Some(userOid), None)
       } else {
         throw new IllegalArgumentException(s"Role '$roleName' already exists")
       }
     }
 
-    def organizationAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId): Unit = {
+    def organizationAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId, userOid: ObjectId): Unit = {
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.
-        find(Map("activity_id" -> activityOid, "role" -> roleName))
-      assignments.length match {
-        case 0 => throw new IllegalArgumentException("Severe system error!")
-        case 1 => val assignment = assignments.head
-          if (assignment.has("organization_id"))
-            throw new IllegalArgumentException(s"Organization already assigned to this activity and role")
-          val updateResult = BWMongoDB3.activity_assignments.updateOne(
-            Map("activity_id" -> activityOid, "role" -> roleName),
-            Map("$set" -> Map("organization_id" -> organizationOid)))
-          if (updateResult.getMatchedCount == 0)
-            throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-        case _ =>
-          throw new IllegalArgumentException("Wrong state for adding organization")
-      }
+        find(Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> Map("$exists" -> false)))
+      val assignment = assignments.head
+      val assignmentOid = assignment._id[ObjectId]
+      if (assignments.length == 1) {
+        val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
+          Map("$set" -> Map("organization_id" -> organizationOid)))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      } else
+        throw new IllegalArgumentException("Wrong state for adding organization")
+      val message = s"Added organization to (${assignmentToString(Left(assignment))})"
+      addChangeLogEntry(activityOid, message, Some(userOid), None)
     }
 
     def personAdd(activityOid: ObjectId, roleName: String, organizationOid: ObjectId, personOid: ObjectId,
-        individualRole: Seq[String], documentAccess: Seq[String]): Unit = {
+        individualRole: Seq[String], documentAccess: Seq[String], userOid: ObjectId): Unit = {
 
       val query = Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> organizationOid)
       val baseRecord = query ++ parentFields(activityOid)
+      val fullRecord = baseRecord ++ Map("person_id" -> personOid, "individual_role" -> individualRole,
+          "document_access" -> documentAccess)
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(query)
       assignments.length match {
         case 0 => throw new IllegalArgumentException("Role and organization must be added first")
@@ -225,8 +256,9 @@ object ActivityApi {
             if (assignment.has("person_id") && assignment.person_id[ObjectId] == personOid)
               throw new IllegalArgumentException(s"Person already assigned to this activity, role")
             else
-              BWMongoDB3.activity_assignments.insertOne(baseRecord ++ Map("person_id" -> personOid,
-                "individual_role" -> individualRole, "document_access" -> documentAccess))
+              BWMongoDB3.activity_assignments.insertOne(fullRecord)
+            val message = s"Created new assignment to (${assignmentToString(Left(fullRecord))})"
+            addChangeLogEntry(activityOid, message, Some(userOid), None)
           } else {
             val assignmentOid = assignment._id[ObjectId]
             val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
@@ -234,21 +266,41 @@ object ActivityApi {
                 "document_access" -> documentAccess)))
             if (updateResult.getMatchedCount == 0)
               throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+            val message = s"Added person, indiv-role to (${assignmentToString(Right(assignmentOid))})"
+            addChangeLogEntry(activityOid, message, Some(userOid), None)
           }
         case _ =>
-          BWMongoDB3.activity_assignments.insertOne(baseRecord ++ Map("person_id" -> personOid,
-            "individual_role" -> individualRole, "document_access" -> documentAccess))
+          BWMongoDB3.activity_assignments.insertOne(fullRecord)
+          val message = s"Created new assignment to (${assignmentToString(Left(fullRecord))})"
+          addChangeLogEntry(activityOid, message, Some(userOid), None)
       }
     }
 
-    def deleteAssignment(assignmentOid: ObjectId): Unit = {
+    def documentAccessSet(activityOid: ObjectId, roleName: String, organizationOid: ObjectId,
+        documentAccess: Seq[String]): Unit = {
+
+      val query = Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> organizationOid,
+          "person_id" -> Map("$exists" -> true), "individual_role" -> Map("$exists" -> true))
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(query)
+      if (assignments.length == 1) {
+        val assignment = assignments.head
+        val assignmentOid = assignment._id[ObjectId]
+        val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
+          Map("$set" -> Map("document_access" -> documentAccess)))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      } else
+        throw new IllegalArgumentException("Bad assignment state")
+    }
+
+    def deleteAssignment(assignmentOid: ObjectId, userOid: ObjectId): Unit = {
       val theAssignment: DynDoc = BWMongoDB3.activity_assignments.find(Map("_id" -> assignmentOid)).head
+      val activityOid = theAssignment.activity_id[ObjectId]
       if (RoleListSecondary.secondaryRoles.contains(theAssignment.role[String])) {
         val deleteResult = BWMongoDB3.activity_assignments.deleteOne(Map("_id" -> assignmentOid))
         if (deleteResult.getDeletedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
       } else {
-        val activityOid = theAssignment.activity_id[ObjectId]
         val role = theAssignment.role[String]
         val count = BWMongoDB3.activity_assignments.count(Map("activity_id" -> activityOid, "role" -> role))
         if (count > 1) {
@@ -264,6 +316,8 @@ object ActivityApi {
         } else
           throw new IllegalArgumentException("Severe system error")
       }
+      val message = s"Deleted assignment (${assignmentToString(Left(theAssignment))})"
+      addChangeLogEntry(activityOid, message, Some(userOid), None)
     }
 
   }

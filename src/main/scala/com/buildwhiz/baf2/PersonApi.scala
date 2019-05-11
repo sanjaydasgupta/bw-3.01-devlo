@@ -139,9 +139,14 @@ object PersonApi {
       case Some(orgRecord) => s"ORG:${orgRecord.name[String]}"
       case None => ""
     }
-    val workEmail: DynDoc = person.emails[Many[Document]].find(_.`type` == "work").get
-    val email = s"EMAIL:${workEmail.email[String]}"
-    val parts = Seq("BEGIN:VCARD", "VERSION:3.0", n, fn, org, email, "END:VCARD")
+    val workEmailRecord: DynDoc = person.emails[Many[Document]].find(_.`type`[String] == "work").get
+    val workEmail = s"EMAIL:${workEmailRecord.email[String]}"
+    val workPhoneRecord: Option[DynDoc] = person.phones[Many[Document]].find(_.`type`[String] == "work")
+    val workPhone = workPhoneRecord match {
+      case None => ""
+      case Some(wp) => s"TEL;TYPE=WORK,VOICE:${wp.phone[String]}"
+    }
+    val parts = Seq("BEGIN:VCARD", "VERSION:3.0", n, fn, org, workEmail, workPhone, "END:VCARD")
     parts.filter(_.nonEmpty).mkString("\n")
   }
 

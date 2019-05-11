@@ -131,6 +131,7 @@
 				<configuration>
 					<scalaVersion>${scala.version}</scalaVersion>
 					<args>-feature</args>
+					<args>-deprecation</args>
 				</configuration>
 			</plugin>
 		</plugins>

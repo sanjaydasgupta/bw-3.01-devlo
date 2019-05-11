@@ -9,8 +9,12 @@ class PersonList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
-    val skillOption = parameters.get("skill") match {
-      case Some("CC") => None
+    val skillOption: Option[String] = parameters.get("skill") match {
+      case Some(skill) =>
+        if (RoleListSecondary.secondaryRoles.contains(skill))
+          None
+        else
+          Some(skill)
       case other => other
     }
     val organisationOidOption = parameters.get("organization_id").map(new ObjectId(_))

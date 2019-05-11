@@ -114,4 +114,35 @@ object PersonApi {
         append("active", active).append("individual_roles", individualRoles)
   }
 
+  def parentOrganization(personIn: Either[ObjectId, DynDoc]): Option[DynDoc] = {
+    val person = personIn match {
+      case Right(pd) => pd
+      case Left(pOid) => personById(pOid)
+    }
+    if (person.has("organization_id")) {
+      val organization = OrganizationApi.organizationById(person.organization_id[ObjectId])
+      Some(organization)
+    } else {
+      None
+    }
+  }
+
+  def vCard(personIn: Either[ObjectId, DynDoc]): String = {
+    val person = personIn match {
+      case Right(pd) => pd
+      case Left(pOid) => personById(pOid)
+    }
+    val (firstName, lastName) = (person.first_name[String], person.last_name[String])
+    val n = s"N:$lastName;$firstName;;;"
+    val fn = s"FN:$firstName $lastName"
+    val org = parentOrganization(Right(person)) match {
+      case Some(orgRecord) => s"ORG:${orgRecord.name[String]}"
+      case None => ""
+    }
+    val workEmail: DynDoc = person.emails[Many[Document]].find(_.`type` == "work").get
+    val email = s"EMAIL:${workEmail.email[String]}"
+    val parts = Seq("BEGIN:VCARD", "VERSION:3.0", n, fn, org, email, "END:VCARD")
+    parts.filter(_.nonEmpty).mkString("\n")
+  }
+
 }

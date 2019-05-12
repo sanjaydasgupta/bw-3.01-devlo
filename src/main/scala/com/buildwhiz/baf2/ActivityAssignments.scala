@@ -65,9 +65,12 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       //val userOid = user._id[ObjectId]
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
-      val activities = (optPhaseOid, optProjectOid) match {
-        case (Some(phaseOid), _) => PhaseApi.allActivities(phaseOid)
-        case (None, Some(projectOid)) => ProjectApi.allActivities(projectOid)
+      val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
+
+      val activities = (optActivityOid, optPhaseOid, optProjectOid) match {
+        case (Some(activityOid), _, _) => Seq(ActivityApi.activityById(activityOid))
+        case (None, Some(phaseOid), _) => PhaseApi.allActivities(phaseOid)
+        case (None, None, Some(projectOid)) => ProjectApi.allActivities(projectOid)
         case _ => throw new IllegalArgumentException("Required parameters not provided")
       }
       val fill = optPhaseOid match {

@@ -74,18 +74,17 @@ object DocumentApi extends HttpUtils {
     def oid(id: String): ObjectId = new ObjectId(id)
 
     val allDocuments: Seq[DynDoc] = parameterValues match {
-      case Array(Some(actionName), Some(activityId), _, _, _) =>
-        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> actionName))
-      case Array(None, Some(activityId), _, _, _) =>
-        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> Map("$exists" -> false)))
-      case Array(None, None, Some(processId), _, _) =>
-        BWMongoDB3.document_master.find(Map("process_id" -> oid(processId), "activity_id" -> Map("$exists" -> false)))
-      case Array(None, None, None, Some(phaseId), _) =>
-        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
-          "activity_id" -> Map("$exists" -> false)))
-      case Array(None, None, None, None, Some(projectId)) =>
-        BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId), "phase_id" -> Map("$exists" -> false),
-          "process_id" -> Map("$exists" -> false), "activity_id" -> Map("$exists" -> false)))
+//      case Array(Some(actionName), Some(activityId), _, _, _) =>
+//        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> actionName))
+//      case Array(None, Some(activityId), _, _, _) =>
+//        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> Map("$exists" -> false)))
+//      case Array(None, None, Some(processId), _, _) =>
+//        BWMongoDB3.document_master.find(Map("process_id" -> oid(processId), "activity_id" -> Map("$exists" -> false)))
+//      case Array(None, None, None, Some(phaseId), _) =>
+//        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
+//          "activity_id" -> Map("$exists" -> false)))
+      case Array(_, _, _, _, Some(projectId)) =>
+        BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId)))
       case _ => Seq.empty[DynDoc]
     }
     allDocuments.filter(_.has("name"))

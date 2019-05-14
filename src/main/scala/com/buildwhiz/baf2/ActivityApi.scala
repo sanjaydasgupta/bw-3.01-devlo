@@ -253,8 +253,10 @@ object ActivityApi {
         case 0 => throw new IllegalArgumentException("Role and organization must be added first")
         case 1 => val assignment = assignments.head
           if (assignment.has("person_id")) {
-            if (assignment.has("person_id") && assignment.person_id[ObjectId] == personOid)
-              throw new IllegalArgumentException(s"Person already assigned to this activity, role")
+            val existingIndivRoles: Seq[String] = assignment.individual_role[Many[String]]
+            val roleConflicted = individualRole.exists(ir => existingIndivRoles.contains(ir))
+            if (assignment.person_id[ObjectId] == personOid && roleConflicted)
+              throw new IllegalArgumentException(s"Conflict with existing assignment")
             else
               BWMongoDB3.activity_assignments.insertOne(fullRecord)
             val message = s"Created new assignment to (${assignmentToString(Left(fullRecord))})"
@@ -270,6 +272,16 @@ object ActivityApi {
             addChangeLogEntry(activityOid, message, Some(userOid), None)
           }
         case _ =>
+          val conflicted = assignments.exists(assignment => {
+            if (assignment.has("person_id")) {
+              val existingIndivRoles: Seq[String] = assignment.individual_role[Many[String]]
+              val roleConflicted = individualRole.exists(ir => existingIndivRoles.contains(ir))
+              assignment.person_id[ObjectId] == personOid && roleConflicted
+            } else
+              false
+          })
+          if (conflicted)
+            throw new IllegalArgumentException(s"Conflict with existing assignment")
           BWMongoDB3.activity_assignments.insertOne(fullRecord)
           val message = s"Created new assignment to (${assignmentToString(Left(fullRecord))})"
           addChangeLogEntry(activityOid, message, Some(userOid), None)

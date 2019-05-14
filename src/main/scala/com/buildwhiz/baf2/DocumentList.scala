@@ -28,8 +28,12 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
         "NA"
       }
       val taskName = if (d.has("activity_id")) {
-        val theActivity = ActivityApi.activityById(d.activity_id[ObjectId])
-        theActivity.name[String]
+        if (ActivityApi.exists(d.activity_id[ObjectId])) {
+          val theActivity = ActivityApi.activityById(d.activity_id[ObjectId])
+          theActivity.name[String]
+        } else {
+          "NA"
+        }
       } else {
         "NA"
       }

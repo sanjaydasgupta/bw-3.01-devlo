@@ -39,6 +39,7 @@
   )
 
   self.findUsers = function(userId) {
+    self.newUserPassword = '<None>';
     var query = 'api/Person/{$or: [{first_name: {$regex: "' + self.nameFilter + '", $options: "i"}},' +
         '{last_name: {$regex: "' + self.nameFilter + '", $options: "i"}}]}';
     $log.log('GET ' + query);
@@ -90,6 +91,7 @@
   }
 
   self.selectUser = function(user) {
+    self.newUserPassword = '<None>';
     $log.log('Called selectUser(' + user._id + ')');
     if (!user.hasOwnProperty('enabled')) {
       user.enabled = false;

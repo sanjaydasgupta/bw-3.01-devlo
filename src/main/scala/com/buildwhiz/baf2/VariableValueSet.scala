@@ -1,6 +1,5 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -16,10 +15,6 @@ class VariableValueSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
-      val theProcess = ProcessApi.processById(processOid)
-      val user: DynDoc = getUser(request)
-      if (!ProcessApi.canManage(user._id[ObjectId], theProcess))
-        throw new IllegalArgumentException("Not permitted")
       val (label, bpmnName, value) = (parameters("label"), parameters("bpmn_name"), parameters("value"))
       VariableValueSet.set(request, response, processOid, label, bpmnName, value)
     } catch {
@@ -36,9 +31,9 @@ object VariableValueSet extends HttpUtils {
   def set(request: HttpServletRequest, response: HttpServletResponse, processOid: ObjectId, label: String,
           bpmnName: String, value: String): Unit = {
 
-    val theProcess: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
+    val theProcess = ProcessApi.processById(processOid)
     val user: DynDoc = getUser(request)
-    if (user._id[ObjectId] != theProcess.admin_person_id[ObjectId])
+    if (!ProcessApi.canManage(user._id[ObjectId], theProcess))
       throw new IllegalArgumentException("Not permitted")
 
     val variables: Seq[DynDoc] = theProcess.variables[Many[Document]]
@@ -65,11 +60,11 @@ object VariableValueSet extends HttpUtils {
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      response.getWriter.print(value)
-      response.setContentType("text/plain")
+//      response.getWriter.print(value)
+//      response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
-      val variableLog = s"'${variables(variableIdx).label[String]}'"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set value of variable '$variableLog' to '$value'""", request)
+      val message = s"Set value of variable '${variables(variableIdx).label[String]}' to '$value'"
+      BWLogger.audit(getClass.getName, "doPost", message, request)
     }
   }
 }

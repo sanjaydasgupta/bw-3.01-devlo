@@ -140,7 +140,7 @@ object ProjectApi extends HttpUtils {
       throw new IllegalArgumentException(s"Unknown tag: '$tagName'")
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
-    if (!ProjectApi.isAdmin(userOid, project))
+    if (!ProjectApi.canManage(userOid, project))
       throw new IllegalArgumentException("Not permitted")
     val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> project._id[ObjectId]),
       Map("$pull" -> Map("document_tags" -> Map("name" -> tagName))))

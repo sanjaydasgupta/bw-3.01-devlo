@@ -156,7 +156,7 @@ object ProjectApi extends HttpUtils {
       throw new IllegalArgumentException(s"Tag: '$tagName' already exists")
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
-    if (!ProjectApi.isAdmin(userOid, project))
+    if (!ProjectApi.canManage(userOid, project))
       throw new IllegalArgumentException("Not permitted")
     val tagRecord = optLogic match {
       case None => new Document("name", tagName)

@@ -50,7 +50,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
       Map("name" -> "Documents", "urls" -> "/documents", "icon" -> "documents"),
       Map("name" -> "RFIs", "url" -> "/rfis", "icon" -> "rfis"),
       //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
-      Map("name" -> "Contacts", "url" -> "/contacts", "icon" -> "contact"),
+      Map("name" -> "Organizations", "url" -> "/contacts", "icon" -> "contact"),
       Map("name" -> "Team", "url" -> "/team", "icon" -> "project_team"),
       Map("name" -> "Tasks", "url" -> "/task-list", "icon" -> "tasks"),
       Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
@@ -80,10 +80,13 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
             addMenuItems(personRecord)
             if (!personRecord.containsKey("document_filter_labels"))
               personRecord.put("document_filter_labels", Seq.empty[String])
-            val resultFields = Seq("_id", "first_name", "last_name", "roles", "organization_id"/*, "project_ids"*/,
+            val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size").
                 filter(f => personRecord.containsKey(f))
-            val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap)
+            val roleValues: Seq[String] = personRecord.get("roles").asInstanceOf[Many[String]]
+            val roles = if (roleValues.contains("BW-Admin")) Seq("BW-Admin") else Seq("NA")
+            val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
+                Map("roles" -> roles))
             recordLoginTime(personRecord)
             BWLogger.audit(getClass.getName, "doPost", "Login OK", request)
             bson2json(resultPerson)

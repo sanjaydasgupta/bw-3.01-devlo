@@ -29,7 +29,6 @@ class DocumentTagDelete extends HttpServlet with HttpUtils {
         deleteUserTag(tagName, request)
         BWLogger.audit(getClass.getName, request.getMethod, s"Deleted user document-tag '$tagName'", request)
       } else if (tagType == "system") {
-        val parameters = getParameterMap(request)
         val projectOid = new ObjectId(parameters("project_id"))
         deleteSystemTag(tagName, projectOid, request)
         BWLogger.audit(getClass.getName, request.getMethod, s"Deleted system document-tag '$tagName'", request)

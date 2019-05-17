@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -12,6 +12,9 @@ class DocumentDelete extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val user: DynDoc = getUser(request)
+      if (!user.first_name[String].matches("Prabhas|Tester\\d"))
+        throw new IllegalArgumentException(s"Not permitted")
 
       val documentOid = new ObjectId(parameters("document_id"))
       if (!DocumentApi.exists(documentOid))

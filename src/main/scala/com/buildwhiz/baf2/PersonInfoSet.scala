@@ -28,6 +28,14 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       val parameterMap = getParameterMap(request)
 
       val personOid = new ObjectId(parameterMap("person_id"))
+
+      val tempPerson = PersonApi.personById(personOid)
+      if (tempPerson.phones[Many[Document]].indexWhere(_.`type`[String] == "work") == -1) {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
+          Map("$push" -> Map("phones" -> Map("type" -> "work", "phone" -> ""))))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
       val person = PersonApi.personById(personOid)
 
       val noop = (s: String) => s

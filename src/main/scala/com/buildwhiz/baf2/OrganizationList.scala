@@ -59,7 +59,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 //        val result = new Document("organization_list", organizationDetails).append("can_add_organization", canManage)
 //        response.getWriter.print(result.toJson)
 //      } else {
-        val organizationDetails: java.util.List[Document] = organizations.asJava
+        val organizationDetails: java.util.List[Document] = organizations.sortBy(d => d.getString("name")).asJava
         val result = new Document("organization_list", organizationDetails).append("can_add_organization", canManage)
         response.getWriter.print(result.toJson)
 //      }

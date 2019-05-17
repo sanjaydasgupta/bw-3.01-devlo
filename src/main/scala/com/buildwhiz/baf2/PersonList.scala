@@ -20,7 +20,7 @@ class PersonList extends HttpServlet with HttpUtils {
     val organisationOidOption = parameters.get("organization_id").map(new ObjectId(_))
     try {
       val persons = PersonApi.fetch(None, organisationOidOption, skillOption)
-      val personDocuments = persons.map(PersonApi.person2document)
+      val personDocuments = persons.map(PersonApi.person2document).sortBy(p => p.getString("name"))
       response.getWriter.print(personDocuments.map(bson2json).mkString("[", ",", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

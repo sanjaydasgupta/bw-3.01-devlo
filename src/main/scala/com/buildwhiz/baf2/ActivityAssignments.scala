@@ -16,9 +16,16 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
     val process = ActivityApi.parentProcess(activity._id[ObjectId])
     val assignments: Seq[DynDoc] = teamAssignment.list(activity._id[ObjectId])
     assignments.map(assignment => {
+      val (processName, processBpmnName, activityBpmnName) =
+          (process.name[String], process.bpmn_name[String], activity.bpmn_name[String])
+      val qualifiedProcessName = if (processBpmnName == activityBpmnName)
+        processName
+      else
+        s"$processName ($activityBpmnName)"
+      //val processName = s"${process.name[String]} (${activity.bpmn_name[String]})"
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).
-        append("process_name", process.name[String]).
+        append("process_name", qualifiedProcessName).
         append("can_delete", true)
         //append("can_delete", assignment.role[String] != activity.role[String])
       if (assignment.has("organization_id")) {

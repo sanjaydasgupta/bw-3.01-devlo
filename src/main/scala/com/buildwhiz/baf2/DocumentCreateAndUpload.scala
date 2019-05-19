@@ -1,5 +1,7 @@
 package com.buildwhiz.baf2
 
+import java.util.{Calendar, TimeZone}
+
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
@@ -72,7 +74,11 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         if (!PersonApi.exists(authorOid))
           throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
         val timestamp = parameters.get("timestamp") match {
-          case Some(ts) => ts.toLong
+          case Some(ts) =>
+            val userTimezone = TimeZone.getTimeZone(user.tz[String])
+            val calendar = Calendar.getInstance(userTimezone)
+            val timezoneOffset = userTimezone.getOffset(calendar.getTimeInMillis)
+            ts.toLong - timezoneOffset
           case None => System.currentTimeMillis
         }
 

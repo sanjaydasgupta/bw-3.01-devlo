@@ -132,10 +132,21 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case (end, _) if end != "NA" => end
       }
 
+      val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
+          find(_.role[String] == activity.role[String]) match {
+        case None => "NA"
+        case Some(assignment) => if (assignment.has("person_id")) {
+          val thePerson = PersonApi.personById(assignment.person_id[ObjectId])
+          s"${thePerson.first_name[String].substring(0, 1)} ${thePerson.last_name[String].substring(0, 1)}"
+        } else {
+          "NA"
+        }
+      }
+
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
-        append("hover_info", hoverInfo).
+        append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("on_critical_path",
             if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })

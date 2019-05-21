@@ -42,10 +42,17 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val status = new Document("editable", false).append("value", phase.status[String])
     val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
     val name = new Document("editable", editable).append("value", phase.name[String])
+    val rawPhaseManagers = phase.assigned_roles[Many[Document]].filter(_.role_name[String] == "Project-Manager").
+      map(role => {
+        val thePerson = PersonApi.personById(role.person_id[ObjectId])
+        val personName = s"${thePerson.first_name[String]} ${thePerson.last_name[String]}"
+        new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
+    }).asJava
+    val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
     val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
-    val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("display_status", displayStatus).append("can_add_process", canManage).
-        append("process_info", processInformation(phase, user))
+    val projectDoc = new Document("name", name).append("description", description).append("status", status).
+        append("display_status", displayStatus).append("managers", phaseManagers).
+        append("process_info", processInformation(phase, user)).append("can_add_process", canManage)
     projectDoc.toJson
   }
 

@@ -7,6 +7,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 class PhaseAdd extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
@@ -29,6 +31,19 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         case None => s"No description provided for '$phaseName'"
       }
 
+      val phaseManagerOids: Seq[ObjectId] = parameters.get("manager_ids") match {
+        case None => Seq.empty[ObjectId]
+        case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_))
+      }
+
+      val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)
+      if (badManagerIds.nonEmpty)
+        throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")
+
+      val managersInRoles = phaseManagerOids.map(oid =>
+        new Document("role_name", "Project-Manager").append("person_id", oid)
+      ).asJava
+
       val optionalAdminPersonOid: Option[ObjectId] = parameters.get("admin_person_id").map(new ObjectId(_))
       val trueAdminPersonOid = optionalAdminPersonOid match {
         case None => userOid
@@ -38,7 +53,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"Unknown person-id: '$trueAdminPersonOid'")
 
       val newPhaseRecord: Document = Map("name" -> phaseName, "admin_person_id" -> trueAdminPersonOid,
-          "process_ids" -> Seq.empty[ObjectId], "assigned_roles" -> Seq.empty[Document], "status" -> "defined",
+          "process_ids" -> Seq.empty[ObjectId], "assigned_roles" -> managersInRoles, "status" -> "defined",
           "timestamps" -> Map("created" -> System.currentTimeMillis), "description" -> description)
       BWMongoDB3.phases.insertOne(newPhaseRecord)
 

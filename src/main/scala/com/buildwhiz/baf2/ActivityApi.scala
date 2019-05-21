@@ -33,8 +33,11 @@ object ActivityApi {
     BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
   }
 
-  def hasRole(personOid: ObjectId, activity: DynDoc): Boolean =
-    allActions(activity).exists(_.assignee_person_id[ObjectId] == personOid)
+  def hasRole(personOid: ObjectId, activity: DynDoc): Boolean = {
+    allActions(activity).exists(_.assignee_person_id[ObjectId] == personOid) ||
+        teamAssignment.list(activity._id[ObjectId]).
+        exists(assignment => assignment.has("person_id") && assignment.person_id[ObjectId] == personOid)
+  }
 
   def scheduledStart(activity: DynDoc): Option[Long] = {
     if (activity.has("bpmn_scheduled_start_date")) {

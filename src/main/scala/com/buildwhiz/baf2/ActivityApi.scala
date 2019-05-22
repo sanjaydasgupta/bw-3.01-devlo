@@ -150,8 +150,8 @@ object ActivityApi {
     } else {
       val process = parentProcess(activity._id[ObjectId])
       if (ProcessApi.canManage(user._id[ObjectId], process)) {
-        "manage"
-      } else if (action.assignee_person_id[ObjectId] == user._id[ObjectId]) {
+        "all"
+      } else if (teamAssignment.list(activity._id[ObjectId]).nonEmpty) {
         "contribute"
       } else {
         "none"

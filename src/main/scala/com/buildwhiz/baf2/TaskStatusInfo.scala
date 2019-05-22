@@ -74,8 +74,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val enableEditUntilEnd = userCanManage && untilEnd
     val enableEditButton = userCanManage && untilEnd
 
-    val enableUpdateStatusButton = theActivity.status[String] == "running" && (userCanManage ||
-        (userCanContribute && user._id[ObjectId] == theAction.assignee_person_id[ObjectId]))
+    val enableUpdateStatusButton = theActivity.status[String] == "running" && (userCanManage || userCanContribute)
 
     val updateReportOptions = Seq("Complete, In-Progress")
 

@@ -1,7 +1,8 @@
 package com.buildwhiz.baf2
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -16,12 +17,13 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord = PersonApi.personById(userOid)
-      val tasks: Seq[DynDoc] = ActivityApi.actionsByUser(userOid)
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
 
-      response.getWriter.print(tasks.map(task => task2json(task, freshUserRecord)).mkString("[", ", ", "]"))
+      response.getWriter.print(assignments.map(assignment => assignment2json(assignment, freshUserRecord)).
+          mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${tasks.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${assignments.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -30,18 +32,14 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
-  private def task2json(action: DynDoc, user: DynDoc): String = {
-    val activityOid = action.activity_id[ObjectId]
+  private def assignment2json(assignment: DynDoc, user: DynDoc): String = {
+    val activityOid = assignment.activity_id[ObjectId]
 
     val viewAction: DynDoc = new Document()
 
-    viewAction.name = action.name[String]
-    viewAction.status = action.status[String]
-    viewAction.`type` = action.`type`[String]
-
-    val (startDateTime, endDateTime) = if (action.has("timestamps")) {
+    val (startDateTime, endDateTime) = if (assignment.has("timestamps")) {
       val timezone = user.tz[String]
-      val timestamps: DynDoc = action.timestamps[Document]
+      val timestamps: DynDoc = assignment.timestamps[Document]
       if (timestamps.has("end"))
         (dateTimeString(timestamps.start[Long], Some(timezone)), dateTimeString(timestamps.end[Long], Some(timezone)))
       else if (timestamps.has("start"))
@@ -70,6 +68,10 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
     viewAction.activity_name = theActivity.name[String]
     viewAction.activity_id = theActivity._id[ObjectId]
     viewAction.activity_description = theActivity.description[String]
+
+    viewAction.name = theActivity.name[String]
+    viewAction.status = theActivity.status[String]
+    viewAction.`type` = assignment.role[String]
 
     bson2json(viewAction.asDoc)
   }

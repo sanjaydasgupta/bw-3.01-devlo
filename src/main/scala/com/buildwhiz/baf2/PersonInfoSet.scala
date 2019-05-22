@@ -60,7 +60,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         ("skills", (_.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava, "skills")),
         ("individual_roles", (role => processIndividualRoles(role).asJava, "individual_roles")),
         ("years_experience", (_.toDouble, "years_experience")),
-        ("active", (_.toBoolean, "active")),
+        ("active", (_.toBoolean, "enabled")),
         ("work_email", (noop, s"emails.$workEmailIndex.email")),
         ("work_phone", (noop, s"phones.$workPhoneIndex.phone")),
         ("phone_can_text", (_.toBoolean, "phone_can_text")),

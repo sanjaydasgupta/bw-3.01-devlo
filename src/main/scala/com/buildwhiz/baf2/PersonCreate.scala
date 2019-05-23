@@ -16,15 +16,15 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
-      val userOid = user._id[ObjectId]
-      if (!PersonApi.isBuildWhizAdmin(userOid)) {
-        // Disabled temporarily for testing ...
-        //  throw new IllegalArgumentException("Not permitted")
-      }
 
       val organizationOid = new ObjectId(parameters("organization_id"))
       if (!OrganizationApi.exists(organizationOid))
         throw new IllegalArgumentException(s"bad organization_id '$organizationOid'")
+
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+      val inSameOrganization = user.organization_id[ObjectId] == organizationOid
+      if (!userIsAdmin && !inSameOrganization)
+        throw new IllegalArgumentException("Not permitted")
 
       val workEmail = parameters("work_email")
 

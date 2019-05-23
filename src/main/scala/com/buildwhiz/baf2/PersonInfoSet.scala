@@ -30,6 +30,12 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
 
       val personOid = new ObjectId(parameterMap("person_id"))
 
+      val user: DynDoc = getUser(request)
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+      val inSameOrganization = PersonApi.inSameOrganization(user._id[ObjectId], personOid)
+      if (!userIsAdmin && !inSameOrganization)
+        throw new IllegalArgumentException("Not permitted")
+
       if (parameterMap.contains("work_email")) {
         val workEmail = parameterMap("work_email")
         val personsUsingEmail: Seq[DynDoc] = BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work",

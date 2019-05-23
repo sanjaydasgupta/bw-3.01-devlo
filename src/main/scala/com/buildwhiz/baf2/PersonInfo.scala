@@ -1,8 +1,8 @@
 package com.buildwhiz.baf2
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -13,9 +13,9 @@ import scala.collection.JavaConverters._
 class PersonInfo extends HttpServlet with HttpUtils {
 
   private def isEditable(person: DynDoc, user: DynDoc): Boolean = {
-    val userOid = user._id[ObjectId]
-    // ToDo: change following line to return proper value ...
-    true
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+    val inSameOrganization = PersonApi.inSameOrganization(user._id[ObjectId], person._id[ObjectId])
+    userIsAdmin || inSameOrganization
   }
 
   private def wrap(value: Any, editable: Boolean): Document = {

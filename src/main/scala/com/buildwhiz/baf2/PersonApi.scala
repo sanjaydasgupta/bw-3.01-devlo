@@ -21,6 +21,13 @@ object PersonApi {
     userRecord.roles[Many[String]].contains("BW-Admin")
   }
 
+  def inSameOrganization(person1Oid: ObjectId, person2Oid: ObjectId): Boolean = {
+    val person1 = personById(person1Oid)
+    val person2 = personById(person2Oid)
+    person1.has("organization_id") && person2.has("organization_id") &&
+        person1.organization_id[ObjectId] == person2.organization_id[ObjectId]
+  }
+
   def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None, optSkill: Option[String] = None): Seq[DynDoc] = {
     (optWorkEmail, optOrganizationOid, optSkill) match {
       case (Some(workEmail), _, _) =>

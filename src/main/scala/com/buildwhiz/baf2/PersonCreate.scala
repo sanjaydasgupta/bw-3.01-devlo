@@ -106,7 +106,8 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
           "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
           "emails" -> Seq(new Document("type", "work").append("email", workEmail)).asJava,
           "phone_can_text" -> phoneCanText, "work_address" -> workAddress, "individual_roles" -> individualRoles.asJava,
-          "phones" -> phones, "tz" -> timezone, "timestamps" -> Map("created" -> System.currentTimeMillis))
+          "phones" -> phones, "tz" -> timezone, "roles" -> Seq.empty[String].asJava,
+          "timestamps" -> Map("created" -> System.currentTimeMillis))
       BWMongoDB3.persons.insertOne(newPersonRecord)
 
       newPersonRecord.remove("password")

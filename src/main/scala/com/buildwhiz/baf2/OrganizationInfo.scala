@@ -13,9 +13,9 @@ import scala.collection.JavaConverters._
 class OrganizationInfo extends HttpServlet with HttpUtils {
 
   private def isEditable(organization: DynDoc, user: DynDoc): Boolean = {
-    val userOid = user._id[ObjectId]
-    // ToDo: change following line to return proper value ...
-    true
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+    val inSameOrganization = user.organization_id[ObjectId] == organization._id[ObjectId]
+    userIsAdmin || inSameOrganization
   }
 
   private def personInformation(organization: DynDoc): Many[Document] = {

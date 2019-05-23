@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -50,10 +50,17 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
 
       val (parameterNamesAndValues, organizationIdAndValue) = parameterValues.partition(_._1 != "organization_id")
 
+      val organizationOid = organizationIdAndValue.head._2.asInstanceOf[ObjectId]
+      val user: DynDoc = getUser(request)
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+      val inSameOrganization = user.organization_id[ObjectId] == organizationOid
+      if (!userIsAdmin && !inSameOrganization)
+        throw new IllegalArgumentException("Not permitted")
+
       if (parameterNamesAndValues.isEmpty)
         throw new IllegalArgumentException("No parameters found")
 
-      val updateResult = BWMongoDB3.organizations.updateOne(Map("_id" -> organizationIdAndValue.head._2),
+      val updateResult = BWMongoDB3.organizations.updateOne(Map("_id" -> organizationOid),
           Map("$set" -> parameterNamesAndValues.toMap))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

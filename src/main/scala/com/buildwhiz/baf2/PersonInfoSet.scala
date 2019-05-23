@@ -1,7 +1,8 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
@@ -28,6 +29,17 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       val parameterMap = getParameterMap(request)
 
       val personOid = new ObjectId(parameterMap("person_id"))
+
+      if (parameterMap.contains("work_email")) {
+        val workEmail = parameterMap("work_email")
+        val personsUsingEmail: Seq[DynDoc] = BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work",
+            "email" -> workEmail)))
+        personsUsingEmail.map(_._id[ObjectId]) match {
+          case Nil =>
+          case pid +: Nil if pid == personOid =>
+          case _ => throw new IllegalArgumentException(s"email '$workEmail' is already used")
+        }
+      }
 
       val tempPerson = PersonApi.personById(personOid)
       if (tempPerson.phones[Many[Document]].indexWhere(_.`type`[String] == "work") == -1) {

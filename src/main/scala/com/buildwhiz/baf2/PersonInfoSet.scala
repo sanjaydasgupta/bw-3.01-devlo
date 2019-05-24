@@ -32,7 +32,10 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
 
       val user: DynDoc = getUser(request)
       val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
-      val inSameOrganization = PersonApi.inSameOrganization(user._id[ObjectId], personOid)
+      val inSameOrganization = if (user.has("organization_id"))
+        user.organization_id[ObjectId] == personOid
+      else
+        false
       if (!userIsAdmin && !inSameOrganization)
         throw new IllegalArgumentException("Not permitted")
 

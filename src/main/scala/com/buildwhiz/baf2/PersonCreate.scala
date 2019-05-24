@@ -22,7 +22,10 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
         throw new IllegalArgumentException(s"bad organization_id '$organizationOid'")
 
       val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
-      val inSameOrganization = user.organization_id[ObjectId] == organizationOid
+      val inSameOrganization = if (user.has("organization_id"))
+        user.organization_id[ObjectId] == organizationOid
+      else
+        false
       if (!userIsAdmin && !inSameOrganization)
         throw new IllegalArgumentException("Not permitted")
 

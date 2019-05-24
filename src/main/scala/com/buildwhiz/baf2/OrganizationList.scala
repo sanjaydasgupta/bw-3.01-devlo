@@ -51,7 +51,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 //        case Some(dv) => dv.toBoolean
 //      }
       //val parentPhase: DynDoc = ???
-      val canManage = true //PhaseApi.canManage(user._id[ObjectId], parentPhase)
+      val canManage = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
 //      if (detail) {
 //        val parentProject: DynDoc = ???
 //        val organizationDetails: java.util.List[Document] = organizations.

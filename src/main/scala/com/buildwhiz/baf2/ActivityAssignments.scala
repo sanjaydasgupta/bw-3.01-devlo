@@ -64,6 +64,15 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
     })
   }
 
+  private def sorter(in: Seq[Document]): Seq[Document] = {
+    in.sortBy(d => {
+      val dd: DynDoc = d
+      val role = dd.role[String]
+      val role2 = if (RoleListSecondary.secondaryRoles.contains(role)) s"999$role" else s"000$role"
+      (dd.process_name[String], dd.activity_name[String], role2)
+    })
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -88,7 +97,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       }
       val assignments = activities.flatMap(activityAssignments(_, fill))
 
-      val assignmentList = assignments.map(bson2json).mkString("[", ", ", "]")
+      val assignmentList = sorter(assignments).map(bson2json).mkString("[", ", ", "]")
       response.getWriter.print(assignmentList)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

@@ -205,7 +205,7 @@ object ActivityApi {
       } else {
         val theActivity = activityById(activityOid)
         BWMongoDB3.activity_assignments.insertOne(parentFields(activityOid) ++
-            Map("activity_id" -> activityOid, "role" -> theActivity.role[String]))
+            Map("activity_id" -> activityOid, "role" -> theActivity.role[String], "status" -> "defined"))
         teamAssignment.list(activityOid)
       }
     }
@@ -217,7 +217,7 @@ object ActivityApi {
         val baseRecord = searchRecord ++ parentFields(activityOid)
         val fullRecord: Map[String, Any] = optOrganizationId match {
           case None => baseRecord
-          case Some(oid) => baseRecord ++ Map("organization_id" -> oid)
+          case Some(oid) => baseRecord ++ Map("organization_id" -> oid, "status" -> "defined")
         }
         BWMongoDB3.activity_assignments.insertOne(fullRecord)
         val message = s"Added role to (${assignmentToString(Left(fullRecord))})"
@@ -249,7 +249,7 @@ object ActivityApi {
       val query = Map("activity_id" -> activityOid, "role" -> roleName, "organization_id" -> organizationOid)
       val baseRecord = query ++ parentFields(activityOid)
       val fullRecord = baseRecord ++ Map("person_id" -> personOid, "individual_role" -> individualRole,
-          "document_access" -> documentAccess)
+          "document_access" -> documentAccess, "status" -> "defined")
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(query)
       assignments.length match {
         case 0 => throw new IllegalArgumentException("Role and organization must be added first")

@@ -72,7 +72,8 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
         Map("status" -> "running", "timestamps.start" -> timestamp)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
-      ActivityApi.addChangeLogEntry(activity._id[ObjectId], s"Started Execution")
+
+      ActivityApi.startedByBpmnEngine(activity._id[ObjectId])
 
       BWLogger.log(getClass.getName, "notify()", "EXIT-OK", de)
     } catch {

@@ -144,7 +144,7 @@ object ActivityApi {
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
 
-  def userAccessLevel(user: DynDoc, activity: DynDoc, action: DynDoc): String = {
+  def userAccessLevel(user: DynDoc, activity: DynDoc): String = {
     if (PersonApi.isBuildWhizAdmin(user._id[ObjectId])) {
       "all"
     } else {
@@ -157,6 +157,29 @@ object ActivityApi {
         "none"
       }
     }
+  }
+
+  def startedByBpmnEngine(activityOid: ObjectId): Unit = {
+    ActivityApi.addChangeLogEntry(activityOid, s"Started Execution")
+    for (assignment <- teamAssignment.list(activityOid).filter(_.role[String] == "Pre-Approval")) {
+      BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
+          Map($set -> Map("status" -> "started")))
+    }
+  }
+
+  def stateSubState(theActivity: DynDoc): String = {
+    if (theActivity.status[String] == "running") {
+      val (preApprovals, postApprovals) = teamAssignment.list(theActivity._id[ObjectId]).
+        filter(_.role[String].matches("(?:Pre|Post)-Approval")).partition(_.role[String] == "Pre-Approval")
+      if (preApprovals.exists(_.status[String] != "ended")) {
+        "pre-approval"
+      } else if (postApprovals.exists(_.status[String] == "started")) {
+        "post-approval"
+      } else {
+        "active"
+      }
+    } else
+      theActivity.status[String]
   }
 
   object teamAssignment {
@@ -330,22 +353,6 @@ object ActivityApi {
       }
       val message = s"Deleted assignment (${assignmentToString(Left(theAssignment))})"
       addChangeLogEntry(activityOid, message, Some(userOid), None)
-    }
-
-    def stateSubState(activityOid: ObjectId, userOid: ObjectId): Option[String] = {
-      val theActivity = activityById(activityOid)
-      if (theActivity.state[String] == "running") {
-        val (preApprovals, postApprovals) = list(activityOid).
-          filter(_.role[String].matches("(?:Pre|Post)-Approval")).partition(_.role[String] == "Pre-Approval")
-        if (preApprovals.exists(_.status[String] != "ended"))
-          Some("pre-approval")
-        else if (postApprovals.exists(_.status[String] == "started")) {
-          Some("post-approval")
-        } else {
-          Some("active")
-        }
-      } else
-        None
     }
 
   }

@@ -15,15 +15,15 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val user: DynDoc = getUser(request)
       val activityOid = new ObjectId(parameters("activity_id"))
-      val percentComplete = parameters("percent_complete")
-      if (percentComplete.toInt < 0 || percentComplete.toInt > 100)
-        throw new IllegalArgumentException(s"Bad percent-complete: '$percentComplete'")
+      val optPercentComplete = parameters.get("percent_complete")
+      if (optPercentComplete.map(_.toFloat).exists(pc => pc < 0 || pc > 100))
+        throw new IllegalArgumentException(s"Bad percent-complete: '$optPercentComplete'")
       val comments = parameters("comments")
       val status = parameters("status")
       if (!status.matches("(?i)complete|accepted|rejected|in-progress"))
         throw new IllegalArgumentException(s"Bad status: '$status'")
 
-      ActivityApi.addChangeLogEntry(activityOid, comments, Some(user._id[ObjectId]), Some(percentComplete))
+      ActivityApi.addChangeLogEntry(activityOid, comments, Some(user._id[ObjectId]), optPercentComplete)
       if (status.matches("(?i)complete")) {
         //
       } else if (status.matches("(?i)accepted")) {

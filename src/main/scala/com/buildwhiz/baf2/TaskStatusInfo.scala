@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 
 class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def changeLogItems(user: DynDoc, theActivity: DynDoc, theAction: DynDoc): Seq[Document] = {
+  private def changeLogItems(user: DynDoc, theActivity: DynDoc): Seq[Document] = {
     val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
       theActivity.change_log[Many[Document]]
     else
@@ -28,19 +28,19 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
-  private def taskStatusRecord(user: DynDoc, theActivity: DynDoc, theAction: DynDoc, request: HttpServletRequest): String = {
+  private def taskStatusRecord(user: DynDoc, theActivity: DynDoc, request: HttpServletRequest): String = {
     def wrap(rawValue: Any, editable: Boolean): Document = {
       new Document("editable", editable).append("value", rawValue)
     }
 
-    val accessLevel: String = ActivityApi.userAccessLevel(user, theActivity, theAction)
+    val accessLevel: String = ActivityApi.userAccessLevel(user, theActivity)
 
     val reportingInterval = if (theActivity.has("reporting_interval"))
       theActivity.reporting_interval[String]
     else
       "weekly"
 
-    val changeLog = changeLogItems(user, theActivity, theAction)
+    val changeLog = changeLogItems(user, theActivity)
 
     val timezone = user.tz[String]
     val scheduledStart = ActivityApi.scheduledStart(theActivity) match {
@@ -78,8 +78,8 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val updateReportOptions = Seq("Complete, In-Progress")
 
-    val record = new Document("status", wrap(theAction.status[String], editable = false)).
-        append("on_critical_path", wrap(theAction.on_critical_path[String], editable = false)).
+    val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
+        append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
         append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
         append("estimated_start_date", wrap(scheduledStart, enableEditUntilStart)).
@@ -100,15 +100,9 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
       val theActivity = ActivityApi.activityById(activityOid)
-      val actions = ActivityApi.allActions(theActivity)
-      val theAction = actions.find(_.`type`[String] == "main") match {
-        case Some(a) => a
-        case None => throw new IllegalArgumentException(s"Could not find 'main' action")
-      }
-      //val actionName = theAction.name[String]
       val user: DynDoc = getUser(request)
       val freshUserRecord = PersonApi.personById(user._id[ObjectId])
-      response.getWriter.print(taskStatusRecord(freshUserRecord, theActivity, theAction, request))
+      response.getWriter.print(taskStatusRecord(freshUserRecord, theActivity, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

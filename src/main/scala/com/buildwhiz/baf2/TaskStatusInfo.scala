@@ -76,7 +76,15 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val enableUpdateStatusButton = theActivity.status[String] == "running" && (userCanManage || userCanContribute)
 
-    val updateReportOptions = Seq("Complete, In-Progress")
+    val activeRoles = ActivityApi.teamAssignment.list(theActivity._id[ObjectId]).
+      find(a => a.status[String] == "started").map(_.role[String])
+
+    val updateReportOptions = activeRoles match {
+      case Some("Pre-Approval") => Seq("Pre-Approval-OK, Pre-Approval-Comment")
+      case Some("Post-Approval") => Seq("Post-Approval-OK, Post-Approval-Comment")
+      case Some(r) if !r.matches("CC|Others") => Seq("Complete, In-Progress")
+      case _ => Seq.empty[String]
+    }
 
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).

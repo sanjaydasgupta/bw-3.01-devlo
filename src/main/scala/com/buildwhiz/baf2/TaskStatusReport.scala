@@ -1,12 +1,33 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
 class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
+        optPercentComplete: Option[String]): Unit = {
+    if (status.matches("(?i)Pre-Approval-OK")) {
+      ActivityApi.teamAssignment.list(activityOid).
+          find(a => a.role[String] == "Pre-Approval" && a.person_id[ObjectId] == user._id[ObjectId]) match {
+        case Some(assignment) =>
+          val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
+            Map($set -> Map("status" -> "ended")))
+          if (updateResult.getMatchedCount == 0)
+            throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        case None =>
+          throw new IllegalArgumentException(s"Unable to find matching assignment")
+      }
+    } else if (status.matches("(?i)Complete")) {
+      //
+    } else if (status.matches("(?i)Post-Approval-OK")) {
+      //
+    }
+  }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
@@ -20,22 +41,10 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
         throw new IllegalArgumentException(s"Bad percent-complete: '$optPercentComplete'")
       val comments = parameters("comments")
       val status = parameters("status")
-      if (!status.matches("(?i)complete|accepted|rejected|in-progress"))
-        throw new IllegalArgumentException(s"Bad status: '$status'")
 
-      ActivityApi.addChangeLogEntry(activityOid, comments, Some(user._id[ObjectId]), optPercentComplete)
-      if (status.matches("(?i)complete")) {
-        //
-      } else if (status.matches("(?i)accepted")) {
-        //
-      } else if (status.matches("(?i)rejected")) {
-        //
-      }
+      ActivityApi.addChangeLogEntry(activityOid, s"$status: $comments", Some(user._id[ObjectId]), optPercentComplete)
+      handleNewStatus(status, user, activityOid, comments, optPercentComplete)
 
-//      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-//          Map("$set" -> Map()))
-//      if (updateResult.getMatchedCount == 0)
-//        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

@@ -19,7 +19,15 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
       val freshUserRecord = PersonApi.personById(userOid)
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
 
-      response.getWriter.print(assignments.map(assignment => assignment2json(assignment, freshUserRecord)).
+      val uniqueAssignments: Seq[DynDoc] = assignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
+        val seq = t._2
+        val roles = seq.map(_.role[String])
+        val head = seq.head
+        head.role = roles.mkString(", ")
+        head
+      })
+
+      response.getWriter.print(uniqueAssignments.map(assignment => assignment2json(assignment, freshUserRecord)).
           mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

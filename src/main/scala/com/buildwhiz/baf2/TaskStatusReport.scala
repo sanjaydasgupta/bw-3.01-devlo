@@ -16,7 +16,7 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
           find(a => a.role[String] == "Pre-Approval" && a.person_id[ObjectId] == user._id[ObjectId]) match {
         case Some(assignment) =>
           val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
-            Map($set -> Map("status" -> "ended")))
+            Map($set -> Map("status" -> "ended", "timestamps.end" -> System.currentTimeMillis)))
           if (updateResult.getMatchedCount == 0)
             throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
         case None =>

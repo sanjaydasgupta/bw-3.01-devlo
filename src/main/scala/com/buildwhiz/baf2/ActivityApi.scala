@@ -164,7 +164,7 @@ object ActivityApi {
     ActivityApi.addChangeLogEntry(activityOid, s"Started Execution")
     for (assignment <- teamAssignment.list(activityOid).filter(_.role[String] == "Pre-Approval")) {
       BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
-          Map($set -> Map("status" -> "started")))
+          Map($set -> Map("status" -> "started", "timestamps" -> Map("start" -> System.currentTimeMillis))))
     }
   }
 

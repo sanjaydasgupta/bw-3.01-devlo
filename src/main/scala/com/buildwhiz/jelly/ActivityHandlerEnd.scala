@@ -13,18 +13,26 @@ class ActivityHandlerEnd extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val activityOid = new ObjectId(de.getVariable("activity_id").asInstanceOf[String])
-      val timestamp = System.currentTimeMillis()
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" ->
-        Map("status" -> "ended", "timestamps.end" -> timestamp)))
-      if (updateResult.getModifiedCount == 0)
-        throw new IllegalArgumentException(s"MongoDB error: $updateResult")
-      ActivityApi.addChangeLogEntry(activityOid, s"Ended Execution")
+      ActivityHandlerEnd.end(activityOid)
       BWLogger.log(getClass.getName, "execute()", "EXIT-OK", de)
     } catch {
       case t: Throwable =>
         t.printStackTrace()
         BWLogger.log(getClass.getName, "execute()", s"ERROR ${t.getClass.getName}(${t.getMessage})", de)
     }
+  }
+
+}
+
+object ActivityHandlerEnd {
+
+  def end(activityOid: ObjectId): Unit = {
+    val timestamp = System.currentTimeMillis()
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" ->
+      Map("status" -> "ended", "timestamps.end" -> timestamp)))
+    if (updateResult.getModifiedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB error: $updateResult")
+    ActivityApi.addChangeLogEntry(activityOid, s"Ended Execution")
   }
 
 }

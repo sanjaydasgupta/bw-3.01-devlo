@@ -14,6 +14,22 @@ import scala.language.implicitConversions
 
 object BWMongoDB3 extends Dynamic {
 
+  val $addToSet = "$addToSet"
+  val $and = "$and"
+  val $elemMatch = "$elemMatch"
+  val $eq = "$eq"
+  val $exists = "$exists"
+  val $in = "$in"
+  val $options = "$options"
+  val $or = "$or"
+  val $pull = "$pull"
+  val $pullAll = "$pullAll"
+  val $push = "$push"
+  val $regex = "$regex"
+  val $set = "$set"
+  val $unset = "$unset"
+  val $where = "$where"
+
   val project430ForestOid = new ObjectId("586336f692982d17cfd04bf8")
   val rfiRequestOid = new ObjectId("56fe4e6bd5d8ad3da60d5d38")
   val rfiResponseOid = new ObjectId("56fe4e6bd5d8ad3da60d5d39")

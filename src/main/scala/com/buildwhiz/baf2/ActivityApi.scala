@@ -162,20 +162,20 @@ object ActivityApi {
 
   def startedByBpmnEngine(activityOid: ObjectId): Unit = {
     ActivityApi.addChangeLogEntry(activityOid, s"Started Execution")
-    for (assignment <- teamAssignment.list(activityOid).filter(_.role[String] == "Pre-Approval")) {
-      BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
-          Map($set -> Map("status" -> "started", "timestamps" -> Map("start" -> System.currentTimeMillis))))
+    for (assignment <- teamAssignment.list(activityOid).filter(_.role[String] == RoleListSecondary.preApproval)) {
+      teamAssignment.assignmentStart(assignment._id[ObjectId])
     }
   }
 
   def stateSubState(theActivity: DynDoc): String = {
     if (theActivity.status[String] == "running") {
       val (preApprovals, postApprovals) = teamAssignment.list(theActivity._id[ObjectId]).
-        filter(_.role[String].matches("(?:Pre|Post)-Approval")).partition(_.role[String] == "Pre-Approval")
+          filter(_.role[String].matches("(?:Pre|Post)-Approval")).
+          partition(_.role[String] == RoleListSecondary.preApproval)
       if (preApprovals.exists(_.status[String] != "ended")) {
-        "pre-approval"
+        RoleListSecondary.preApproval.toLowerCase
       } else if (postApprovals.exists(_.status[String] == "started")) {
-        "post-approval"
+        RoleListSecondary.postApproval.toLowerCase
       } else {
         "active"
       }
@@ -354,6 +354,20 @@ object ActivityApi {
       }
       val message = s"Deleted assignment (${assignmentToString(Left(theAssignment))})"
       addChangeLogEntry(activityOid, message, Some(userOid), None)
+    }
+
+    def assignmentStart(assignmentOid: ObjectId): Unit = {
+      val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
+        Map($set -> Map("status" -> "started", "timestamps" -> Map("start" -> System.currentTimeMillis))))
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+
+    def assignmentEnd(assignmentOid: ObjectId): Unit = {
+      val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignmentOid),
+        Map($set -> Map("status" -> "ended", "timestamps.end" -> System.currentTimeMillis)))
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     }
 
   }

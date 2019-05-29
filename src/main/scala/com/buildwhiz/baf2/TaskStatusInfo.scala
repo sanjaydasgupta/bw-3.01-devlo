@@ -80,8 +80,8 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       find(a => a.status[String] == "started").map(_.role[String])
 
     val updateReportOptions = activeRoles match {
-      case Some("Pre-Approval") => Seq("Pre-Approval-OK, Pre-Approval-Comment")
-      case Some("Post-Approval") => Seq("Post-Approval-OK, Post-Approval-Comment")
+      case Some(RoleListSecondary.preApproval) => Seq("Pre-Approval-OK, Pre-Approval-Comment")
+      case Some(RoleListSecondary.postApproval) => Seq("Post-Approval-OK, Post-Approval-Comment")
       case Some(r) if !r.matches("CC|Others") => Seq("Complete, In-Progress")
       case _ => Seq.empty[String]
     }

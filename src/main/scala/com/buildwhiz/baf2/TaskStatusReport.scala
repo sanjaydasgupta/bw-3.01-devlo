@@ -1,8 +1,8 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.jelly.ActivityHandlerEnd
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
@@ -11,21 +11,57 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
         optPercentComplete: Option[String]): Unit = {
+
+    val allAssignments = ActivityApi.teamAssignment.list(activityOid)
+    val usersAssignments = allAssignments.filter(_.person_id[ObjectId] == user._id[ObjectId])
+    val approvals = Seq(RoleListSecondary.preApproval, RoleListSecondary.postApproval)
+    val (preApprovals, postApprovals) = allAssignments.filter(a => approvals.contains(a.role[String])).
+        partition(_.role[String] == RoleListSecondary.preApproval)
+    val secondaryRoles = RoleListSecondary.secondaryRoles
+
     if (status.matches("(?i)Pre-Approval-OK")) {
-      ActivityApi.teamAssignment.list(activityOid).
-          find(a => a.role[String] == "Pre-Approval" && a.person_id[ObjectId] == user._id[ObjectId]) match {
+      usersAssignments.find(a => a.role[String] == RoleListSecondary.preApproval) match {
         case Some(assignment) =>
-          val updateResult = BWMongoDB3.activity_assignments.updateOne(Map("_id" -> assignment._id[ObjectId]),
-            Map($set -> Map("status" -> "ended", "timestamps.end" -> System.currentTimeMillis)))
-          if (updateResult.getMatchedCount == 0)
-            throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+          ActivityApi.teamAssignment.assignmentEnd(assignment._id[ObjectId])
+          assignment.status = "ended"
         case None =>
           throw new IllegalArgumentException(s"Unable to find matching assignment")
       }
+      val pendingPreApprovals = preApprovals.filter(_.status[String] != "ended")
+      if (pendingPreApprovals.isEmpty) {
+        allAssignments.find(a => !secondaryRoles.contains(a.role[String])) match {
+          case Some(primaryAssignment) =>
+            ActivityApi.teamAssignment.assignmentStart(primaryAssignment._id[ObjectId])
+          case None =>
+            throw new IllegalArgumentException("Unable to find primary-role assignment")
+        }
+      }
     } else if (status.matches("(?i)Complete")) {
-      //
+      usersAssignments.find(a => !secondaryRoles.contains(a.role[String])) match {
+        case Some(primaryAssignment) =>
+          ActivityApi.teamAssignment.assignmentEnd(primaryAssignment._id[ObjectId])
+        case None =>
+          throw new IllegalArgumentException(s"Unable to find matching assignment")
+      }
+      if (postApprovals.nonEmpty) {
+        for (assignment <- postApprovals) {
+          ActivityApi.teamAssignment.assignmentStart(assignment._id[ObjectId])
+        }
+      } else {
+        ActivityHandlerEnd.end(activityOid)
+      }
     } else if (status.matches("(?i)Post-Approval-OK")) {
-      //
+      usersAssignments.find(a => a.role[String] == RoleListSecondary.postApproval) match {
+        case Some(assignment) =>
+          ActivityApi.teamAssignment.assignmentEnd(assignment._id[ObjectId])
+          assignment.status = "ended"
+        case None =>
+          throw new IllegalArgumentException(s"Unable to find matching assignment")
+      }
+      val pendingPostApprovals = postApprovals.filter(_.status[String] != "ended")
+      if (pendingPostApprovals.isEmpty) {
+        ActivityHandlerEnd.end(activityOid)
+      }
     }
   }
 

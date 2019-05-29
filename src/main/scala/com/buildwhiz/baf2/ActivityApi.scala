@@ -152,7 +152,7 @@ object ActivityApi {
       if (ProcessApi.canManage(user._id[ObjectId], process)) {
         "all"
       } else if (teamAssignment.list(activity._id[ObjectId]).
-          exists(a => a.person_id[ObjectId] == user._id[ObjectId] && a.status[String] != "ended")) {
+          exists(a => a.person_id[ObjectId] == user._id[ObjectId] && a.status[String] == "started")) {
         "contribute"
       } else {
         "none"

@@ -48,12 +48,13 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
     val (startDateTime, endDateTime) = if (assignment.has("timestamps")) {
       val timezone = user.tz[String]
       val timestamps: DynDoc = assignment.timestamps[Document]
-      if (timestamps.has("end"))
-        (dateTimeString(timestamps.start[Long], Some(timezone)), dateTimeString(timestamps.end[Long], Some(timezone)))
-      else if (timestamps.has("start"))
-        (dateTimeString(timestamps.start[Long], Some(timezone)), "NA")
-      else
-        ("NA", "NA")
+      (timestamps.has("start"), timestamps.has("end")) match {
+        case (true, true) => (dateTimeString(timestamps.start[Long], Some(timezone)),
+          dateTimeString(timestamps.end[Long], Some(timezone)))
+        case (true, false) => (dateTimeString(timestamps.start[Long], Some(timezone)), "NA")
+        case (false, true) => ("NA", dateTimeString(timestamps.end[Long], Some(timezone)))
+        case (false, false) => ("NA", "NA")
+      }
     } else {
       ("NA", "NA")
     }

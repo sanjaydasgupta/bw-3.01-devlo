@@ -29,7 +29,7 @@ object ActivityHandlerEnd {
 
   def end(activityOid: ObjectId, signal: Boolean = false): Unit = {
     if (signal) {
-      ActivityApi.allActions(activityOid).find(_.`type` == "main") match {
+      ActivityApi.allActions(activityOid).find(_.`type`[String] == "main") match {
         case Some(main) =>
           if (main.has("camunda_execution_id")) {
             val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService

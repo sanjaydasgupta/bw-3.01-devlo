@@ -152,7 +152,8 @@ object ActivityApi {
       if (ProcessApi.canManage(user._id[ObjectId], process)) {
         "all"
       } else if (teamAssignment.list(activity._id[ObjectId]).
-          exists(a => a.person_id[ObjectId] == user._id[ObjectId] && a.status[String] == "started")) {
+          exists(a => a.has("person_id") && a.person_id[ObjectId] == user._id[ObjectId] &&
+          a.has("status") && a.status[String] == "started")) {
         "contribute"
       } else {
         "none"
@@ -162,8 +163,19 @@ object ActivityApi {
 
   def startedByBpmnEngine(activityOid: ObjectId): Unit = {
     ActivityApi.addChangeLogEntry(activityOid, s"Started Execution")
-    for (assignment <- teamAssignment.list(activityOid).filter(_.role[String] == RoleListSecondary.preApproval)) {
-      teamAssignment.assignmentStart(assignment._id[ObjectId])
+    val assignments = teamAssignment.list(activityOid)
+    val preApprovals = assignments.filter(_.role[String] == RoleListSecondary.preApproval)
+    if (preApprovals.nonEmpty) {
+      for (preApproval <- preApprovals) {
+        teamAssignment.assignmentStart(preApproval._id[ObjectId])
+      }
+    } else {
+      assignments.find(a => !RoleListSecondary.secondaryRoles.contains(a.role[String])) match {
+        case Some(primaryAssignment) =>
+          teamAssignment.assignmentStart(primaryAssignment._id[ObjectId])
+        case None =>
+          throw new IllegalArgumentException(s"No primary assignment activity_id=$activityOid")
+      }
     }
   }
 

@@ -82,8 +82,8 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val updateReportOptions = activeRoles match {
       case Some(RoleListSecondary.preApproval) => Seq("Pre-Approval-OK, Pre-Approval-Comment")
       case Some(RoleListSecondary.postApproval) => Seq("Post-Approval-OK, Post-Approval-Comment")
-      case Some(r) if !r.matches("CC|Others") => Seq("Complete, In-Progress")
-      case _ => Seq.empty[String]
+      case Some(r) if !RoleListSecondary.secondaryRoles.contains(r) => Seq("Complete, In-Progress")
+      case other => Seq("BAD-ROLE", other.toString)
     }
 
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).

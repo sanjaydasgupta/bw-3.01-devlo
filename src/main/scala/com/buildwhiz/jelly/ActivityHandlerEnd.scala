@@ -5,6 +5,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId
+import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
 class ActivityHandlerEnd extends JavaDelegate {
@@ -26,7 +27,18 @@ class ActivityHandlerEnd extends JavaDelegate {
 
 object ActivityHandlerEnd {
 
-  def end(activityOid: ObjectId): Unit = {
+  def end(activityOid: ObjectId, signal: Boolean = false): Unit = {
+    if (signal) {
+      ActivityApi.allActions(activityOid).find(_.`type` == "main") match {
+        case Some(main) =>
+          if (main.has("camunda_execution_id")) {
+            val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
+            rts.messageEventReceived("Action-Complete", main.camunda_execution_id[String])
+          }
+        case None =>
+          throw new IllegalArgumentException(s"Unable to find 'main' action activity_id: $activityOid")
+      }
+    }
     val timestamp = System.currentTimeMillis()
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" ->
       Map("status" -> "ended", "timestamps.end" -> timestamp)))

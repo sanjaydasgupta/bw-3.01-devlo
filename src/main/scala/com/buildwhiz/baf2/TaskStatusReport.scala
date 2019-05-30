@@ -48,7 +48,7 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
           ActivityApi.teamAssignment.assignmentStart(assignment._id[ObjectId])
         }
       } else {
-        ActivityHandlerEnd.end(activityOid)
+        ActivityHandlerEnd.end(activityOid, signal=true)
       }
     } else if (status.matches("(?i)Post-Approval-OK")) {
       usersAssignments.find(a => a.role[String] == RoleListSecondary.postApproval) match {
@@ -60,7 +60,7 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       val pendingPostApprovals = postApprovals.filter(_.status[String] != "ended")
       if (pendingPostApprovals.isEmpty) {
-        ActivityHandlerEnd.end(activityOid)
+        ActivityHandlerEnd.end(activityOid, signal=true)
       }
     }
   }

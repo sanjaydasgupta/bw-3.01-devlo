@@ -1,6 +1,6 @@
 package com.buildwhiz.utils
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, Part}
 import com.buildwhiz.infra.DynDoc._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -49,6 +49,12 @@ trait HttpUtils {
       else
         acc.mkString(",")
     }
+  }
+
+  def getParts(request: HttpServletRequest): Seq[Part] = request.getContentType match {
+    case null => Seq.empty[Part]
+    case s if s.startsWith("multipart/form-data") => request.getParts.asScala.toSeq
+    case _ => Seq.empty[Part]
   }
 
 }

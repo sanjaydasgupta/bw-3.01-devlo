@@ -55,15 +55,11 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
           action, category)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
 
-      val partCount: Int = request.getContentType match {
-        case null => 0
-        case s if s.startsWith("multipart/form-data") => request.getParts.size()
-        case _ => 0
-      }
-      if (partCount > 1)
+      val parts = getParts(request)
+      if (parts.length > 1)
         throw new IllegalArgumentException(s"multiple file uploads not allowed")
-      if (partCount == 1) {
-        val part = request.getParts.iterator.next()
+      if (parts.length == 1) {
+        val part = parts.head
         val submittedFilename = part.getSubmittedFileName
         val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
           "unknown.tmp"
@@ -101,7 +97,7 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
 
         val message = s"Added version (${storageResult._2} bytes) to new document '$name'"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
-      } else if (partCount == 0) {
+      } else if (parts.isEmpty) {
         (action, category) match {
           case (Some((activityOid, _)), Some(theCategory)) =>
             ActivityApi.addChangeLogEntry(activityOid, s"Document '$name' ($theCategory) created",

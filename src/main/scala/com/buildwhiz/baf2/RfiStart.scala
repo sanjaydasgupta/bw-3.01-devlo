@@ -3,7 +3,7 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, Part}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -29,7 +29,11 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
       val subject = parameters("subject")
       val recipientRoles = parameters("recipient_roles").split(",").map(_.trim).toSeq
       val millisNow = System.currentTimeMillis
-      val parts = request.getParts.iterator.asScala.toList
+      val parts: Seq[Part] = request.getContentType match {
+        case null => Seq.empty[Part]
+        case s if s.startsWith("multipart/form-data") => request.getParts.asScala.toSeq
+        case _ => Seq.empty[Part]
+      }
       val attachments = parts.zipWithIndex.map(part => {
         val submittedFilename = part._1.getSubmittedFileName
         val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)

@@ -55,7 +55,11 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
           action, category)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
 
-      val partCount = if (request.getContentType.contains("multipart")) request.getParts.size else 0
+      val partCount: Int = request.getContentType match {
+        case null => 0
+        case s if s.startsWith("multipart/form-data") => request.getParts.size()
+        case _ => 0
+      }
       if (partCount > 1)
         throw new IllegalArgumentException(s"multiple file uploads not allowed")
       if (partCount == 1) {

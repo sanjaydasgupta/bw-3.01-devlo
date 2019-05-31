@@ -248,11 +248,11 @@ object ActivityApi {
 
     def roleAdd(activityOid: ObjectId, roleName: String, optOrganizationId: Option[ObjectId], userOid: ObjectId):
         Unit = {
-      val searchRecord = Map("activity_id" -> activityOid, "role" -> roleName)
-      val baseRecord = searchRecord ++ parentFields(activityOid)
+      val idAndStatus = Map("activity_id" -> activityOid, "role" -> roleName, "status" -> "defined")
+      val baseRecord = idAndStatus ++ parentFields(activityOid)
       val fullRecord: Map[String, Any] = optOrganizationId match {
         case None => baseRecord
-        case Some(oid) => baseRecord ++ Map("organization_id" -> oid, "status" -> "defined")
+        case Some(oid) => baseRecord ++ Map("organization_id" -> oid)
       }
       BWMongoDB3.activity_assignments.insertOne(fullRecord)
       val message = s"Added role to (${assignmentToString(Left(fullRecord))})"

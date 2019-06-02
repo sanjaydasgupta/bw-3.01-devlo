@@ -97,18 +97,18 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       val timezone = user.tz[String]
 
-      val activityStart = ActivityApi.scheduledStart(activity) match {
-        case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (S)"
-        case None => ActivityApi.actualStart(activity) match {
-          case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (A)"
+      val activityStart = ActivityApi.actualStart(activity) match {
+        case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (A)"
+        case None => ActivityApi.scheduledStart(activity) match {
+          case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (S)"
           case None => "NA"
         }
       }
 
-      val activityEnd = ActivityApi.scheduledEnd(activity) match {
-        case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (S)"
-        case None => ActivityApi.actualEnd(activity) match {
-          case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (A)"
+      val activityEnd = ActivityApi.actualEnd(activity) match {
+        case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (A)"
+        case None => ActivityApi.scheduledEnd(activity) match {
+          case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (S)"
           case None => "NA"
         }
       }

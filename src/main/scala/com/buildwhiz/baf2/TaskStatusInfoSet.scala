@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -52,8 +52,15 @@ class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
           Map("$set" -> mongoDbNameValuePairs.toMap))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+
+      val user: DynDoc = getUser(request)
+
+      val formattedChanges = parameterNames.filter(parameters.contains).map(p => s"$p=${parameters(p)}").mkString(", ")
+      val changeEntry = s"Updated fields: $formattedChanges"
+      ActivityApi.addChangeLogEntry(activityOid, changeEntry, Some(user._id[ObjectId]), None)
+
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${mongoDbNameValuePairs.length}", request)
+      BWLogger.audit(getClass.getName, request.getMethod, changeEntry, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

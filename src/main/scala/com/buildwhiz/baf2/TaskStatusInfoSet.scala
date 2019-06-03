@@ -24,9 +24,14 @@ class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val parameterConverters: Map[String, String => Any] = Map(
-        ("estimated_start_date", date2ms), ("estimated_end_date", date2ms),
-        ("reporting_interval", validateReportingInterval), ("activity_id", id2oid))
+      val parameterConverters: Map[String, (String => Any, String)] = Map(
+        ("estimated_start_date", (date2ms, "bpmn_scheduled_start_date")),
+        ("estimated_end_date", (date2ms, "bpmn_scheduled_end_date")),
+        ("actual_start_date", (date2ms, "bpmn_actual_start_date")),
+        ("actual_end_date", (date2ms, "bpmn_actual_end_date")),
+        ("reporting_interval", (validateReportingInterval, "reporting_interval")),
+        ("activity_id", (id2oid, "activity_id"))
+      )
 
       val parameterNames = parameterConverters.keys.toSeq
       val unknownParameters = parameters.keySet.toArray.filterNot(parameterNames.contains)
@@ -39,7 +44,7 @@ class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
       val activityOid = new ObjectId(parameters.remove("activity_id").get)
 
       val mongoDbNameValuePairs = parameterNames.filter(parameters.contains).
-          map(paramName => (paramName, parameterConverters(paramName)(parameters(paramName))))
+          map(paramName => (parameterConverters(paramName)._2, parameterConverters(paramName)._1(parameters(paramName))))
       if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
 

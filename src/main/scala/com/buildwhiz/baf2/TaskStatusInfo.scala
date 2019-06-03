@@ -42,6 +42,8 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val changeLog = changeLogItems(user, theActivity)
 
+    val isAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+
     val timezone = user.tz[String]
     val scheduledStart = ActivityApi.scheduledStart(theActivity) match {
       case None => "NA"
@@ -91,9 +93,9 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
         append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
         append("estimated_start_date", wrap(scheduledStart, enableEditUntilStart)).
-        append("actual_start_date", wrap(actualStart, editable = false)).
+        append("actual_start_date", wrap(actualStart, isAdmin)).
         append("estimated_end_date", wrap(scheduledEnd, enableEditUntilEnd)).
-        append("actual_end_date", wrap(actualEnd, editable = false)).
+        append("actual_end_date", wrap(actualEnd, isAdmin)).
         append("reporting_interval", wrap(reportingInterval, enableEditUntilEnd)).
         append("percent_complete", wrap(percentComplete, editable = false)).append("change_log", changeLog).
         append("enable_edit_button", enableEditButton).

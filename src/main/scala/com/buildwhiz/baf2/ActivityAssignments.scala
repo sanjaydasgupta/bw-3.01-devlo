@@ -12,7 +12,8 @@ import scala.collection.JavaConverters._
 
 class ActivityAssignments extends HttpServlet with HttpUtils {
 
-  private def activityAssignments(activity: DynDoc, fill: Boolean): Seq[Document] = {
+  private def activityAssignments(activity: DynDoc, user: DynDoc): Seq[Document] = {
+    val userOid = user._id[ObjectId]
     val process = ActivityApi.parentProcess(activity._id[ObjectId])
     val assignments: Seq[DynDoc] = teamAssignment.list(activity._id[ObjectId])
     assignments.map(assignment => {
@@ -22,12 +23,11 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         processName
       else
         s"$processName ($activityBpmnName)"
-      //val processName = s"${process.name[String]} (${activity.bpmn_name[String]})"
+      val canManage = ProcessApi.canManage(userOid, process)
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).
-        append("process_name", qualifiedProcessName).
-        append("can_delete", true).append("is_main_role", activity.role[String] == assignment.role[String])
-        //append("can_delete", assignment.role[String] != activity.role[String])
+        append("process_name", qualifiedProcessName).append("can_delete", true).append("can_manage", canManage).
+        append("is_main_role", activity.role[String] == assignment.role[String])
       if (assignment.has("organization_id")) {
         val orgOid = assignment.organization_id[ObjectId]
         assignmentDoc.append("organization_id", orgOid)
@@ -35,7 +35,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         assignmentDoc.append("organization_name", org.name[String])
       } else {
         assignmentDoc.append("organization_id", "")
-        assignmentDoc.append("organization_name", if (fill) "Some Organization" else "")
+        assignmentDoc.append("organization_name", "")
       }
       if (assignment.has("person_id")) {
         val personOid = assignment.person_id[ObjectId]
@@ -44,21 +44,19 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         assignmentDoc.append("person_name", s"${person.first_name[String]} ${person.last_name[String]}")
       } else {
         assignmentDoc.append("person_id", "")
-        assignmentDoc.append("person_name", if (fill) "Some Person" else "")
+        assignmentDoc.append("person_name", "")
       }
       if (assignment.has("individual_role")) {
         val indRole = assignment.individual_role[Many[String]]
         assignmentDoc.append("individual_role", indRole)
       } else {
-        val roleValue = if (fill) Seq("Some-Role") else Seq.empty[String]
-        assignmentDoc.append("individual_role", roleValue.asJava)
+        assignmentDoc.append("individual_role", Seq.empty[String].asJava)
       }
       if (assignment.has("document_access")) {
         val docAccess = assignment.document_access[Many[String]]
         assignmentDoc.append("document_access", docAccess)
       } else {
-        val accessValue = if (fill) Seq("Some-Doc-Access") else Seq.empty[String]
-        assignmentDoc.append("document_access", accessValue.asJava)
+        assignmentDoc.append("document_access", Seq.empty[String].asJava)
       }
       assignmentDoc
     })
@@ -77,8 +75,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      //val user: DynDoc = getUser(request)
-      //val userOid = user._id[ObjectId]
+      val user: DynDoc = getUser(request)
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
@@ -89,13 +86,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         case (None, None, Some(projectOid)) => ProjectApi.allActivities(projectOid)
         case _ => throw new IllegalArgumentException("Required parameters not provided")
       }
-      val fill = optPhaseOid match {
-        case None => false
-        case Some(poid) =>
-          val thePhase = PhaseApi.phaseById(poid)
-          thePhase.name[String] == "ntov-01-11"
-      }
-      val assignments = activities.flatMap(activityAssignments(_, fill))
+      val assignments = activities.flatMap(activityAssignments(_, user))
 
       val assignmentList = sorter(assignments).map(bson2json).mkString("[", ", ", "]")
       response.getWriter.print(assignmentList)

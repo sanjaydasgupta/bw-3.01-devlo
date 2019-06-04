@@ -37,10 +37,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     bpmnStamps.map(stamp => {
       val offset: DynDoc = stamp.offset[Document]
       val (start, end) = (offset.start[String], offset.end[String])
+      val hoverInfo = Seq(
+        new Document("name", "Start-Offset").append("value", start),
+        new Document("name", "End-Offset").append("value", end),
+        //new Document("name", "Status").append("value", ActivityApi.stateSubState(activity)),
+      )
+
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", start).append("end", end).append("status", stamp.status[String]).
-        append("name", stamp.name[String]).append("elementType", "subprocessCall").
+        append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
         append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
     })
   }

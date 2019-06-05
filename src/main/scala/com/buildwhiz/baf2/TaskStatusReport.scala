@@ -12,8 +12,15 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
   private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
         optPercentComplete: Option[String]): Unit = {
 
+    def superUsersAssignment(assignment: DynDoc, user: DynDoc): Boolean = {
+      val parentProcess = ActivityApi.parentProcess(assignment.activity_id[ObjectId])
+      ProcessApi.canManage(user._id[ObjectId], parentProcess)
+    }
+
     val allAssignments = ActivityApi.teamAssignment.list(activityOid)
-    val usersAssignments = allAssignments.filter(_.person_id[ObjectId] == user._id[ObjectId])
+    val usersAssignments = allAssignments.
+        filter(assignment => assignment.status[String].matches("started|active") &&
+            (assignment.person_id[ObjectId] == user._id[ObjectId] || superUsersAssignment(assignment, user)))
     val approvals = Seq(RoleListSecondary.preApproval, RoleListSecondary.postApproval)
     val (preApprovals, postApprovals) = allAssignments.filter(a => approvals.contains(a.role[String])).
         partition(_.role[String] == RoleListSecondary.preApproval)

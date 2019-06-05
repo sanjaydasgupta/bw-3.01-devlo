@@ -67,7 +67,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     }
 
     val userCanManage = accessLevel.matches("all|manage")
-    val userCanContribute = accessLevel.matches("contribute")
+    val userCanContribute = accessLevel.matches("all|manage|contribute")
 
     val untilStart = theActivity.status[String].matches("defined")
     val untilEnd = theActivity.status[String].matches("defined|running")

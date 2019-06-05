@@ -148,9 +148,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
           find(_.role[String] == activity.role[String]) match {
         case None => "NA"
-        case Some(assignment) => if (assignment.has("person_id")) {
-          val thePerson = PersonApi.personById(assignment.person_id[ObjectId])
-          s"${thePerson.first_name[String].substring(0, 1)} ${thePerson.last_name[String].substring(0, 1)}"
+        case Some(assignment) => if (assignment.has("organization_id")) {
+          val theOrganization = OrganizationApi.organizationById(assignment.organization_id[ObjectId])
+          theOrganization.name[String]
         } else {
           "NA"
         }

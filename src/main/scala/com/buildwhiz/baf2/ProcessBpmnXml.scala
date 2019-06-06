@@ -36,11 +36,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
       val offset: DynDoc = stamp.offset[Document]
-      val (start, end) = (offset.start[String], offset.end[String])
+      val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
         new Document("name", "Start-Offset").append("value", start),
         new Document("name", "End-Offset").append("value", end),
-        //new Document("name", "Status").append("value", ActivityApi.stateSubState(activity)),
+        new Document("name", "Status").append("value", status),
       )
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).

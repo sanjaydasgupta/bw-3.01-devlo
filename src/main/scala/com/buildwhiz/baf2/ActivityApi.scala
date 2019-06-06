@@ -145,15 +145,22 @@ object ActivityApi {
   }
 
   def userAccessLevel(user: DynDoc, activity: DynDoc): String = {
+    val assignments = teamAssignment.list(activity._id[ObjectId])
+    val activeAssignments = assignments.
+        filter(a => a.has("status") && a.status[String].matches("active|started"))
     if (PersonApi.isBuildWhizAdmin(user._id[ObjectId])) {
-      "all"
+      if (activeAssignments.nonEmpty)
+        "all"
+      else
+        "None"
     } else {
       val process = parentProcess(activity._id[ObjectId])
       if (ProcessApi.canManage(user._id[ObjectId], process)) {
-        "all"
-      } else if (teamAssignment.list(activity._id[ObjectId]).
-          exists(a => a.has("person_id") && a.person_id[ObjectId] == user._id[ObjectId] &&
-          a.has("status") && a.status[String] == "started")) {
+        if (activeAssignments.nonEmpty)
+          "all"
+        else
+          "None"
+      } else if (activeAssignments.exists(a => a.has("person_id") && a.person_id[ObjectId] == user._id[ObjectId])) {
         "contribute"
       } else {
         "none"

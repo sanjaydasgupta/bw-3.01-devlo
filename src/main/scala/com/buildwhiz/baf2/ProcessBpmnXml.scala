@@ -57,43 +57,44 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> processName))
     val returnActivities = activities.map(activity => {
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
-      val tasks = actions.map(action => {
-        val ownTask = user._id[ObjectId] == action.assignee_person_id[ObjectId]
-        val status = if (ownTask && action.status[String] == "waiting")
-          "waiting"
-        else if (action.status[String] == "waiting")
-          "waiting2"
-        else
-          action.status[String]
-        val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
-        val shortAssignee = new Document("_id", assignee._id[ObjectId]).
-          append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
-        val actionType = action.`type`[String]
-        val actionRole = if (action.has("assignee_role")) {
-          action.assignee_role[String]
-        } else if (action.has("role")) {
-          action.role[String]
-        } else if (activity.has("assignee_role")) {
-          if (actionType == "main")
-            activity.assignee_role[String]
-          else
-            s"${activity.assignee_role[String]}-$actionType"
-        } else if (activity.has("role")) {
-          if (actionType == "main")
-            activity.role[String]
-          else
-            s"${activity.role[String]}-$actionType"
-        } else {
-          s"???-$actionType"
-        }
-        //val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
-        //val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
-        new Document("type", actionType).append("name", action.name[String]).append("status", status).
-          append("duration", action.duration[String]).append("assignee", shortAssignee).
-          append("start", action.start[String]).append("end", action.end[String]).append("role", actionRole).
-          append("on_critical_path",
-              if (action.has("on_critical_path")) action.on_critical_path[Boolean] else false)
-      })
+//      val tasks = actions.map(action => {
+//        val ownTask = user._id[ObjectId] == action.assignee_person_id[ObjectId]
+//        val status = if (ownTask && action.status[String] == "waiting")
+//          "waiting"
+//        else if (action.status[String] == "waiting")
+//          "waiting2"
+//        else
+//          action.status[String]
+//        val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
+//        val shortAssignee = new Document("_id", assignee._id[ObjectId]).
+//          append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
+//        val actionType = action.`type`[String]
+//        val actionRole = if (action.has("assignee_role")) {
+//          action.assignee_role[String]
+//        } else if (action.has("role")) {
+//          action.role[String]
+//        } else if (activity.has("assignee_role")) {
+//          if (actionType == "main")
+//            activity.assignee_role[String]
+//          else
+//            s"${activity.assignee_role[String]}-$actionType"
+//        } else if (activity.has("role")) {
+//          if (actionType == "main")
+//            activity.role[String]
+//          else
+//            s"${activity.role[String]}-$actionType"
+//        } else {
+//          s"???-$actionType"
+//        }
+//        //val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
+//        //val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
+//        new Document("type", actionType).append("name", action.name[String]).append("status", status).
+//          append("duration", action.duration[String]).append("assignee", shortAssignee).
+//          append("start", action.start[String]).append("end", action.end[String]).append("role", actionRole).
+//          append("on_critical_path",
+//              if (action.has("on_critical_path")) action.on_critical_path[Boolean] else false)
+//      })
+      val tasks = Seq.empty[Document]
       val status = if (tasks.exists(_.get("status") == "waiting"))
         "waiting"
       else if (tasks.exists(_.get("status") == "waiting2"))
@@ -150,7 +151,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "NA"
         case Some(assignment) => if (assignment.has("organization_id")) {
           val theOrganization = OrganizationApi.organizationById(assignment.organization_id[ObjectId])
-          theOrganization.name[String]
+          val orgNameParts = theOrganization.name[String].split("\\s+")
+          val shortOrgName = (orgNameParts.head +: orgNameParts.tail.map(_.substring(0, 1))).mkString(" ")
+          shortOrgName
         } else {
           "NA"
         }

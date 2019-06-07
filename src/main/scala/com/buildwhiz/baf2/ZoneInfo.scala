@@ -19,13 +19,17 @@ class ZoneInfo extends HttpServlet with HttpUtils with DateTimeUtils {
   private def activityInformation(zone: DynDoc, user: DynDoc): Many[Document] = {
     val activities: Seq[DynDoc] = ZoneApi.allActivities(zone)
     val returnValue: Seq[Document] = activities.map(activity => {
-      val timestamps: DynDoc = activity.timestamps[Document]
-      val timeZone = user.tz[String]
-      val (startTime, endTime) = if (timestamps.has("start")) {
-        if (timestamps.has("end")) {
-          (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
+      val (startTime, endTime) = if (activity.has("timestamps")) {
+        val timestamps: DynDoc = activity.timestamps[Document]
+        val timeZone = user.tz[String]
+        if (timestamps.has("start")) {
+          if (timestamps.has("end")) {
+            (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
+          } else {
+            (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
+          }
         } else {
-          (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
+          ("NA", "NA")
         }
       } else {
         ("NA", "NA")

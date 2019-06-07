@@ -152,15 +152,16 @@ object ActivityApi {
       if (activeAssignments.nonEmpty)
         "all"
       else
-        "None"
+        "manage"
     } else {
       val process = parentProcess(activity._id[ObjectId])
       if (ProcessApi.canManage(user._id[ObjectId], process)) {
         if (activeAssignments.nonEmpty)
           "all"
         else
-          "None"
-      } else if (activeAssignments.exists(a => a.has("person_id") && a.person_id[ObjectId] == user._id[ObjectId])) {
+          "manage"
+      } else if (activeAssignments.exists(a => a.has("person_id") &&
+          a.person_id[ObjectId] == user._id[ObjectId])) {
         "contribute"
       } else {
         "none"

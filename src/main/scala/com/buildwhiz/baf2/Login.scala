@@ -52,6 +52,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
       //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
       Map("name" -> "Organizations", "url" -> "/contacts", "icon" -> "contact"),
       Map("name" -> "Team", "url" -> "/team", "icon" -> "project_team"),
+      Map("name" -> "Zone", "url" -> "/zone-list", "icon" -> "zone"),
       Map("name" -> "Tasks", "url" -> "/task-list", "icon" -> "tasks"),
       Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
       Map("name" -> "Help", "url" -> "/help", "icon" -> "help")

@@ -12,6 +12,17 @@ import scala.collection.JavaConverters._
 
 class DocumentList2 extends HttpServlet with HttpUtils with DateTimeUtils {
 
+  private def i2s(i: Long): String = {
+    if (i < 1000)
+      f"$i%d bytes"
+    else if (i < 1000000L)
+      f"${(i / 100) / 10.0}%3.1f kB"
+    else if (i < 1000000000L)
+      f"${(i / 100000L) / 10.0}%3.1f MB"
+    else
+      f"${(i / 100000000L) / 10.0}%3.1f GB"
+  }
+
   private def getDocuments(user: DynDoc, request: HttpServletRequest): Seq[Document] = {
     val docOid2labels: Map[ObjectId, Seq[String]] = DocumentApi.docOid2UserTags(user)
     val docRecords: Seq[DynDoc] = DocumentApi.documentsByProjectId(request)
@@ -43,7 +54,10 @@ class DocumentList2 extends HttpServlet with HttpUtils with DateTimeUtils {
       val documentProperties: Document = if (versionCount != 0) {
         val lastVersion: DynDoc = versions.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
         val fileType = lastVersion.file_name[String].split("\\.").last
-        val fileSize = lastVersion.asDoc.getOrDefault("size", "NA").toString
+        val fileSize = if (lastVersion.has("size"))
+          i2s(lastVersion.size)
+        else
+          "NA"
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
         val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {

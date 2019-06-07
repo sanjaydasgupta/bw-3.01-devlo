@@ -21,10 +21,12 @@ class ZoneInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val returnValue: Seq[Document] = activities.map(activity => {
       val timestamps: DynDoc = activity.timestamps[Document]
       val timeZone = user.tz[String]
-      val (startTime, endTime) = if (timestamps.has("end")) {
-        (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
-      } else if (timestamps.has("start")) {
-        (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
+      val (startTime, endTime) = if (timestamps.has("start")) {
+        if (timestamps.has("end")) {
+          (dateTimeString(timestamps.start[Long], Some(timeZone)), dateTimeString(timestamps.end[Long], Some(timeZone)))
+        } else {
+          (dateTimeString(timestamps.start[Long], Some(timeZone)), "NA")
+        }
       } else {
         ("NA", "NA")
       }
@@ -40,10 +42,10 @@ class ZoneInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val location = new Document("editable", editable).append("value", zone.location[String])
     val area = new Document("editable", editable).append("value", zone.area[String])
     val name = new Document("editable", editable).append("value", zone.name[String])
+    val oid = zone._id[ObjectId].toString
 
-    val zoneDoc = new Document("name", name).append("description", description).
-        append("location", location).append("area", area).
-        append("activity_info", activityInformation(zone, user))
+    val zoneDoc = new Document("name", name).append("_id", oid).append("description", description).
+        append("location", location).append("area", area).append("activity_info", activityInformation(zone, user))
     zoneDoc.toJson
   }
 

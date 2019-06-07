@@ -67,14 +67,14 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     }
 
     val userCanManage = accessLevel.matches("all|manage")
-    val userCanContribute = accessLevel.matches("all|manage|contribute")
+    val userCanContribute = accessLevel.matches("all|contribute")
 
-    val untilStart = theActivity.status[String].matches("defined")
+    //val untilStart = theActivity.status[String].matches("defined")
     val untilEnd = theActivity.status[String].matches("defined|running")
 
-    val enableEditUntilStart = userCanManage && untilStart
+    //val enableEditUntilStart = userCanManage && untilStart
     val enableEditUntilEnd = userCanManage && untilEnd
-    val enableEditButton = userCanManage && untilEnd
+    val enableEditButton = userCanManage
 
     val enableUpdateStatusButton = userCanContribute
 
@@ -92,9 +92,9 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
         append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
-        append("estimated_start_date", wrap(scheduledStart, enableEditUntilStart)).
+        append("estimated_start_date", wrap(scheduledStart, isAdmin)).
         append("actual_start_date", wrap(actualStart, isAdmin)).
-        append("estimated_end_date", wrap(scheduledEnd, enableEditUntilEnd)).
+        append("estimated_end_date", wrap(scheduledEnd, isAdmin)).
         append("actual_end_date", wrap(actualEnd, isAdmin)).
         append("reporting_interval", wrap(reportingInterval, enableEditUntilEnd)).
         append("percent_complete", wrap(percentComplete, editable = false)).append("change_log", changeLog).

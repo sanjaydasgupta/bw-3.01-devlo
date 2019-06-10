@@ -18,8 +18,9 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
       val userOid = user._id[ObjectId]
       val freshUserRecord = PersonApi.personById(userOid)
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
+      val goodAssignments = assignments.filter(a => ActivityApi.exists(a.activity_id[ObjectId]))
 
-      val uniqueAssignments: Seq[DynDoc] = assignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
+      val uniqueAssignments: Seq[DynDoc] = goodAssignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
         val seq = t._2
         val roles = seq.map(_.role[String])
         val head = seq.head
@@ -31,7 +32,7 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
           mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${assignments.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${goodAssignments.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

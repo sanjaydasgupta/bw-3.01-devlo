@@ -17,6 +17,7 @@ object BWMongoDB3 extends Dynamic {
   val $addToSet = "$addToSet"
   val $and = "$and"
   val $elemMatch = "$elemMatch"
+  val $each = "$each"
   val $eq = "$eq"
   val $exists = "$exists"
   val $in = "$in"

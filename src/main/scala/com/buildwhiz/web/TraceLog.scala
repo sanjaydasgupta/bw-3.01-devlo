@@ -46,14 +46,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       } else {
         val urlName = request.getRequestURL.toString.split("/").last
         val (duration, durationUnit) = parameters.get("count") match {
-          case None => (10, "rows")
+          case None => (50, "rows")
           case Some(theCount) =>
             val withUnitPattern = "([0-9\\.]+)(hours|days|rows)".r
             val withoutUnitPattern = "([0-9\\.]+)".r
             theCount match {
               case withUnitPattern(d, u) => (d.toInt, u)
               case withoutUnitPattern(d) => (d.toInt, "rows")
-              case _ => (10, "rows")
+              case _ => (50, "rows")
             }
         }
         val clientIp = request.getHeader("X-FORWARDED-FOR") match {

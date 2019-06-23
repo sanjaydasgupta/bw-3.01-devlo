@@ -25,7 +25,7 @@
   }
 
   self.addNewLabelName = function() {
-    var query = 'baf/DocumentLabelAdd?label_name=' + self.newLabelName;
+    var query = '/bw-dot-2.01/baf/DocumentLabelAdd?label_name=' + self.newLabelName;
     $log.log('ENTRY addNewLabelName() labelName =' + self.newLabelName);
     $http.post(query).then(
       function(res) {
@@ -44,7 +44,7 @@
   }
 
   self.deleteLabelName = function() {
-    var query = 'baf/DocumentLabelDelete?label_name=' + self.selectedLabel.name;
+    var query = '/bw-dot-2.01/baf/DocumentLabelDelete?label_name=' + self.selectedLabel.name;
     $log.log('ENTRY deleteLabelName() labelName =' + self.selectedLabel.name);
     $http.post(query).then(
       function(res) {
@@ -79,7 +79,7 @@
     var sPersonID = AuthService.data._id;
     var postData = {old_password: self.oldPassword, new_password: self.newPassword, person_id: sPersonID};
     $log.log('Calling /baf/UserPasswordSet' + postData);
-    $http.post('baf/UserPasswordSet', postData).then(
+    $http.post('/bw-dot-2.01/baf/UserPasswordSet', postData).then(
       function() {
         self.oldPassword = '';
           self.newPassword = '';
@@ -95,7 +95,7 @@
     }
 
   self.toggleEmail = function() {
-    var query = 'baf/UserPropertySet?person_id=' + AuthService.data._id + '&property=email_enabled&value=' +
+    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + AuthService.data._id + '&property=email_enabled&value=' +
         self.emailEnabled;
     $log.log('POST ' + query);
     $http.post(query).then(

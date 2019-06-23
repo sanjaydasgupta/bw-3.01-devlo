@@ -10,7 +10,7 @@ angular.module('BuildWhizApp')
 
     login: function(theEmail, thePassword, client) {
       var self = this;
-      var url = 'etc/LoginPost';
+      var url = '/bw-dot-2.01/baf2/Login';
       var postData = {email: theEmail, password: thePassword};
       var location = $location.url();
       $http.post(url, postData).then(
@@ -49,7 +49,7 @@ angular.module('BuildWhizApp')
       this.data = null;
       loginClient.loggedIn = false;
       loginClient.data = null;
-      var url = 'etc/LogoutPost'; // Log OUT
+      var url = '/bw-dot-2.01/baf2/Logout'; // Log OUT
       $http.post(url)
     },
 

@@ -109,7 +109,7 @@
     $log.log('Called createNewProject()');
     //var postData = '{"name": "' + self.newProjectName + '", "status": "created", ' +
     //    '"admin_person_id": ObjectId("' + AuthService.data._id + '")}';
-    var q = 'baf2/ProjectCreate?name=' + self.newProjectName;
+    var q = '/bw-dot-2.01/baf2/ProjectCreate?name=' + self.newProjectName;
     self.busy = true;
     $http.post(q).then(
       function(resp) {
@@ -127,7 +127,7 @@
 
   self.projectPublicChanged = function() {
     $log.log('Called projectPublicChanged()');
-    var query = 'baf/ProjectSetPublic?project_id=' + self.selectedProject._id + '&public=' + self.selectedProject.public;
+    var query = '/bw-dot-2.01/baf/ProjectSetPublic?project_id=' + self.selectedProject._id + '&public=' + self.selectedProject.public;
     self.busy = true;
     $http.post(query).then(
       function() {
@@ -143,7 +143,7 @@
 
   self.launchSelectedProject = function() {
     var project = self.selectedProject;
-    var query = 'baf/ProjectLaunch?project_id=' + project._id;
+    var query = '/bw-dot-2.01/baf/ProjectLaunch?project_id=' + project._id;
     $log.log('calling POST ' + query);
     self.busy = true;
     $http.post(query).then(
@@ -161,7 +161,7 @@
 
   self.endSelectedProject = function() {
     var project = self.selectedProject;
-    var query = 'baf2/ProjectEnd?project_id=' + project._id;
+    var query = '/bw-dot-2.01/baf2/ProjectEnd?project_id=' + project._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -179,7 +179,7 @@
 
   self.deleteSelectedProject = function() {
     var project = self.selectedProject;
-    var query = 'baf2/ProjectDelete?project_id=' + project._id;
+    var query = '/bw-dot-2.01/baf2/ProjectDelete?project_id=' + project._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -203,7 +203,7 @@
   self.projectManagerSet = function() {
 //    var query = 'baf/ProjectAdministratorSet?person_id=' + self.selectedProjectManager._id +
 //        '&project_id=' + self.selectedProject._id;
-    var query = 'baf2/ProjectAdminSet?person_id=' + self.selectedProjectManager._id +
+    var query = '/bw-dot-2.01/baf2/ProjectAdminSet?person_id=' + self.selectedProjectManager._id +
         '&project_id=' + self.selectedProject._id;
     self.busy = true;
     $http.post(query).then(
@@ -247,7 +247,7 @@
 
   self.addNewPhase = function() {
     $log.log('Called addNewPhase()');
-    var query = 'baf2/PhaseAdd?project_id=' + self.selectedProject._id + '&phase_name=' + self.newPhaseName;
+    var query = '/bw-dot-2.01/baf2/PhaseAdd?project_id=' + self.selectedProject._id + '&phase_name=' + self.newPhaseName;
     self.busy = true;
     $http.post(query).then(
       function(resp) {
@@ -315,7 +315,7 @@
 
   self.deleteSelectedPhase = function() {
     var phase = self.selectedPhase;
-    var query = 'baf2/PhaseDelete?phase_id=' + phase._id;
+    var query = '/bw-dot-2.01/baf2/PhaseDelete?phase_id=' + phase._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -373,7 +373,7 @@
 
   self.addProcess = function(name) {
     $log.log('Called addProcess()');
-    var query = 'baf2/ProcessAdd?bpmn_name=' + self.selectedBpmnName + '&phase_id=' + self.selectedPhase._id +
+    var query = '/bw-dot-2.01/baf2/ProcessAdd?bpmn_name=' + self.selectedBpmnName + '&phase_id=' + self.selectedPhase._id +
         '&admin_person_id=' + AuthService.data._id + '&process_name=' + self.newProcessName;
     self.busy = true;
     self.selectedProcess = null;
@@ -393,7 +393,7 @@
   }
 
   self.selectedProcessEnd = function(name) {
-    var query = 'baf/PhaseEnd?phase_id=' + self.selectedPhase._id;
+    var query = '/bw-dot-2.01/baf/PhaseEnd?phase_id=' + self.selectedPhase._id;
     self.busy = true;
     $http.post(query).then(
       function(resp) {
@@ -447,7 +447,7 @@
   self.phaseManagerSet = function() {
 //    var query = 'baf/PhaseAdministratorSet?person_id=' + self.selectedPhaseManager._id +
 //        '&project_id=' + self.selectedProject._id + '&phase_id=' + self.selectedPhase._id;
-    var query = 'baf2/PhaseAdminSet?person_id=' + self.selectedPhaseManager._id +
+    var query = '/bw-dot-2.01/baf2/PhaseAdminSet?person_id=' + self.selectedPhaseManager._id +
         '&phase_id=' + self.selectedPhase._id;
     self.busy = true;
     $http.post(query).then(
@@ -467,7 +467,7 @@
 
   self.selectedProcessLaunch = function() {
     $log.log('Called selectedProcessLaunch(' + self.selectedProcess.name + ')');
-    var query = 'baf2/ProcessLaunch?process_id=' + self.selectedProcess._id;
+    var query = '/bw-dot-2.01/baf2/ProcessLaunch?process_id=' + self.selectedProcess._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -494,7 +494,7 @@
 
   self.selectedProcessDelete = function() {
     $log.log('Called selectedProcessDelete(' + self.selectedProcess.name + ')');
-    var query = 'baf2/ProcessDelete?process_id=' + self.selectedProcess._id;
+    var query = '/bw-dot-2.01/baf2/ProcessDelete?process_id=' + self.selectedProcess._id;
     $log.log('calling POST ' + query)
     self.busy = true;
     $http.post(query).then(
@@ -585,7 +585,7 @@
         formData.append(file.name, file, file.name);
         $log.log('formData.append(' + file.name + ')');
       });
-      var query = 'baf/PhaseConfigUpload?project_id=' + self.selectedProject._id +
+      var query = '/bw-dot-2.01/baf/PhaseConfigUpload?project_id=' + self.selectedProject._id +
           '&phase_id=' + self.selectedPhase._id + '&bpmn_name=' + bpmn_name;
       $log.log("POST: " + query);
       self.busy = true;

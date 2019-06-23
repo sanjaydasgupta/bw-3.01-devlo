@@ -43,7 +43,7 @@
       formData.append(file.name, file, file.name);
       $log.log('formData.append(name: ' + file.name + ', stringified: ' + JSON.stringify(file) + ')');
     });
-    var query = 'baf/ProgressReportSubmit'
+    var query = '/bw-dot-2.01/baf/ProgressReportSubmit'
     $log.log('POST ' + query);
     self.busy = true;
     $http.post(query, formData, {transformRequest: angular.identity, headers: {'Content-Type': undefined}}).then(

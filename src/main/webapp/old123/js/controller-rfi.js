@@ -47,7 +47,7 @@ angular.module('BuildWhizApp')
   }
 
   self.submitRFI = function() {
-    var query = 'baf/RFIMessageSubmit';
+    var query = '/bw-dot-2.01/baf/RFIMessageSubmit';
     var postData = {person_id: AuthService.data._id, text: self.text};
     if (self.rfiAttachments.length > 0) {
        postData.attachments = self.rfiAttachments.map(function(a){return JSON.stringify(a);}).join('#');
@@ -157,7 +157,7 @@ angular.module('BuildWhizApp')
         $log.log('formData.append(' + file.name + ')');
       });
       var desc = self.selectedMessage._id + '/' + self.selectedMessage.timestamp + '/' + timestamp;
-      var query = 'baf/DocumentPreload?person_id=' + AuthService.data._id + '&timestamp=' + timestamp +
+      var query = '/bw-dot-2.01/baf/DocumentPreload?person_id=' + AuthService.data._id + '&timestamp=' + timestamp +
           '&author_person_id=' + AuthService.data._id + '&category=SYSTEM' + '&subcategory=RFI-Attachment' +
           '&name=' + escape(self.selectedMessage.subject) + '&description=' + escape(desc);
       $log.log("POST: " + query);
@@ -183,7 +183,7 @@ angular.module('BuildWhizApp')
 
   self.closeMessage = function() {
     $log.log('Calling closeMessage()');
-    var q = 'baf/RFIClose?rfi_id=' + self.selectedMessage._id;
+    var q = '/bw-dot-2.01/baf/RFIClose?rfi_id=' + self.selectedMessage._id;
      self.busy = true;
     $http.post(q).then(
       function(resp) {

@@ -8,7 +8,7 @@
   self.commandName = '?';
 
   self.monitor = function(command, name) {
-    var dfhQuery = 'etc/SystemMonitor?command=' + command;
+    var dfhQuery = '/bw-dot-2.01/etc/SystemMonitor?command=' + command;
     $log.log('Calling POST ' + dfhQuery)
     $http.post(dfhQuery).then(
       function(resp) {

@@ -23,7 +23,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         processName
       else
         s"$processName ($activityBpmnName)"
-      val canManage = ProcessApi.canManage(userOid, process) && activity.status[String] == "defined"
+      val canManage = ProcessApi.canManage(userOid, process) && activity.status[String] != "ended"
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).
         append("process_name", qualifiedProcessName).append("can_delete", true).append("can_manage", canManage).

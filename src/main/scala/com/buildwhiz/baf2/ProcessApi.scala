@@ -29,9 +29,7 @@ object ProcessApi {
     if (isActive(process))
       throw new IllegalArgumentException(s"Process '${process.name[String]}' is still active")
 
-    val assignmentDeleteResult = BWMongoDB3.activity_assignments.deleteOne(Map("process_id" -> processOid))
-    if (assignmentDeleteResult.getDeletedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB error: $assignmentDeleteResult")
+    BWMongoDB3.activity_assignments.deleteOne(Map("process_id" -> processOid))
 
     val processDeleteResult = BWMongoDB3.processes.deleteOne(Map("_id" -> processOid))
     if (processDeleteResult.getDeletedCount == 0)

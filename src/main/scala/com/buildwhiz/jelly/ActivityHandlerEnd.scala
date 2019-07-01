@@ -7,6 +7,7 @@ import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
+import org.camunda.bpm.engine.task.Task
 
 class ActivityHandlerEnd extends JavaDelegate {
 
@@ -38,7 +39,9 @@ object ActivityHandlerEnd {
             val theActivity = ActivityApi.activityById(activityOid)
             if (theActivity.has("activity_instance_id")) {
               val taskService = ProcessEngines.getDefaultProcessEngine.getTaskService
-              taskService.complete(theActivity.activity_instance_id[String])
+              val tasks: Seq[Task] = taskService.createTaskQuery().
+                  caseInstanceId(theActivity.activity_instance_id[String]).list()
+              taskService.complete(tasks.head.getId)
             }
           }
         case None =>

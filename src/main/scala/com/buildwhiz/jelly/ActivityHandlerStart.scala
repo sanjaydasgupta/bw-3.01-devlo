@@ -74,7 +74,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       val timestamp = System.currentTimeMillis()
       val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]),
           Map("$set" -> Map("status" -> "running", "timestamps.start" -> timestamp,
-          "activity_instance_id" -> de.getCurrentActivityId)))
+          "activity_instance_id" -> de.getActivityInstanceId)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
 

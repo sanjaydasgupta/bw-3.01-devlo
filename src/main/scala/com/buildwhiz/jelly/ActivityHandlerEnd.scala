@@ -34,6 +34,12 @@ object ActivityHandlerEnd {
           if (main.has("camunda_execution_id")) {
             val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
             rts.messageEventReceived("Action-Complete", main.camunda_execution_id[String])
+          } else {
+            val theActivity = ActivityApi.activityById(activityOid)
+            if (theActivity.has("activity_instance_id")) {
+              val taskService = ProcessEngines.getDefaultProcessEngine.getTaskService
+              taskService.complete(theActivity.activity_instance_id[String])
+            }
           }
         case None =>
           throw new IllegalArgumentException(s"Unable to find 'main' action activity_id: $activityOid")

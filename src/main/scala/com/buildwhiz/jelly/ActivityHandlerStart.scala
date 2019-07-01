@@ -45,8 +45,12 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       val process: DynDoc = ProcessApi.processById(processOid)
       val activityOids: Seq[ObjectId] = ProcessApi.allActivities(process).map(_._id[ObjectId])
       //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
-      val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
-      val bpmnName = getBpmnName(de.getSuperExecution)
+      val theExecution = de.getSuperExecution match {
+        case null => de
+        case superExecution => superExecution
+      }
+      val activityName = theExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
+      val bpmnName = getBpmnName(theExecution)
       val activity: DynDoc = BWMongoDB3.activities.
         find(Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)).head
 
@@ -68,8 +72,9 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       de.setVariable("action_name", mainActionName)
 
       val timestamp = System.currentTimeMillis()
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map("$set" ->
-        Map("status" -> "running", "timestamps.start" -> timestamp)))
+      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]),
+          Map("$set" -> Map("status" -> "running", "timestamps.start" -> timestamp,
+          "activity_instance_id" -> de.getCurrentActivityId)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB error: $updateResult")
 

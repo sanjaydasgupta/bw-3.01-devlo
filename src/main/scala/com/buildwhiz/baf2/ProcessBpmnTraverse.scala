@@ -164,6 +164,13 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
         (offsets.map(_._1).max, offsets.map(_._2).max)
 
       node match {
+        case userTask: UserTask =>
+          val entryOffset = maxMax(predecessors(userTask).
+            map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + userTask)))
+          val duration = getActivityDuration(userTask.getId, phase, bpmnName)
+          setActivitySchedule(userTask.getId, phase, bpmnName, entryOffset, duration, onCriticalPath)
+          maxMax(predecessors(userTask).
+          map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + userTask)))
         case serviceTask: ServiceTask => maxMax(predecessors(serviceTask).
             map(n => getTimeOffset(n, processOffset, bpmnName, onCriticalPath, seenNodes + serviceTask)))
         case _: StartEvent =>

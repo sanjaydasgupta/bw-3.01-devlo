@@ -264,8 +264,10 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val prefix = processNameAndDom._2.getDocumentElement.getTagName.split(":")(0)
       val bpmnCallActivities: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:callActivity").
         map(_.asInstanceOf[Element])
+      val bpmnUserTasks: Seq[Element] = processNameAndDom._2.getElementsByTagName(s"$prefix:userTask").
+        map(_.asInstanceOf[Element])
       val buildWhizActivities = bpmnCallActivities.filter(_.getAttributes.getNamedItem("calledElement").
-        getTextContent == "Infra-Activity-Handler")
+        getTextContent == "Infra-Activity-Handler") ++ bpmnUserTasks
       val activityNamesRolesDescriptionsAndDurations = buildWhizActivities.sortWith((a, b) => sequence(a) < sequence(b)).
         map(getNameRoleDescriptionAndDuration)
       //BWLogger.log(getClass.getName, "getActivityNamesAndRoles", s"""EXIT-OK (${activityNamesRolesDescriptionsAndDurations.mkString(", ")})""")

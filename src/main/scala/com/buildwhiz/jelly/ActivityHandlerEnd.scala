@@ -39,8 +39,10 @@ object ActivityHandlerEnd {
             val theActivity = ActivityApi.activityById(activityOid)
             if (theActivity.has("activity_instance_id")) {
               val taskService = ProcessEngines.getDefaultProcessEngine.getTaskService
-              val tasks: Seq[Task] = taskService.createTaskQuery().
-                  caseInstanceId(theActivity.activity_instance_id[String]).list()
+              val activityInstanceIdIn = theActivity.activity_instance_id[String]
+              val tasks: Seq[Task] = taskService.createTaskQuery().activityInstanceIdIn(activityInstanceIdIn).list()
+              if (tasks.isEmpty)
+                throw new IllegalArgumentException(s"No task with activityInstanceIdIn: $activityInstanceIdIn")
               taskService.complete(tasks.head.getId)
             }
           }

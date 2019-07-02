@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_-m0GYPWGEeWctIaA-DbqOg" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_-m0GYPWGEeWctIaA-DbqOg" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-Demo1" name="Phase Demo1" isExecutable="true">
     <bpmn2:exclusiveGateway id="One-Or-Two" name="One or Two" default="One-or-Two-No">
       <bpmn2:extensionElements>
@@ -12,7 +12,7 @@
       <bpmn2:outgoing>One-or-Two-No</bpmn2:outgoing>
     </bpmn2:exclusiveGateway>
     <bpmn2:sequenceFlow id="One-or-Two-Yes" name="Yes" sourceRef="One-Or-Two" targetRef="Doc-Z-Test">
-      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("one") && execution.getVariable("one")]]></bpmn2:conditionExpression>
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression" language="javascript">execution.hasVariable("one") &amp;&amp; execution.getVariable("one")</bpmn2:conditionExpression>
     </bpmn2:sequenceFlow>
     <bpmn2:sequenceFlow id="One-or-Two-No" name="No" sourceRef="One-Or-Two" targetRef="Activity-Two" />
     <bpmn2:exclusiveGateway id="ExclusiveGateway_2">
@@ -28,27 +28,7 @@
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_1" name="" sourceRef="Start" targetRef="One-Or-Two" />
-    <bpmn2:callActivity id="Activity-Two" name="Activity Two" calledElement="Infra-Activity-Handler">
-      <bpmn2:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-sequence" value="2" />
-        </camunda:properties>
-      </bpmn2:extensionElements>
-      <bpmn2:incoming>One-or-Two-No</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
-    </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_7" name="" sourceRef="Activity-Two" targetRef="ExclusiveGateway_2" />
-    <bpmn2:callActivity id="Doc-Z-Test" name="DocZTest" calledElement="Infra-Activity-Handler">
-      <bpmn2:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-sequence" value="1" />
-        </camunda:properties>
-      </bpmn2:extensionElements>
-      <bpmn2:incoming>One-or-Two-Yes</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_8</bpmn2:outgoing>
-    </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_8" name="" sourceRef="Doc-Z-Test" targetRef="ExclusiveGateway_2" />
     <bpmn2:endEvent id="End" name="End">
       <bpmn2:extensionElements>
@@ -56,86 +36,100 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_6</bpmn2:incoming>
     </bpmn2:endEvent>
+    <bpmn2:userTask id="Doc-Z-Test" name="DocZTest">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>One-or-Two-Yes</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_8</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:userTask id="Activity-Two" name="Activity Two">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>One-or-Two-No</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
+    </bpmn2:userTask>
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Demo1">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_20" bpmnElement="Start">
-        <dc:Bounds x="16" y="199" width="36" height="36" />
+        <dc:Bounds x="156" y="199" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="22" y="240" width="24" height="12" />
+          <dc:Bounds x="162" y="240" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_46" bpmnElement="End">
-        <dc:Bounds x="748" y="199" width="36" height="36" />
+        <dc:Bounds x="888" y="199" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="757" y="240" width="20" height="12" />
+          <dc:Bounds x="897" y="240" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_8" bpmnElement="Doc-Z-Test">
-        <dc:Bounds x="360" y="113" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_9" bpmnElement="Activity-Two">
-        <dc:Bounds x="360" y="253" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_StartEvent_20" targetElement="_BPMNShape_ExclusiveGateway_4">
-        <di:waypoint xsi:type="dc:Point" x="52" y="217" />
-        <di:waypoint xsi:type="dc:Point" x="263" y="217" />
+        <di:waypoint x="192" y="217" />
+        <di:waypoint x="403" y="217" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="113" y="199" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_4" bpmnElement="One-Or-Two" isMarkerVisible="true">
-        <dc:Bounds x="263" y="192" width="50" height="50" />
+        <dc:Bounds x="403" y="192" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="321" y="206" width="57" height="12" />
+          <dc:Bounds x="461" y="206" width="57" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_5" bpmnElement="ExclusiveGateway_2" isMarkerVisible="true">
-        <dc:Bounds x="484" y="191" width="50" height="50" />
+        <dc:Bounds x="624" y="191" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="464" y="246" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="One-or-Two-Yes" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="_BPMNShape_CallActivity_8">
-        <di:waypoint xsi:type="dc:Point" x="288" y="192" />
-        <di:waypoint xsi:type="dc:Point" x="288" y="153" />
-        <di:waypoint xsi:type="dc:Point" x="360" y="153" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="One-or-Two-Yes" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="UserTask_00bho5a_di">
+        <di:waypoint x="428" y="192" />
+        <di:waypoint x="428" y="153" />
+        <di:waypoint x="500" y="153" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="305" y="125" width="18" height="12" />
+          <dc:Bounds x="445" y="125" width="19" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="One-or-Two-No" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="_BPMNShape_CallActivity_9">
-        <di:waypoint xsi:type="dc:Point" x="288" y="242" />
-        <di:waypoint xsi:type="dc:Point" x="288" y="293" />
-        <di:waypoint xsi:type="dc:Point" x="360" y="293" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_4" bpmnElement="One-or-Two-No" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="UserTask_0aqilnc_di">
+        <di:waypoint x="428" y="242" />
+        <di:waypoint x="428" y="293" />
+        <di:waypoint x="500" y="293" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="307" y="269" width="15" height="12" />
+          <dc:Bounds x="448" y="269" width="14" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ExclusiveGateway_5" targetElement="_BPMNShape_EndEvent_46">
-        <di:waypoint xsi:type="dc:Point" x="534" y="216" />
-        <di:waypoint xsi:type="dc:Point" x="576" y="217" />
-        <di:waypoint xsi:type="dc:Point" x="748" y="217" />
+        <di:waypoint x="674" y="216" />
+        <di:waypoint x="716" y="217" />
+        <di:waypoint x="888" y="217" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="510" y="199" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="_BPMNShape_CallActivity_9" targetElement="_BPMNShape_ExclusiveGateway_5">
-        <di:waypoint xsi:type="dc:Point" x="460" y="292" />
-        <di:waypoint xsi:type="dc:Point" x="509" y="292" />
-        <di:waypoint xsi:type="dc:Point" x="509" y="241" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="UserTask_0aqilnc_di" targetElement="_BPMNShape_ExclusiveGateway_5">
+        <di:waypoint x="600" y="292" />
+        <di:waypoint x="649" y="292" />
+        <di:waypoint x="649" y="241" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="383" y="257" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="_BPMNShape_CallActivity_8" targetElement="_BPMNShape_ExclusiveGateway_5">
-        <di:waypoint xsi:type="dc:Point" x="460" y="153" />
-        <di:waypoint xsi:type="dc:Point" x="509" y="153" />
-        <di:waypoint xsi:type="dc:Point" x="509" y="191" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="UserTask_00bho5a_di" targetElement="_BPMNShape_ExclusiveGateway_5">
+        <di:waypoint x="600" y="153" />
+        <di:waypoint x="649" y="153" />
+        <di:waypoint x="649" y="191" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="415" y="165" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_00bho5a_di" bpmnElement="Doc-Z-Test">
+        <dc:Bounds x="500" y="113" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0aqilnc_di" bpmnElement="Activity-Two">
+        <dc:Bounds x="500" y="253" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn2:definitions>

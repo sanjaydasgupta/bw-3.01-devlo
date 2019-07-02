@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-Timers" name="Phase Timers" isExecutable="true">
     <bpmn2:parallelGateway id="ParallelGateway_1">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
@@ -14,18 +14,6 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:callActivity id="Beta" name="Beta" calledElement="Infra-Activity-Handler">
-      <bpmn2:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-sequence" value="2" />
-          <camunda:property name="bw-duration" value="11:22:33" />
-          <camunda:property name="bw-role" value="timer-beta" />
-        </camunda:properties>
-      </bpmn2:extensionElements>
-      <bpmn2:incoming>SequenceFlow_9</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
-    </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_7" name="" sourceRef="Beta" targetRef="ParallelGateway_2" />
     <bpmn2:intermediateCatchEvent id="Beta-Timer" name="Beta Timer">
       <bpmn2:extensionElements>
@@ -63,18 +51,6 @@
       </bpmn2:timerEventDefinition>
     </bpmn2:intermediateCatchEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_8" name="" sourceRef="Alpha-Timer" targetRef="Alpha" />
-    <bpmn2:callActivity id="Alpha" name="Alpha" calledElement="Infra-Activity-Handler">
-      <bpmn2:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-sequence" value="1" />
-          <camunda:property name="bw-duration" value="10:20:30" />
-          <camunda:property name="bw-role" value="timer-alpha" />
-        </camunda:properties>
-      </bpmn2:extensionElements>
-      <bpmn2:incoming>SequenceFlow_8</bpmn2:incoming>
-      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
-    </bpmn2:callActivity>
     <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="Alpha" targetRef="ParallelGateway_2" />
     <bpmn2:startEvent id="Start" name="Start">
       <bpmn2:extensionElements>
@@ -83,109 +59,133 @@
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:startEvent>
     <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="ParallelGateway_1" />
+    <bpmn2:userTask id="Alpha" name="Alpha">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-duration" value="10:20:30" />
+          <camunda:property name="bw-role" value="timer-alpha" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_8</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:userTask id="Beta" name="Beta">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-duration" value="11:22:33" />
+          <camunda:property name="bw-role" value="timer-beta" />
+        </camunda:properties>
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_9</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>
+    </bpmn2:userTask>
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Timers">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
-        <dc:Bounds x="14" y="130" width="36" height="36" />
+        <dc:Bounds x="156" y="130" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="15" y="171" width="34" height="22" />
+          <dc:Bounds x="162" y="171" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
-        <dc:Bounds x="815" y="130" width="36" height="36" />
+        <dc:Bounds x="957" y="130" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="789" y="171" width="90" height="22" />
+          <dc:Bounds x="966" y="171" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="Alpha">
-        <dc:Bounds x="406" y="108" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_ParallelGateway_2">
-        <di:waypoint x="50" y="148" />
-        <di:waypoint x="248" y="148" />
+        <di:waypoint x="192" y="148" />
+        <di:waypoint x="390" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="104" y="130" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint x="506" y="148" />
-        <di:waypoint x="556" y="148" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="UserTask_15dek46_di" targetElement="_BPMNShape_ParallelGateway_3">
+        <di:waypoint x="648" y="148" />
+        <di:waypoint x="698" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="575" y="161" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_2" bpmnElement="ParallelGateway_1">
-        <dc:Bounds x="248" y="123" width="50" height="50" />
+        <dc:Bounds x="390" y="123" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="273" y="178" width="0" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_2">
-        <di:waypoint x="298" y="148" />
-        <di:waypoint x="333" y="148" />
+        <di:waypoint x="440" y="148" />
+        <di:waypoint x="475" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="330" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ParallelGateway_3" bpmnElement="ParallelGateway_2">
-        <dc:Bounds x="556" y="123" width="50" height="50" />
+        <dc:Bounds x="698" y="123" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="536" y="178" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_ParallelGateway_3" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint x="606" y="148" />
-        <di:waypoint x="815" y="148" />
+        <di:waypoint x="748" y="148" />
+        <di:waypoint x="957" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="665.5" y="130" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_7" bpmnElement="Beta">
-        <dc:Bounds x="409" y="223" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_6" bpmnElement="SequenceFlow_6" sourceElement="_BPMNShape_ParallelGateway_2" targetElement="_BPMNShape_IntermediateCatchEvent_3">
-        <di:waypoint x="273" y="173" />
-        <di:waypoint x="273" y="263" />
-        <di:waypoint x="333" y="263" />
+        <di:waypoint x="415" y="173" />
+        <di:waypoint x="415" y="263" />
+        <di:waypoint x="475" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="273" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="_BPMNShape_CallActivity_7" targetElement="_BPMNShape_ParallelGateway_3">
-        <di:waypoint x="509" y="263" />
-        <di:waypoint x="581" y="263" />
-        <di:waypoint x="581" y="173" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_7" bpmnElement="SequenceFlow_7" sourceElement="UserTask_0ze7umi_di" targetElement="_BPMNShape_ParallelGateway_3">
+        <di:waypoint x="651" y="263" />
+        <di:waypoint x="723" y="263" />
+        <di:waypoint x="723" y="173" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="536" y="254" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_2" bpmnElement="Alpha-Timer">
-        <dc:Bounds x="333" y="130" width="36" height="36" />
+        <dc:Bounds x="475" y="130" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="306" y="171" width="90" height="22" />
+          <dc:Bounds x="463" y="171" width="60" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="_BPMNShape_IntermediateCatchEvent_2" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint x="369" y="148" />
-        <di:waypoint x="406" y="148" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_8" bpmnElement="SequenceFlow_8" sourceElement="_BPMNShape_IntermediateCatchEvent_2" targetElement="UserTask_15dek46_di">
+        <di:waypoint x="511" y="148" />
+        <di:waypoint x="548" y="148" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="541" y="161" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_IntermediateCatchEvent_3" bpmnElement="Beta-Timer">
-        <dc:Bounds x="333" y="245" width="36" height="36" />
+        <dc:Bounds x="475" y="245" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="306" y="286" width="90" height="22" />
+          <dc:Bounds x="466" y="286" width="54" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_9" bpmnElement="SequenceFlow_9" sourceElement="_BPMNShape_IntermediateCatchEvent_3" targetElement="_BPMNShape_CallActivity_7">
-        <di:waypoint x="369" y="263" />
-        <di:waypoint x="409" y="263" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_9" bpmnElement="SequenceFlow_9" sourceElement="_BPMNShape_IntermediateCatchEvent_3" targetElement="UserTask_0ze7umi_di">
+        <di:waypoint x="511" y="263" />
+        <di:waypoint x="551" y="263" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="455" y="263" width="6" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_15dek46_di" bpmnElement="Alpha">
+        <dc:Bounds x="548" y="108" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0ze7umi_di" bpmnElement="Beta">
+        <dc:Bounds x="551" y="223" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn2:definitions>

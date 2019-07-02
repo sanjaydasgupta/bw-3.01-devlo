@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn2:process id="Phase-Simple" name="Phase Simple" isExecutable="true">
     <bpmn2:extensionElements>
       <camunda:properties>
@@ -22,7 +22,9 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:callActivity id="An-Activity" name="An Activity" calledElement="Infra-Activity-Handler">
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="An-Activity" targetRef="And-Another-One" />
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="And-Another-One" targetRef="End" />
+    <bpmn2:userTask id="An-Activity" name="An Activity">
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
@@ -30,65 +32,65 @@
           <camunda:property name="bw-role" value="simple-one" />
           <camunda:property name="bw-duration" value="03:12:00" />
         </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
-    </bpmn2:callActivity>
-    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="An-Activity" targetRef="And-Another-One" />
-    <bpmn2:callActivity id="And-Another-One" name="And&#10;Another&#10;One" calledElement="Infra-Activity-Handler">
+    </bpmn2:userTask>
+    <bpmn2:userTask id="And-Another-One" name="And&#10;Another&#10;One">
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
           <camunda:property name="bw-role" value="simple-two" />
           <camunda:property name="bw-duration" value="01:12:00" />
         </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
-    </bpmn2:callActivity>
-    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="And-Another-One" targetRef="End" />
+    </bpmn2:userTask>
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Simple">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
-        <dc:Bounds x="88" y="129" width="36" height="36" />
+        <dc:Bounds x="156" y="129" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="94" y="170" width="24" height="12" />
+          <dc:Bounds x="162" y="170" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
-        <dc:Bounds x="601" y="129" width="36" height="36" />
+        <dc:Bounds x="669" y="129" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="610" y="170" width="20" height="12" />
+          <dc:Bounds x="678" y="170" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_6" bpmnElement="An-Activity">
-        <dc:Bounds x="210" y="107" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="_BPMNShape_CallActivity_6">
-        <di:waypoint x="124" y="147" />
-        <di:waypoint x="210" y="147" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="UserTask_11swwke_di">
+        <di:waypoint x="192" y="147" />
+        <di:waypoint x="278" y="147" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="122" y="129" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="_BPMNShape_CallActivity_6" targetElement="_BPMNShape_CallActivity_10">
-        <di:waypoint x="310" y="147" />
-        <di:waypoint x="390" y="147" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="UserTask_11swwke_di" targetElement="UserTask_1tqm173_di">
+        <di:waypoint x="378" y="147" />
+        <di:waypoint x="458" y="147" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="301" y="147" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_10" bpmnElement="And-Another-One">
-        <dc:Bounds x="390" y="107" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_CallActivity_10" targetElement="_BPMNShape_EndEvent_45">
-        <di:waypoint x="490" y="147" />
-        <di:waypoint x="601" y="147" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="UserTask_1tqm173_di" targetElement="_BPMNShape_EndEvent_45">
+        <di:waypoint x="558" y="147" />
+        <di:waypoint x="669" y="147" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="500.5" y="129" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_11swwke_di" bpmnElement="An-Activity">
+        <dc:Bounds x="278" y="107" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1tqm173_di" bpmnElement="And-Another-One">
+        <dc:Bounds x="458" y="107" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn2:definitions>

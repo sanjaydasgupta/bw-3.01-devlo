@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Install-CIP-Concrete-Walls" name="Install CIP Concrete Walls" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -8,49 +8,9 @@
       <bpmn:outgoing>SequenceFlow_1wteqzl</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1wteqzl" sourceRef="Start" targetRef="Place-Outside-Forms" />
-    <bpmn:callActivity id="Place-Outside-Forms" name="Place&#10;Outside Forms" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="1" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1wteqzl</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0xp264x</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0xp264x" sourceRef="Place-Outside-Forms" targetRef="Install-Water-Vapor-Barrier" />
-    <bpmn:callActivity id="Install-Water-Vapor-Barrier" name="Install&#10;Water/Vapor&#10;Barrier" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="waterproofing" />
-          <camunda:property name="bw-sequence" value="2" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0xp264x</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1o11n5h</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1o11n5h" sourceRef="Install-Water-Vapor-Barrier" targetRef="Install-Rebars" />
-    <bpmn:callActivity id="Install-Rebars" name="Install Rebars" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="3" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1o11n5h</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-in-wall-Electrical-Conduits" />
-    <bpmn:callActivity id="Install-in-wall-Electrical-Conduits" name="Install in-wall&#10;Electrical&#10;Conduits" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 76 00" />
-          <camunda:property name="bw-sequence" value="4" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-in-wall-Electrical-Conduits" targetRef="Shotcrete-Test" />
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
@@ -58,16 +18,6 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1r6xtmh</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:callActivity id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="6" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1r6xtmh" sourceRef="Pour-or-Shoot-Concrete" targetRef="End" />
     <bpmn:exclusiveGateway id="Shotcrete-Test" name="Shotcrete?" default="Shotcrete-No">
       <bpmn:extensionElements>
@@ -81,7 +31,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Shotcrete-No" name="No" sourceRef="Shotcrete-Test" targetRef="Place-Inside-Forms" />
     <bpmn:sequenceFlow id="Shotcrete-Yes" name="Yes" sourceRef="Shotcrete-Test" targetRef="ExclusiveGateway_2">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("shotcrete") && execution.getVariable("shotcrete")]]></bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">execution.hasVariable("shotcrete") &amp;&amp; execution.getVariable("shotcrete")</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:exclusiveGateway id="ExclusiveGateway_2">
       <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
@@ -89,138 +39,194 @@
       <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1" name="" sourceRef="ExclusiveGateway_2" targetRef="Pour-or-Shoot-Concrete" />
-    <bpmn:callActivity id="Place-Inside-Forms" name="Place&#10;Inside Forms" calledElement="Infra-Activity-Handler">
+    <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Place-Inside-Forms" targetRef="ExclusiveGateway_2" />
+    <bpmn:userTask id="Place-Outside-Forms" name="Place&#10;Outside Forms">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1wteqzl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xp264x</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Water-Vapor-Barrier" name="Install&#10;Water/Vapor&#10;Barrier">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="waterproofing" />
+          <camunda:property name="bw-sequence" value="2" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xp264x</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1o11n5h</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Rebars" name="Install Rebars">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="3" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1o11n5h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-in-wall-Electrical-Conduits" name="Install in-wall&#10;Electrical&#10;Conduits">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 76 00" />
+          <camunda:property name="bw-sequence" value="4" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="6" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Place-Inside-Forms" name="Place&#10;Inside Forms">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-41 31 00" />
           <camunda:property name="bw-sequence" value="5" />
         </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
       </bpmn:extensionElements>
       <bpmn:incoming>Shotcrete-No</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
-    </bpmn:callActivity>
-    <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Place-Inside-Forms" targetRef="ExclusiveGateway_2" />
+    </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Install-CIP-Concrete-Walls">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="23" y="92" width="36" height="36" />
+        <dc:Bounds x="156" y="92" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="29" y="128" width="24" height="12" />
+          <dc:Bounds x="162" y="128" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1wteqzl_di" bpmnElement="SequenceFlow_1wteqzl">
-        <di:waypoint xsi:type="dc:Point" x="59" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="297" y="110" />
+        <di:waypoint x="192" y="110" />
+        <di:waypoint x="430" y="110" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="133" y="95" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0erzl33_di" bpmnElement="Install-Water-Vapor-Barrier">
-        <dc:Bounds x="438" y="70" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1o11n5h_di" bpmnElement="SequenceFlow_1o11n5h">
-        <di:waypoint xsi:type="dc:Point" x="538" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="576" y="110" />
+        <di:waypoint x="671" y="110" />
+        <di:waypoint x="709" y="110" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="763" y="100" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0f22fsk_di" bpmnElement="Install-Rebars">
-        <dc:Bounds x="576" y="70" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
-        <di:waypoint xsi:type="dc:Point" x="676" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="706" y="110" />
+        <di:waypoint x="809" y="110" />
+        <di:waypoint x="839" y="110" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="895" y="100" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_05m0npm_di" bpmnElement="Install-in-wall-Electrical-Conduits">
-        <dc:Bounds x="706" y="70" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
-        <di:waypoint xsi:type="dc:Point" x="806" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="848" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="848" y="193" />
-        <di:waypoint xsi:type="dc:Point" x="52" y="193" />
-        <di:waypoint xsi:type="dc:Point" x="52" y="309" />
-        <di:waypoint xsi:type="dc:Point" x="124" y="309" />
+        <di:waypoint x="939" y="110" />
+        <di:waypoint x="981" y="110" />
+        <di:waypoint x="981" y="193" />
+        <di:waypoint x="185" y="193" />
+        <di:waypoint x="185" y="309" />
+        <di:waypoint x="257" y="309" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="784" y="110" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0wjxat3_di" bpmnElement="Place-Inside-Forms">
-        <dc:Bounds x="213" y="269" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xsjrrw_di" bpmnElement="SequenceFlow_0xsjrrw" targetElement="_BPMNShape_ExclusiveGateway_4">
-        <di:waypoint xsi:type="dc:Point" x="313" y="309" />
-        <di:waypoint xsi:type="dc:Point" x="352" y="309" />
+        <di:waypoint x="446" y="309" />
+        <di:waypoint x="485" y="309" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="288" y="309" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0sbyu9r_di" bpmnElement="Pour-or-Shoot-Concrete">
-        <dc:Bounds x="436" y="269" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
-        <dc:Bounds x="737" y="291" width="36" height="36" />
+        <dc:Bounds x="870" y="291" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="746" y="327" width="20" height="12" />
+          <dc:Bounds x="879" y="327" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1r6xtmh_di" bpmnElement="SequenceFlow_1r6xtmh">
-        <di:waypoint xsi:type="dc:Point" x="536" y="309" />
-        <di:waypoint xsi:type="dc:Point" x="737" y="309" />
+        <di:waypoint x="669" y="309" />
+        <di:waypoint x="870" y="309" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="592" y="294" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0xp264x_di" bpmnElement="SequenceFlow_0xp264x">
-        <di:waypoint xsi:type="dc:Point" x="397" y="110" />
-        <di:waypoint xsi:type="dc:Point" x="438" y="110" />
+        <di:waypoint x="530" y="110" />
+        <di:waypoint x="571" y="110" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="371" y="110" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1mjsjp0_di" bpmnElement="Place-Outside-Forms">
-        <dc:Bounds x="297" y="70" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1k620v4_di" bpmnElement="Shotcrete-Test" isMarkerVisible="true">
-        <dc:Bounds x="124" y="284" width="50" height="50" />
+        <dc:Bounds x="257" y="284" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="123" y="334" width="54" height="12" />
+          <dc:Bounds x="256" y="334" width="54" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1aq0aw6_di" bpmnElement="Shotcrete-No">
-        <di:waypoint xsi:type="dc:Point" x="174" y="309" />
-        <di:waypoint xsi:type="dc:Point" x="213" y="309" />
+        <di:waypoint x="307" y="309" />
+        <di:waypoint x="346" y="309" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="177" y="284" width="15" height="12" />
+          <dc:Bounds x="311" y="284" width="14" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_4" bpmnElement="ExclusiveGateway_2" isMarkerVisible="true">
-        <dc:Bounds x="352" y="284" width="50" height="50" />
+        <dc:Bounds x="485" y="284" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="332" y="339" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="CallActivity_0sbyu9r_di">
-        <di:waypoint xsi:type="dc:Point" x="402" y="309" />
-        <di:waypoint xsi:type="dc:Point" x="436" y="309" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ExclusiveGateway_4" targetElement="UserTask_1kq9hqw_di">
+        <di:waypoint x="535" y="309" />
+        <di:waypoint x="569" y="309" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="381" y="477" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="Shotcrete-Yes" sourceElement="ExclusiveGateway_1k620v4_di" targetElement="_BPMNShape_ExclusiveGateway_4">
-        <di:waypoint xsi:type="dc:Point" x="149" y="284" />
-        <di:waypoint xsi:type="dc:Point" x="149" y="222" />
-        <di:waypoint xsi:type="dc:Point" x="377" y="222" />
-        <di:waypoint xsi:type="dc:Point" x="377" y="284" />
+        <di:waypoint x="282" y="284" />
+        <di:waypoint x="282" y="222" />
+        <di:waypoint x="510" y="222" />
+        <di:waypoint x="510" y="284" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="153" y="238" width="18" height="12" />
+          <dc:Bounds x="286" y="238" width="19" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1rlkzh9_di" bpmnElement="Place-Outside-Forms">
+        <dc:Bounds x="430" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1mf3z6t_di" bpmnElement="Install-Water-Vapor-Barrier">
+        <dc:Bounds x="571" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_16sx564_di" bpmnElement="Install-Rebars">
+        <dc:Bounds x="709" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_194kxg7_di" bpmnElement="Install-in-wall-Electrical-Conduits">
+        <dc:Bounds x="839" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1kq9hqw_di" bpmnElement="Pour-or-Shoot-Concrete">
+        <dc:Bounds x="569" y="269" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1ie8l2z_di" bpmnElement="Place-Inside-Forms">
+        <dc:Bounds x="346" y="269" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

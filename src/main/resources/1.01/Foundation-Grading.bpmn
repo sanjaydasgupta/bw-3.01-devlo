@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Foundation-Grading" name="Foundation Grading" isExecutable="true">
-    <bpmn:callActivity id="Shoring" name="Shoring" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 03 41" />
-          <camunda:property name="bw-skill" value="33-25 16 00" />
-          <camunda:property name="bw-description" value="Shoring (Test Description)" />
-          <camunda:property name="bw-sequence" value="3" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>Shoring-Needed-Yes</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1cowg9j</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1cowg9j" sourceRef="Shoring" targetRef="ExclusiveGateway_1v7g3hg" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1v7g3hg">
       <bpmn:incoming>SequenceFlow_1cowg9j</bpmn:incoming>
@@ -20,17 +8,6 @@
       <bpmn:outgoing>SequenceFlow_1l90i1f</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1l90i1f" sourceRef="ExclusiveGateway_1v7g3hg" targetRef="DeWatering-Needed" />
-    <bpmn:callActivity id="Rough-Grading" name="Rough&#10;Grading" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 03 21" />
-          <camunda:property name="bw-description" value="Rough Grading (Test Description)" />
-          <camunda:property name="bw-sequence" value="1" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0rfdwqm</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_03m26f7</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_03m26f7" sourceRef="Rough-Grading" targetRef="Pad-Layout" />
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -39,17 +16,6 @@
       <bpmn:outgoing>SequenceFlow_0rfdwqm</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0rfdwqm" sourceRef="Start" targetRef="Rough-Grading" />
-    <bpmn:callActivity id="Pad-Layout" name="Pad Layout" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-23 11 00" />
-          <camunda:property name="bw-description" value="Pad Layout (Test Description)" />
-          <camunda:property name="bw-sequence" value="2" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_03m26f7</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1v2lnz1</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1v2lnz1" sourceRef="Pad-Layout" targetRef="Shoring-Needed" />
     <bpmn:exclusiveGateway id="Shoring-Needed" name="Shoring Needed ?" default="Shoring-Needed-No">
       <bpmn:extensionElements>
@@ -62,7 +28,7 @@
       <bpmn:outgoing>Shoring-Needed-No</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Shoring-Needed-Yes" name="Yes" sourceRef="Shoring-Needed" targetRef="Shoring">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("shoring_needed") && execution.getVariable("shoring_needed")]]></bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">execution.hasVariable("shoring_needed") &amp;&amp; execution.getVariable("shoring_needed")</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Shoring-Needed-No" name="No" sourceRef="Shoring-Needed" targetRef="ExclusiveGateway_1v7g3hg" />
     <bpmn:endEvent id="End" name="End">
@@ -71,17 +37,6 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_03cbv60</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:callActivity id="Excavation" name="Excavation" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 01 16" />
-          <camunda:property name="bw-description" value="Excavation (Test Description)" />
-          <camunda:property name="bw-sequence" value="5" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0znvmey</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0znvmey" sourceRef="Excavation" targetRef="Pad-Grading" />
     <bpmn:exclusiveGateway id="ExclusiveGateway_1">
       <bpmn:incoming>SequenceFlow_0joxc1v</bpmn:incoming>
@@ -89,29 +44,7 @@
       <bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="SequenceFlow_1" name="" sourceRef="ExclusiveGateway_1" targetRef="Excavation" />
-    <bpmn:callActivity id="Set-Up-De-Watering" name="Set Up&#10;De-Watering" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-25 16 00" />
-          <camunda:property name="bw-description" value="Setup De-watering (optionally executed, depending on variable &#34;De Watering Needed&#34;)" />
-          <camunda:property name="bw-sequence" value="4" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>De-Watering-Needed-Yes</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0joxc1v</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0joxc1v" sourceRef="Set-Up-De-Watering" targetRef="ExclusiveGateway_1" />
-    <bpmn:callActivity id="Pad-Grading" name="Pad Grading" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 01 16" />
-          <camunda:property name="bw-description" value="Pad Grading (Test Description)" />
-          <camunda:property name="bw-sequence" value="6" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0znvmey</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_03cbv60</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_03cbv60" sourceRef="Pad-Grading" targetRef="End" />
     <bpmn:exclusiveGateway id="DeWatering-Needed" name="De Watering&#10;Needed?" default="De-Watering-Needed-No">
       <bpmn:extensionElements>
@@ -124,165 +57,238 @@
       <bpmn:outgoing>De-Watering-Needed-No</bpmn:outgoing>
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="De-Watering-Needed-Yes" name="Yes" sourceRef="DeWatering-Needed" targetRef="Set-Up-De-Watering">
-      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript"><![CDATA[execution.hasVariable("de_watering_needed") && execution.getVariable("de_watering_needed")]]></bpmn:conditionExpression>
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">execution.hasVariable("de_watering_needed") &amp;&amp; execution.getVariable("de_watering_needed")</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="De-Watering-Needed-No" name="No" sourceRef="DeWatering-Needed" targetRef="ExclusiveGateway_1" />
+    <bpmn:userTask id="Rough-Grading" name="Rough&#10;Grading">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 03 21" />
+          <camunda:property name="bw-description" value="Rough Grading (Test Description)" />
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0rfdwqm</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_03m26f7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Pad-Layout" name="Pad Layout">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-23 11 00" />
+          <camunda:property name="bw-description" value="Pad Layout (Test Description)" />
+          <camunda:property name="bw-sequence" value="2" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_03m26f7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1v2lnz1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Shoring" name="Shoring">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 03 41" />
+          <camunda:property name="bw-skill" value="33-25 16 00" />
+          <camunda:property name="bw-description" value="Shoring (Test Description)" />
+          <camunda:property name="bw-sequence" value="3" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Shoring-Needed-Yes</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1cowg9j</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Pad-Grading" name="Pad Grading">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 01 16" />
+          <camunda:property name="bw-description" value="Pad Grading (Test Description)" />
+          <camunda:property name="bw-sequence" value="6" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0znvmey</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_03cbv60</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Excavation" name="Excavation">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 01 16" />
+          <camunda:property name="bw-description" value="Excavation (Test Description)" />
+          <camunda:property name="bw-sequence" value="5" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0znvmey</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Set-Up-De-Watering" name="Set Up&#10;De-Watering">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-25 16 00" />
+          <camunda:property name="bw-description" value="Setup De-watering (optionally executed, depending on variable &#34;De Watering Needed&#34;)" />
+          <camunda:property name="bw-sequence" value="4" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>De-Watering-Needed-Yes</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0joxc1v</bpmn:outgoing>
+    </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Foundation-Grading">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="46" y="197" width="36" height="36" />
+        <dc:Bounds x="156" y="138" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="52" y="233" width="24" height="12" />
+          <dc:Bounds x="162" y="174" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0rfdwqm_di" bpmnElement="SequenceFlow_0rfdwqm">
-        <di:waypoint xsi:type="dc:Point" x="82" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="274" y="215" />
+        <di:waypoint x="192" y="156" />
+        <di:waypoint x="384" y="156" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="133" y="200" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1cncttg_di" bpmnElement="Pad-Layout">
-        <dc:Bounds x="407" y="175" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1v2lnz1_di" bpmnElement="SequenceFlow_1v2lnz1">
-        <di:waypoint xsi:type="dc:Point" x="507" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="555" y="215" />
+        <di:waypoint x="617" y="156" />
+        <di:waypoint x="665" y="156" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="486" y="205" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1qlgv5m_di" bpmnElement="Shoring">
-        <dc:Bounds x="671" y="175" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1cowg9j_di" bpmnElement="SequenceFlow_1cowg9j">
-        <di:waypoint xsi:type="dc:Point" x="771" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="820" y="215" />
+        <di:waypoint x="881" y="156" />
+        <di:waypoint x="930" y="156" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="799" y="205" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1v09e2z_di" bpmnElement="Excavation">
-        <dc:Bounds x="486" y="336" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_08denqz_di" bpmnElement="Shoring-Needed" isMarkerVisible="true">
-        <dc:Bounds x="555" y="190" width="50" height="50" />
+        <dc:Bounds x="665" y="131" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="536" y="240" width="89" height="13" />
+          <dc:Bounds x="646" y="181" width="89" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0z4gh8q_di" bpmnElement="Shoring-Needed-Yes">
-        <di:waypoint xsi:type="dc:Point" x="605" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="671" y="215" />
+        <di:waypoint x="715" y="156" />
+        <di:waypoint x="781" y="156" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="629" y="215" width="18" height="12" />
+          <dc:Bounds x="739" y="156" width="19" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1od3a3z_di" bpmnElement="Shoring-Needed-No">
-        <di:waypoint xsi:type="dc:Point" x="580" y="190" />
-        <di:waypoint xsi:type="dc:Point" x="580" y="140" />
-        <di:waypoint xsi:type="dc:Point" x="846" y="140" />
-        <di:waypoint xsi:type="dc:Point" x="845" y="190" />
+        <di:waypoint x="690" y="131" />
+        <di:waypoint x="690" y="81" />
+        <di:waypoint x="956" y="81" />
+        <di:waypoint x="955" y="131" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="591" y="162" width="15" height="12" />
+          <dc:Bounds x="702" y="103" width="14" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_03m26f7_di" bpmnElement="SequenceFlow_03m26f7">
-        <di:waypoint xsi:type="dc:Point" x="374" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="407" y="215" />
+        <di:waypoint x="484" y="156" />
+        <di:waypoint x="517" y="156" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="346" y="215" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0537a9g_di" bpmnElement="Rough-Grading">
-        <dc:Bounds x="274" y="175" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExclusiveGateway_1v7g3hg_di" bpmnElement="ExclusiveGateway_1v7g3hg" isMarkerVisible="true">
-        <dc:Bounds x="820" y="190" width="50" height="50" />
+        <dc:Bounds x="930" y="131" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="800" y="240" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1l90i1f_di" bpmnElement="SequenceFlow_1l90i1f">
-        <di:waypoint xsi:type="dc:Point" x="870" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="942" y="215" />
-        <di:waypoint xsi:type="dc:Point" x="942" y="280" />
-        <di:waypoint xsi:type="dc:Point" x="60" y="280" />
-        <di:waypoint xsi:type="dc:Point" x="60" y="376" />
-        <di:waypoint xsi:type="dc:Point" x="155" y="376" />
+        <di:waypoint x="980" y="156" />
+        <di:waypoint x="1052" y="156" />
+        <di:waypoint x="1052" y="221" />
+        <di:waypoint x="170" y="221" />
+        <di:waypoint x="170" y="317" />
+        <di:waypoint x="265" y="317" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="855" y="151" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="ExclusiveGateway_0f41l5r_di" bpmnElement="DeWatering-Needed" isMarkerVisible="true">
-        <dc:Bounds x="155" y="351" width="50" height="50" />
+        <dc:Bounds x="265" y="292" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="150" y="401" width="61" height="25" />
+          <dc:Bounds x="260" y="342" width="61" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_0bthm0e_di" bpmnElement="Set-Up-De-Watering">
-        <dc:Bounds x="258" y="336" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_002z5ds_di" bpmnElement="Pad-Grading">
-        <dc:Bounds x="630" y="336" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_03p7nk7_di" bpmnElement="End">
-        <dc:Bounds x="900" y="358" width="36" height="36" />
+        <dc:Bounds x="1010" y="299" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="909" y="394" width="20" height="12" />
+          <dc:Bounds x="1019" y="335" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_03cbv60_di" bpmnElement="SequenceFlow_03cbv60">
-        <di:waypoint xsi:type="dc:Point" x="730" y="376" />
-        <di:waypoint xsi:type="dc:Point" x="900" y="376" />
+        <di:waypoint x="840" y="317" />
+        <di:waypoint x="1010" y="317" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="770" y="361" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0znvmey_di" bpmnElement="SequenceFlow_0znvmey">
-        <di:waypoint xsi:type="dc:Point" x="586" y="376" />
-        <di:waypoint xsi:type="dc:Point" x="630" y="376" />
+        <di:waypoint x="696" y="317" />
+        <di:waypoint x="740" y="317" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="573" y="366" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0vzn06p_di" bpmnElement="De-Watering-Needed-Yes">
-        <di:waypoint xsi:type="dc:Point" x="205" y="376" />
-        <di:waypoint xsi:type="dc:Point" x="258" y="376" />
+        <di:waypoint x="315" y="317" />
+        <di:waypoint x="368" y="317" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="210" y="356" width="18" height="12" />
+          <dc:Bounds x="320" y="297" width="19" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0joxc1v_di" bpmnElement="SequenceFlow_0joxc1v" targetElement="_BPMNShape_ExclusiveGateway_2">
-        <di:waypoint xsi:type="dc:Point" x="358" y="376" />
-        <di:waypoint xsi:type="dc:Point" x="406" y="375" />
+        <di:waypoint x="468" y="317" />
+        <di:waypoint x="516" y="316" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="337" y="366" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_04mdlfw_di" bpmnElement="De-Watering-Needed-No" targetElement="_BPMNShape_ExclusiveGateway_2">
-        <di:waypoint xsi:type="dc:Point" x="180" y="351" />
-        <di:waypoint xsi:type="dc:Point" x="180" y="305" />
-        <di:waypoint xsi:type="dc:Point" x="431" y="305" />
-        <di:waypoint xsi:type="dc:Point" x="431" y="350" />
+        <di:waypoint x="290" y="292" />
+        <di:waypoint x="290" y="246" />
+        <di:waypoint x="541" y="246" />
+        <di:waypoint x="541" y="291" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="188" y="323" width="15" height="12" />
+          <dc:Bounds x="299" y="264" width="14" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_ExclusiveGateway_2" bpmnElement="ExclusiveGateway_1" isMarkerVisible="true">
-        <dc:Bounds x="406" y="350" width="50" height="50" />
+        <dc:Bounds x="516" y="291" width="50" height="50" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="386" y="405" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="CallActivity_1v09e2z_di">
-        <di:waypoint xsi:type="dc:Point" x="456" y="375" />
-        <di:waypoint xsi:type="dc:Point" x="486" y="376" />
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_1" bpmnElement="SequenceFlow_1" sourceElement="_BPMNShape_ExclusiveGateway_2" targetElement="UserTask_151oxl7_di">
+        <di:waypoint x="566" y="316" />
+        <di:waypoint x="596" y="317" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="400" y="376" width="90" height="6" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_01irlgc_di" bpmnElement="Rough-Grading">
+        <dc:Bounds x="384" y="116" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_11kt56n_di" bpmnElement="Pad-Layout">
+        <dc:Bounds x="517" y="116" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0q4k4x6_di" bpmnElement="Shoring">
+        <dc:Bounds x="781" y="116" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1lie8gh_di" bpmnElement="Pad-Grading">
+        <dc:Bounds x="740" y="277" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_151oxl7_di" bpmnElement="Excavation">
+        <dc:Bounds x="596" y="277" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1hgfnus_di" bpmnElement="Set-Up-De-Watering">
+        <dc:Bounds x="368" y="277" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

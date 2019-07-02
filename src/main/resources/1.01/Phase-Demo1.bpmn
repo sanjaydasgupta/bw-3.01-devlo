@@ -39,6 +39,9 @@
     <bpmn2:userTask id="Doc-Z-Test" name="DocZTest">
       <bpmn2:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="simple-one" />
+        </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>One-or-Two-Yes</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_8</bpmn2:outgoing>
@@ -46,6 +49,9 @@
     <bpmn2:userTask id="Activity-Two" name="Activity Two">
       <bpmn2:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="simple-two" />
+        </camunda:properties>
       </bpmn2:extensionElements>
       <bpmn2:incoming>One-or-Two-No</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_7</bpmn2:outgoing>

@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.8.2" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Install-Slab-On-Grade" name="Install Slab on Grade" isExecutable="true">
-    <bpmn:callActivity id="Excavate-Footings-and-Pits" name="Excavate&#10;Footings&#10;and Pits" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 01 16" />
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="1" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1wteqzl</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0w6tcw8</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0w6tcw8" sourceRef="Excavate-Footings-and-Pits" targetRef="Install-Under-Slab-Plumbing" />
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -20,72 +9,11 @@
       <bpmn:outgoing>SequenceFlow_1wteqzl</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1wteqzl" sourceRef="Start" targetRef="Excavate-Footings-and-Pits" />
-    <bpmn:callActivity id="Install-Gravel" name="Install&#10;Gravel" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="3" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0nah08m</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0xa2n1c</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0xa2n1c" sourceRef="Install-Gravel" targetRef="Install-Water-Vapor-Barrier" />
-    <bpmn:callActivity id="Install-Under-Slab-Plumbing" name="Install&#10;Under Slab&#10;Plumbing" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 63 00" />
-          <camunda:property name="bw-sequence" value="2" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0w6tcw8</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0nah08m</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0nah08m" sourceRef="Install-Under-Slab-Plumbing" targetRef="Install-Gravel" />
-    <bpmn:callActivity id="Install-Rebars" name="Install Rebars" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="5" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1o11n5h</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-in-slab-Electrical-Conduits" />
-    <bpmn:callActivity id="Install-Water-Vapor-Barrier" name="Install&#10;Water/vapor&#10;Barrier" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-skill" value="waterproofing" />
-          <camunda:property name="bw-sequence" value="4" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0xa2n1c</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1o11n5h</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1o11n5h" sourceRef="Install-Water-Vapor-Barrier" targetRef="Install-Rebars" />
-    <bpmn:callActivity id="Install-in-slab-Electrical-Conduits" name="Install&#10;in-slab&#10;Electrical&#10;Conduits" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 76 00" />
-          <camunda:property name="bw-sequence" value="6" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1baykbc" sourceRef="Install-in-slab-Electrical-Conduits" targetRef="Place-Forms" />
-    <bpmn:callActivity id="Remove-Forms-and-Clean-up" name="Remove Forms&#10;and Clean up" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="9" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_06n3wie</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1hl6azy</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1hl6azy" sourceRef="Remove-Forms-and-Clean-up" targetRef="End" />
     <bpmn:intermediateCatchEvent id="Forms-Removal-Delay" name="Forms Removal&#10;Delay">
       <bpmn:extensionElements>
@@ -99,27 +27,7 @@
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="SequenceFlow_06n3wie" sourceRef="Forms-Removal-Delay" targetRef="Remove-Forms-and-Clean-up" />
-    <bpmn:callActivity id="Place-Forms" name="Place Forms" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="7" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_0xsjrrw" sourceRef="Place-Forms" targetRef="Pour-and-Finish-Concrete" />
-    <bpmn:callActivity id="Pour-and-Finish-Concrete" name="Pour and Finish&#10;Concrete" calledElement="Infra-Activity-Handler">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="8" />
-        </camunda:properties>
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
-    </bpmn:callActivity>
     <bpmn:sequenceFlow id="SequenceFlow_1r6xtmh" sourceRef="Pour-and-Finish-Concrete" targetRef="Forms-Removal-Delay" />
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
@@ -127,134 +35,235 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1hl6azy</bpmn:incoming>
     </bpmn:endEvent>
+    <bpmn:userTask id="Excavate-Footings-and-Pits" name="Excavate&#10;Footings&#10;and Pits">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 01 16" />
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1wteqzl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0w6tcw8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Under-Slab-Plumbing" name="Install&#10;Under Slab&#10;Plumbing">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 63 00" />
+          <camunda:property name="bw-sequence" value="2" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0w6tcw8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0nah08m</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Gravel" name="Install&#10;Gravel">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="3" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0nah08m</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xa2n1c</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Water-Vapor-Barrier" name="Install&#10;Water/vapor&#10;Barrier">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-skill" value="waterproofing" />
+          <camunda:property name="bw-sequence" value="4" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xa2n1c</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1o11n5h</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-Rebars" name="Install Rebars">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="5" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1o11n5h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Remove-Forms-and-Clean-up" name="Remove Forms&#10;and Clean up">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="9" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_06n3wie</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1hl6azy</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Pour-and-Finish-Concrete" name="Pour and Finish&#10;Concrete">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="8" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Place-Forms" name="Place Forms">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="7" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Install-in-slab-Electrical-Conduits" name="Install&#10;in-slab&#10;Electrical&#10;Conduits">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 76 00" />
+          <camunda:property name="bw-sequence" value="6" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
+    </bpmn:userTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Install-Slab-On-Grade">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="13" y="84" width="36" height="36" />
+        <dc:Bounds x="156" y="84" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="19" y="120" width="24" height="12" />
+          <dc:Bounds x="162" y="120" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1wteqzl_di" bpmnElement="SequenceFlow_1wteqzl">
-        <di:waypoint xsi:type="dc:Point" x="49" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="230" y="102" />
+        <di:waypoint x="192" y="102" />
+        <di:waypoint x="373" y="102" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="95" y="87" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0elckqy_di" bpmnElement="Excavate-Footings-and-Pits">
-        <dc:Bounds x="230" y="62" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0w6tcw8_di" bpmnElement="SequenceFlow_0w6tcw8">
-        <di:waypoint xsi:type="dc:Point" x="330" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="357" y="102" />
+        <di:waypoint x="473" y="102" />
+        <di:waypoint x="500" y="102" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="299" y="92" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1fm4nmg_di" bpmnElement="Install-Under-Slab-Plumbing">
-        <dc:Bounds x="357" y="62" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0nah08m_di" bpmnElement="SequenceFlow_0nah08m">
-        <di:waypoint xsi:type="dc:Point" x="457" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="486" y="102" />
+        <di:waypoint x="600" y="102" />
+        <di:waypoint x="629" y="102" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="427" y="92" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_181v9cb_di" bpmnElement="Install-Gravel">
-        <dc:Bounds x="486" y="62" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xa2n1c_di" bpmnElement="SequenceFlow_0xa2n1c">
-        <di:waypoint xsi:type="dc:Point" x="586" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="624" y="102" />
+        <di:waypoint x="729" y="102" />
+        <di:waypoint x="767" y="102" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="553" y="92" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0erzl33_di" bpmnElement="Install-Water-Vapor-Barrier">
-        <dc:Bounds x="624" y="62" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1o11n5h_di" bpmnElement="SequenceFlow_1o11n5h">
-        <di:waypoint xsi:type="dc:Point" x="724" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="756" y="102" />
+        <di:waypoint x="867" y="102" />
+        <di:waypoint x="899" y="102" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="700" y="92" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0f22fsk_di" bpmnElement="Install-Rebars">
-        <dc:Bounds x="756" y="62" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
-        <di:waypoint xsi:type="dc:Point" x="856" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="919" y="102" />
-        <di:waypoint xsi:type="dc:Point" x="919" y="179" />
-        <di:waypoint xsi:type="dc:Point" x="33" y="179" />
-        <di:waypoint xsi:type="dc:Point" x="33" y="271" />
-        <di:waypoint xsi:type="dc:Point" x="94" y="272" />
+        <di:waypoint x="999" y="102" />
+        <di:waypoint x="1062" y="102" />
+        <di:waypoint x="1062" y="179" />
+        <di:waypoint x="176" y="179" />
+        <di:waypoint x="176" y="271" />
+        <di:waypoint x="237" y="272" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="825" y="93" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_05m0npm_di" bpmnElement="Install-in-slab-Electrical-Conduits">
-        <dc:Bounds x="94" y="232" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
-        <di:waypoint xsi:type="dc:Point" x="194" y="272" />
-        <di:waypoint xsi:type="dc:Point" x="230" y="271" />
+        <di:waypoint x="337" y="272" />
+        <di:waypoint x="373" y="271" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="158" y="262" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0wjxat3_di" bpmnElement="Place-Forms">
-        <dc:Bounds x="230" y="231" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_0xsjrrw_di" bpmnElement="SequenceFlow_0xsjrrw">
-        <di:waypoint xsi:type="dc:Point" x="330" y="271" />
-        <di:waypoint xsi:type="dc:Point" x="362" y="271" />
+        <di:waypoint x="473" y="271" />
+        <di:waypoint x="505" y="271" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="295" y="261" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0sbyu9r_di" bpmnElement="Pour-and-Finish-Concrete">
-        <dc:Bounds x="362" y="231" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
-        <dc:Bounds x="849" y="253" width="36" height="36" />
+        <dc:Bounds x="992" y="253" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="858" y="289" width="20" height="12" />
+          <dc:Bounds x="1001" y="289" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1r6xtmh_di" bpmnElement="SequenceFlow_1r6xtmh">
-        <di:waypoint xsi:type="dc:Point" x="462" y="271" />
-        <di:waypoint xsi:type="dc:Point" x="506" y="271" />
+        <di:waypoint x="605" y="271" />
+        <di:waypoint x="649" y="271" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="432" y="261" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_06n3wie_di" bpmnElement="SequenceFlow_06n3wie">
-        <di:waypoint xsi:type="dc:Point" x="542" y="271" />
-        <di:waypoint xsi:type="dc:Point" x="578" y="271" />
+        <di:waypoint x="685" y="271" />
+        <di:waypoint x="721" y="271" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="525" y="271" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1hl6azy_di" bpmnElement="SequenceFlow_1hl6azy">
-        <di:waypoint xsi:type="dc:Point" x="678" y="271" />
-        <di:waypoint xsi:type="dc:Point" x="849" y="271" />
+        <di:waypoint x="821" y="271" />
+        <di:waypoint x="992" y="271" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="719" y="256" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_0mkpp2z_di" bpmnElement="Forms-Removal-Delay">
-        <dc:Bounds x="506" y="253" width="36" height="36" />
+        <dc:Bounds x="649" y="253" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="486" y="289" width="78" height="25" />
+          <dc:Bounds x="629" y="289" width="78" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_1kxdhsf_di" bpmnElement="Remove-Forms-and-Clean-up">
-        <dc:Bounds x="578" y="231" width="100" height="80" />
+      <bpmndi:BPMNShape id="UserTask_0rdz2qv_di" bpmnElement="Excavate-Footings-and-Pits">
+        <dc:Bounds x="373" y="62" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1ga9u1e_di" bpmnElement="Install-Under-Slab-Plumbing">
+        <dc:Bounds x="500" y="62" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_03qa9mr_di" bpmnElement="Install-Gravel">
+        <dc:Bounds x="629" y="62" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1cppc1i_di" bpmnElement="Install-Water-Vapor-Barrier">
+        <dc:Bounds x="767" y="62" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0t086v7_di" bpmnElement="Install-Rebars">
+        <dc:Bounds x="899" y="62" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1m2iowc_di" bpmnElement="Remove-Forms-and-Clean-up">
+        <dc:Bounds x="721" y="231" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1qmvahc_di" bpmnElement="Pour-and-Finish-Concrete">
+        <dc:Bounds x="505" y="231" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0s2tpoh_di" bpmnElement="Place-Forms">
+        <dc:Bounds x="373" y="231" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_1c3dnnx_di" bpmnElement="Install-in-slab-Electrical-Conduits">
+        <dc:Bounds x="237" y="232" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

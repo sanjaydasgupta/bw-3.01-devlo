@@ -52,6 +52,7 @@
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-role" value="simple-one" />
         </camunda:properties>
         <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
       </bpmn2:extensionElements>
@@ -62,6 +63,7 @@
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-role" value="simple-two" />
         </camunda:properties>
         <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
       </bpmn2:extensionElements>

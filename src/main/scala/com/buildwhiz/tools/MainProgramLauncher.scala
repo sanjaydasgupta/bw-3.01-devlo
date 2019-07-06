@@ -15,7 +15,7 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
     try {
       val parameters = getParameterMap(request)
       val args: Array[String] = if (parameters.contains("args")) parameters("args").split("\\s+") else Array.empty
-      val clazz = Class.forName(s"""com.buildwhiz.infra.scripts.${parameters("program")}""")
+      val clazz = Class.forName(s"""com.buildwhiz.tools.scripts.${parameters("program")}""")
       val mainMethod = clazz.getMethods.filter(_.getName == "main").map(m => (m, m.getParameterTypes.length)).head
       try {
         if (mainMethod._2 == 1)

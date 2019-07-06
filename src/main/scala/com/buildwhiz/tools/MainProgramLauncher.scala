@@ -16,22 +16,20 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
       val parameters = getParameterMap(request)
       val args: Array[String] = if (parameters.contains("args")) parameters("args").split("\\s+") else Array.empty
       val clazz = Class.forName(s"""com.buildwhiz.infra.scripts.${parameters("program")}""")
+      val mainMethod = clazz.getMethods.filter(_.getName == "main").map(m => (m, m.getParameterTypes.length)).head
       try {
-        clazz.getMethod("main", classOf[Array[String]]).invoke(null, args)
-        BWLogger.log(getClass.getName, "doPost/Get", s"${parameters("program")}.main() completed", request)
+        if (mainMethod._2 == 1)
+          clazz.getMethod("main", classOf[Array[String]]).invoke(null, args)
+        else if (mainMethod._2 == 2)
+          clazz.getMethod("main", classOf[HttpServletRequest], classOf[Array[String]]).
+            invoke(null, request, args)
+        BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
       } catch {
-        case _: NoSuchMethodException =>
-          val inst = clazz.newInstance()
-          clazz.getMethod("doGet", classOf[HttpServletRequest], classOf[HttpServletResponse]).invoke(inst , request, response)
-          BWLogger.log(getClass.getName, "doPost/Get", s"${parameters("program")}.doGet() completed", request)
-        case t: Throwable => throw t
+        case t: Throwable =>
+          BWLogger.log(getClass.getName, "doPost/Get", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+          t.printStackTrace()
+          throw t
       }
-      BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost/Get", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        t.printStackTrace()
-        throw t
     }
   }
 }

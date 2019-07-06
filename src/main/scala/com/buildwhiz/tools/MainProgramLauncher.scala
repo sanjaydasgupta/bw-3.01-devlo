@@ -18,10 +18,13 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
       val clazz = Class.forName(s"""com.buildwhiz.infra.scripts.${parameters("program")}""")
       try {
         clazz.getMethod("main", classOf[Array[String]]).invoke(null, args)
+        BWLogger.log(getClass.getName, "doPost/Get", s"${parameters("program")}.main() completed", request)
       } catch {
-        case t: Throwable =>
+        case _: NoSuchMethodException =>
           val inst = clazz.newInstance()
           clazz.getMethod("doGet", classOf[HttpServletRequest], classOf[HttpServletResponse]).invoke(inst , request, response)
+          BWLogger.log(getClass.getName, "doPost/Get", s"${parameters("program")}.doGet() completed", request)
+        case t: Throwable => throw t
       }
       BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
     } catch {

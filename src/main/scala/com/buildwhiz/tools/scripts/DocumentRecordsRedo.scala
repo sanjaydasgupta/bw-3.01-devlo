@@ -1,4 +1,4 @@
-package com.buildwhiz.infra.scripts
+package com.buildwhiz.tools.scripts
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._

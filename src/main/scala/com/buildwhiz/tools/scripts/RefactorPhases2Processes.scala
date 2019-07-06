@@ -1,4 +1,4 @@
-package com.buildwhiz.infra.scripts
+package com.buildwhiz.tools.scripts
 
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import BWMongoDB3._

@@ -22,6 +22,9 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
       else if (mainMethod._2 == 2)
         clazz.getMethod("main", classOf[HttpServletRequest], classOf[Array[String]]).
             invoke(null, request, args)
+      else if (mainMethod._2 == 3)
+        clazz.getMethod("main", classOf[HttpServletRequest], classOf[HttpServletResponse], classOf[Array[String]]).
+          invoke(null, request, response, args)
       BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
     } catch {
       case t: Throwable =>

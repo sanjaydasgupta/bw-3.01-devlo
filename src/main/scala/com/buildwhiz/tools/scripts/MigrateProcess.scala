@@ -48,19 +48,21 @@ object MigrateProcess {
         s"Verified $toActivityCount nascent entries", request)
 
     val deleteResult = BWMongoDB3.activity_assignments.deleteMany(Map("process_id" -> toProcessOid))
-    if (toActivityCount != deleteResult.getDeletedCount) {
-      val errorMessage = s"Delete count did not match process's activity count ($toActivityCount)"
-      BWLogger.log(getClass.getName, "copyAssignments", s"$errorMessage ... Exiting", request)
+    val count = BWMongoDB3.activity_assignments.count(Map("process_id" -> toProcessOid))
+    if (toActivityCount != deleteResult.getDeletedCount && count != 0) {
+      val errorMessage = s"Delete (${deleteResult.getDeletedCount}) of ($toActivityCount), residue still $count"
+      BWLogger.log(getClass.getName, "copyAssignments", s"$errorMessage ... ", request)
       throw new IllegalArgumentException(errorMessage)
     } else {
       BWLogger.log(getClass.getName, "copyAssignments",
-          s"Removed ${deleteResult.getDeletedCount} nascent assignment entries", request)
+          s"Removed all nascent assignment entries", request)
     }
 
 
     val fromAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("process_id" -> fromProcessOid))
     for (assignment <- fromAssignments) {
       assignment.remove("_id")
+      assignment.status = "defined"
       assignment.process_id = toProcessOid
       assignment.activity_id = activityTranslations(assignment.activity_id[ObjectId])
       BWMongoDB3.activity_assignments.insertOne(assignment.asDoc)

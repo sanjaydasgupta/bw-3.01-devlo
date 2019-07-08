@@ -44,15 +44,13 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
       val process: DynDoc = ProcessApi.processById(processOid)
       val activityOids: Seq[ObjectId] = ProcessApi.allActivities(process).map(_._id[ObjectId])
-      //val activityName = de.getSuperExecution.getCurrentActivityName.replaceAll("[\\s-]+", "")
-      val theExecution = de.getSuperExecution match {
-        case null => de
-        case superExecution => superExecution
+      val activityName = de.getCurrentActivityName.replaceAll("[\\s]+", " ")
+      val bpmnName = getBpmnName(de)
+      val query = Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)
+      val activity: DynDoc = BWMongoDB3.activities.find(query).headOption match {
+        case Some(a) => a
+        case None => throw new IllegalArgumentException(s"Query did not match any activity: '$query'")
       }
-      val activityName = theExecution.getCurrentActivityName.replaceAll("[\\s]+", " ")
-      val bpmnName = getBpmnName(theExecution)
-      val activity: DynDoc = BWMongoDB3.activities.
-        find(Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)).head
 
       de.setVariable("activity_id", activity._id[ObjectId].toString)
 

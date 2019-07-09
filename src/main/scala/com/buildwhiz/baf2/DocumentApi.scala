@@ -77,7 +77,8 @@ object DocumentApi extends HttpUtils {
 //      case Array(Some(actionName), Some(activityId), _, _, _) =>
 //        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> actionName))
       case Array(_, Some(activityId), _, _, _) if ActivityApi.exists(oid(activityId))=>
-        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId)))
+        BWMongoDB3.document_master.find(Map($or ->
+            Seq(Map("activity_id" -> oid(activityId)), Map("activity_ids" -> oid(activityId)))))
 //      case Array(None, None, Some(processId), _, _) =>
 //        BWMongoDB3.document_master.find(Map("process_id" -> oid(processId), "activity_id" -> Map("$exists" -> false)))
 //      case Array(None, None, None, Some(phaseId), _) =>

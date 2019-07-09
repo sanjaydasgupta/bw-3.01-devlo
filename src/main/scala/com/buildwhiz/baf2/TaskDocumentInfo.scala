@@ -11,9 +11,10 @@ import org.bson.types.ObjectId
 class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def taskAssociatedDocuments(user: DynDoc, activity: DynDoc, actionName: String): Seq[DynDoc] = {
+    val activityOid = activity._id[ObjectId]
     val documentRecords: Seq[DynDoc] = BWMongoDB3.document_master.
-        find(Map("activity_id" -> activity._id[ObjectId], "action_name" -> actionName,
-        "category" -> Map("$exists" -> true)))
+        find(Map($or -> Seq(Map("activity_id" -> activityOid), Map("activity_ids" -> activityOid)),
+        "action_name" -> actionName, "category" -> Map("$exists" -> true)))
     documentRecords
   }
 

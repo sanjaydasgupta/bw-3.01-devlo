@@ -1,0 +1,988 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1nx9nny" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0">
+  <bpmn:process id="Phase-CEQA5" name="Phase CEQA5" isExecutable="true">
+    <bpmn:userTask id="Planning-Staff-Review" name="Planning Staff Review">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-user-query" value="psr_approved:B:false:PSR-Approved" />
+          <camunda:property name="bw-role" value="Current-Planning" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2019-02-01" />
+          <camunda:property name="bw-scheduled-end" value="2019-05-01" />
+        </camunda:properties>
+        <camunda:in variables="all" />
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1q7css0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0mhv0ke</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Current-Planner-Assigned" name="Current Planner Assigned">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-end" value="2019-01-30" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1pd5o9l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1q7css0</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Project-Entitlement-Application" name="Project Entitlement Application">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-10-03" />
+          <camunda:property name="bw-actual-start" value="2018-10-03" />
+          <camunda:property name="bw-scheduled-end" value="2018-10-03" />
+          <camunda:property name="bw-actual-end" value="2018-10-03" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0nxjhnn</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1pd5o9l</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Pre-App-Community-Meeting" name="Pre-App Community Meeting">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-09-06" />
+          <camunda:property name="bw-actual-start" value="2018-09-06" />
+          <camunda:property name="bw-scheduled-end" value="2018-09-06" />
+          <camunda:property name="bw-actual-end" value="2018-09-06" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0q7pybk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0nxjhnn</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1q7css0" sourceRef="Current-Planner-Assigned" targetRef="Planning-Staff-Review" />
+    <bpmn:sequenceFlow id="SequenceFlow_1pd5o9l" sourceRef="Project-Entitlement-Application" targetRef="Current-Planner-Assigned" />
+    <bpmn:sequenceFlow id="SequenceFlow_0nxjhnn" sourceRef="Pre-App-Community-Meeting" targetRef="Project-Entitlement-Application" />
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow_1uqiit4</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="PPA-Review" name="PPA Review">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Current-Planning" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-06-06" />
+          <camunda:property name="bw-actual-start" value="2017-06-06" />
+          <camunda:property name="bw-scheduled-end" value="2017-07-10" />
+          <camunda:property name="bw-actual-end" value="2017-07-10" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_14no86z</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0r01x8e</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="PPA-Meeting" name="PPA Meeting">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-07" />
+          <camunda:property name="bw-actual-start" value="2017-08-07" />
+          <camunda:property name="bw-scheduled-end" value="2017-08-07" />
+          <camunda:property name="bw-actual-end" value="2017-08-07" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_14ki16g</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1erjy9x</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Architecture-Concept-Post-PPA" name="Architecture Concept&#10;Post PPA">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-08" />
+          <camunda:property name="bw-actual-start" value="2017-08-08" />
+          <camunda:property name="bw-scheduled-end" value="2017-09-25" />
+          <camunda:property name="bw-actual-end" value="2017-09-25" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_04lni6h</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1lvjw83</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="EIR-Required" name="EIR Required">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2018-04-02" />
+          <camunda:property name="bw-actual-start" value="2018-04-02" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1k2z8bl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_07y0oym</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="EIR-Fee-Paid" name="EIR Fee Paid">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Project-Manager" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-04-05" />
+          <camunda:property name="bw-actual-start" value="2018-04-05" />
+          <camunda:property name="bw-scheduled-end" value="2018-04-05" />
+          <camunda:property name="bw-actual-end" value="2018-04-05" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_07y0oym</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1pwoqpo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Environmental-Planner-assigned" name="Environmental Planner assigned">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2018-04-19" />
+          <camunda:property name="bw-actual-start" value="2018-04-19" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1pwoqpo</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1neriso</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Site-Survey" name="Site Survey">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Surveyor" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-08-12" />
+          <camunda:property name="bw-actual-start" value="2016-08-12" />
+          <camunda:property name="bw-scheduled-end" value="2016-08-30" />
+          <camunda:property name="bw-actual-end" value="2016-08-30" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0tkq38z</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_036h19l</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Land-Use-Diligence-Memo" name="Land Use Diligence Memo">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Land-Use-Attorney" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-04-19" />
+          <camunda:property name="bw-actual-start" value="2016-04-19" />
+          <camunda:property name="bw-scheduled-end" value="2016-07-19" />
+          <camunda:property name="bw-actual-end" value="2016-07-19" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1uqiit4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0tkq38z</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="HRE-Consultant-List" name="HRE Consultant List">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.MilestoneEvent" event="start" />
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-07-17" />
+          <camunda:property name="bw-actual-start" value="2017-07-17" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_13pr5x3</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00jgtza</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="HRE-Part-1-Study" name="HRE Part 1&#10;Study">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-08-16" />
+          <camunda:property name="bw-actual-start" value="2017-08-16" />
+          <camunda:property name="bw-scheduled-end" value="2017-09-01" />
+          <camunda:property name="bw-actual-end" value="2017-09-01" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_00jgtza</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_02yshdq</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Planning-Environmental-Review" name="Planning Environmental Review">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-01-02" />
+          <camunda:property name="bw-actual-start" value="2018-01-02" />
+          <camunda:property name="bw-scheduled-end" value="2018-04-02" />
+          <camunda:property name="bw-actual-end" value="2018-04-02" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0chvlgy</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1e3e378</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0r01x8e" sourceRef="PPA-Review" targetRef="IntermediateThrowEvent_0z4eb1x" />
+    <bpmn:sequenceFlow id="SequenceFlow_1erjy9x" sourceRef="PPA-Meeting" targetRef="ExclusiveGateway_0765ruv" />
+    <bpmn:sequenceFlow id="SequenceFlow_1lvjw83" sourceRef="Architecture-Concept-Post-PPA" targetRef="ExclusiveGateway_193hxzt" />
+    <bpmn:sequenceFlow id="SequenceFlow_00jgtza" sourceRef="HRE-Consultant-List" targetRef="HRE-Part-1-Study" />
+    <bpmn:sequenceFlow id="SequenceFlow_02yshdq" sourceRef="HRE-Part-1-Study" targetRef="ExclusiveGateway_193hxzt" />
+    <bpmn:sequenceFlow id="SequenceFlow_1k2z8bl" sourceRef="ExclusiveGateway_1myqfvp" targetRef="EIR-Required" />
+    <bpmn:sequenceFlow id="SequenceFlow_0tkq38z" sourceRef="Land-Use-Diligence-Memo" targetRef="Site-Survey" />
+    <bpmn:userTask id="Preliminary-Design-Concept" name="Preliminary Design Concept">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-09-01" />
+          <camunda:property name="bw-actual-start" value="2016-09-01" />
+          <camunda:property name="bw-scheduled-end" value="2016-09-25" />
+          <camunda:property name="bw-actual-end" value="2016-09-25" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_036h19l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0o6xh6i</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1uqiit4" sourceRef="Start" targetRef="Land-Use-Diligence-Memo" />
+    <bpmn:sequenceFlow id="SequenceFlow_036h19l" sourceRef="Site-Survey" targetRef="Preliminary-Design-Concept" />
+    <bpmn:sequenceFlow id="SequenceFlow_04lni6h" sourceRef="ExclusiveGateway_0765ruv" targetRef="Architecture-Concept-Post-PPA" />
+    <bpmn:sequenceFlow id="SequenceFlow_13pr5x3" sourceRef="ExclusiveGateway_0765ruv" targetRef="HRE-Consultant-List" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0765ruv">
+      <bpmn:incoming>SequenceFlow_1erjy9x</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_04lni6h</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_13pr5x3</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="ExclusiveGateway_193hxzt">
+      <bpmn:incoming>SequenceFlow_1lvjw83</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_02yshdq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_01pnatk</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:intermediateThrowEvent id="PPA-Application" name="PPA Application">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-06-06" />
+          <camunda:property name="bw-actual-start" value="2017-06-06" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ukovgf</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14no86z</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0o6xh6i" sourceRef="Preliminary-Design-Concept" targetRef="Pre-PPA-Meeting" />
+    <bpmn:sequenceFlow id="SequenceFlow_14no86z" sourceRef="PPA-Application" targetRef="PPA-Review" />
+    <bpmn:callActivity id="Technical-Studies" name="Technical Studies" calledElement="Technical-Studies4">
+      <bpmn:incoming>SequenceFlow_0kybwtw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10ixw9d</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Preservation-Alternatives-Report" name="Preservation Alternatives Report" calledElement="Preservation-Alternatives4">
+      <bpmn:incoming>SequenceFlow_0w2vrq6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1fq228u</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_11b56p0</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CEQA-Initial-Study" name="CEQA Initial Study" calledElement="CEQA-Initial-Study4">
+      <bpmn:incoming>SequenceFlow_1h31ut6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_00y6rdt</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="CEQA-Environmental-Impact-Report" name="CEQA Environmental Impact Report" calledElement="CEQA-EIR5">
+      <bpmn:incoming>SequenceFlow_1wh64ej</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0my8kni</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Responses-to-Comments" name="Responses to Comments" calledElement="Responses-to-Comments4">
+      <bpmn:incoming>SequenceFlow_1cxyenu</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1m5kpb2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_18z5li9</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:userTask id="Planning-Commission-Hearing" name="Planning Commission Hearing">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2020-05-28" />
+          <camunda:property name="bw-scheduled-end" value="2020-05-28" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_11su0z0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0igxwoi</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:callActivity id="HRE-2" name="HRE 2" calledElement="HRE5">
+      <bpmn:incoming>SequenceFlow_0877f28</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1vilyig</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Project-Description-NOP" name="Project Description/NOP" calledElement="Project-Description-NOP5">
+      <bpmn:incoming>SequenceFlow_1sd0ugc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_12tcszt</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:userTask id="HRER-PTR-Part-1" name="HRER/PTR&#10;Part 1">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2018-11-05" />
+          <camunda:property name="bw-actual-start" value="2018-11-05" />
+          <camunda:property name="bw-scheduled-end" value="2018-11-05" />
+          <camunda:property name="bw-actual-end" value="2018-11-05" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jcsum2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0877f28</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0jcsum2" sourceRef="ExclusiveGateway_139f5zi" targetRef="HRER-PTR-Part-1" />
+    <bpmn:parallelGateway id="ExclusiveGateway_139f5zi">
+      <bpmn:incoming>SequenceFlow_1neriso</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0jcsum2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0q7pybk</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1sd0ugc</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0kybwtw</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0877f28" sourceRef="HRER-PTR-Part-1" targetRef="HRE-2" />
+    <bpmn:sequenceFlow id="SequenceFlow_1fq228u" sourceRef="Preservation-Alternatives-Report" targetRef="Delay-10-Days" />
+    <bpmn:sequenceFlow id="SequenceFlow_0637ptq" sourceRef="Delay-10-Days" targetRef="ExclusiveGateway_1w53rxl" />
+    <bpmn:intermediateCatchEvent id="Delay-10-Days" name="Delay&#10;10 Days">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-duration" value="10:00:00" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1fq228u</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0637ptq</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${delay_10_days}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1bpuc6k</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0igxwoi" sourceRef="Planning-Commission-Hearing" targetRef="ExclusiveGateway_1u4w8ny" />
+    <bpmn:sequenceFlow id="SequenceFlow_0q7pybk" sourceRef="ExclusiveGateway_139f5zi" targetRef="Pre-App-Community-Meeting" />
+    <bpmn:sequenceFlow id="SequenceFlow_0mhv0ke" sourceRef="Planning-Staff-Review" targetRef="ExclusiveGateway_1vgx7z4" />
+    <bpmn:sequenceFlow id="SequenceFlow_11su0z0" sourceRef="ExclusiveGateway_1vgx7z4" targetRef="Planning-Commission-Hearing" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1vgx7z4">
+      <bpmn:incoming>SequenceFlow_0mhv0ke</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_04ykm89</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0ezclj6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_11su0z0</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1m5kpb2" sourceRef="Responses-to-Comments" targetRef="Delay-16-Days" />
+    <bpmn:sequenceFlow id="SequenceFlow_04ykm89" sourceRef="Delay-16-Days" targetRef="ExclusiveGateway_1vgx7z4" />
+    <bpmn:intermediateCatchEvent id="Delay-16-Days" name="Delay&#10;16 Days">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-duration" value="16:00:00" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
+        <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="end" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1m5kpb2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_04ykm89</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${delay_16_days}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_00y6rdt" sourceRef="CEQA-Initial-Study" targetRef="ExclusiveGateway_1nxq0y2" />
+    <bpmn:sequenceFlow id="SequenceFlow_1sd0ugc" sourceRef="ExclusiveGateway_139f5zi" targetRef="Project-Description-NOP" />
+    <bpmn:sequenceFlow id="SequenceFlow_0kybwtw" sourceRef="ExclusiveGateway_139f5zi" targetRef="Technical-Studies" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1nxq0y2">
+      <bpmn:incoming>SequenceFlow_00y6rdt</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_12tcszt</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_10ixw9d</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10cxfk4</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_12tcszt" sourceRef="Project-Description-NOP" targetRef="ExclusiveGateway_1nxq0y2" />
+    <bpmn:sequenceFlow id="SequenceFlow_10ixw9d" sourceRef="Technical-Studies" targetRef="ExclusiveGateway_1nxq0y2" />
+    <bpmn:sequenceFlow id="SequenceFlow_1bpuc6k" sourceRef="ExclusiveGateway_1u4w8ny" targetRef="End" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1u4w8ny">
+      <bpmn:incoming>SequenceFlow_0igxwoi</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_10cxfk4</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_06s4cf5</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1bpuc6k</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_10cxfk4" sourceRef="ExclusiveGateway_1nxq0y2" targetRef="ExclusiveGateway_1u4w8ny" />
+    <bpmn:sequenceFlow id="SequenceFlow_0my8kni" sourceRef="CEQA-Environmental-Impact-Report" targetRef="ExclusiveGateway_1o4ecz1" />
+    <bpmn:sequenceFlow id="SequenceFlow_1vilyig" sourceRef="HRE-2" targetRef="ExclusiveGateway_1o4ecz1" />
+    <bpmn:sequenceFlow id="SequenceFlow_06s4cf5" sourceRef="ExclusiveGateway_1o4ecz1" targetRef="ExclusiveGateway_1u4w8ny" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1o4ecz1">
+      <bpmn:incoming>SequenceFlow_0my8kni</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1vilyig</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_06s4cf5</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1wh64ej" sourceRef="ExclusiveGateway_1w53rxl" targetRef="CEQA-Environmental-Impact-Report" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1w53rxl">
+      <bpmn:incoming>SequenceFlow_0637ptq</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1wh64ej</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:boundaryEvent id="Revise-PD-and-NOP-Complete" name="Revise PD and NOP Complete" cancelActivity="false" attachedToRef="Project-Description-NOP">
+      <bpmn:outgoing>SequenceFlow_1h31ut6</bpmn:outgoing>
+      <bpmn:signalEventDefinition signalRef="Signal_1lhmynr" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1h31ut6" sourceRef="Revise-PD-and-NOP-Complete" targetRef="CEQA-Initial-Study" />
+    <bpmn:boundaryEvent id="EP-Review-of-HRE-Part-2-Draft-2-Complete" name="EP Review of HRE Part 2 Draft 2 Complete" cancelActivity="false" attachedToRef="HRE-2">
+      <bpmn:outgoing>SequenceFlow_0w2vrq6</bpmn:outgoing>
+      <bpmn:signalEventDefinition signalRef="Signal_0yb1ukk" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0w2vrq6" sourceRef="EP-Review-of-HRE-Part-2-Draft-2-Complete" targetRef="Preservation-Alternatives-Report" />
+    <bpmn:boundaryEvent id="DEIR-Publication-Review-Complete" name="DEIR Publication Review Complete" cancelActivity="false" attachedToRef="CEQA-Environmental-Impact-Report">
+      <bpmn:outgoing>SequenceFlow_1cxyenu</bpmn:outgoing>
+      <bpmn:signalEventDefinition signalRef="Signal_1dd0wky" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1cxyenu" sourceRef="DEIR-Publication-Review-Complete" targetRef="Responses-to-Comments" />
+    <bpmn:userTask id="Pre-PPA-Meeting" name="Pre PPA Meeting">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-10-11" />
+          <camunda:property name="bw-actual-start" value="2016-10-11" />
+          <camunda:property name="bw-scheduled-end" value="2016-10-11" />
+          <camunda:property name="bw-actual-end" value="2016-10-11" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0o6xh6i</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0jo9gwj</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0jo9gwj" sourceRef="Pre-PPA-Meeting" targetRef="PPA-Package-Preparation" />
+    <bpmn:userTask id="PPA-Package-Preparation" name="PPA Package Preparation">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2016-10-12" />
+          <camunda:property name="bw-actual-start" value="2016-10-12" />
+          <camunda:property name="bw-scheduled-end" value="2017-06-05" />
+          <camunda:property name="bw-actual-end" value="2017-06-05" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0jo9gwj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ukovgf</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0ukovgf" sourceRef="PPA-Package-Preparation" targetRef="PPA-Application" />
+    <bpmn:intermediateThrowEvent id="IntermediateThrowEvent_0z4eb1x" name="EE Application">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-scheduled-start" value="2017-07-26" />
+          <camunda:property name="bw-actual-start" value="2017-07-26" />
+        </camunda:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0r01x8e</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_14ki16g</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_14ki16g" sourceRef="IntermediateThrowEvent_0z4eb1x" targetRef="PPA-Meeting" />
+    <bpmn:userTask id="Architecture-Alternatives-Post-HRE" name="Architecture Alternatives Post HRE">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-09-30" />
+          <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-scheduled-end" value="2018-02-05" />
+          <camunda:property name="bw-actual-end" value="2018-02-05" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ws7ge2</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1klzj1f</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1klzj1f" sourceRef="Architecture-Alternatives-Post-HRE" targetRef="ExclusiveGateway_1myqfvp" />
+    <bpmn:parallelGateway id="ExclusiveGateway_0ber6uh">
+      <bpmn:incoming>SequenceFlow_01pnatk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ws7ge2</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0chvlgy</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_01pnatk" sourceRef="ExclusiveGateway_193hxzt" targetRef="ExclusiveGateway_0ber6uh" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ws7ge2" sourceRef="ExclusiveGateway_0ber6uh" targetRef="Architecture-Alternatives-Post-HRE" />
+    <bpmn:sequenceFlow id="SequenceFlow_0chvlgy" sourceRef="ExclusiveGateway_0ber6uh" targetRef="Planning-Environmental-Review" />
+    <bpmn:sequenceFlow id="SequenceFlow_1e3e378" sourceRef="Planning-Environmental-Review" targetRef="ExclusiveGateway_1myqfvp" />
+    <bpmn:parallelGateway id="ExclusiveGateway_1myqfvp">
+      <bpmn:incoming>SequenceFlow_1klzj1f</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1e3e378</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1k2z8bl</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="Planning-Commission-Presentation" name="Planning Commission Presentation">
+      <bpmn:extensionElements>
+        <camunda:in variables="all" />
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+          <camunda:property name="bw-duration" value="00:00:00" />
+          <camunda:property name="bw-scheduled-start" value="2017-09-30" />
+          <camunda:property name="bw-actual-start" value="2017-09-30" />
+          <camunda:property name="bw-scheduled-end" value="2018-02-05" />
+          <camunda:property name="bw-actual-end" value="2018-02-05" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_11b56p0</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0nloblv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_11b56p0" sourceRef="Preservation-Alternatives-Report" targetRef="Planning-Commission-Presentation" />
+    <bpmn:sequenceFlow id="SequenceFlow_18z5li9" sourceRef="Responses-to-Comments" targetRef="ExclusiveGateway_08gvvbb" />
+    <bpmn:parallelGateway id="ExclusiveGateway_08gvvbb">
+      <bpmn:incoming>SequenceFlow_18z5li9</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0nloblv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ezclj6</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_0ezclj6" sourceRef="ExclusiveGateway_08gvvbb" targetRef="ExclusiveGateway_1vgx7z4" />
+    <bpmn:sequenceFlow id="SequenceFlow_0nloblv" sourceRef="Planning-Commission-Presentation" targetRef="ExclusiveGateway_08gvvbb" />
+    <bpmn:sequenceFlow id="SequenceFlow_1pwoqpo" sourceRef="EIR-Fee-Paid" targetRef="Environmental-Planner-assigned" />
+    <bpmn:sequenceFlow id="SequenceFlow_1neriso" sourceRef="Environmental-Planner-assigned" targetRef="ExclusiveGateway_139f5zi" />
+    <bpmn:sequenceFlow id="SequenceFlow_07y0oym" sourceRef="EIR-Required" targetRef="EIR-Fee-Paid" />
+  </bpmn:process>
+  <bpmn:signal id="Signal_1dd0wky" name="DEIR Publication Review Complete ${process_id}" />
+  <bpmn:signal id="Signal_1lhmynr" name="Revise PD and NOP Complete ${process_id}" />
+  <bpmn:signal id="Signal_0yb1ukk" name="EP Review of HRE Part 2 Draft 2 Complete ${process_id}" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-CEQA5">
+      <bpmndi:BPMNEdge id="SequenceFlow_0nxjhnn_di" bpmnElement="SequenceFlow_0nxjhnn">
+        <di:waypoint x="716" y="436" />
+        <di:waypoint x="813" y="436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1pd5o9l_di" bpmnElement="SequenceFlow_1pd5o9l">
+        <di:waypoint x="913" y="436" />
+        <di:waypoint x="1060" y="436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1q7css0_di" bpmnElement="SequenceFlow_1q7css0">
+        <di:waypoint x="1096" y="436" />
+        <di:waypoint x="1209" y="436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0ywlh3g_di" bpmnElement="Pre-App-Community-Meeting">
+        <dc:Bounds x="616" y="396" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_05jh84k_di" bpmnElement="Project-Entitlement-Application">
+        <dc:Bounds x="813" y="396" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_16iz0u4_di" bpmnElement="Current-Planner-Assigned">
+        <dc:Bounds x="1060" y="418" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1043" y="461" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_00hb8ig_di" bpmnElement="Planning-Staff-Review">
+        <dc:Bounds x="1209" y="396" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1yc3cs5_di" bpmnElement="Start">
+        <dc:Bounds x="168" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="172" y="81" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_12kti1m_di" bpmnElement="PPA-Review">
+        <dc:Bounds x="951" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_02i3mzx_di" bpmnElement="PPA-Meeting">
+        <dc:Bounds x="1172" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_17olqhf_di" bpmnElement="Architecture-Concept-Post-PPA">
+        <dc:Bounds x="1377" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0sf52fs_di" bpmnElement="EIR-Required">
+        <dc:Bounds x="205" y="564" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="193" y="607" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1hy4jpl_di" bpmnElement="EIR-Fee-Paid">
+        <dc:Bounds x="291" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1iemu0a_di" bpmnElement="Environmental-Planner-assigned">
+        <dc:Bounds x="443" y="564" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="418" y="535" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0vtjkix_di" bpmnElement="Site-Survey">
+        <dc:Bounds x="361" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1awj941_di" bpmnElement="Land-Use-Diligence-Memo">
+        <dc:Bounds x="232" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0el09c7_di" bpmnElement="HRE-Consultant-List">
+        <dc:Bounds x="1305" y="254" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1284" y="298" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1iqtm8k_di" bpmnElement="HRE-Part-1-Study">
+        <dc:Bounds x="1377" y="232" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0hvfcns_di" bpmnElement="Planning-Environmental-Review">
+        <dc:Bounds x="1687" y="232" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0r01x8e_di" bpmnElement="SequenceFlow_0r01x8e">
+        <di:waypoint x="1051" y="125" />
+        <di:waypoint x="1081" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1erjy9x_di" bpmnElement="SequenceFlow_1erjy9x">
+        <di:waypoint x="1272" y="125" />
+        <di:waypoint x="1298" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1lvjw83_di" bpmnElement="SequenceFlow_1lvjw83">
+        <di:waypoint x="1477" y="125" />
+        <di:waypoint x="1507" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_00jgtza_di" bpmnElement="SequenceFlow_00jgtza">
+        <di:waypoint x="1341" y="272" />
+        <di:waypoint x="1377" y="272" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_02yshdq_di" bpmnElement="SequenceFlow_02yshdq">
+        <di:waypoint x="1477" y="272" />
+        <di:waypoint x="1532" y="272" />
+        <di:waypoint x="1532" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1k2z8bl_di" bpmnElement="SequenceFlow_1k2z8bl">
+        <di:waypoint x="1866" y="125" />
+        <di:waypoint x="1890" y="125" />
+        <di:waypoint x="1890" y="367" />
+        <di:waypoint x="156" y="367" />
+        <di:waypoint x="156" y="582" />
+        <di:waypoint x="205" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0tkq38z_di" bpmnElement="SequenceFlow_0tkq38z">
+        <di:waypoint x="332" y="125" />
+        <di:waypoint x="361" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_0lkey91_di" bpmnElement="Preliminary-Design-Concept">
+        <dc:Bounds x="494" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1uqiit4_di" bpmnElement="SequenceFlow_1uqiit4">
+        <di:waypoint x="204" y="125" />
+        <di:waypoint x="232" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_036h19l_di" bpmnElement="SequenceFlow_036h19l">
+        <di:waypoint x="461" y="125" />
+        <di:waypoint x="494" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_04lni6h_di" bpmnElement="SequenceFlow_04lni6h">
+        <di:waypoint x="1348" y="125" />
+        <di:waypoint x="1377" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_13pr5x3_di" bpmnElement="SequenceFlow_13pr5x3">
+        <di:waypoint x="1323" y="150" />
+        <di:waypoint x="1323" y="254" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0a8l4py_di" bpmnElement="ExclusiveGateway_0765ruv">
+        <dc:Bounds x="1298" y="100" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_1hicfzs_di" bpmnElement="ExclusiveGateway_193hxzt">
+        <dc:Bounds x="1507" y="100" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_13ikfq2_di" bpmnElement="PPA-Application">
+        <dc:Bounds x="888" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="869" y="150" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0o6xh6i_di" bpmnElement="SequenceFlow_0o6xh6i">
+        <di:waypoint x="594" y="125" />
+        <di:waypoint x="628" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_14no86z_di" bpmnElement="SequenceFlow_14no86z">
+        <di:waypoint x="924" y="125" />
+        <di:waypoint x="951" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_05gfsbl_di" bpmnElement="Technical-Studies" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="601" y="833" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1yv0hny_di" bpmnElement="Preservation-Alternatives-Report" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="924" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0791ksh_di" bpmnElement="CEQA-Initial-Study" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="737" y="765" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1su259u_di" bpmnElement="CEQA-Environmental-Impact-Report" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="1196" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1rl7919_di" bpmnElement="Responses-to-Comments" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="1438" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1c70asp_di" bpmnElement="Planning-Commission-Hearing">
+        <dc:Bounds x="1711" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_03ujrjp_di" bpmnElement="HRE-2" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="728" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0d2lsce_di" bpmnElement="Project-Description-NOP" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="601" y="687" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_1cipvs8_di" bpmnElement="HRER-PTR-Part-1">
+        <dc:Bounds x="601" y="542" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jcsum2_di" bpmnElement="SequenceFlow_0jcsum2">
+        <di:waypoint x="575" y="582" />
+        <di:waypoint x="601" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0xmi8wc_di" bpmnElement="ExclusiveGateway_139f5zi">
+        <dc:Bounds x="525" y="557" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0877f28_di" bpmnElement="SequenceFlow_0877f28">
+        <di:waypoint x="701" y="582" />
+        <di:waypoint x="728" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1fq228u_di" bpmnElement="SequenceFlow_1fq228u">
+        <di:waypoint x="1024" y="582" />
+        <di:waypoint x="1050" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0637ptq_di" bpmnElement="SequenceFlow_0637ptq">
+        <di:waypoint x="1086" y="582" />
+        <di:waypoint x="1121" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_07iz4n3_di" bpmnElement="Delay-10-Days">
+        <dc:Bounds x="1050" y="564" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1049" y="607" width="41" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_0q5ldyj_di" bpmnElement="End">
+        <dc:Bounds x="1915" y="564" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1924" y="607" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0igxwoi_di" bpmnElement="SequenceFlow_0igxwoi">
+        <di:waypoint x="1811" y="582" />
+        <di:waypoint x="1840" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0q7pybk_di" bpmnElement="SequenceFlow_0q7pybk">
+        <di:waypoint x="550" y="557" />
+        <di:waypoint x="550" y="436" />
+        <di:waypoint x="616" y="436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0mhv0ke_di" bpmnElement="SequenceFlow_0mhv0ke">
+        <di:waypoint x="1309" y="436" />
+        <di:waypoint x="1654" y="436" />
+        <di:waypoint x="1654" y="557" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_11su0z0_di" bpmnElement="SequenceFlow_11su0z0">
+        <di:waypoint x="1679" y="582" />
+        <di:waypoint x="1711" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1cw4g4f_di" bpmnElement="ExclusiveGateway_1vgx7z4">
+        <dc:Bounds x="1629" y="557" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1m5kpb2_di" bpmnElement="SequenceFlow_1m5kpb2">
+        <di:waypoint x="1538" y="582" />
+        <di:waypoint x="1567" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_04ykm89_di" bpmnElement="SequenceFlow_04ykm89">
+        <di:waypoint x="1603" y="582" />
+        <di:waypoint x="1629" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_09r3qup_di" bpmnElement="Delay-16-Days">
+        <dc:Bounds x="1567" y="564" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1566" y="607" width="41" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_00y6rdt_di" bpmnElement="SequenceFlow_00y6rdt">
+        <di:waypoint x="837" y="805" />
+        <di:waypoint x="962" y="805" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1sd0ugc_di" bpmnElement="SequenceFlow_1sd0ugc">
+        <di:waypoint x="550" y="607" />
+        <di:waypoint x="550" y="727" />
+        <di:waypoint x="601" y="727" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0kybwtw_di" bpmnElement="SequenceFlow_0kybwtw">
+        <di:waypoint x="550" y="607" />
+        <di:waypoint x="550" y="873" />
+        <di:waypoint x="601" y="873" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_06ep997_di" bpmnElement="ExclusiveGateway_1nxq0y2">
+        <dc:Bounds x="962" y="780" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_12tcszt_di" bpmnElement="SequenceFlow_12tcszt">
+        <di:waypoint x="701" y="727" />
+        <di:waypoint x="987" y="727" />
+        <di:waypoint x="987" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_10ixw9d_di" bpmnElement="SequenceFlow_10ixw9d">
+        <di:waypoint x="701" y="873" />
+        <di:waypoint x="987" y="873" />
+        <di:waypoint x="987" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1bpuc6k_di" bpmnElement="SequenceFlow_1bpuc6k">
+        <di:waypoint x="1890" y="582" />
+        <di:waypoint x="1915" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0uv0fng_di" bpmnElement="ExclusiveGateway_1u4w8ny">
+        <dc:Bounds x="1840" y="557" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_10cxfk4_di" bpmnElement="SequenceFlow_10cxfk4">
+        <di:waypoint x="1012" y="805" />
+        <di:waypoint x="1865" y="805" />
+        <di:waypoint x="1865" y="607" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0my8kni_di" bpmnElement="SequenceFlow_0my8kni">
+        <di:waypoint x="1296" y="582" />
+        <di:waypoint x="1341" y="582" />
+        <di:waypoint x="1341" y="541" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1vilyig_di" bpmnElement="SequenceFlow_1vilyig">
+        <di:waypoint x="828" y="582" />
+        <di:waypoint x="863" y="582" />
+        <di:waypoint x="863" y="516" />
+        <di:waypoint x="1316" y="516" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_06s4cf5_di" bpmnElement="SequenceFlow_06s4cf5">
+        <di:waypoint x="1366" y="516" />
+        <di:waypoint x="1865" y="516" />
+        <di:waypoint x="1865" y="557" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_156ms58_di" bpmnElement="ExclusiveGateway_1o4ecz1">
+        <dc:Bounds x="1316" y="491" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wh64ej_di" bpmnElement="SequenceFlow_1wh64ej">
+        <di:waypoint x="1171" y="582" />
+        <di:waypoint x="1196" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1wkjmz1_di" bpmnElement="ExclusiveGateway_1w53rxl">
+        <dc:Bounds x="1121" y="557" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BoundaryEvent_1luwnr3_di" bpmnElement="Revise-PD-and-NOP-Complete">
+        <dc:Bounds x="660" y="749" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="589" y="780" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1h31ut6_di" bpmnElement="SequenceFlow_1h31ut6">
+        <di:waypoint x="678" y="785" />
+        <di:waypoint x="678" y="805" />
+        <di:waypoint x="737" y="805" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BoundaryEvent_0eizqui_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-2-Complete">
+        <dc:Bounds x="787" y="604" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="712" y="630" width="83" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0w2vrq6_di" bpmnElement="SequenceFlow_0w2vrq6">
+        <di:waypoint x="805" y="640" />
+        <di:waypoint x="805" y="660" />
+        <di:waypoint x="891" y="660" />
+        <di:waypoint x="891" y="582" />
+        <di:waypoint x="924" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BoundaryEvent_14uj5wv_di" bpmnElement="DEIR-Publication-Review-Complete">
+        <dc:Bounds x="1259" y="604" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1176" y="636" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1cxyenu_di" bpmnElement="SequenceFlow_1cxyenu">
+        <di:waypoint x="1277" y="640" />
+        <di:waypoint x="1277" y="660" />
+        <di:waypoint x="1386" y="660" />
+        <di:waypoint x="1386" y="582" />
+        <di:waypoint x="1438" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_1r0ceva_di" bpmnElement="Pre-PPA-Meeting">
+        <dc:Bounds x="628" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jo9gwj_di" bpmnElement="SequenceFlow_0jo9gwj">
+        <di:waypoint x="728" y="125" />
+        <di:waypoint x="764" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_07lfdc2_di" bpmnElement="PPA-Package-Preparation">
+        <dc:Bounds x="764" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ukovgf_di" bpmnElement="SequenceFlow_0ukovgf">
+        <di:waypoint x="864" y="125" />
+        <di:waypoint x="888" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_0z4eb1x_di" bpmnElement="IntermediateThrowEvent_0z4eb1x">
+        <dc:Bounds x="1081" y="107" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1065" y="150" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_14ki16g_di" bpmnElement="SequenceFlow_14ki16g">
+        <di:waypoint x="1117" y="125" />
+        <di:waypoint x="1172" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="CallActivity_10i7giw_di" bpmnElement="Architecture-Alternatives-Post-HRE">
+        <dc:Bounds x="1687" y="85" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1klzj1f_di" bpmnElement="SequenceFlow_1klzj1f">
+        <di:waypoint x="1787" y="125" />
+        <di:waypoint x="1816" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1hfvxlm_di" bpmnElement="ExclusiveGateway_0ber6uh">
+        <dc:Bounds x="1589" y="100" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_01pnatk_di" bpmnElement="SequenceFlow_01pnatk">
+        <di:waypoint x="1557" y="125" />
+        <di:waypoint x="1589" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ws7ge2_di" bpmnElement="SequenceFlow_0ws7ge2">
+        <di:waypoint x="1639" y="125" />
+        <di:waypoint x="1687" y="125" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0chvlgy_di" bpmnElement="SequenceFlow_0chvlgy">
+        <di:waypoint x="1614" y="150" />
+        <di:waypoint x="1614" y="272" />
+        <di:waypoint x="1687" y="272" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1e3e378_di" bpmnElement="SequenceFlow_1e3e378">
+        <di:waypoint x="1787" y="272" />
+        <di:waypoint x="1841" y="272" />
+        <di:waypoint x="1841" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_069snw2_di" bpmnElement="ExclusiveGateway_1myqfvp">
+        <dc:Bounds x="1816" y="100" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CallActivity_0m34i33_di" bpmnElement="Planning-Commission-Presentation">
+        <dc:Bounds x="1049" y="662" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_11b56p0_di" bpmnElement="SequenceFlow_11b56p0">
+        <di:waypoint x="974" y="622" />
+        <di:waypoint x="974" y="702" />
+        <di:waypoint x="1049" y="702" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_18z5li9_di" bpmnElement="SequenceFlow_18z5li9">
+        <di:waypoint x="1488" y="622" />
+        <di:waypoint x="1488" y="677" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_10mglvm_di" bpmnElement="ExclusiveGateway_08gvvbb">
+        <dc:Bounds x="1463" y="677" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ezclj6_di" bpmnElement="SequenceFlow_0ezclj6">
+        <di:waypoint x="1513" y="702" />
+        <di:waypoint x="1654" y="702" />
+        <di:waypoint x="1654" y="607" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0nloblv_di" bpmnElement="SequenceFlow_0nloblv">
+        <di:waypoint x="1149" y="702" />
+        <di:waypoint x="1463" y="702" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1pwoqpo_di" bpmnElement="SequenceFlow_1pwoqpo">
+        <di:waypoint x="391" y="582" />
+        <di:waypoint x="443" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1neriso_di" bpmnElement="SequenceFlow_1neriso">
+        <di:waypoint x="479" y="582" />
+        <di:waypoint x="525" y="582" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_07y0oym_di" bpmnElement="SequenceFlow_07y0oym">
+        <di:waypoint x="241" y="582" />
+        <di:waypoint x="291" y="582" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

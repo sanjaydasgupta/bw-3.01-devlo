@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="_i8iUMIkIEeWA6JZOFRqJBw" targetNamespace="http://camunda.org/schema/1.0/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="Phase-Signal" name="Phase Signal" isExecutable="true">
+    <bpmn2:extensionElements>
+      <camunda:properties>
+        <camunda:property name="bw-variable" value="a_boolean:B:false:A Boolean" />
+        <camunda:property name="bw-variable" value="a_long:L:1234567890:A Long" />
+        <camunda:property name="bw-variable" value="a_double:D:3.14:A Double" />
+        <camunda:property name="bw-variable" value="a_string:S:string value!:A String" />
+      </camunda:properties>
+    </bpmn2:extensionElements>
+    <bpmn2:startEvent id="Start" name="Start">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="end" />
+      </bpmn2:extensionElements>
+      <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_2" name="" sourceRef="Start" targetRef="ExclusiveGateway_14xtet5" />
+    <bpmn2:endEvent id="End" name="End">
+      <bpmn2:extensionElements>
+        <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_0dtm7ck</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_5" name="" sourceRef="Pre-Signal" targetRef="Indicate-Between-Tasks" />
+    <bpmn2:userTask id="Post-Signal" name="Post Signal">
+      <bpmn2:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="2" />
+          <camunda:property name="bw-role" value="simple-two" />
+          <camunda:property name="bw-duration" value="01:12:00" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_0amzdwl</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_3" name="" sourceRef="Post-Signal" targetRef="ExclusiveGateway_12z04j9" />
+    <bpmn2:userTask id="Pre-Signal" name="Pre Signal">
+      <bpmn2:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-sequence" value="1" />
+          <camunda:property name="bw-description" value="This is the [An Activity]. The next one has no description" />
+          <camunda:property name="bw-role" value="simple-one" />
+          <camunda:property name="bw-duration" value="03:12:00" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_1do29e9</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_5</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:sequenceFlow id="SequenceFlow_1do29e9" sourceRef="ExclusiveGateway_14xtet5" targetRef="Pre-Signal" />
+    <bpmn2:parallelGateway id="ExclusiveGateway_14xtet5">
+      <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1do29e9</bpmn2:outgoing>
+      <bpmn2:outgoing>SequenceFlow_1nsrvdw</bpmn2:outgoing>
+    </bpmn2:parallelGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_0dtm7ck" sourceRef="ExclusiveGateway_12z04j9" targetRef="End" />
+    <bpmn2:parallelGateway id="ExclusiveGateway_12z04j9">
+      <bpmn2:incoming>SequenceFlow_3</bpmn2:incoming>
+      <bpmn2:incoming>SequenceFlow_1wjcyr6</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_0dtm7ck</bpmn2:outgoing>
+    </bpmn2:parallelGateway>
+    <bpmn2:sequenceFlow id="SequenceFlow_1wjcyr6" sourceRef="Sense-Between-Tasks" targetRef="ExclusiveGateway_12z04j9" />
+    <bpmn2:sequenceFlow id="SequenceFlow_1nsrvdw" sourceRef="ExclusiveGateway_14xtet5" targetRef="Pre-Sense" />
+    <bpmn2:sequenceFlow id="SequenceFlow_0amzdwl" sourceRef="Indicate-Between-Tasks" targetRef="Post-Signal" />
+    <bpmn2:intermediateThrowEvent id="Indicate-Between-Tasks" name="Indicate Between Tasks">
+      <bpmn2:incoming>SequenceFlow_5</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_0amzdwl</bpmn2:outgoing>
+      <bpmn2:signalEventDefinition signalRef="Signal_14sdy3c" />
+    </bpmn2:intermediateThrowEvent>
+    <bpmn2:intermediateCatchEvent id="Sense-Between-Tasks" name="Sense Between Tasks">
+      <bpmn2:incoming>SequenceFlow_1si3yiz</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1wjcyr6</bpmn2:outgoing>
+      <bpmn2:signalEventDefinition signalRef="Signal_14sdy3c" />
+    </bpmn2:intermediateCatchEvent>
+    <bpmn2:sequenceFlow id="SequenceFlow_1si3yiz" sourceRef="Pre-Sense" targetRef="Sense-Between-Tasks" />
+    <bpmn2:userTask id="Pre-Sense" name="Pre Sense">
+      <bpmn2:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="simple-one" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn2:extensionElements>
+      <bpmn2:incoming>SequenceFlow_1nsrvdw</bpmn2:incoming>
+      <bpmn2:outgoing>SequenceFlow_1si3yiz</bpmn2:outgoing>
+    </bpmn2:userTask>
+  </bpmn2:process>
+  <bpmn2:signal id="Signal_14sdy3c" name="Signal Between Tasks ${process_id}" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Signal">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_19" bpmnElement="Start">
+        <dc:Bounds x="156" y="129" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="162" y="105" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_EndEvent_45" bpmnElement="End">
+        <dc:Bounds x="796" y="129" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="804" y="105" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_2" bpmnElement="SequenceFlow_2" sourceElement="_BPMNShape_StartEvent_19" targetElement="ParallelGateway_0ympqmb_di">
+        <di:waypoint x="192" y="147" />
+        <di:waypoint x="224" y="147" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="122" y="129" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_5" bpmnElement="SequenceFlow_5" sourceElement="UserTask_1wouly8_di" targetElement="IntermediateThrowEvent_1udcv95_di">
+        <di:waypoint x="420" y="147" />
+        <di:waypoint x="466" y="147" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="301" y="147" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_CallActivity_10" bpmnElement="Post-Signal">
+        <dc:Bounds x="544" y="107" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_SequenceFlow_3" bpmnElement="SequenceFlow_3" sourceElement="_BPMNShape_CallActivity_10" targetElement="ParallelGateway_1tvdugl_di">
+        <di:waypoint x="644" y="147" />
+        <di:waypoint x="705" y="147" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="500.5" y="129" width="90" height="6" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1wouly8_di" bpmnElement="Pre-Signal">
+        <dc:Bounds x="320" y="107" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1do29e9_di" bpmnElement="SequenceFlow_1do29e9">
+        <di:waypoint x="274" y="147" />
+        <di:waypoint x="320" y="147" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_0ympqmb_di" bpmnElement="ExclusiveGateway_14xtet5">
+        <dc:Bounds x="224" y="122" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0dtm7ck_di" bpmnElement="SequenceFlow_0dtm7ck">
+        <di:waypoint x="755" y="147" />
+        <di:waypoint x="796" y="147" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_1tvdugl_di" bpmnElement="ExclusiveGateway_12z04j9">
+        <dc:Bounds x="705" y="122" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1wjcyr6_di" bpmnElement="SequenceFlow_1wjcyr6">
+        <di:waypoint x="612" y="259" />
+        <di:waypoint x="730" y="259" />
+        <di:waypoint x="730" y="172" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1nsrvdw_di" bpmnElement="SequenceFlow_1nsrvdw">
+        <di:waypoint x="249" y="172" />
+        <di:waypoint x="249" y="259" />
+        <di:waypoint x="320" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0amzdwl_di" bpmnElement="SequenceFlow_0amzdwl">
+        <di:waypoint x="502" y="147" />
+        <di:waypoint x="544" y="147" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="IntermediateThrowEvent_1udcv95_di" bpmnElement="Indicate-Between-Tasks">
+        <dc:Bounds x="466" y="129" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="442" y="172" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="IntermediateCatchEvent_0tsd39v_di" bpmnElement="Sense-Between-Tasks">
+        <dc:Bounds x="576" y="241" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="556" y="284" width="77" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1si3yiz_di" bpmnElement="SequenceFlow_1si3yiz">
+        <di:waypoint x="420" y="259" />
+        <di:waypoint x="576" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1ha4gkp_di" bpmnElement="Pre-Sense">
+        <dc:Bounds x="320" y="219" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn2:definitions>

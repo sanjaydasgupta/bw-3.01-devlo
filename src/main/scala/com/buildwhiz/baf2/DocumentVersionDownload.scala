@@ -7,27 +7,28 @@ import com.buildwhiz.infra.{AmazonS3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
+import org.bson.Document
 
 class DocumentVersionDownload extends HttpServlet with HttpUtils {
 
-  private val contentTypes = Map(
-    "bmp" -> "image/bmp",
-    "doc" -> "application/msword",
-    "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "gif" -> "image/gif",
-    "jpg" -> "image/jpeg",
-    "jpeg" -> "image/jpeg",
-    "pdf" -> "application/pdf",
-    "ppt" -> "application/vnd.ms-powerpoint",
-    "pptx" -> "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "svg" -> "image/svg+xml",
-    "tif" -> "image/tiff",
-    "tiff" -> "image/tiff",
-    "txt" -> "text/plain",
-    "xls" -> "application/vnd.ms-excel",
-    "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "xml" -> "application/xml",
-    "zip" -> "application/zip"
+  private val contentTypes: Map[String, (String, Boolean)] = Map(
+    "bmp" -> ("image/bmp", true),
+    "doc" -> ("application/msword", false),
+    "docx" -> ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false),
+    "gif" -> ("image/gif", true),
+    "jpg" -> ("image/jpeg", true),
+    "jpeg" -> ("image/jpeg", true),
+    "pdf" -> ("application/pdf", true),
+    "ppt" -> ("application/vnd.ms-powerpoint", false),
+    "pptx" -> ("application/vnd.openxmlformats-officedocument.presentationml.presentation", false),
+    "svg" -> ("image/svg+xml", true),
+    "tif" -> ("image/tiff", true),
+    "tiff" -> ("image/tiff", true),
+    "txt" -> ("text/plain", true),
+    "xls" -> ("application/vnd.ms-excel", false),
+    "xlsx" -> ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", false),
+    "xml" -> ("application/xml", false),
+    "zip" -> ("application/zip", false)
   )
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -40,14 +41,19 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
       val projectOid = documentRecord.project_id[ObjectId]
       if (!ProjectApi.exists(projectOid))
         throw new IllegalArgumentException(s"Bad project-id: '$projectOid'")
-      val version = documentRecord.versions[Many[DynDoc]].find(_.timestamp == timestamp)
+      val version: Option[DynDoc] = documentRecord.versions[Many[Document]].find(_.timestamp == timestamp)
       version match {
         case None =>
         case Some(v) => if (v.has("file_name")) {
-          val fileType = v.file_name[String].split("\\.").last.toLowerCase
+          val fileName = v.file_name[String]
+          val fileType = fileName.split("\\.").last.toLowerCase
           if (contentTypes.contains(fileType)) {
             val contentType = contentTypes(fileType)
-            response.setContentType(contentType)
+            response.setContentType(contentType._1)
+            if (contentType._2)
+              response.setHeader("Content-Disposition", "inline")
+            else
+              response.setHeader("Content-Disposition", s"""attachment; filename="$fileName"""")
             BWLogger.log(getClass.getName, request.getMethod, s"Content-Type set: $contentType", request)
           } else {
             BWLogger.log(getClass.getName, request.getMethod, s"No Content-Type for: $fileType", request)

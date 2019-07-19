@@ -11,7 +11,8 @@ import org.bson.Document
 
 class DocumentVersionDownload extends HttpServlet with HttpUtils {
 
-  private val contentTypes: Map[String, (String, Boolean)] = Map(
+  private val contentDescriptions: Map[String, (String, Boolean)] = Map(
+    // file-extension -> (content-type, content-disposition-inline)
     "bmp" -> ("image/bmp", true),
     "doc" -> ("application/msword", false),
     "docx" -> ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false),
@@ -47,12 +48,12 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
         case Some(v) => if (v.has("file_name")) {
           val fileName = v.file_name[String]
           val fileType = fileName.split("\\.").last.toLowerCase
-          if (contentTypes.contains(fileType)) {
-            val contentType = contentTypes(fileType)
-            response.setContentType(contentType._1)
-            val contentDisposition = if (contentType._2) "inline" else s"""attachment; filename="$fileName""""
+          if (contentDescriptions.contains(fileType)) {
+            val contentDescription = contentDescriptions(fileType)
+            response.setContentType(contentDescription._1)
+            val contentDisposition = if (contentDescription._2) "inline" else s"""attachment; filename="$fileName""""
             response.setHeader("Content-Disposition", contentDisposition)
-            val message = s"Set Content-Type='$contentType', Content-Disposition='$contentDisposition'"
+            val message = s"Set Content-Type='${contentDescription._1}', Content-Disposition='$contentDisposition'"
             BWLogger.log(getClass.getName, request.getMethod, message, request)
           } else {
             BWLogger.log(getClass.getName, request.getMethod, s"No Content-Type for: $fileType", request)

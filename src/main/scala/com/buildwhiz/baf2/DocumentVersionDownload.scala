@@ -19,14 +19,14 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
     "jpg" -> ("image/jpeg", true),
     "jpeg" -> ("image/jpeg", true),
     "pdf" -> ("application/pdf", true),
-    "ppt" -> ("application/vnd.ms-powerpoint", false),
-    "pptx" -> ("application/vnd.openxmlformats-officedocument.presentationml.presentation", false),
+    "ppt" -> ("application/vnd.ms-powerpoint", true),
+    "pptx" -> ("application/vnd.openxmlformats-officedocument.presentationml.presentation", true),
     "svg" -> ("image/svg+xml", true),
     "tif" -> ("image/tiff", true),
     "tiff" -> ("image/tiff", true),
     "txt" -> ("text/plain", true),
-    "xls" -> ("application/vnd.ms-excel", false),
-    "xlsx" -> ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", false),
+    "xls" -> ("application/vnd.ms-excel", true),
+    "xlsx" -> ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", true),
     "xml" -> ("application/xml", false),
     "zip" -> ("application/zip", false)
   )
@@ -50,11 +50,10 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
           if (contentTypes.contains(fileType)) {
             val contentType = contentTypes(fileType)
             response.setContentType(contentType._1)
-            if (contentType._2)
-              response.setHeader("Content-Disposition", "inline")
-            else
-              response.setHeader("Content-Disposition", s"""attachment; filename="$fileName"""")
-            BWLogger.log(getClass.getName, request.getMethod, s"Content-Type set: $contentType", request)
+            val contentDisposition = if (contentType._2) "inline" else s"""attachment; filename="$fileName""""
+            response.setHeader("Content-Disposition", contentDisposition)
+            val message = s"Set Content-Type='$contentType', Content-Disposition='$contentDisposition'"
+            BWLogger.log(getClass.getName, request.getMethod, message, request)
           } else {
             BWLogger.log(getClass.getName, request.getMethod, s"No Content-Type for: $fileType", request)
           }

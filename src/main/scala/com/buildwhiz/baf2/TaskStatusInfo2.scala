@@ -115,7 +115,7 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val (updateButtonText, updatePanelTitle, statusDropdownTitle, updateReportOptions) =
         if (theActivity.status[String] == "ended" && userCanManage)
-          ("Update Review", "Review Update", "Level", Seq("Review-Update"))
+          ("Update Review", "Review Update", "Rating", (1 to 5).map(_.toString))
         else
           ("Update Status", "Status Update", "Status", activityUpdateReportOptions)
 

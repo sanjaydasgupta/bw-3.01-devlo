@@ -10,6 +10,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTimeUtils with ProjectUtils {
@@ -56,7 +57,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> processName))
     val returnActivities = activities.map(activity => {
-      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
+//      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
 //      val tasks = actions.map(action => {
 //        val ownTask = user._id[ObjectId] == action.assignee_person_id[ObjectId]
 //        val status = if (ownTask && action.status[String] == "waiting")
@@ -143,7 +144,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val hoverInfo = Seq(
         new Document("name", "Start").append("value", activityStart),
         new Document("name", "End").append("value", activityEnd),
-        new Document("name", "Status").append("value", ActivityApi.stateSubState(activity)),
+        new Document("name", "Status").append("value", ActivityApi.stateSubState(activity))
       ) ++ assignmentInfo
 
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
@@ -163,7 +164,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
-        append("on_critical_path",
+        append("name", activity.name[String]).append("on_critical_path",
             if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })
     returnActivities
@@ -183,6 +184,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         getProcessModel(bpmnFileName)
       val blockBuffer = new Array[Byte](4096)
       val byteBuffer = mutable.Buffer.empty[Byte]
+      @tailrec
       def copyModelToOutput(): Unit = {
         val len = processModelStream.read(blockBuffer)
         if (len > 0) {

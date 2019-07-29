@@ -79,6 +79,7 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
     viewAction.activity_id = theActivity._id[ObjectId]
     viewAction.activity_description = theActivity.description[String]
 
+    viewAction.bpmn_name = theActivity.bpmn_name[String]
     viewAction.name = theActivity.name[String]
     viewAction.status = theActivity.status[String]
     viewAction.`type` = assignment.role[String]

@@ -20,6 +20,7 @@ class Entry extends HttpServlet {
       case ("Login", "baf2") => true
       case ("Logout", "baf2") => true
       case ("SlackSlashCommand", "baf2") => true
+      case ("SlackEventCallback", "baf2") => true
       case _ => false
     }
     session.getAttribute("bw-user") != null || loggingIn

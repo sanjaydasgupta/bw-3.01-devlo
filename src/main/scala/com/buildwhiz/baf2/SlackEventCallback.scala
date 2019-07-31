@@ -15,7 +15,7 @@ import org.bson.Document
 
 class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-  private def replyToUser(innerEvent: DynDoc, user: DynDoc, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def replyToUser(messageText: String, eventChannel: String, optUser: Option[DynDoc], request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "replyToUser", "ENTRY", request)
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
@@ -23,20 +23,23 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
       "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
     post.setHeader("Content-Type", "application/json")
-    val bwUserName = s"${user.first_name[String]} ${user.last_name[String]}"
-    val eventText = s"Hi $bwUserName, This is a reply to: ${innerEvent.text[String]}"
-    val eventChannel = innerEvent.channel[String]
+    val bwUserName = optUser match {
+      case Some(user) => s"${user.first_name[String]} ${user.last_name[String]}"
+      case None => "Unknown User"
+    }
+    val eventText = if (optUser.isDefined)
+      s"Hi $bwUserName, This is a reply to: $messageText"
+    else
+      messageText
     val bodyText = s"""{"text": "$eventText", "channel": "$eventChannel"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
+    val responseContent = new ByteArrayOutputStream()
+    response.getEntity.writeTo(responseContent)
+    val contentString = responseContent.toString
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
-      throw new IllegalArgumentException(s"Bad chat.postMessage status: $statusLine")
-    val content = new ByteArrayOutputStream()
-    response.getEntity.writeTo(content)
-    val contentString = content.toString
-    if (contentString.nonEmpty)
-      BWLogger.log(getClass.getName, "replyToUser", s"Response-Content: $contentString", request)
+      throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
     BWLogger.log(getClass.getName, "replyToUser", "EXIT-OK", request)
   }
 
@@ -44,7 +47,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
     BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
   }
 
-  private def handleCallback(event: DynDoc, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def handleCallback(event: DynDoc, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "handleCallback", "ENTRY", request)
     val innerEvent: DynDoc = event.event[Document]
     if (innerEvent.has("user")) {
@@ -53,17 +56,14 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         case Some(user: DynDoc) =>
           innerEvent.`type`[String] match {
             case "message" =>
-              replyToUser(innerEvent, user, request, response)
+              replyToUser(innerEvent.text[String], innerEvent.channel[String], Some(user), request)
             case messageType =>
-              response.getWriter.print(s"")
-              response.getWriter.print(s"""{"text": "Received event type '$messageType' - Not handled"}""")
-              response.setContentType("application/json")
+              replyToUser(s"Received event type '$messageType' - Not handled",
+                innerEvent.channel[String], Some(user), request)
           }
-          response.setContentType("application/json")
         case None =>
-          response.getWriter.print(s"""{"text": "Hi $slackUserId, your Slack-Id is not registered""" +
-            """ and your message was ignored"}""")
-          response.setContentType("application/json")
+          replyToUser(s"Hi $slackUserId, your Slack-Id is not registered with BuildWhiz",
+            innerEvent.channel[String], None, request)
       }
     }
     BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)
@@ -72,7 +72,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val postData = getStreamData(request)
-    BWLogger.log(getClass.getName, "handleEvent", s"Post-body: $postData", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"Post-body: $postData", request)
     try {
       val parameters: DynDoc = Document.parse(postData)
       if (parameters.has("challenge")) {
@@ -83,7 +83,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         val eventType = parameters.`type`[String]
         eventType match {
           case "event_callback" =>
-            handleCallback(parameters, request, response)
+            handleCallback(parameters, request)
           case _ =>
         }
       }

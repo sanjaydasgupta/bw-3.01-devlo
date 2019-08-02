@@ -6,7 +6,7 @@ import org.apache.http.Consts
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
+import com.buildwhiz.utils.{BWLogger, CommandLineProcessor, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.{ContentType, StringEntity}
@@ -57,7 +57,8 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         case Some(user: DynDoc) =>
           innerEvent.`type`[String] match {
             case "message" =>
-              replyToUser(innerEvent.text[String], innerEvent.channel[String], Some(user), request)
+              val response = CommandLineProcessor.process(innerEvent.text[String])
+              replyToUser(innerEvent.text[String], response, Some(user), request)
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
                   s"Inner-Event type=$eventType NOT handled", request)

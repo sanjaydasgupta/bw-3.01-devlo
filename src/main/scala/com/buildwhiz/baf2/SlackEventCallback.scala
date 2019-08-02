@@ -15,7 +15,8 @@ import org.bson.Document
 
 class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-  private def replyToUser(messageText: String, eventChannel: String, optUser: Option[DynDoc], request: HttpServletRequest): Unit = {
+  private def replyToUser(messageText: String, eventChannel: String, optUser: Option[DynDoc],
+      request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "replyToUser", "ENTRY", request)
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
@@ -30,7 +31,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
     val eventText = if (optUser.isDefined)
       s"Hi $bwUserName, This is a reply to: $messageText"
     else
-      messageText
+      s"Hi $bwUserName, $messageText"
     val bodyText = s"""{"text": "$eventText", "channel": "$eventChannel"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
@@ -57,12 +58,14 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
           innerEvent.`type`[String] match {
             case "message" =>
               replyToUser(innerEvent.text[String], innerEvent.channel[String], Some(user), request)
-            case messageType =>
-              replyToUser(s"Received event type '$messageType' - Not handled",
+            case eventType =>
+              BWLogger.log(getClass.getName, "handleCallback",
+                  s"Inner-Event type=$eventType NOT handled", request)
+              replyToUser(s"Received event type '$eventType' - Not handled",
                 innerEvent.channel[String], Some(user), request)
           }
         case None =>
-          replyToUser(s"Hi $slackUserId, your Slack-Id is not registered with BuildWhiz",
+          replyToUser(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
             innerEvent.channel[String], None, request)
       }
     }
@@ -85,6 +88,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
           case "event_callback" =>
             handleCallback(parameters, request)
           case _ =>
+            BWLogger.log(getClass.getName, request.getMethod, s"Event type=$eventType NOT handled", request)
         }
       }
       response.setStatus(HttpServletResponse.SC_OK)

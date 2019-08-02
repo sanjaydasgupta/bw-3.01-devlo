@@ -24,15 +24,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
       "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
     post.setHeader("Content-Type", "application/json")
-    val bwUserName = optUser match {
-      case Some(user) => s"${user.first_name[String]} ${user.last_name[String]}"
-      case None => "Unknown User"
-    }
-    val eventText = if (optUser.isDefined)
-      s"Hi $bwUserName, This is a reply to: $messageText"
-    else
-      s"Hi $bwUserName, $messageText"
-    val bodyText = s"""{"text": "$eventText", "channel": "$eventChannel"}"""
+    val bodyText = s"""{"text": "$messageText", "channel": "$eventChannel"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
     val responseContent = new ByteArrayOutputStream()
@@ -57,8 +49,12 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
         case Some(user: DynDoc) =>
           innerEvent.`type`[String] match {
             case "message" =>
-              val response = CommandLineProcessor.process(innerEvent.text[String])
-              replyToUser(innerEvent.text[String], response, Some(user), request)
+              BWLogger.log(getClass.getName, "handleCallback",
+                  s"Command: ${innerEvent.text[String]}", request)
+              val commandResult = CommandLineProcessor.process(innerEvent.text[String], user)
+              BWLogger.log(getClass.getName, "handleCallback",
+                s"Result: $commandResult", request)
+              replyToUser(commandResult, innerEvent.channel[String], Some(user), request)
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
                   s"Inner-Event type=$eventType NOT handled", request)

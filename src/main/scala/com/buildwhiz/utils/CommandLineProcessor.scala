@@ -15,9 +15,7 @@ object CommandLineProcessor {
 
   private def help(user: DynDoc): String = {
     """Commands:
-      |+  list projects,
-      |+  list tasks,
-      |+  list documents
+      |+  list {projects|tasks|documents}
       |+  slack {invite|status} first-name [last-name]
       |+  who am I""".stripMargin
   }
@@ -72,21 +70,18 @@ object CommandLineProcessor {
       {parseResult => slackManage(parseResult._1, parseResult._2)}
 
     // List documents command ...
-    private lazy val listDocumentsParser: CLIP = 'list ~ 'documents ^^ {_ => listDocuments}
-
-    // List projects command ...
-    private lazy val listProjectsParser: CLIP = 'list ~ 'projects ^^ {_ => listProjects}
-
-    // List tasks command ...
-    private lazy val listTasksParser: CLIP = 'list ~ 'tasks ^^ {_ => listTasks}
+    private lazy val listEntitiesParser: CLIP = 'list ~> ('documents | 'projects | 'tasks) ^^ {
+      case "documents" => listDocuments
+      case "projects" => listProjects
+      case "tasks" => listTasks
+    }
 
     // Who am I command ...
     private lazy val whoAmIParser: CLIP = 'who ~ 'am ~ 'I ^^ {_ => whoAmI}
 
     private lazy val none: CLIP = ".*".r ^^ {_ => help}
 
-    private lazy val allCommands: CLIP = helpParser | listDocumentsParser | listProjectsParser | listTasksParser |
-        whoAmIParser | slackManageParser | none
+    private lazy val allCommands: CLIP = helpParser | listEntitiesParser | whoAmIParser | slackManageParser | none
 
     def cliProcessor(command: String, user: DynDoc): String = {
       parseAll(allCommands, command) match {
@@ -106,8 +101,11 @@ object CommandLineProcessor {
   }
 
   def main(args: Array[String]): Unit = {
-    //println(commandLineParser.testParser("Who am I"))
-    println(commandLineParser.testParser("slack status matt"))
+    println(commandLineParser.testParser("list documents"))
+    println(commandLineParser.testParser("list projects"))
+    println(commandLineParser.testParser("list tasks"))
+    println(commandLineParser.testParser("slack status caroline"))
+    //println(commandLineParser.testParser("list phases"))
   }
 
 }

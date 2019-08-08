@@ -14,11 +14,16 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
-    val mongoQuery = Seq(
-      ("document_id", "document.document_id", (id: String) => new ObjectId(id)),
-      ("project_id", "project_id", (id: String) => new ObjectId(id)),
-      ("doc_version_timestamp", "document.version", (ts: String) => ts.toLong)
-    ).filter(t => parameters.contains(t._1)).map(t => (t._2, t._3(parameters(t._1)))).toMap
+    val mongoQuery = ((parameters.get("document_id"), parameters.get("activity_id"), parameters.get("phase_id")) match {
+      case (Some(documentId), _, _) =>
+        Map("document.document_id" -> new ObjectId(documentId),
+          "document.version" -> parameters("doc_version_timestamp").toLong)
+      case (None, Some(activityId), _) =>
+        Map("document.activity_id" -> new ObjectId(activityId))
+      case (None, None, Some(phaseId)) =>
+        Map("document.phase_id" -> new ObjectId(phaseId))
+      case _ => throw new IllegalArgumentException(s"Mandatory parameters missing")
+    }) ++ Map("project_id" -> new ObjectId(parameters("project_id")))
     val allRfi: Seq[DynDoc] = if (mongoQuery.nonEmpty)
       BWMongoDB3.rfi_messages.find(mongoQuery)
     else
@@ -33,11 +38,13 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       val originator: DynDoc = BWMongoDB3.persons.find(Map("_id" -> originatorOid)).head
       val originatorName = s"${originator.first_name[String]} ${originator.last_name[String]}"
       val own = originatorOid == user._id[ObjectId]
-      new Document(Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
+      val rfiType = if (rfi.has("rfi_type")) rfi.rfi_type[String] else "NA"
+
+      Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,
         "question" -> rfi.question[String], "state" -> rfi.status[String], "assigned_to" -> "Unknown Unknown",
         "origination_date" -> originationTime, "due_date" -> originationTime, "response_date" -> originationTime,
-        "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable))
+        "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable, "rfi_type" -> rfiType)
     })
     rfiProperties
   }

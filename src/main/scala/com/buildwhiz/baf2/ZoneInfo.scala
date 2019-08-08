@@ -37,7 +37,8 @@ class ZoneInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val parentProcess = ActivityApi.parentProcess(activity._id[ObjectId])
       Map("_id" -> activity._id[ObjectId].toString, "name" -> activity.name[String],
           "bpmn_name" -> activity.bpmn_name[String], "status" -> activity.status[String],
-          "start_date" -> startTime, "end_date" -> endTime, "process_id" -> parentProcess._id[ObjectId].toString
+          "start_date" -> startTime, "end_date" -> endTime, "process_id" -> parentProcess._id[ObjectId].toString,
+          "process_name" -> parentProcess.name[String]
       )
     })
     returnValue.asJava

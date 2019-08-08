@@ -13,21 +13,14 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
-      val user: DynDoc = getUser(request)
-      val documentOid = new ObjectId(parameters("document_id"))
-      if (!DocumentApi.exists(documentOid))
-        throw new IllegalArgumentException(s"Bad document-id: '$documentOid'")
-      val documentTimestamp = parameters("doc_version_timestamp").toLong
       val projectOid = new ObjectId(parameters("project_id"))
       if (!ProjectApi.exists(projectOid))
         throw new IllegalArgumentException(s"Bad project-id: '$projectOid'")
-      val priority = parameters("priority")
-      val question = parameters("question")
-      val messageText = parameters("message")
-      val subject = parameters("subject")
-      val recipientRoles = parameters("recipient_roles").split(",").map(_.trim).toSeq
+
+      val user: DynDoc = getUser(request)
       val millisNow = System.currentTimeMillis
       val parts = getParts(request)
+
       val attachments = parts.zipWithIndex.map(part => {
         val submittedFilename = part._1.getSubmittedFileName
         val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
@@ -38,19 +31,49 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
         val docOid = DocumentApi.createProjectDocumentRecord(f"RFI-Attachment-$millisNow%x-${part._2}",
           "", fileType, Seq.empty[String], projectOid, None, None, Some("SYSTEM"))
         val inputStream = part._1.getInputStream
-        val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+        /*val storageResult = */DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
           docOid, millisNow, "-", user._id[ObjectId], request)
         new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", millisNow)
       })
 
+      val rfiType = parameters.get("rfi_type") match {
+        case None => "NA"
+        case Some(theType) => theType
+      }
+      val priority = parameters("priority")
+      val question = parameters("question")
+      val messageText = parameters("message")
+      val subject = parameters("subject")
+      val recipientRoles = parameters("recipient_roles").split(",").map(_.trim).toSeq
+
       val message = Map("text" -> messageText, "sender" -> user._id[ObjectId],
         "read_person_ids" -> Seq.empty[ObjectId], "attachments" -> attachments, "timestamp" -> millisNow)
 
-      BWMongoDB3.rfi_messages.insertOne(Map("timestamps" -> Map("start" -> millisNow), "subject" -> subject,
-        "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
-        "document" -> Map("document_id" -> documentOid, "version" -> documentTimestamp),
-        "recipient_roles" -> recipientRoles, "messages" -> Seq(message)
-        ))
+      val rfiRecord = (parameters.get("document_id"), parameters.get("activity_id"), parameters.get("phase_id")) match {
+        case (Some(documentId), _, _) =>
+          val documentOid = new ObjectId(documentId)
+          if (!DocumentApi.exists(documentOid))
+            throw new IllegalArgumentException(s"Bad document-id: '$documentOid'")
+          val documentTimestamp = parameters("doc_version_timestamp").toLong
+
+          Map("rfi_type" -> rfiType, "timestamps" -> Map("start" -> millisNow), "subject" -> subject,
+            "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
+            "document" -> Map("id_type" -> "document_id", "document_id" -> documentOid, "version" -> documentTimestamp),
+            "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
+        case (None, Some(activityId), _) =>
+          Map("rfi_type" -> rfiType, "timestamps" -> Map("start" -> millisNow), "subject" -> subject,
+            "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
+            "document" -> Map("id_type" -> "activity_id", "activity_id" -> new ObjectId(activityId)),
+            "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
+        case (None, None, Some(phaseId)) =>
+          Map("rfi_type" -> rfiType, "timestamps" -> Map("start" -> millisNow), "subject" -> subject,
+            "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
+            "document" -> Map("id_type" -> "phase_id", "phase_id" -> new ObjectId(phaseId)),
+            "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
+        case _ => throw new IllegalArgumentException(s"Mandatory parameters missing")
+      }
+
+      BWMongoDB3.rfi_messages.insertOne(rfiRecord)
       //saveAndSendMail(projectOid, activityOid, theAction, isRequest, request)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doPost", s"EXIT-OK", request)

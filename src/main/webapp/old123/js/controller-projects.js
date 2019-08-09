@@ -485,7 +485,7 @@
 
   self.selectedProcessDeletable = function() {
     var deletable = new RegExp('defined|ended')
-    return deletable.test(self.selectedPhase.status);
+    return deletable.test(self.selectedProcess.status);
   }
 
   self.selectedProcessCanLaunch = function() {

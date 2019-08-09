@@ -57,16 +57,20 @@ object ProcessApi {
   def canDelete(process: DynDoc): Boolean = !isActive(process)
 
   def isActive(process: DynDoc): Boolean = {
+    val processName = process.name[String]
     if (process.has("process_instance_id")) {
       val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-      try {
-        rts.getVariables(process.process_instance_id[String])
-        true
-      } catch {
-        case _: AnyRef => false
-      }
-    } else
+      val query = rts.createProcessInstanceQuery()
+      val instance = query.processInstanceId(process.process_instance_id[String]).active().singleResult()
+      val found = instance != null
+      val message = s"Process '$processName' has 'process_instance_id' field, Active instances found: $found"
+      BWLogger.log(getClass.getName, "isActive", message)
+      found
+    } else {
+      val message = s"Process '$processName' has no 'process_instance_id'"
+      BWLogger.log(getClass.getName, "isActive", message)
       false
+    }
   }
 
   def isHealthy(process: DynDoc): Boolean = (process.status[String] == "running") == isActive(process)

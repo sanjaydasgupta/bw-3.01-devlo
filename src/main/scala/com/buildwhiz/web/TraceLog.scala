@@ -171,8 +171,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def prettyPrint(d: Document): String = {
-    val mm: mutable.Map[String, Any] = d.asScala
-    mm.map(p => s"${p._1}: ${p._2}").mkString(", ")
+    d.asScala.map(p => s"${p._1}: ${p._2}").mkString(", ")
   }
 
 }

@@ -48,7 +48,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
   private def addMenuItems(person: DynDoc): Unit = {
     val menuItems: Seq[Document] = Seq(
       Map("name" -> "Documents", "urls" -> "/documents", "icon" -> "documents"),
-      Map("name" -> "RFIs", "url" -> "/rfis", "icon" -> "rfis"),
+      Map("name" -> "Interactions", "url" -> "/rfis", "icon" -> "rfis"),
       //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
       Map("name" -> "Organizations", "url" -> "/contacts", "icon" -> "contact"),
       Map("name" -> "Team", "url" -> "/team", "icon" -> "project_team"),

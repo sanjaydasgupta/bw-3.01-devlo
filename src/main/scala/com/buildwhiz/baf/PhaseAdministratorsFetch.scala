@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -19,7 +20,7 @@ class PhaseAdministratorsFetch extends HttpServlet {
       val roleRegex = s".*Project-Management.*"
       val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("roles" -> Map("$regex" -> roleRegex)))
       val managers: Seq[Document] = candidates.map(candidate => {
-        val name = s"${candidate.first_name[String]} ${candidate.last_name[String]}"
+        val name = PersonApi.fullName(candidate)
         Map("_id" -> candidate._id[ObjectId].toString, "name" -> name)
       })
       response.getWriter.print(managers.map(_.toJson).mkString("[", ", ", "]"))

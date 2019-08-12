@@ -1,11 +1,11 @@
 package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -26,7 +26,7 @@ class ProgressReportList extends HttpServlet with HttpUtils with DateTimeUtils {
         find(if (isAdmin) Map.empty[String, AnyRef] else Map("person_id" -> personOid))
       val outputRecords = userUpdateRecords.map(rec => {
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> rec.person_id[ObjectId])).head
-        rec.full_name = s"${author.first_name[String]} ${author.last_name[String]}"
+        rec.full_name = PersonApi.fullName(author)
         rec.date_time = dateTimeString(rec.timestamp[Long], Some(timezone))
         val docOids: Seq[ObjectId] = rec.attachments[Many[ObjectId]]
         rec.links = docOids.map(docOid => {

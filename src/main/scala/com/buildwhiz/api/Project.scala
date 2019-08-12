@@ -1,10 +1,11 @@
 package com.buildwhiz.api
 
 import java.net.URI
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.baf.OwnedProjects
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.AmazonS3
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
@@ -146,7 +147,7 @@ object Project {
 
         val userNames = userOids.map(userOid => {
           val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
-          s"${user.first_name[String]} ${user.last_name[String]}"
+          PersonApi.fullName(user)
         })
         val message = s"""Project '${project.name[String]}' linked to users ${userNames.mkString(",")}"""
         BWLogger.audit(getClass.getName, "renewUserAssociation", message, request)

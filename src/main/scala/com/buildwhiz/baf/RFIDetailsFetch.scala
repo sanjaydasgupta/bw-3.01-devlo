@@ -1,7 +1,7 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
@@ -34,7 +34,7 @@ class RFIDetailsFetch extends HttpServlet with HttpUtils with MailUtils with Dat
       val messageLines: Seq[Document] = messages.sortBy(m => -m.timestamp[Long]).map(message => {
         val own = message.sender[ObjectId] == user._id[ObjectId]
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> message.sender[ObjectId])).head
-        val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
+        val senderName = PersonApi.fullName(sender)
         val clientTimezone = user.tz[String]
         new Document(Map("timestamp" -> dateTimeString(message.timestamp[Long], Some(clientTimezone)), "own" -> own,
           "text" -> (if (message.text[Any] == null) "" else message.text[String]),

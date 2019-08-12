@@ -110,7 +110,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
       response.setStatus(HttpServletResponse.SC_OK)
-      val message = s"Changed ${person.first_name[String]} ${person.last_name[String]}'s " +
+      val message = s"Changed ${PersonApi.fullName(person)}'s " +
           s"parameters: ${parameterNamesAndValues.toMap}"
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {

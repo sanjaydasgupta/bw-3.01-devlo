@@ -46,7 +46,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
         val authorOid = lastVersion.author_person_id[ObjectId]
         val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {
           case None => "Unknown Unknown"
-          case Some(author) => s"${author.first_name[String]} ${author.last_name[String]}"
+          case Some(author) => PersonApi.fullName(author)
         }
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> phaseName,
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),

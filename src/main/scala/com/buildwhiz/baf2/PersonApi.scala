@@ -71,6 +71,8 @@ object PersonApi {
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
 
+  def fullName(person: DynDoc): String = s"${person.first_name[String]} ${person.last_name[String]}"
+
   def documentTags(person: DynDoc): Seq[DynDoc] = {
     if (person.has("labels")) {
       person.labels[Many[Document]]
@@ -109,7 +111,7 @@ object PersonApi {
   }
 
   def person2document(person: DynDoc): Document = {
-    val name = s"${person.first_name[String]} ${person.last_name[String]}"
+    val name = fullName(person)
     val active = if (person.has("enabled")) person.enabled[Boolean] else false
     val individualRoles: java.util.Collection[String] = if (person.has("individual_roles"))
       person.individual_roles[Many[String]]

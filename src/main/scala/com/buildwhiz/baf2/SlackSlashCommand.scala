@@ -26,7 +26,7 @@ class SlackSlashCommand extends HttpServlet with HttpUtils with MailUtils with D
       val text = parameters("text")
       userBySlackId(slackUserId) match {
         case Some(user: DynDoc) =>
-          val userName = s"${user.first_name[String]} ${user.last_name[String]}"
+          val userName = PersonApi.fullName(user)
           response.getWriter.print(s"""{"text": "Hi $slackUserName ($userName),""" +
             """ your message is being processed"}""")
         case None =>

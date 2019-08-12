@@ -1,7 +1,8 @@
 package com.buildwhiz.dot
 
-import com.buildwhiz.api.{Activity, Action, Phase, Project}
+import com.buildwhiz.api.{Action, Activity, Phase, Project}
 import com.buildwhiz.baf.DocumentUserLabelLogicSet
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -129,7 +130,7 @@ class GetDocumentsSummary extends HttpServlet with HttpUtils with DateTimeUtils 
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-        val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+        val authorName = PersonApi.fullName(author)
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> "???",
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
           "type" -> fileType, "author" -> authorName, "date" -> date, "project_id" -> d.project_id[ObjectId].toString,

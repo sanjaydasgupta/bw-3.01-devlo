@@ -1,7 +1,6 @@
 package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
@@ -10,6 +9,8 @@ import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 import org.bson.Document
 import java.io._
 import java.util.TimeZone
+
+import com.buildwhiz.baf2.PersonApi
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -48,8 +49,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val (duration, durationUnit) = parameters.get("count") match {
           case None => (50, "rows")
           case Some(theCount) =>
-            val withUnitPattern = "([0-9\\.]+)(hours|days|rows)".r
-            val withoutUnitPattern = "([0-9\\.]+)".r
+            val withUnitPattern = "([0-9.]+)(hours|days|rows)".r
+            val withoutUnitPattern = "([0-9.]+)".r
             theCount match {
               case withUnitPattern(d, u) => (d.toInt, u)
               case withoutUnitPattern(d) => (d.toInt, "rows")
@@ -116,7 +117,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
               s"""<td style="width: ${p._2}%; color:$color" align="center">$text</td>"""
             }).mkString.replaceAll("\n+", " ")
           val user: DynDoc = getUser(request)
-          val fullName = s"${user.first_name[String]} ${user.last_name[String]}"
+          val fullName = PersonApi.fullName(user)
           if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
             writer.println(s"""<tr style="background-color: beige;">$htmlRowData</tr>""")
           else
@@ -170,7 +171,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def prettyPrint(d: Document): String = {
-    val mm: mutable.Map[String, Object] = d.asScala
+    val mm: mutable.Map[String, Any] = d.asScala
     mm.map(p => s"${p._1}: ${p._2}").mkString(", ")
   }
 

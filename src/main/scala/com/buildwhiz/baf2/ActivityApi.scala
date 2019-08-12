@@ -221,7 +221,7 @@ object ActivityApi {
       val personName = if (theAssignment.has("person_id")) {
         val personOid = theAssignment.person_id[ObjectId]
         val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-        s"${thePerson.first_name[String]} ${thePerson.last_name[String]}"
+        PersonApi.fullName(thePerson)
       } else {
         "NA"
       }

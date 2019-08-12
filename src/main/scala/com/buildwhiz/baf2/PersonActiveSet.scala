@@ -37,7 +37,7 @@ class PersonActiveSet extends HttpServlet with HttpUtils {
 
       val personRecord = PersonApi.personById(personOid)
 
-      val message = s"Set ${personRecord.first_name[String]} ${personRecord.last_name[String]} active='$activeValue'"
+      val message = s"Set ${PersonApi.fullName(personRecord)} active='$activeValue'"
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {

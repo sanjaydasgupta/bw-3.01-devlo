@@ -1,11 +1,11 @@
 package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -33,7 +33,7 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
       sendMail(Seq(userOid), s"Password changed on '$instanceName'", mailBody, Some(request))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
-      val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"
+      val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
       BWLogger.audit(getClass.getName, "doPost", s"""Set password for $personLog""", request)
     } catch {
       case t: Throwable =>

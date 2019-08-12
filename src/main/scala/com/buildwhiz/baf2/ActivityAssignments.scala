@@ -42,7 +42,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         val personOid = assignment.person_id[ObjectId]
         assignmentDoc.append("person_id", personOid)
         val person = PersonApi.personById(personOid)
-        assignmentDoc.append("person_name", s"${person.first_name[String]} ${person.last_name[String]}")
+        assignmentDoc.append("person_name", PersonApi.fullName(person))
       } else {
         assignmentDoc.append("person_id", "")
         assignmentDoc.append("person_name", "")

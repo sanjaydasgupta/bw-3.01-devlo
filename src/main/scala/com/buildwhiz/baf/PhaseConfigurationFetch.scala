@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -25,7 +26,7 @@ class PhaseConfigurationFetch extends HttpServlet with HttpUtils {
       val assignedRoles: Seq[DynDoc] = if (phase.has("assigned_roles")) {
         val phaseAssignees: Seq[DynDoc] = phase.assigned_roles[Many[Document]].map(pa => {
           val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> pa.person_id[ObjectId])).head
-          val assigneeName = s"${assignee.first_name[String]} ${assignee.last_name[String]}"
+          val assigneeName = PersonApi.fullName(assignee)
           Map("role_name" -> pa.role_name[String], "person_id" -> pa.person_id[ObjectId].toString,
             "person_name" -> assigneeName)
         })

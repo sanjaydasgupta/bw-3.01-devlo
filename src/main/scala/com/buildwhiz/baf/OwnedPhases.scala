@@ -5,6 +5,7 @@ import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -39,7 +40,7 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
       for (phase <- phases) {
         val managerOid = phase.admin_person_id[ObjectId]
         val manager: DynDoc = BWMongoDB3.persons.find(Map("_id" -> managerOid)).head
-        phase.manager = s"${manager.first_name[String]} ${manager.last_name[String]}"
+        phase.manager = PersonApi.fullName(manager)
         val timeStamps: DynDoc = phase.timestamps[Document]
         phase.start_date = if (timeStamps.has("start"))
           dateTimeString(timeStamps.start[Long], Some(freshUserRecord.tz[String]))

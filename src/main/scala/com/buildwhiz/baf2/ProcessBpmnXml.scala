@@ -130,7 +130,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         val name = if (a._1.has("person_id")) {
           val personOid = a._1.person_id[ObjectId]
           val personRec = PersonApi.personById(personOid)
-          s"${personRec.first_name[String]} ${personRec.last_name[String]}"
+          PersonApi.fullName(personRec)
         } else
         "NA"
         val sno = a._2 + 1

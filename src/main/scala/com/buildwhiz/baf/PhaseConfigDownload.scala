@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
@@ -159,7 +160,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       val roleName = assignedRole.role_name[String]
       val personOid = assignedRole.person_id[ObjectId]
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val personName = s"${person.first_name[String]} ${person.last_name[String]}"
+      val personName = PersonApi.fullName(person)
       row.createCell(0).setCellValue(roleName)
       row.createCell(1).setCellValue(personName)
       row.createCell(2).setCellValue(personOid.toString)

@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
@@ -182,7 +183,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
 
     def validatePerson(personName: String, personOid: ObjectId): Unit = {
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val name = s"${person.first_name[String]} ${person.last_name[String]}".
+      val name = PersonApi.fullName(person).
           replaceAll("\\s+", "").toLowerCase
       if (personName.replaceAll("\\s+", "").toLowerCase != name)
         throw new IllegalArgumentException("Bad assignee info")

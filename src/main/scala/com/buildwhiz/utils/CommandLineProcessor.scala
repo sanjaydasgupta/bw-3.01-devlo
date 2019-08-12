@@ -1,6 +1,6 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.SlackApi
+import com.buildwhiz.baf2.{PersonApi, SlackApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -33,7 +33,7 @@ object CommandLineProcessor {
   }
 
   private def whoAmI(user: DynDoc): String = {
-    s"You are ${user.first_name[String]} ${user.last_name[String]}"
+    s"You are ${PersonApi.fullName(user)}"
   }
 
   private def slackManage(op: String, names: List[String]): DynDoc => String = {

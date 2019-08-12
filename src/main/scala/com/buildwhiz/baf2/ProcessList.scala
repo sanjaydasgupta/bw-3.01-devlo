@@ -14,7 +14,7 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
     def process2json(process: DynDoc, user: DynDoc): String = {
       val adminPersonOid = process.admin_person_id[ObjectId]
       val adminPerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> adminPersonOid)).head
-      val adminName = s"${adminPerson.first_name[String]} ${adminPerson.last_name[String]}"
+      val adminName = PersonApi.fullName(adminPerson)
       val timestamps: DynDoc = process.timestamps[Document]
       val timeZone = user.tz[String]
       val (startTime, endTime) = if (timestamps.has("end")) {

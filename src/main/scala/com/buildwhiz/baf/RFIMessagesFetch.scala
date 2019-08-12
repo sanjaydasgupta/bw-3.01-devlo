@@ -1,7 +1,7 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -19,7 +19,7 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
   private def memberNames(memberOids: Many[ObjectId]): Seq[String] = {
     memberOids.asScala.map(oid => {
       val member: DynDoc = BWMongoDB3.persons.find(Map("_id" -> oid)).head
-      s"${member.first_name[String]} ${member.last_name[String]}"
+      PersonApi.fullName(member)
     })
   }
 
@@ -59,7 +59,7 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
         val hasNewMessages = messages.exists(m => !m.read_person_ids[Many[ObjectId]].contains(user))
         val lastMessage = messages.last
         val sender: DynDoc = BWMongoDB3.persons.find(Map("_id" -> lastMessage.sender[ObjectId])).head
-        val senderName = s"${sender.first_name[String]} ${sender.last_name[String]}"
+        val senderName = PersonApi.fullName(sender)
         val clientTimezone = getUser(request).get("tz").asInstanceOf[String]
         // "document_info" -> new Document(docInfo)
         val rfiInfo = new Document(Map("_id" -> rfi._id[ObjectId], "subject" -> rfi.subject[String],

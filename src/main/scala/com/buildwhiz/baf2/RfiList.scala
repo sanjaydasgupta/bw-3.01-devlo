@@ -38,7 +38,7 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       val timestamps: DynDoc = rfi.timestamps[Document]
       val originationTime = dateTimeString(timestamps.start[Long], Some(user.tz[String]))
       val originator: DynDoc = BWMongoDB3.persons.find(Map("_id" -> originatorOid)).head
-      val originatorName = s"${originator.first_name[String]} ${originator.last_name[String]}"
+      val originatorName = PersonApi.fullName(originator)
       val own = originatorOid == user._id[ObjectId]
       val rfiType = if (rfi.has("rfi_type")) rfi.rfi_type[String] else "NA"
       val optionalValues: Map[String, Any] =

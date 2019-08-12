@@ -28,7 +28,7 @@ class DocumentVersionList extends HttpServlet with HttpUtils with DateTimeUtils 
         val authorName = if (version.has("author_person_id")) {
           val authorOid = version.author_person_id[ObjectId]
           val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-          s"${author.first_name[String]} ${author.last_name[String]}"
+          PersonApi.fullName(author)
         } else
           "NA"
         val fileName = if (version.has("file_name")) version.file_name[String] else docRecord.name[String]

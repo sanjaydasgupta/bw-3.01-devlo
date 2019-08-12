@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -13,7 +14,7 @@ class PhaseRoleCandidatesFetch extends HttpServlet with HttpUtils {
     val roleRegex = s".*$roleName.*"
     val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("roles" -> Map("$regex" -> roleRegex)))
     val result: Seq[DynDoc] = candidates.map(candidate => {
-      val name = s"${candidate.first_name[String]} ${candidate.last_name[String]}"
+      val name = PersonApi.fullName(candidate)
       Map("person_id" -> candidate._id[ObjectId].toString, "name" -> name)
     })
     result.sortBy(_.name[String])

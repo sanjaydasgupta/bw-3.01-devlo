@@ -1,8 +1,8 @@
 package com.buildwhiz.baf
 
 import java.io.ByteArrayInputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils._
@@ -10,6 +10,7 @@ import org.bson.types.ObjectId
 import org.bson.Document
 import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import com.buildwhiz.baf2.PersonApi
 
 import scala.collection.mutable
 
@@ -62,7 +63,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
           action.status[String]
         val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
         val shortAssignee = new Document("_id", assignee._id[ObjectId]).
-          append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
+          append("name", PersonApi.fullName(assignee))
         val actionType = action.`type`[String]
         val actionRole = if (action.has("assignee_role")) {
           action.assignee_role[String]

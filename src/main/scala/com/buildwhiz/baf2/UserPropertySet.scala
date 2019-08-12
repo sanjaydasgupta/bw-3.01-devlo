@@ -77,7 +77,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val personLog = s"'${thePerson.first_name[String]} ${thePerson.last_name[String]}' (${thePerson._id[ObjectId]})"
+      val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
       BWLogger.audit(getClass.getName, "doPost", s"""Set property for $personLog""", request)
     } catch {
       case t: Throwable =>

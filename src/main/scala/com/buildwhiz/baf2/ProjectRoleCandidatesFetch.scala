@@ -16,7 +16,7 @@ class ProjectRoleCandidatesFetch extends HttpServlet with HttpUtils {
     val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids),
         "roles" -> Map($regex -> s".*$roleName.*")))
     val result: Seq[DynDoc] = candidates.map(candidate => {
-      val name = s"${candidate.first_name[String]} ${candidate.last_name[String]}"
+      val name = PersonApi.fullName(candidate)
       Map("person_id" -> candidate._id[ObjectId].toString, "name" -> name)
     })
     result.sortBy(_.name[String])

@@ -7,8 +7,8 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
-
 import com.buildwhiz.api.Project
+import com.buildwhiz.baf2.PersonApi
 
 class ProjectConfigurationSet extends HttpServlet with HttpUtils {
 
@@ -56,7 +56,7 @@ class ProjectConfigurationSet extends HttpServlet with HttpUtils {
       response.setStatus(HttpServletResponse.SC_OK)
       val rolesMsg = updatedRoles.map(role => {
         val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> role.person_id[ObjectId])).head
-        val name = s"${person.first_name[String]} ${person.last_name[String]}"
+        val name = PersonApi.fullName(person)
         val roleName = role.role_name[String]
         s"$roleName: $name"
       }).mkString("roles=\'", ", ", "\'")

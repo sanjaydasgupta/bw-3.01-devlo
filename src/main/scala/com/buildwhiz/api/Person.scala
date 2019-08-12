@@ -1,7 +1,7 @@
 package com.buildwhiz.api
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, CryptoUtils}
@@ -32,7 +32,7 @@ class Person extends HttpServlet with RestUtils with CryptoUtils {
     if (!userHasRole(request, "BW-Admin"))
       throw new IllegalArgumentException("Not authorized")
     val person: DynDoc = handleRestPost(request, response, "persons", Some(duplicateChecker), Some(updater))
-    val personNameAndId = s"'${person.first_name[String]} ${person.last_name[String]}' (${person._id[ObjectId]})"
+    val personNameAndId = s"'${PersonApi.fullName(person)}' (${person._id[ObjectId]})"
     BWLogger.audit(getClass.getName, "handlePost", s"""Added Person $personNameAndId""", request)
   }
 
@@ -51,7 +51,7 @@ class Person extends HttpServlet with RestUtils with CryptoUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     def personSorter(a: Document, b: Document): Boolean = {
-      def name(d: DynDoc): String = s"${d.first_name[String]} ${d.last_name[String]}"
+      def name(d: DynDoc): String = PersonApi.fullName(d)
       name(a) < name(b)
     }
 

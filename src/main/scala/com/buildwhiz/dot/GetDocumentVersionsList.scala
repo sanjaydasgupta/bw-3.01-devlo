@@ -1,5 +1,6 @@
 package com.buildwhiz.dot
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -23,7 +24,7 @@ class GetDocumentVersionsList extends HttpServlet with HttpUtils with DateTimeUt
       val versionProperties: Seq[Document] = goodVersions.map(version => {
         val authorOid = version.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-        val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+        val authorName = PersonApi.fullName(author)
         val prop: Document = Map("filename" -> version.file_name[String], "author" -> authorName,
           "timestamp" -> version.timestamp[Long],
           "datetime" -> dateTimeString(version.timestamp[Long], Some(user.tz[String])))

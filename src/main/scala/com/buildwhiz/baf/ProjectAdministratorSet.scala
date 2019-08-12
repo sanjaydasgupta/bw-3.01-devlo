@@ -1,6 +1,7 @@
 package com.buildwhiz.baf
 
 import com.buildwhiz.api.Project
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
@@ -54,7 +55,7 @@ class ProjectAdministratorSet extends HttpServlet with HttpUtils with MailUtils 
           theProject.name[String])
       response.setStatus(HttpServletResponse.SC_OK)
       val projectMgr: DynDoc = BWMongoDB3.persons.find(Map("_id" -> assignedPersonOid)).head
-      val fullName = s"${projectMgr.first_name[String]} ${projectMgr.last_name[String]}"
+      val fullName = PersonApi.fullName(projectMgr)
       val message = s"Set '$fullName' as manager of project '${theProject.name[String]}'"
       BWLogger.audit(getClass.getName, "doPost", message, request)
     } catch {

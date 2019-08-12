@@ -1,8 +1,9 @@
 package com.buildwhiz.web
 
 import java.util.{Calendar, TimeZone}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import com.buildwhiz.baf2.PersonApi
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -25,7 +26,7 @@ class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val name = s"${person.first_name[String]} ${person.last_name[String]}"
+      val name = PersonApi.fullName(person)
       writer.println(s"""<h1 align="center">Mails for $name</h1>""")
       val mails: Seq[DynDoc] = BWMongoDB3.mails.find(Map("recipient_person_id" -> personOid))
       if (mails.nonEmpty) {

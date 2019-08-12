@@ -1,5 +1,6 @@
 package com.buildwhiz.dot
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -31,7 +32,7 @@ class GetRfisSummary extends HttpServlet with HttpUtils with DateTimeUtils {
       val date = dateTimeString(lastMessage.timestamp[Long], Some(user.tz[String]))
       val authorOid = lastMessage.sender[ObjectId]
       val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-      val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+      val authorName = PersonApi.fullName(author)
       new Document(Map("_id" -> rfi._id[ObjectId].toString, "subject" -> rfi.subject[String],
         "project_id" -> rfi.project_id[ObjectId].toString, "author" -> authorName, "date" -> date,
         "text" -> (if(lastMessage.text[Any] == null) "" else lastMessage.text[String]),

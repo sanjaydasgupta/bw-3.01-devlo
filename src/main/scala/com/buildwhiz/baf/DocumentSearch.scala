@@ -1,7 +1,7 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -64,7 +64,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
           val fileName = if (version has "file_name") version.file_name[String] else docRec.name[String]
           val authorOid = version.author_person_id[ObjectId]
           val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
-          val authorName = s"${author.first_name[String]} ${author.last_name[String]}"
+          val authorName = PersonApi.fullName(author)
           if (!version.has("rfi_ids")) {
             version.rfi_ids = Seq.empty[ObjectId]
           }

@@ -14,7 +14,8 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     val user: DynDoc = getUser(request)
     val userOid = user._id[ObjectId]
-    val mongoQuery = Seq("document_id", "activity_id", "phase_id", "project_id").map(parameters.get) match {
+    val mongoQuery: Map[String, Any] =
+        Seq("document_id", "activity_id", "phase_id", "project_id").map(parameters.get) match {
       case Some(documentId) +: _ =>
         Map("document.document_id" -> new ObjectId(documentId),
           "document.version" -> parameters("doc_version_timestamp").toLong)
@@ -24,12 +25,10 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
         Map("document.phase_id" -> new ObjectId(phaseId))
       case None +: None +: None +: Some(projectId) +: Nil =>
         Map("project_id" -> new ObjectId(projectId))
-      case _ => throw new IllegalArgumentException(s"Mandatory parameters missing")
+      case _ =>
+        Map("members" -> userOid)
     }
-    val allRfi: Seq[DynDoc] = if (mongoQuery.nonEmpty)
-      BWMongoDB3.rfi_messages.find(mongoQuery)
-    else
-      BWMongoDB3.rfi_messages.find(Map("members" -> userOid))
+    val allRfi: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(mongoQuery)
     val rfiProperties: Seq[Document] = allRfi.map(rfi => {
       val priority = if (rfi.has("priority")) rfi.priority[String] else "LOW"
       val messages: Seq[DynDoc] = rfi.messages[Many[Document]]
@@ -41,23 +40,29 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       val originatorName = PersonApi.fullName(originator)
       val own = originatorOid == user._id[ObjectId]
       val rfiType = if (rfi.has("rfi_type")) rfi.rfi_type[String] else "NA"
+
+      def reference(name: String): Option[AnyRef] = {
+        val refs = rfi.document[Document]
+        if (refs.containsKey(name))
+          Some(refs.get(name))
+        else
+          None
+      }
+
       val optionalValues: Map[String, Any] =
-        Seq("document_id", "activity_id", "phase_id").map(parameters.get) match {
-        case Some(documentId) +: _ =>
-          Map("document_id" -> new ObjectId(documentId),
-            "doc_version_timestamp" -> parameters("doc_version_timestamp").toLong)
-        case None +: Some(activityId) +: _ =>
-          val activityOid = new ObjectId(activityId)
+          Seq("document_id", "activity_id", "phase_id").map(reference) match {
+        case Some(documentOid: ObjectId) +: _ =>
+          Map("document_id" -> documentOid.toString, "doc_version_timestamp" -> rfi.document[Document].y.version[Long])
+        case None +: Some(activityOid: ObjectId) +: _ =>
           val theActivity = ActivityApi.activityById(activityOid)
           val parentProcess = ActivityApi.parentProcess(activityOid)
-          Map("activity_id" -> activityOid, "activity_name" -> theActivity.name[String],
+          Map("activity_id" -> activityOid.toString, "activity_name" -> theActivity.name[String],
               "process_name" -> parentProcess.name[String], "process_id" -> parentProcess._id[ObjectId],
               "bpmn_name" -> theActivity.bpmn_name[String])
-        case None +: None +: Some(phaseId) +: Nil =>
-          val phaseOid = new ObjectId(phaseId)
+        case None +: None +: Some(phaseOid: ObjectId) +: _ =>
           val thePhase = PhaseApi.phaseById(phaseOid)
-          Map("phase_id" -> phaseOid, "phase_name" -> thePhase.name[String])
-        case _ => throw new IllegalArgumentException(s"Mandatory parameters missing")
+          Map("phase_id" -> phaseOid.toString, "phase_name" -> thePhase.name[String])
+        case _ => Map.empty[String, Any]
       }
       optionalValues ++ Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,

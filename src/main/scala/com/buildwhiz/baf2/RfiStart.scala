@@ -61,14 +61,20 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
             "document" -> Map("id_type" -> "document_id", "document_id" -> documentOid, "version" -> documentTimestamp),
             "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
         case (None, Some(activityId), _) =>
+          val activityOid = new ObjectId(activityId)
+          if (!ActivityApi.exists(activityOid))
+            throw new IllegalArgumentException(s"Bad activity-id: '$activityOid'")
           Map("rfi_type" -> rfiType, "timestamps" -> Map("start" -> millisNow), "subject" -> subject,
             "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
-            "document" -> Map("id_type" -> "activity_id", "activity_id" -> new ObjectId(activityId)),
+            "document" -> Map("id_type" -> "activity_id", "activity_id" -> activityOid),
             "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
         case (None, None, Some(phaseId)) =>
+          val phaseOid = new ObjectId(phaseId)
+          if (!PhaseApi.exists(phaseOid))
+            throw new IllegalArgumentException(s"Bad phase-id: '$phaseOid'")
           Map("rfi_type" -> rfiType, "timestamps" -> Map("start" -> millisNow), "subject" -> subject,
             "status" -> "open", "question" -> question, "project_id" -> projectOid, "priority" -> priority,
-            "document" -> Map("id_type" -> "phase_id", "phase_id" -> new ObjectId(phaseId)),
+            "document" -> Map("id_type" -> "phase_id", "phase_id" -> phaseOid),
             "recipient_roles" -> recipientRoles, "messages" -> Seq(message))
         case _ => throw new IllegalArgumentException(s"Mandatory parameters missing")
       }

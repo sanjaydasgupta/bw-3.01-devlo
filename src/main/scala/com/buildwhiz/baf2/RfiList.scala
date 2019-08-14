@@ -40,6 +40,7 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       val originatorName = PersonApi.fullName(originator)
       val own = originatorOid == user._id[ObjectId]
       val rfiType = if (rfi.has("rfi_type")) rfi.rfi_type[String] else "NA"
+      val referenceType = rfi.document[Document].y.id_type[String]
 
       def reference(name: String): Option[AnyRef] = {
         val refs = rfi.document[Document]
@@ -68,7 +69,8 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,
         "question" -> rfi.question[String], "state" -> rfi.status[String], "assigned_to" -> "Unknown Unknown",
         "origination_date" -> originationTime, "due_date" -> originationTime, "response_date" -> originationTime,
-        "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable, "rfi_type" -> rfiType)
+        "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable, "rfi_type" -> rfiType,
+        "reference_type" -> referenceType.split("_")(0))
     })
     rfiProperties
   }

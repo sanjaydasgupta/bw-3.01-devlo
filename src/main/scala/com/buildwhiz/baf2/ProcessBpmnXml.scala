@@ -170,6 +170,15 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     returnActivities
   }
 
+  @tailrec
+  private def bpmnAncestors(process: DynDoc, currentBpmnName: String, parents: Seq[String] = Nil): Seq[String] = {
+    process.bpmn_timestamps[Many[Document]].find(ts => ts.name[String] == currentBpmnName &&
+        ts.has("parent_name") && ts.parent_name[String].trim.nonEmpty) match {
+      case None => parents
+      case Some(ts: DynDoc) => bpmnAncestors(process, ts.parent_name[String], ts.parent_name[String] +: parents)
+    }
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
@@ -212,7 +221,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val returnValue = new Document("xml", xml).append("variables", processVariables).
         append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
         append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
-        append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName)
+        append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
+        append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName))
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

@@ -38,7 +38,9 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
 
       val rfiType = parameters.get("rfi_type") match {
         case None => "NA"
-        case Some(theType) => theType
+        case Some(theType) if theType.matches("RFI|Issue|Discussion") => theType
+        case Some(other) =>
+          throw new IllegalArgumentException(s"Bad type: '$other'")
       }
       val priority = parameters("priority")
       val question = parameters("question")

@@ -11,11 +11,21 @@ import scala.collection.JavaConverters._
 object ActivityAssignmentsCleanUp {
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
+    val knownProjects: Seq[DynDoc] = BWMongoDB3.projects.find()
+    val knownProjectOids = knownProjects.map(_._id[ObjectId]).asJava
+
+    val knownPhases: Seq[DynDoc] = BWMongoDB3.phases.find()
+    val knownPhaseOids = knownPhases.map(_._id[ObjectId]).asJava
+
     val knownProcesses: Seq[DynDoc] = BWMongoDB3.processes.find()
     val knownProcessOids = knownProcesses.map(_._id[ObjectId]).asJava
 
-    val query = Map("process_id" -> Map($not -> Map($in -> knownProcessOids)))
+    val query = Map($or -> Seq(Map("project_id" -> Map($not -> Map($in -> knownProjectOids))),
+      Map("phase_id" -> Map($not -> Map($in -> knownPhaseOids))),
+      Map("process_id" -> Map($not -> Map($in -> knownProcessOids)))))
+
     val zombieAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(query)
+
     val zombieProcessOids = zombieAssignments.map(_.process_id[ObjectId]).distinct
     if (args.length == 1 && args(0) == "delete") {
       response.getWriter.println(s"""found ${zombieAssignments.length} zombie activity-assignments""")

@@ -6,6 +6,8 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.annotation.tailrec
+
 object ActivityApi {
 
   def activityById(activityOid: ObjectId): DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
@@ -242,6 +244,7 @@ object ActivityApi {
       Map("project_id" -> project._id[ObjectId], "phase_id" -> phaseOid, "process_id" -> processOid)
     }
 
+    @tailrec
     def list(activityOid: ObjectId): Seq[DynDoc] = {
       val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
       if (assignments.nonEmpty) {

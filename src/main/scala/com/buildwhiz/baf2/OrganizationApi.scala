@@ -8,6 +8,9 @@ import org.bson.types.ObjectId
 
 object OrganizationApi {
 
+  def organizationsByIds(organizationOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.organizations.find(Map("_id" -> Map($in -> organizationOids)))
+
   def organizationById(organizationOid: ObjectId): DynDoc =
       BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).head
 

@@ -12,6 +12,9 @@ object PersonApi {
 
   val possibleIndividualRoles: Seq[String] = Seq("Principal", "Admin", "Finance", "Contract", "Lead", "Contributor")
 
+  def personsByIds(personOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids)))
+
   def personById(personOid: ObjectId): DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
 
   def exists(personOid: ObjectId): Boolean = BWMongoDB3.persons.find(Map("_id" -> personOid)).nonEmpty

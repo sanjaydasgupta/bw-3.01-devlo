@@ -57,19 +57,23 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
         case None +: Some(activityOid: ObjectId) +: _ =>
           val theActivity = ActivityApi.activityById(activityOid)
           val parentProcess = ActivityApi.parentProcess(activityOid)
+          val parentPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
           Map("activity_id" -> activityOid.toString, "activity_name" -> theActivity.name[String],
               "process_name" -> parentProcess.name[String], "process_id" -> parentProcess._id[ObjectId],
-              "bpmn_name" -> theActivity.bpmn_name[String])
+              "bpmn_name" -> theActivity.bpmn_name[String], "phase_id" -> parentPhase._id[ObjectId].toString,
+              "phase_name" -> parentPhase.name[String])
         case None +: None +: Some(phaseOid: ObjectId) +: _ =>
           val thePhase = PhaseApi.phaseById(phaseOid)
           Map("phase_id" -> phaseOid.toString, "phase_name" -> thePhase.name[String])
         case _ => Map.empty[String, Any]
       }
+      val theProject = ProjectApi.projectById(rfi.project_id[ObjectId])
       optionalValues ++ Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,
         "question" -> rfi.question[String], "state" -> rfi.status[String], "assigned_to" -> "Unknown Unknown",
         "origination_date" -> originationTime, "due_date" -> originationTime, "response_date" -> originationTime,
-        "project_id" -> rfi.project_id[ObjectId].toString, "closeable" -> closeable, "rfi_type" -> rfiType,
+        "project_id" -> rfi.project_id[ObjectId].toString, "project_name" -> theProject.name[String],
+        "closeable" -> closeable, "rfi_type" -> rfiType,
         "reference_type" -> referenceType.split("_")(0))
     })
     rfiProperties

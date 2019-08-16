@@ -153,7 +153,7 @@ object ActivityApi {
     val assignments = teamAssignment.list(activity._id[ObjectId])
     val activeAssignments = assignments.
         filter(a => a.has("status") && a.status[String].matches("active|started"))
-    if (PersonApi.isBuildWhizAdmin(user._id[ObjectId])) {
+    if (PersonApi.isBuildWhizAdmin(Right(user))) {
       if (activeAssignments.nonEmpty)
         "all"
       else

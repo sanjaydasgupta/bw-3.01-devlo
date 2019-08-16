@@ -10,6 +10,9 @@ import org.bson.types.ObjectId
 
 object PhaseApi {
 
+  def phasesByIds(phaseOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids)))
+
   def phaseById(phaseOid: ObjectId): DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
 
   def exists(phaseOid: ObjectId): Boolean = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).nonEmpty
@@ -18,13 +21,15 @@ object PhaseApi {
 
   def allProcesses(phase: DynDoc): Seq[DynDoc] = {
     val processOids = allProcessOids(phase)
-    BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> processOids)))
+    ProcessApi.processesByIds(processOids)
   }
 
   def allProcesses(phaseOid: ObjectId): Seq[DynDoc] = allProcesses(phaseById(phaseOid))
 
-  def allActivities(phase: DynDoc): Seq[DynDoc] = allProcesses(phase).
-      flatMap(process => ProcessApi.allActivities(process))
+  def allActivities(phase: DynDoc): Seq[DynDoc] = {
+    val activityOids: Seq[ObjectId] = allProcesses(phase).flatMap(_.activity_ids[Many[ObjectId]])
+    ActivityApi.activitiesByIds(activityOids)
+  }
 
   def allActivities(phaseOid: ObjectId): Seq[DynDoc] = allActivities(phaseById(phaseOid))
 

@@ -11,6 +11,9 @@ import org.camunda.bpm.engine.ProcessEngines
 
 object ProcessApi {
 
+  def processesByIds(processOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.processes.find(Map("_id" -> Map($in -> processOids)))
+
   def processById(processOid: ObjectId): DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
 
   def exists(processOid: ObjectId): Boolean = BWMongoDB3.processes.find(Map("_id" -> processOid)).nonEmpty
@@ -19,7 +22,7 @@ object ProcessApi {
 
   def allActivities(process: DynDoc): Seq[DynDoc] = {
     val activityOids = allActivityOids(process)
-    BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+    ActivityApi.activitiesByIds(activityOids)
   }
 
   def allActivities(pOid: ObjectId): Seq[DynDoc] = allActivities(processById(pOid))

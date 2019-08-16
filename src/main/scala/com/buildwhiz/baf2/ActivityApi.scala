@@ -10,6 +10,9 @@ import scala.annotation.tailrec
 
 object ActivityApi {
 
+  def activitiesByIds(activityOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
+
   def activityById(activityOid: ObjectId): DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
     case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
     case Some(activity) => activity

@@ -16,8 +16,7 @@ class OrganizationCreate extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
-      val userOid = user._id[ObjectId]
-      if (!PersonApi.isBuildWhizAdmin(userOid)) {
+      if (!PersonApi.isBuildWhizAdmin(Right(user))) {
         throw new IllegalArgumentException("Not permitted")
       }
 

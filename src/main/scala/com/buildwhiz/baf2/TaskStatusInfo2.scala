@@ -119,7 +119,7 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
         else
           ("Update Status", "Status Update", "Status", activityUpdateReportOptions)
 
-    val isAdmin = PersonApi.isBuildWhizAdmin(userOid)
+    val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
         append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).

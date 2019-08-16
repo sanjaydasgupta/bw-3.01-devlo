@@ -332,7 +332,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
       val parentProject = PhaseApi.parentProject(phaseOid)
       if (!PhaseApi.isAdmin(user._id[ObjectId], PhaseApi.phaseById(phaseOid)) &&
-          !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(user._id[ObjectId]))
+          !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
 
       val allProcessNameAndDoms = getBpmnDomByName(bpmnName)

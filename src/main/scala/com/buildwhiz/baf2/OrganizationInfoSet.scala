@@ -52,7 +52,7 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
 
       val organizationOid = organizationIdAndValue.head._2.asInstanceOf[ObjectId]
       val user: DynDoc = getUser(request)
-      val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val inSameOrganization = if (user.has("organization_id"))
         user.organization_id[ObjectId] == organizationOid
       else

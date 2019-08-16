@@ -31,7 +31,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       val personOid = new ObjectId(parameterMap("person_id"))
 
       val user: DynDoc = getUser(request)
-      val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val inSameOrganization = if (user.has("organization_id"))
         user.organization_id[ObjectId] == personOid
       else

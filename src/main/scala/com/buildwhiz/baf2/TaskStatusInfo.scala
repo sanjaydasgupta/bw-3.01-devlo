@@ -42,7 +42,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
     val changeLog = changeLogItems(user, theActivity)
 
-    val isAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+    val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
 
     val timezone = user.tz[String]
     val scheduledStart = ActivityApi.scheduledStart(theActivity) match {

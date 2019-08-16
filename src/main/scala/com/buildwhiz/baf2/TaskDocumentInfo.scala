@@ -54,7 +54,7 @@ class TaskDocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val specificationDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "specification"))
     val submittalDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "submittal"))
     val contractDocuments = uiFormattedRecords(user, documents.filter(_.category[String] == "contract"))
-    val enableAddButtons = PersonApi.isBuildWhizAdmin(user._id[ObjectId]) ||
+    val enableAddButtons = PersonApi.isBuildWhizAdmin(Right(user)) ||
         ProcessApi.canManage(user._id[ObjectId], process)
     val record = new Document("specification_documents", specificationDocuments).append("check_list", checkList).
         append("required_documents", requiredDocuments).append("additional_documents", additionalDocuments).

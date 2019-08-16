@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 class PersonInfo extends HttpServlet with HttpUtils {
 
   private def isEditable(person: DynDoc, user: DynDoc): Boolean = {
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(user._id[ObjectId])
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val inSameOrganization = if (user.has("organization_id"))
       user.organization_id[ObjectId] == person._id[ObjectId]
     else

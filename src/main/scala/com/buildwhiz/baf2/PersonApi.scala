@@ -16,8 +16,11 @@ object PersonApi {
 
   def exists(personOid: ObjectId): Boolean = BWMongoDB3.persons.find(Map("_id" -> personOid)).nonEmpty
 
-  def isBuildWhizAdmin(personOid: ObjectId): Boolean = {
-    val userRecord = personById(personOid)
+  def isBuildWhizAdmin(who: Either[ObjectId, DynDoc]): Boolean = {
+    val userRecord = who match {
+      case Right(dynDoc) => dynDoc
+      case Left(oid) => personById(oid)
+    }
     userRecord.roles[Many[String]].contains("BW-Admin")
   }
 

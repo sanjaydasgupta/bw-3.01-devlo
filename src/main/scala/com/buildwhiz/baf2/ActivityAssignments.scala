@@ -20,11 +20,26 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
     })
   }
 
+  private def personOid2NameMap(assignments: Seq[DynDoc]): Map[ObjectId, String] = {
+    val personOids: Seq[ObjectId] = assignments.filter(_.has("person_id")).map(_.person_id[ObjectId]).distinct
+    val persons: Seq[DynDoc] = PersonApi.personsByIds(personOids)
+    persons.map(p => (p._id[ObjectId], s"${p.first_name[String]} ${p.last_name[String]}")).toMap
+  }
+
+  private def organizationOid2NameMap(assignments: Seq[DynDoc]): Map[ObjectId, String] = {
+    val organizationOids: Seq[ObjectId] = assignments.filter(_.has("organization_id")).
+        map(_.organization_id[ObjectId]).distinct
+    val organizations: Seq[DynDoc] = OrganizationApi.organizationsByIds(organizationOids)
+    organizations.map(org => (org._id[ObjectId], org.name[String])).toMap
+  }
+
   private def augmentAssignments(assignmentDetails: Seq[(DynDoc, DynDoc, DynDoc, DynDoc, DynDoc)], user: DynDoc):
       Seq[Document] = {
+    val justAssignments = assignmentDetails.map(_._1)
+    val personNameCache = personOid2NameMap(justAssignments)
+    val organizationNameCache = organizationOid2NameMap(justAssignments)
     assignmentDetails.map(detail => {
       val (assignment, project, phase, process, activity) = detail
-      //val activity = ActivityApi.activityById(assignment.activity_id[ObjectId])
       val (processName, processBpmnName, activityBpmnName) =
         (process.name[String], process.bpmn_name[String], activity.bpmn_name[String])
       val fullProcessName = if (processBpmnName == activityBpmnName)
@@ -41,8 +56,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       if (assignment.has("organization_id")) {
         val orgOid = assignment.organization_id[ObjectId]
         assignmentDoc.append("organization_id", orgOid)
-        val org = OrganizationApi.organizationById(orgOid)
-        assignmentDoc.append("organization_name", org.name[String])
+        assignmentDoc.append("organization_name", organizationNameCache(orgOid))
       } else {
         assignmentDoc.append("organization_id", "")
         assignmentDoc.append("organization_name", "")
@@ -50,8 +64,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       if (assignment.has("person_id")) {
         val personOid = assignment.person_id[ObjectId]
         assignmentDoc.append("person_id", personOid)
-        val person = PersonApi.personById(personOid)
-        assignmentDoc.append("person_name", PersonApi.fullName(person))
+        assignmentDoc.append("person_name", personNameCache(personOid))
       } else {
         assignmentDoc.append("person_id", "")
         assignmentDoc.append("person_name", "")
@@ -125,9 +138,12 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       }
 
       val assignments = augmentAssignments(assignmentDetails, user)
+      BWLogger.log(getClass.getName, request.getMethod, "Log-10", request)
 
       val assignmentList = sorter(assignments).map(bson2json).mkString("[", ", ", "]")
+      BWLogger.log(getClass.getName, request.getMethod, "Log-11", request)
       response.getWriter.print(assignmentList)
+      BWLogger.log(getClass.getName, request.getMethod, "Log-12", request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

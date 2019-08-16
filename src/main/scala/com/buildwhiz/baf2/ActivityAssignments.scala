@@ -12,23 +12,32 @@ import scala.collection.JavaConverters._
 
 class ActivityAssignments extends HttpServlet with HttpUtils {
 
-  private def augmentAssignments(assignmentProcessPairs: Seq[(DynDoc, DynDoc)], user: DynDoc): Seq[Document] = {
+  private def userCanManage(user: DynDoc, project: DynDoc, phase: DynDoc, process: DynDoc, activity: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
-    assignmentProcessPairs.map(pair => {
-      val (assignment, process) = pair
-      val activity = ActivityApi.activityById(assignment.activity_id[ObjectId])
+    PersonApi.isBuildWhizAdmin(Right(user)) || Seq(process, phase, project).exists(p => {
+      (p.has("admin_person_id") && p.admin_person_id[ObjectId] == userOid) ||
+      p.assigned_roles[Many[Document]].exists(_.role_name[String].matches("(Project|Phase)-Manager"))
+    })
+  }
+
+  private def augmentAssignments(assignmentDetails: Seq[(DynDoc, DynDoc, DynDoc, DynDoc, DynDoc)], user: DynDoc):
+      Seq[Document] = {
+    assignmentDetails.map(detail => {
+      val (assignment, project, phase, process, activity) = detail
+      //val activity = ActivityApi.activityById(assignment.activity_id[ObjectId])
       val (processName, processBpmnName, activityBpmnName) =
         (process.name[String], process.bpmn_name[String], activity.bpmn_name[String])
-      val qualifiedProcessName = if (processBpmnName == activityBpmnName)
+      val fullProcessName = if (processBpmnName == activityBpmnName)
         processName
       else
         s"$processName ($activityBpmnName)"
-      val canManage = ProcessApi.canManage(userOid, process) && activity.status[String] != "ended"
+      val canManage = userCanManage(user, project, phase, process, activity) && activity.status[String] != "ended"
       val assignmentDoc = new Document("_id", assignment._id[ObjectId]).append("role", assignment.role[String]).
         append("activity_name", activity.name[String]).append("activity_id", activity._id[ObjectId].toString).
         append("process_name", processName).append("can_delete", true).append("can_manage", canManage).
         append("bpmn_name", activityBpmnName).append("process_id", process._id[ObjectId].toString).
-        append("is_main_role", activity.role[String] == assignment.role[String])
+        append("is_main_role", activity.role[String] == assignment.role[String]).
+        append("full_process_name", fullProcessName)
       if (assignment.has("organization_id")) {
         val orgOid = assignment.organization_id[ObjectId]
         assignmentDoc.append("organization_id", orgOid)
@@ -81,25 +90,41 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
 
-      val assignmentProcessPairs: Seq[(DynDoc, DynDoc)] = (optActivityOid, optPhaseOid, optProjectOid) match {
+      val assignmentDetails: Seq[(DynDoc, DynDoc, DynDoc, DynDoc, DynDoc)] =
+          (optActivityOid, optPhaseOid, optProjectOid) match {
         case (Some(activityOid), _, _) =>
-          Seq((ActivityApi.activityById(activityOid), ActivityApi.parentProcess(activityOid)))
+          val parentProcess = ActivityApi.parentProcess(activityOid)
+          val parentPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
+          val parentProject = PhaseApi.parentProject(parentPhase._id[ObjectId])
+          val theActivity = ActivityApi.activityById(activityOid)
+          val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid))
+          activityAssignments.map(aa => (aa, parentProject, parentPhase, parentProcess, theActivity))
         case (None, Some(phaseOid), _) =>
+          val parentProject = PhaseApi.parentProject(phaseOid)
+          val thePhase = PhaseApi.phaseById(phaseOid)
           val processes = PhaseApi.allProcesses(phaseOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
             processes.flatMap(p => ProcessApi.allActivities(p).map(a => (a._id[ObjectId], p))).toMap
+          val activities = PhaseApi.allActivities(phaseOid)
+          val activityOid2Activity: Map[ObjectId, DynDoc] = activities.map(a => (a._id[ObjectId], a)).toMap
           val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("phase_id" -> phaseOid))
-          activityAssignments.map(aa => (aa, activityOid2process(aa.activity_id[ObjectId])))
+          activityAssignments.map(aa => (aa, parentProject, thePhase, activityOid2process(aa.activity_id[ObjectId]),
+            activityOid2Activity(aa.activity_id[ObjectId])))
         case (None, None, Some(projectOid)) =>
+          val theProject = ProjectApi.projectById(projectOid)
+          val phases = ProjectApi.allPhases(theProject).map(phase => (theProject, phase))
           val processes = ProjectApi.allProcesses(projectOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
             processes.flatMap(p => ProcessApi.allActivities(p).map(a => (a._id[ObjectId], p))).toMap
+          val activities = ProjectApi.allActivities(projectOid)
+          val activityOid2Activity: Map[ObjectId, DynDoc] = activities.map(a => (a._id[ObjectId], a)).toMap
           val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid))
-          activityAssignments.map(aa => (aa, activityOid2process(aa.activity_id[ObjectId])))
+          activityAssignments.map(aa => (aa, theProject, ???, activityOid2process(aa.activity_id[ObjectId]),
+            activityOid2Activity(aa.activity_id[ObjectId])))
         case _ => throw new IllegalArgumentException("Required parameters not provided")
       }
 
-      val assignments = augmentAssignments(assignmentProcessPairs, user)
+      val assignments = augmentAssignments(assignmentDetails, user)
 
       val assignmentList = sorter(assignments).map(bson2json).mkString("[", ", ", "]")
       response.getWriter.print(assignmentList)

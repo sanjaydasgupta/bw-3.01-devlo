@@ -14,8 +14,8 @@ class PersonInfo extends HttpServlet with HttpUtils {
 
   private def isEditable(person: DynDoc, user: DynDoc): Boolean = {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-    val inSameOrganization = if (user.has("organization_id"))
-      user.organization_id[ObjectId] == person._id[ObjectId]
+    val inSameOrganization = if (user.has("organization_id") && person.has("organization_id"))
+      user.organization_id[ObjectId] == person.organization_id[ObjectId]
     else
       false
     userIsAdmin || inSameOrganization

@@ -29,11 +29,12 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       val parameterMap = getParameterMap(request)
 
       val personOid = new ObjectId(parameterMap("person_id"))
+      val person = PersonApi.personById(personOid)
 
       val user: DynDoc = getUser(request)
       val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-      val inSameOrganization = if (user.has("organization_id"))
-        user.organization_id[ObjectId] == personOid
+      val inSameOrganization = if (user.has("organization_id") && person.has("organization_id"))
+        user.organization_id[ObjectId] == person.organization_id[ObjectId]
       else
         false
       if (!userIsAdmin && !inSameOrganization)
@@ -57,7 +58,6 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
-      val person = PersonApi.personById(personOid)
 
       val noop = (s: String) => s
       def rating2int(rating: String): Int = {

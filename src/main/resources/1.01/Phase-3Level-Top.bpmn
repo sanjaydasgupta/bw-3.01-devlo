@@ -14,7 +14,7 @@
       </bpmn2:extensionElements>
       <bpmn2:incoming>SequenceFlow_12</bpmn2:incoming>
     </bpmn2:endEvent>
-    <bpmn2:callActivity id="Level2-Caller" name="Level2&#10;Caller" calledElement="Level3">
+    <bpmn2:callActivity id="Level2-Caller" name="Level2&#10;Caller" calledElement="Level2">
       <bpmn2:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-sequence" value="2" />

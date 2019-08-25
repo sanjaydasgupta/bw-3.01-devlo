@@ -1,40 +1,13 @@
 package com.buildwhiz.baf2
 
-import java.io.ByteArrayOutputStream
-
-import org.apache.http.Consts
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, CommandLineProcessor, DateTimeUtils, HttpUtils, MailUtils}
+import com.buildwhiz.utils.{BWLogger, CommandLineProcessor, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.{ContentType, StringEntity}
-import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 
-class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
-
-  private def replyToUser(messageText: String, eventChannel: String, optUser: Option[DynDoc],
-      request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, "replyToUser", "ENTRY", request)
-    val httpClient = HttpClients.createDefault()
-    val post = new HttpPost("https://slack.com/api/chat.postMessage")
-    post.setHeader("Authorization",
-        //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
-      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
-    post.setHeader("Content-Type", "application/json")
-    val bodyText = s"""{"text": "$messageText", "channel": "$eventChannel"}"""
-    post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
-    val response = httpClient.execute(post)
-    val responseContent = new ByteArrayOutputStream()
-    response.getEntity.writeTo(responseContent)
-    val contentString = responseContent.toString
-    val statusLine = response.getStatusLine
-    if (statusLine.getStatusCode != 200)
-      throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
-    BWLogger.log(getClass.getName, "replyToUser", "EXIT-OK", request)
-  }
+class SlackEventCallback extends HttpServlet with HttpUtils {
 
   private def userBySlackId(slackUserId: String): Option[DynDoc] = {
     BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
@@ -54,16 +27,16 @@ class SlackEventCallback extends HttpServlet with HttpUtils with MailUtils with 
               val commandResult = CommandLineProcessor.process(innerEvent.text[String], user)
               BWLogger.log(getClass.getName, "handleCallback",
                 s"Result: $commandResult", request)
-              replyToUser(commandResult, innerEvent.channel[String], Some(user), request)
+              SlackApi.sendToChannel(commandResult, innerEvent.channel[String], request)
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
                   s"Inner-Event type=$eventType NOT handled", request)
-              replyToUser(s"Received event type '$eventType' - Not handled",
-                innerEvent.channel[String], Some(user), request)
+              SlackApi.sendToChannel(s"Received event type '$eventType' - Not handled",
+                innerEvent.channel[String], request)
           }
         case None =>
-          replyToUser(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
-            innerEvent.channel[String], None, request)
+          SlackApi.sendToChannel(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
+            innerEvent.channel[String], request)
       }
     }
     BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)

@@ -165,12 +165,18 @@ object PersonApi {
     parts.filter(_.nonEmpty).mkString("\n")
   }
 
-  def validateNewName(newName: String): Boolean = {
-    val nameLength = newName.length
-    if (newName.trim.length != nameLength)
-      throw new IllegalArgumentException(s"Bad name (has blank padding): '$newName'")
-    if (nameLength > 30 || nameLength == 0)
-      throw new IllegalArgumentException(s"Bad name length: $nameLength")
+  def validateNewName(firstName: String, lastName: String, orgOid: ObjectId): Boolean = {
+    val nameTagValues = Seq(("first", firstName), ("last", lastName))
+    for ((tag, value) <- nameTagValues) {
+      val nameLength = value.length
+      if (value.trim.length != nameLength)
+        throw new IllegalArgumentException(s"Bad $tag-name (has blank padding): '$value'")
+      if (nameLength > 30 || nameLength == 0)
+        throw new IllegalArgumentException(s"Bad $tag-name length: $nameLength")
+    }
+    val others = fetch(optOrganizationOid = Some(orgOid))
+    if (others.exists(other => other.first_name[String] == firstName && other.last_name[String] == lastName))
+      throw new IllegalArgumentException(s"Name conflicts with another person in same organization")
     true
   }
 

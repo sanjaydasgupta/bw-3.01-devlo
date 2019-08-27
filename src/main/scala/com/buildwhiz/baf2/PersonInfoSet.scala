@@ -73,8 +73,8 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Work phone not pre-defined in user record")
 
       val parameterConverters: Map[String, (String => Any, String)] = Map(
-        ("first_name", (rawName => {val n = rawName.trim; PersonApi.validateNewName(n); n}, "first_name")),
-        ("last_name", (rawName => {val n = rawName.trim; PersonApi.validateNewName(n); n}, "last_name")),
+        ("first_name", (_.trim, "first_name")),
+        ("last_name", (_.trim, "last_name")),
         ("work_address", (_.trim, "work_address")),
         ("rating", (rating2int, "rating")),
         ("skills", (_.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava, "skills")),
@@ -98,19 +98,30 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         (paramName, paramConverter, fieldName, exists)
       }).filter(_._4).map(t => (t._3, t._2(parameterMap(t._1))))
 
-      val (personIdAndValue, parameterNamesAndValues) = parameterValues.partition(_._1 == "person_id")
+      val (personIdAndValue, paramNamesAndValues) = parameterValues.partition(_._1 == "person_id")
 
-      if (parameterNamesAndValues.isEmpty)
+      if (paramNamesAndValues.isEmpty)
         throw new IllegalArgumentException("No parameters found")
 
+      val organizationOid = person.organization_id[ObjectId]
+      (paramNamesAndValues.find(_._1 == "first_name"), paramNamesAndValues.find(_._1 == "last_name")) match {
+        case (Some((_, firstName: String)), Some((_, lastName: String))) =>
+          PersonApi.validateNewName(firstName, lastName, organizationOid)
+        case(Some((_, firstName: String)), None) =>
+          PersonApi.validateNewName(firstName, person.last_name[String], organizationOid)
+        case(None, Some((_, lastName: String))) =>
+          PersonApi.validateNewName(person.first_name[String], lastName, organizationOid)
+        case _ =>
+      }
+
       val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personIdAndValue.head._2),
-          Map("$set" -> parameterNamesAndValues.toMap))
+          Map("$set" -> paramNamesAndValues.toMap))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
       response.setStatus(HttpServletResponse.SC_OK)
       val message = s"Changed ${PersonApi.fullName(person)}'s " +
-          s"parameters: ${parameterNamesAndValues.toMap}"
+          s"parameters: ${paramNamesAndValues.toMap}"
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

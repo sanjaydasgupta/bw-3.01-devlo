@@ -165,4 +165,13 @@ object PersonApi {
     parts.filter(_.nonEmpty).mkString("\n")
   }
 
+  def validateNewName(newName: String): Boolean = {
+    val nameLength = newName.length
+    if (newName.trim.length != nameLength)
+      throw new IllegalArgumentException(s"Bad name (has blank padding): '$newName'")
+    if (nameLength > 30 || nameLength == 0)
+      throw new IllegalArgumentException(s"Bad name length: $nameLength")
+    true
+  }
+
 }

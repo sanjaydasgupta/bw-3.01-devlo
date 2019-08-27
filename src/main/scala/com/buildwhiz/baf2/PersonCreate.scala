@@ -29,13 +29,15 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       if (!userIsAdmin && !inSameOrganization)
         throw new IllegalArgumentException("Not permitted")
 
-      val workEmail = parameters("work_email")
+      val workEmail = parameters("work_email").trim
 
       if (PersonApi.fetch(Some(workEmail)).nonEmpty)
         throw new IllegalArgumentException(s"Email '$workEmail' is already used")
 
-      val firstName = parameters("first_name")
-      val lastName = parameters("last_name")
+      val firstName = parameters("first_name").trim
+      PersonApi.validateNewName(firstName)
+      val lastName = parameters("last_name").trim
+      PersonApi.validateNewName(lastName)
 
       val yearsExperience: Double = parameters.get("years_experience") match {
         case Some(experience) =>

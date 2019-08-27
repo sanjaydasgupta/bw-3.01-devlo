@@ -59,7 +59,6 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
 
-      val noop = (s: String) => s
       def rating2int(rating: String): Int = {
         if (rating.matches("[1-5]"))
           rating.toInt
@@ -74,16 +73,16 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Work phone not pre-defined in user record")
 
       val parameterConverters: Map[String, (String => Any, String)] = Map(
-        ("first_name", (noop, "first_name")),
-        ("last_name", (noop, "last_name")),
-        ("work_address", (noop, "work_address")),
+        ("first_name", (rawName => {val n = rawName.trim; PersonApi.validateNewName(n); n}, "first_name")),
+        ("last_name", (rawName => {val n = rawName.trim; PersonApi.validateNewName(n); n}, "last_name")),
+        ("work_address", (_.trim, "work_address")),
         ("rating", (rating2int, "rating")),
         ("skills", (_.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava, "skills")),
         ("individual_roles", (role => processIndividualRoles(role).asJava, "individual_roles")),
         ("years_experience", (_.toDouble, "years_experience")),
         ("active", (_.toBoolean, "enabled")),
-        ("work_email", (noop, s"emails.$workEmailIndex.email")),
-        ("work_phone", (noop, s"phones.$workPhoneIndex.phone")),
+        ("work_email", (_.trim, s"emails.$workEmailIndex.email")),
+        ("work_phone", (_.trim, s"phones.$workPhoneIndex.phone")),
         ("phone_can_text", (_.toBoolean, "phone_can_text")),
         ("person_id", (new ObjectId(_), "person_id"))
       )

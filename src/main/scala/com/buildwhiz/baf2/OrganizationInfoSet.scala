@@ -14,7 +14,6 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
 
-      val noop = (s: String) => s
       def rating2int(rating: String): Int = {
         if (rating.matches("[1-5]"))
           rating.toInt
@@ -23,13 +22,13 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
       }
 
       val parameterConverters: Map[String, String => Any] = Map(
-        ("name", noop),
-        ("reference", noop),
+        ("name", rawName => {val name = rawName.trim; OrganizationApi.validateNewName(name); name}),
+        ("reference", _.trim),
         ("rating", rating2int),
         ("skills", _.split(",").map(_.trim).toSeq.filter(_.trim.nonEmpty).asJava),
         ("years_experience", _.toDouble),
         ("active", _.toBoolean),
-        ("areas_of_operation", noop),
+        ("areas_of_operation", _.trim),
         ("organization_id", new ObjectId(_))
       )
       val parameterMap = getParameterMap(request)

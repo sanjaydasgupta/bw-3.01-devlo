@@ -3,7 +3,6 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import org.bson.Document
 import org.bson.types.ObjectId
 
 object OrganizationApi {
@@ -22,6 +21,15 @@ object OrganizationApi {
     case (None, Some(theName), _) => BWMongoDB3.organizations.find(Map("name" -> theName))
     case (None, None, Some(theSkill)) => BWMongoDB3.organizations.find(Map("skills" -> theSkill))
     case _ => BWMongoDB3.organizations.find()
+  }
+
+  def validateNewName(newOrgName: String): Boolean = {
+    val orgNameLength = newOrgName.length
+    if (newOrgName.trim.length != orgNameLength)
+      throw new IllegalArgumentException(s"Bad organization name (has blank padding): '$newOrgName'")
+    if (orgNameLength > 150 || orgNameLength < 5)
+      throw new IllegalArgumentException(s"Bad organization name length: $orgNameLength")
+    true
   }
 
 }

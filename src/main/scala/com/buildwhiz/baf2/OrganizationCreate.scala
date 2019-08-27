@@ -21,8 +21,6 @@ class OrganizationCreate extends HttpServlet with HttpUtils {
       }
 
       val organizationName = parameters("name").trim
-      if (OrganizationApi.fetch(name=Some(organizationName)).nonEmpty)
-        throw new IllegalArgumentException(s"Organization named '$organizationName' already exists")
       OrganizationApi.validateNewName(organizationName)
       val reference: String = parameters.get("reference") match {
         case Some(ref) => ref

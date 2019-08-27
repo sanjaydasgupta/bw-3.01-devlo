@@ -29,6 +29,8 @@ object OrganizationApi {
       throw new IllegalArgumentException(s"Bad organization name (has blank padding): '$newOrgName'")
     if (orgNameLength > 150 || orgNameLength < 5)
       throw new IllegalArgumentException(s"Bad organization name length: $orgNameLength")
+    if (OrganizationApi.fetch(name=Some(newOrgName)).nonEmpty)
+      throw new IllegalArgumentException(s"Organization named '$newOrgName' already exists")
     true
   }
 

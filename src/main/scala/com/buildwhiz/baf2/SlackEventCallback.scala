@@ -16,7 +16,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
   private def handleCallback(event: DynDoc, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "handleCallback", "ENTRY", request)
     val innerEvent: DynDoc = event.event[Document]
-    if (innerEvent.has("user")) {
+    if (innerEvent.has("user") && !innerEvent.has("bot_id")) {
       val slackUserId = innerEvent.user[String]
       userBySlackId(slackUserId) match {
         case Some(user: DynDoc) =>

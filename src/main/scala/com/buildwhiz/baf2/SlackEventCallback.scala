@@ -22,11 +22,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
         case Some(user: DynDoc) =>
           innerEvent.`type`[String] match {
             case "message" =>
-              BWLogger.log(getClass.getName, "handleCallback",
-                  s"Command: ${innerEvent.text[String]}", request)
               val commandResult = CommandLineProcessor.process(innerEvent.text[String], user)
-              BWLogger.log(getClass.getName, "handleCallback",
-                s"Result: $commandResult", request)
               SlackApi.sendToChannel(commandResult, innerEvent.channel[String], request)
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
@@ -38,8 +34,9 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
           SlackApi.sendToChannel(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
             innerEvent.channel[String], request)
       }
-    }
-    BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)
+    } else
+      BWLogger.log(getClass.getName, "handleCallback", "EXIT (Message Dropped)", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

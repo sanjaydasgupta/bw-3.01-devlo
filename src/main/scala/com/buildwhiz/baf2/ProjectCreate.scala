@@ -22,6 +22,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
 
       val projectName = parameters("name")
+      ProjectApi.validateNewName(projectName)
       val description = parameters.get("description") match {
         case Some(desc) => desc
         case None => s"This is the description of the '$projectName' project."

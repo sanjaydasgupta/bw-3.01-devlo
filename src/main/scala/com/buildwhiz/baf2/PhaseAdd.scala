@@ -26,6 +26,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
 
       val phaseName = parameters("phase_name")
+      PhaseApi.validateNewName(phaseName, parentProjectOid)
       val description = parameters.get("description") match {
         case Some(desc) => desc
         case None => s"No description provided for '$phaseName'"

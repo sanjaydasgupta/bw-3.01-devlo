@@ -92,4 +92,17 @@ object PhaseApi {
       "dormant"
   }
 
+  def validateNewName(newPhaseName: String, projectOid: ObjectId): Boolean = {
+    val phaseNameLength = newPhaseName.length
+    if (newPhaseName.trim.length != phaseNameLength)
+      throw new IllegalArgumentException(s"Bad phase name (has blank padding): '$newPhaseName'")
+    if (phaseNameLength > 150 || phaseNameLength < 5)
+      throw new IllegalArgumentException(s"Bad phase name length: $phaseNameLength (must be 5-150)")
+    val phaseOids: Seq[ObjectId] = ProjectApi.allPhaseOids(ProjectApi.projectById(projectOid))
+    val count = BWMongoDB3.phases.count(Map("name" -> newPhaseName, "_id" -> Map($in -> phaseOids)))
+    if (count > 0)
+      throw new IllegalArgumentException(s"Phase named '$newPhaseName' already exists")
+    true
+  }
+
 }

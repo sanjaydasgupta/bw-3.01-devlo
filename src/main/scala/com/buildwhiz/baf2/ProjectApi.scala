@@ -178,4 +178,15 @@ object ProjectApi extends HttpUtils {
       "dormant"
   }
 
+  def validateNewName(newProjectName: String): Boolean = {
+    val projectNameLength = newProjectName.length
+    if (newProjectName.trim.length != projectNameLength)
+      throw new IllegalArgumentException(s"Bad project name (has blank padding): '$newProjectName'")
+    if (projectNameLength > 150 || projectNameLength < 5)
+      throw new IllegalArgumentException(s"Bad project name length: $projectNameLength (must be 5-150)")
+    if (fetch(name=Some(newProjectName)).nonEmpty)
+      throw new IllegalArgumentException(s"Project named '$newProjectName' already exists")
+    true
+  }
+
 }

@@ -68,7 +68,9 @@ class OrganizationInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
 
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${parameterNamesAndValues.size}", request)
+      val parametersChanged = parameterNamesAndValues.map(_._1).mkString("[", ", ", "]")
+      val message = s"""Updated parameters $parametersChanged of organization $organizationOid"""
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

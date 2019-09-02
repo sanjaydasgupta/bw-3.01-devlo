@@ -51,7 +51,7 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
-      val parametersChanged = mongoDbNameValuePairs.map(_._1).mkString(", ")
+      val parametersChanged = mongoDbNameValuePairs.map(_._1).mkString("[", ", ", "]")
       val message = s"""Updated parameters $parametersChanged of phase $phaseOid"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {

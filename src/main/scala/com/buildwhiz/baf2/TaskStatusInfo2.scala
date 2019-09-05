@@ -119,6 +119,14 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
         else
           ("Update Status", "Status Update", "Status", activityUpdateReportOptions)
 
+    val earliestStartDate = if (actualStart == "NA") {
+      if (scheduledStart == "NA")
+        "NA"
+      else
+        scheduledStart
+    } else
+      actualStart
+
     val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
@@ -136,7 +144,8 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
         append("update_button_text", updateButtonText).
         append("update_panel_title", updatePanelTitle).
         append("display_percent_complete", userCanContribute).
-        append("status_dropdown_title", statusDropdownTitle)
+        append("status_dropdown_title", statusDropdownTitle).
+        append("end_date_not_before", earliestStartDate)
     bson2json(record)
   }
 

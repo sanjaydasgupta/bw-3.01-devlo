@@ -33,6 +33,10 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
           map(paramName => (fullNames(paramName), postData.getString(paramName)))
       if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
+      if (mongoDbNameValuePairs.exists(_._1 == "name")) {
+        val name = mongoDbNameValuePairs.find(_._1 == "name").get._2.asInstanceOf[String]
+        ProjectApi.validateNewName(name)
+      }
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
           Map("$set" -> mongoDbNameValuePairs.toMap))
       if (updateResult.getMatchedCount == 0)

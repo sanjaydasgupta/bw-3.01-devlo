@@ -44,6 +44,11 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       val mongoDbNameValuePairs = parameterNames.filter(postData.containsKey).
           map(paramName => (parameterConverters(paramName)._2,
           parameterConverters(paramName)._1(postData.getString(paramName))))
+      if (parameterNames.contains("name")) {
+        val parentProject = PhaseApi.parentProject(phaseOid)
+        val name = mongoDbNameValuePairs.find(_._1 == "name").get._2.asInstanceOf[String]
+        PhaseApi.validateNewName(name, parentProject._id[ObjectId])
+      }
       if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

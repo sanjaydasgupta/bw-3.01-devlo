@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 class TaskStatusReport2 extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
-        optPercentComplete: Option[String]): Unit = {
+        optPercentComplete: Option[String], endDates: Seq[(String, Long)]): Unit = {
 
     def superUsersAssignment(assignment: DynDoc, user: DynDoc): Boolean = {
       val parentProcess = ActivityApi.parentProcess(assignment.activity_id[ObjectId])
@@ -84,9 +84,11 @@ class TaskStatusReport2 extends HttpServlet with HttpUtils with DateTimeUtils {
         throw new IllegalArgumentException(s"Bad percent-complete: '$optPercentComplete'")
       val comments = parameters("comments")
       val status = parameters("status")
+      val endDates: Seq[(String, Long)] = Seq("end_date_optimistic", "end_date_likely", "end_date_pessimistic").
+          filter(parameters.contains).map(paramName => (paramName, milliseconds(parameters(paramName))))
 
       ActivityApi.addChangeLogEntry(activityOid, s"$status: $comments", Some(user._id[ObjectId]), optPercentComplete)
-      handleNewStatus(status, user, activityOid, comments, optPercentComplete)
+      handleNewStatus(status, user, activityOid, comments, optPercentComplete, endDates)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

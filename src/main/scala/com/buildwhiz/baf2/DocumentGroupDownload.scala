@@ -41,8 +41,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
         totalLength += length
       }
       zipOutputStream.closeEntry()
-      BWLogger.log(getClass.getName, "zipMultipleDocuments",
-        s"ZipOutputStream: added $totalLength bytes to '$fileName'", request)
+      BWLogger.log(getClass.getName, "zipMultipleDocuments", s"Added $totalLength bytes from '$fileName'", request)
       inputStream.close()
     }
     zipOutputStream.close()
@@ -65,7 +64,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
       zipMultipleDocuments(docAndProjTuples, outputStream, request)
       response.setContentType("application/zip")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK (${docAndProjTuples.length} documents)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

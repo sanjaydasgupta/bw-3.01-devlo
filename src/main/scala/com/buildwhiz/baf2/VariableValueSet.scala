@@ -51,7 +51,7 @@ object VariableValueSet extends HttpUtils {
     }
 
     if (theProcess.status[String] != "ended") {
-      if (theProcess.has("process_instance_id")) {
+      if (ProcessApi.isActive(theProcess)) {
         val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
         val processInstanceId = theProcess.process_instance_id[String]
         rts.setVariable(processInstanceId, variables(variableIdx).name[String], typedValue)

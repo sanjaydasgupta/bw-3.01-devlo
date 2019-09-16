@@ -2,25 +2,37 @@ package com.buildwhiz.infra
 
 import java.io.File
 
+import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
 import com.buildwhiz.infra.DynDoc._
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.regions.Regions
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model._
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 object AmazonS3 {
   private val instanceInfo: DynDoc = BWMongoDB3.instance_info.find().head
   private val awsSecret = instanceInfo.aws_secret[String]
-  private def s3Client = new AmazonS3Client(new BasicAWSCredentials("AKIAIM4CBPTFFQOLEA5Q", awsSecret))
+  private object credentialsProvider extends AWSCredentialsProvider {
+    object credentials extends AWSCredentials {
+      override def getAWSAccessKeyId: String = "AKIAIM4CBPTFFQOLEA5Q"
+      override def getAWSSecretKey: String = awsSecret
+    }
+    override def getCredentials: AWSCredentials = credentials
+    override def refresh(): Unit = {}
+  }
+  private lazy val amazonS3ClientBuilder = AmazonS3ClientBuilder.standard()
+  amazonS3ClientBuilder.setCredentials(credentialsProvider)
+  private def s3Client = amazonS3ClientBuilder.withRegion(Regions.DEFAULT_REGION).build()
 
   private val bucketName = "buildwhiz"
 
-  def listObjects: ObjectListing = s3Client.listObjects(bucketName)
-  def listObjects(prefix: String): ObjectListing = s3Client.listObjects(bucketName, prefix)
+  def listObjects: ListObjectsV2Result = s3Client.listObjectsV2(bucketName)
+  def listObjects(prefix: String): ListObjectsV2Result = s3Client.listObjectsV2(bucketName, prefix)
 
   def deleteObject(key: String): Unit = {} //s3Client.deleteObject(bucketName, key)
 
@@ -44,14 +56,16 @@ object AmazonS3 {
   }
 
   def listOrphans: Seq[String] = {
-    val lor = new ListObjectsRequest()
+    val lor = new ListObjectsV2Request()
+    lor.setRequestCredentialsProvider(credentialsProvider)
     lor.setBucketName(bucketName)
+    @tailrec
     def once(acc: Seq[String] = Nil): Seq[String] = {
-      val listing = s3Client.listObjects(lor)
+      val listing = s3Client.listObjectsV2(lor)
       val keys = listing.getObjectSummaries.asScala.map(_.getKey)
       val orphans = keys.filter(isOrphan) ++ acc
       if (listing.isTruncated) {
-        lor.setMarker(listing.getMarker)
+        lor.setContinuationToken(listing.getContinuationToken)
         once(orphans)
       } else
         orphans
@@ -60,7 +74,8 @@ object AmazonS3 {
   }
 
   def getSummary: Summary = {
-    val lor = new ListObjectsRequest()
+    val lor = new ListObjectsV2Request()
+    lor.setRequestCredentialsProvider(credentialsProvider)
     lor.setBucketName(bucketName)
     def getStats(acc: Summary = Summary(0, 0, 0, Long.MaxValue, 0, Long.MaxValue, 0)): Summary = {
       def combine(sum: Summary, s3: S3ObjectSummary): Summary = {
@@ -76,11 +91,11 @@ object AmazonS3 {
         val biggest = math.max(size, sum.biggest)
         Summary(total, newOrphanCount, newTotalSize, smallest, biggest, earliest, latest)
       }
-      val listing = s3Client.listObjects(lor)
+      val listing = s3Client.listObjectsV2(lor)
       val summaries = listing.getObjectSummaries
       val newMap: Summary = summaries.asScala.foldLeft(acc)(combine)
       if (listing.isTruncated) {
-        lor.setMarker(listing.getMarker)
+        lor.setContinuationToken(listing.getContinuationToken)
         getStats(newMap)
       }
       newMap

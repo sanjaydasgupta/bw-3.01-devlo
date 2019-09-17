@@ -11,6 +11,7 @@ import org.bson.types.ObjectId
 class UserPropertySet extends HttpServlet with HttpUtils {
 
   private def setProperty(personOid: ObjectId, property: String, value: String): Unit = {
+    val selectedProjectOrPhase = "selected_((?:project|phase)_id)".r
     val enabledRe = "(enabled)".r
     val emailEnabledRe = "(email_enabled)".r
     val textEnabledRe = "(text_enabled)".r
@@ -24,6 +25,24 @@ class UserPropertySet extends HttpServlet with HttpUtils {
     val phoneCanTextRe = "(phone_can_text)".r
     val role2Re = "(view|edit):(.+)".r
     val setterSpec = (property, value) match {
+      case (selectedProjectOrPhase(propName), id) =>
+        if (propName == "project_id") {
+          try {
+            val oid = new ObjectId(id)
+            Map("$set" -> Map("selected_project_id" -> oid), $unset -> Map("selected_phase_id" -> true))
+          } catch {
+            case _: Throwable =>
+              Map($unset -> Map("selected_project_id" -> true, "selected_phase_id" -> true))
+          }
+        } else {
+          try {
+            val oid = new ObjectId(id)
+            Map("$set" -> Map("selected_phase_id" -> oid))
+          } catch {
+            case _: Throwable =>
+              Map($unset -> Map("selected_phase_id" -> true))
+          }
+        }
       case (textEnabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
       case (emailEnabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))
       case (enabledRe(propName), booleanRe(enabled)) => Map("$set" -> Map(propName -> enabled.toBoolean))

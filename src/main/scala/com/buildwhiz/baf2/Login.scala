@@ -81,9 +81,13 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
             addMenuItems(personRecord)
             if (!personRecord.containsKey("document_filter_labels"))
               personRecord.put("document_filter_labels", Seq.empty[String])
+            if (!personRecord.containsKey("selected_project_id"))
+              personRecord.put("selected_project_id", "all")
+            if (!personRecord.containsKey("selected_phase_id"))
+              personRecord.put("selected_phase_id", "all")
             val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
-                "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size").
-                filter(f => personRecord.containsKey(f))
+                "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
+                "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
             val roleValues: Seq[String] = personRecord.get("roles").asInstanceOf[Many[String]]
             val roles = if (roleValues.contains("BW-Admin")) Seq("BW-Admin") else Seq("NA")
             val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++

@@ -11,6 +11,10 @@
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
 
+  <listener>
+    <listener-class>com.buildwhiz.infra.ServletContextListener</listener-class>
+  </listener>
+
   <servlet>
     <servlet-name>Entry</servlet-name>
     <servlet-class>com.buildwhiz.Entry</servlet-class>
@@ -30,12 +34,13 @@
 
     <url-pattern>/baf2/*</url-pattern>
 
-    <!--url-pattern>/old123/dot/*</url-pattern>
+    <url-pattern>/old123/dot/*</url-pattern>
     <url-pattern>/old123/baf/*</url-pattern>
+    <url-pattern>/old123/baf2/*</url-pattern>
     <url-pattern>/old123/api/*</url-pattern>
     <url-pattern>/old123/web/*</url-pattern>
     <url-pattern>/old123/etc/*</url-pattern>
-    <url-pattern>/old123/tools/*</url-pattern-->
+    <url-pattern>/old123/tools/*</url-pattern>
   </servlet-mapping>
 
   <filter>
@@ -69,13 +74,13 @@
     <dispatcher>REQUEST</dispatcher>
   </filter-mapping>
 
-  <!--filter>
+  <filter>
     <filter-name>CorsFilter</filter-name>
     <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>CorsFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping-->
+  </filter-mapping>
 
 </web-app>

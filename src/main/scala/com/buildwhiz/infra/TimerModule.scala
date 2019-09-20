@@ -1,25 +1,46 @@
 package com.buildwhiz.infra
 
+import java.lang.management.ManagementFactory
+import java.net.InetAddress
 import java.util.{Timer, TimerTask}
 
-import com.buildwhiz.utils.BWLogger
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 
-object TimerModule {
+object TimerModule extends HttpUtils {
+
+  val timerPeriodInMilliseconds: Long = 15 * 60 * 1000L // 15 minutes
+
+  private def logMessage: String = {
+    val startTime = ManagementFactory.getRuntimeMXBean.getStartTime
+    val systemLoadAverage = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
+    val hostname = InetAddress.getLocalHost.getHostName
+    val runtime = sys.runtime
+    val processors = runtime.availableProcessors()
+    val freeMemory = runtime.freeMemory()
+    val maxMemory = runtime.maxMemory()
+    val threadCount = Thread.activeCount()
+    s"Threads: $threadCount, Max-Mem: ${by3(maxMemory)}, Free-Mem: ${by3(freeMemory)}, Host: $hostname, Procs: $processors"
+  }
 
   private def periodicChecks(): Unit = {
-    // perform timer tasks
+    BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"Timer-Tick ($logMessage)")
+    // perform scheduled tasks
   }
 
   private val bwTimer = new Timer(true)
 
   private object timerTask extends TimerTask {
     override def run(): Unit = {
-      BWLogger.log(classOf[TimerTask].getSimpleName, "run", "Timer-Tick")
       periodicChecks()
     }
   }
 
-  def scheduleTimer(): Unit = bwTimer.scheduleAtFixedRate(timerTask, 0, 60000L)
+  def scheduleTimer(): Unit = {
+    periodicChecks()
+    val millisNow = System.currentTimeMillis
+    val millisTillNextTimerTick = timerPeriodInMilliseconds - (millisNow % timerPeriodInMilliseconds)
+    bwTimer.scheduleAtFixedRate(timerTask, millisTillNextTimerTick, timerPeriodInMilliseconds)
+  }
 
   def cancelTimer(): Unit = bwTimer.cancel()
 }

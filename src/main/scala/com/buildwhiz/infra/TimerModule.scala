@@ -19,7 +19,7 @@ object TimerModule extends HttpUtils {
     val freeMemory = runtime.freeMemory()
     val maxMemory = runtime.maxMemory()
     val threadCount = Thread.activeCount()
-    s"Threads: $threadCount, Max-Mem: ${by3(maxMemory)}, Free-Mem: ${by3(freeMemory)}, Host: $hostname, Procs: $processors"
+    s"Threads: $threadCount; Max-Mem: ${by3(maxMemory)}; Free-Mem: ${by3(freeMemory)}; Host: $hostname; Processors: $processors"
   }
 
   private def periodicChecks(): Unit = {

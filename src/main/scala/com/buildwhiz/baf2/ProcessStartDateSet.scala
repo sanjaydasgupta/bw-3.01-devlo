@@ -3,11 +3,11 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-class ProcessStartDateSet extends HttpServlet with HttpUtils {
+class ProcessStartDateSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
@@ -21,7 +21,7 @@ class ProcessStartDateSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("No permission")
       if (theProcess.status[String] != "defined")
         throw new IllegalArgumentException("Wrong state")
-      val dateTime = parameters("datetime").toLong
+      val dateTime = milliseconds(parameters("datetime"))
       val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
         Map($set -> Map(s"timestamps.planned_start" -> dateTime)))
       if (updateResult.getMatchedCount == 0)

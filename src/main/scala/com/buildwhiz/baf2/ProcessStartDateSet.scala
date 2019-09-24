@@ -16,7 +16,9 @@ class ProcessStartDateSet extends HttpServlet with HttpUtils with DateTimeUtils 
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val processOid = new ObjectId(parameters("process_id"))
-      val theProcess: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
+      if (!ProcessApi.exists(processOid))
+        throw new IllegalArgumentException(s"Bad process_id: $processOid")
+      val theProcess: DynDoc = ProcessApi.processById(processOid)
       if (!ProcessApi.canManage(userOid, theProcess))
         throw new IllegalArgumentException("No permission")
       if (theProcess.status[String] != "defined")

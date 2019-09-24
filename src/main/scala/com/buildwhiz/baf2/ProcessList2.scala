@@ -50,11 +50,15 @@ class ProcessList2 extends HttpServlet with HttpUtils with DateTimeUtils {
       val (processes, parentProject, canAddProcess, addButtonToolTipText) = (optPhaseId, optProjectId) match {
         case (Some(phaseId), _) =>
           val phaseOid = new ObjectId(phaseId)
+          if (!PhaseApi.exists(phaseOid))
+            throw new IllegalArgumentException(s"Bad phase_id: $phaseId")
           val canAddProcess = PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
           val toolTipText = if (canAddProcess) "" else "No permission"
           (PhaseApi.allProcesses(phaseOid), PhaseApi.parentProject(phaseOid), canAddProcess, toolTipText)
         case (None, Some(projectId)) =>
           val projectOid = new ObjectId(projectId)
+          if (!ProjectApi.exists(projectOid))
+            throw new IllegalArgumentException(s"Bad project_id: $projectOid")
           val toolTipText = "Can't add process to a project - select a phase within the project"
           (ProjectApi.allProcesses(projectOid), ProjectApi.projectById(projectOid), false, toolTipText)
       }

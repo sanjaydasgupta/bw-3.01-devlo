@@ -32,11 +32,12 @@ class ProcessList2 extends HttpServlet with HttpUtils with DateTimeUtils {
     val parentPhase = ProcessApi.parentPhase(process._id[ObjectId])
     val canLaunch = allActivitiesAssigned && PhaseApi.canManage(user._id[ObjectId], parentPhase) &&
       process.status[String] == "defined"
+    val phaseId = process.phase_id[ObjectId].toString
     new Document("_id", process._id[ObjectId].toString).append("name", process.name[String]).
       append("status", process.status[String]).append("display_status", ProcessApi.displayStatus(process)).
       append("start_time", startTime).append("end_time", endTime).
       append("admin_person_id", adminPersonOid.toString).append("bpmn_name", process.bpmn_name[String]).
-      append("manager", adminName).append("can_launch", canLaunch)
+      append("manager", adminName).append("can_launch", canLaunch).append("phase_id", phaseId)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -54,13 +55,23 @@ class ProcessList2 extends HttpServlet with HttpUtils with DateTimeUtils {
             throw new IllegalArgumentException(s"Bad phase_id: $phaseId")
           val canAddProcess = PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
           val toolTipText = if (canAddProcess) "" else "No permission"
-          (PhaseApi.allProcesses(phaseOid), PhaseApi.parentProject(phaseOid), canAddProcess, toolTipText)
+          val allProcesses = PhaseApi.allProcesses(phaseOid)
+          allProcesses.foreach(_.phase_id = phaseOid)
+          (allProcesses, PhaseApi.parentProject(phaseOid), canAddProcess, toolTipText)
         case (None, Some(projectId)) =>
           val projectOid = new ObjectId(projectId)
           if (!ProjectApi.exists(projectOid))
             throw new IllegalArgumentException(s"Bad project_id: $projectOid")
           val toolTipText = "Can't add process to a project - select a phase within the project"
-          (ProjectApi.allProcesses(projectOid), ProjectApi.projectById(projectOid), false, toolTipText)
+          val allPhases = ProjectApi.allPhases(projectOid)
+          val allProcesses = allPhases.flatMap(phase => {
+            val processes = PhaseApi.allProcesses(phase)
+            processes.foreach(_.phase_id = phase._id[ObjectId])
+            processes
+          })
+          (allProcesses, ProjectApi.projectById(projectOid), false, toolTipText)
+        case (None, None) =>
+          throw new IllegalArgumentException(s"No input parameters ")
       }
 
       val detail = parameters.get("detail") match {

@@ -26,6 +26,9 @@ object ProjectApi extends HttpUtils {
   def allPhases(parentProject: DynDoc): Seq[DynDoc] =
       BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> allPhaseOids(parentProject))))
 
+  def allPhases(parentProjectOid: ObjectId): Seq[DynDoc] =
+      allPhases(projectById(parentProjectOid))
+
   def allProcesses(parentProject: DynDoc): Seq[DynDoc] =
       allPhases(parentProject).flatMap(phase => PhaseApi.allProcesses(phase))
 

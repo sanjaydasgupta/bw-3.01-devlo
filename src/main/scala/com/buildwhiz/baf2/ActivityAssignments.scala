@@ -52,7 +52,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         append("process_name", processName).append("can_delete", true).append("can_manage", canManage).
         append("bpmn_name", activityBpmnName).append("process_id", process._id[ObjectId].toString).
         append("is_main_role", activity.role[String] == assignment.role[String]).
-        append("full_process_name", fullProcessName)
+        append("full_process_name", fullProcessName).append("phase_id", phase._id[ObjectId].toString)
       if (assignment.has("organization_id")) {
         val orgOid = assignment.organization_id[ObjectId]
         assignmentDoc.append("organization_id", orgOid)
@@ -125,25 +125,21 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
             activityOid2Activity(aa.activity_id[ObjectId])))
         case (None, None, Some(projectOid)) =>
           val theProject = ProjectApi.projectById(projectOid)
-          val phases = ProjectApi.allPhases(theProject).map(phase => (theProject, phase))
           val processes = ProjectApi.allProcesses(projectOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
             processes.flatMap(p => ProcessApi.allActivities(p).map(a => (a._id[ObjectId], p))).toMap
           val activities = ProjectApi.allActivities(projectOid)
           val activityOid2Activity: Map[ObjectId, DynDoc] = activities.map(a => (a._id[ObjectId], a)).toMap
           val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid))
-          activityAssignments.map(aa => (aa, theProject, ???, activityOid2process(aa.activity_id[ObjectId]),
-            activityOid2Activity(aa.activity_id[ObjectId])))
+          activityAssignments.map(aa => (aa, theProject, PhaseApi.phaseById(aa.phase_id[ObjectId]),
+              activityOid2process(aa.activity_id[ObjectId]), activityOid2Activity(aa.activity_id[ObjectId])))
         case _ => throw new IllegalArgumentException("Required parameters not provided")
       }
 
       val assignments = augmentAssignments(assignmentDetails, user)
-      BWLogger.log(getClass.getName, request.getMethod, "Log-10", request)
 
       val assignmentList = sorter(assignments).map(bson2json).mkString("[", ", ", "]")
-      BWLogger.log(getClass.getName, request.getMethod, "Log-11", request)
       response.getWriter.print(assignmentList)
-      BWLogger.log(getClass.getName, request.getMethod, "Log-12", request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

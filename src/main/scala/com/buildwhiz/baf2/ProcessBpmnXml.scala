@@ -208,11 +208,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processTimers = getTimers(process, bpmnFileName)
       val processActivities = getActivities(process, bpmnFileName, user)
       val processCalls = getSubProcessCalls(process, bpmnFileName)
-      val startDateTime = if (process.has("timestamps")) {
+      val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
-        if (timestamps.has("planned_start")) timestamps.planned_start[Long] else 0
+        if (timestamps.has("planned_start"))
+          dateTimeString(timestamps.planned_start[Long], Some(user.tz[String])).split(" ").head
+        else
+          ""
       } else {
-        0
+        ""
       }
       val parentBpmnName = process.bpmn_timestamps[Many[Document]].find(ts => ts.name[String] == bpmnFileName) match {
         case None => ""

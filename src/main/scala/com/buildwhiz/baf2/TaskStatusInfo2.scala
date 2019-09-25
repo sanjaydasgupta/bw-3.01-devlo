@@ -91,11 +91,13 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
     val parentProcess = ActivityApi.parentProcess(theActivity._id[ObjectId])
     val userCanManage = ProcessApi.canManage(userOid, parentProcess)
 
-    val activeAssignments = ActivityApi.teamAssignment.list(theActivity._id[ObjectId]).
-        filter(a => a.status[String].matches("active|started") &&
+    val allAssignments = ActivityApi.teamAssignment.list(theActivity._id[ObjectId])
+    val activeAssignments = allAssignments.filter(a => a.status[String].matches("active|started") &&
         (userCanManage || a.person_id[ObjectId] == userOid))
+    val completedAssignmentsExists = allAssignments.exists(!_.status[String].matches("defined|active|started"))
 
     val userCanContribute = activeAssignments.nonEmpty
+    val userCanReview = userCanManage && completedAssignmentsExists
     //val untilStart = theActivity.status[String].matches("defined")
     val untilEnd = theActivity.status[String].matches("defined|running")
 
@@ -103,7 +105,7 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
     val enableEditUntilEnd = userCanManage && untilEnd
     val enableEditButton = userCanManage
 
-    val enableUpdateStatusButton = userCanContribute
+    val enableUpdateStatusButton = userCanContribute || userCanReview
 
     val activityUpdateReportOptions = activeAssignments.flatMap(assignment => assignment.role[String] match {
       case RoleListSecondary.preApproval => Seq("Pre-Approval-OK", "Pre-Approval-Comment")

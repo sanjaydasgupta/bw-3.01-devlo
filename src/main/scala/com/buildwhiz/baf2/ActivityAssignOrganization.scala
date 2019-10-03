@@ -1,7 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
@@ -15,9 +15,10 @@ class ActivityAssignOrganization extends HttpServlet with HttpUtils {
       val userOid = user._id[ObjectId]
       //      if (!ProcessApi.canManage(user._id[ObjectId], theActivity))
       //        throw new IllegalArgumentException("Not permitted")
-      val activityOid = new ObjectId(parameters("activity_id"))
-      if (!ActivityApi.exists(activityOid))
-        throw new IllegalArgumentException(s"Bad activity_id '$activityOid'")
+      val activityOids = parameters("activity_id").split(",").map(id => new ObjectId(id.trim))
+      val badOids = activityOids.filter(!ActivityApi.exists(_))
+      if (badOids.nonEmpty)
+        throw new IllegalArgumentException(s"""Bad activity_id values: '${badOids.mkString(", ")}'""")
 
       val theRole = parameters("role")
       //if (theRole != theActivity.role[String] && !assignments.exists(_.role[String] == theRole))
@@ -27,7 +28,7 @@ class ActivityAssignOrganization extends HttpServlet with HttpUtils {
       if (!OrganizationApi.exists(organizationOid))
         throw new IllegalArgumentException(s"Bad organization_id '$organizationOid'")
 
-      ActivityApi.teamAssignment.organizationAdd(activityOid, theRole, organizationOid, userOid)
+      activityOids.foreach(ActivityApi.teamAssignment.organizationAdd(_, theRole, organizationOid, userOid))
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

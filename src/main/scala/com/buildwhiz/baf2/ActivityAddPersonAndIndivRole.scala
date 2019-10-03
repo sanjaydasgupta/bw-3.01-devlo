@@ -15,9 +15,10 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       val userOid = user._id[ObjectId]
       //      if (!ProcessApi.canManage(user._id[ObjectId], theActivity))
       //        throw new IllegalArgumentException("Not permitted")
-      val activityOid = new ObjectId(parameters("activity_id"))
-      if (!ActivityApi.exists(activityOid))
-        throw new IllegalArgumentException(s"Bad activity_id '$activityOid'")
+      val activityOids = parameters("activity_id").split(",").map(id => new ObjectId(id.trim))
+      val badOids = activityOids.filter(!ActivityApi.exists(_))
+      if (badOids.nonEmpty)
+        throw new IllegalArgumentException(s"""Bad activity_id values: '${badOids.mkString(", ")}'""")
 
       val theRole = parameters("role")
       //if (theRole != theActivity.role[String] && !assignments.exists(_.role[String] == theRole))
@@ -38,8 +39,10 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
 
       val documentAccess = parameters("document_access").split(",").map(_.trim).filter(_.nonEmpty)
 
-      ActivityApi.teamAssignment.personAdd(activityOid, theRole, organizationOid, personOid, individualRole,
-          documentAccess, userOid)
+      activityOids.foreach(
+        ActivityApi.teamAssignment.personAdd(_, theRole, organizationOid, personOid, individualRole,
+            documentAccess, userOid)
+      )
 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

@@ -78,7 +78,11 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val documentIds = parameters("document_ids").split(",").map(_.trim)
-      val projectId = parameters("project_ids")
+      val projectId = (parameters.get("project_id"), parameters.get("project_ids")) match {
+        case (Some(pid), _) => pid
+        case (None, Some(pids)) => pids
+        case _ => throw new IllegalArgumentException(s"project_id not found")
+      }
       val projectIds = documentIds.indices.map(_ => projectId)
       val docAndProjTuples = documentIds.zip(projectIds).map(id => (id._1, id._2))
       val outputStream = response.getOutputStream

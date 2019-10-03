@@ -18,7 +18,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     val documentOid = new ObjectId(documentId)
     val documentRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
     val version: DynDoc = documentRecord.versions[Many[Document]].last
-    val fileName = version.file_name[String]
+    val fileName = if (version.has("file_name")) version.file_name[String] else documentRecord.name[String]
     val timestamp = version.timestamp[Long]
     val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
     val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
@@ -78,7 +78,8 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val documentIds = parameters("document_ids").split(",").map(_.trim)
-      val projectIds = parameters("project_ids").split(",").map(_.trim)
+      val projectId = parameters("project_ids")
+      val projectIds = documentIds.indices.map(_ => projectId)
       val docAndProjTuples = documentIds.zip(projectIds).map(id => (id._1, id._2))
       val outputStream = response.getOutputStream
       zipMultipleDocuments(docAndProjTuples, outputStream, request)

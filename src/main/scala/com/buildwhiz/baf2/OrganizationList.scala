@@ -28,20 +28,20 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
-      val optActivityOid = parameters.get("activity_id").map(new ObjectId(_))
+      val optActivityOids = parameters.get("activity_id").map(_.split(",").map(id => new ObjectId(id.trim)))
       val skillParameter = parameters.get("skill")
 
       val allOrganizations = organizationList()
 
-      val organizations: Seq[Document] = (skillParameter, optActivityOid, optPhaseOid, optProjectOid) match {
+      val organizations: Seq[Document] = (skillParameter, optActivityOids, optPhaseOid, optProjectOid) match {
         case (Some(skill), _, _, _) =>
           if (RoleListSecondary.secondaryRoles.contains(skill))
             allOrganizations
           else
             organizationList(skillParameter)
-        case (_, Some(activityOid), _, _) => allOrganizations
-        case (_, _, Some(phaseOid), _) => allOrganizations
-        case (_, _, _, Some(projectOid)) => allOrganizations
+        case (_, Some(_), _, _) => allOrganizations
+        case (_, _, Some(_), _) => allOrganizations
+        case (_, _, _, Some(_)) => allOrganizations
         case _ => allOrganizations
       }
       //val organizations: Seq[DynDoc] = Seq.empty[DynDoc]

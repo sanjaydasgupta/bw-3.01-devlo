@@ -23,21 +23,37 @@ object TimerModule extends HttpUtils {
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"15-Minute-Tick ($logMessage)")
-    //BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"15-Minute-Tick")
+    val fml = freeMemoryLog.mkString(", ")
+    val mml = maxMemoryLog.mkString(", ")
+    val sla = sysLoadAvgLog.mkString(", ")
+    val logs = s"Free-Mem: $fml; Max-Mem: $mml; Sys-Load: $sla"
+    BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"15-Minute-Tick ($logs)")
     val millisecondsInDay = 24 * 60 * 60 * 1000L
     val msInDay = ms % millisecondsInDay
     if (msInDay > millisecondsInDay - 5000 || msInDay < 20000)
       newDay(ms)
   }
 
+  private val freeMemoryLog: Array[Long] = (1 to 15).map(_ => 0L).toArray
+  private val maxMemoryLog: Array[Long] = (1 to 15).map(_ => 0L).toArray
+  private val sysLoadAvgLog: Array[Double] = (1 to 15).map(_ => 0d).toArray
+
+  private def storePerformanceData(msIn15Minutes: Int): Unit = {
+    val idx = msIn15Minutes / 60000
+    val runtime = sys.runtime
+    freeMemoryLog(idx) = runtime.freeMemory()
+    maxMemoryLog(idx) = runtime.maxMemory()
+    sysLoadAvgLog(idx) = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
+  }
+
   private def timerTicks(): Unit = {
     //BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"Timer-Tick ($logMessage)")
     val ms: Long = System.currentTimeMillis()
-    val millisecondsIn15Minutes = 15 * 60 * 1000L
-    val msIn15Minutes = ms % millisecondsIn15Minutes
+    val millisecondsIn15Minutes = 15 * 60 * 1000
+    val msIn15Minutes = (ms % millisecondsIn15Minutes).asInstanceOf[Int]
     if (msIn15Minutes > millisecondsIn15Minutes - 5000 || msIn15Minutes < 20000)
       fifteenMinutes(ms)
+    storePerformanceData(msIn15Minutes)
     // perform scheduled tasks
   }
 

@@ -14,30 +14,20 @@ object TimerModule extends HttpUtils {
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
-    val fml = freeMemoryLog.mkString(", ")
-    val mml = maxMemoryLog.mkString(", ")
-    val sla = sysLoadAvgLog.mkString(", ")
-    val logs = s"Free-Mem: $fml; Max-Mem: $mml; Sys-Load: $sla; LastIndex: $lastIndex"
-    BWLogger.log(classOf[TimerTask].getSimpleName, "15-Minute-Tick", logs)
+    BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", "15-Minute-Tick", performanceData(): _*)
     val millisecondsInDay = 24 * 60 * 60 * 1000L
     val msInDay = ms % millisecondsInDay
     if (msInDay > millisecondsInDay - 5000 || msInDay < 20000)
       newDay(ms)
   }
 
-  private val freeMemoryLog: Array[Long] = (1 to 15).map(_ => 0L).toArray
-  private val maxMemoryLog: Array[Long] = (1 to 15).map(_ => 0L).toArray
-  private val sysLoadAvgLog: Array[Double] = (1 to 15).map(_ => 0d).toArray
-  private var lastIndex = 0
-
-
-  private def storePerformanceData(msIn15Minutes: Int): Unit = {
-    val idx = msIn15Minutes / 60000
+  private def performanceData(): Seq[(String, String)] = {
     val runtime = sys.runtime
-    freeMemoryLog(idx) = runtime.freeMemory()
-    maxMemoryLog(idx) = runtime.maxMemory()
-    sysLoadAvgLog(idx) = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
-    lastIndex = idx
+    val (freeMemory, maxMemory) = (runtime.freeMemory(), runtime.maxMemory())
+    val sysLoadAvg = ManagementFactory.getOperatingSystemMXBean.getSystemLoadAverage
+    val threadCount = Thread.activeCount()
+    Seq("Free-Memory" -> freeMemory, "Max-Memory" -> maxMemory, "Thread-Count" -> threadCount,
+      "Sys-Load-Avg" -> sysLoadAvg).map(kv => (kv._1, kv._2.toString))
   }
 
   private def timerTicks(): Unit = {
@@ -45,7 +35,6 @@ object TimerModule extends HttpUtils {
     val ms: Long = System.currentTimeMillis()
     val millisecondsIn15Minutes = 15 * 60 * 1000
     val msModulo15Minutes = (ms % millisecondsIn15Minutes).asInstanceOf[Int]
-    storePerformanceData(msModulo15Minutes)
     if (msModulo15Minutes > millisecondsIn15Minutes - 5000 || msModulo15Minutes < 20000)
       fifteenMinutes(ms)
     // perform scheduled tasks

@@ -1,8 +1,8 @@
 package com.buildwhiz.utils
 
-import java.util.{HashMap => JHashMap, Map => JMap}
-import javax.servlet.http.HttpServletRequest
+import java.util.{HashMap => JHashMap}
 
+import javax.servlet.http.HttpServletRequest
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
@@ -11,6 +11,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 object BWLogger extends HttpUtils {
@@ -31,11 +32,8 @@ object BWLogger extends HttpUtils {
     traceLogCollection.insertOne(record)
   }
 
-  private def log(className: String, methodName: String, eventName: String, variables: JMap[String, AnyRef]): Unit =
-    log(className, methodName, eventName, (if (variables == null) Nil else
-      variables.asScala.toSeq.map(p => (p._1, if (p._2 == null) "" else p._2.toString))): _*)
-
   def log(className: String, methodName: String, eventName: String, de: DelegateExecution): Unit = {
+    @tailrec
     def getAncestors(delegateExecution: DelegateExecution, ancestors: Seq[String] = Seq.empty[String]): Seq[String] = {
       delegateExecution.getSuperExecution match {
         case null => ancestors
@@ -45,14 +43,14 @@ object BWLogger extends HttpUtils {
           getAncestors(superDelegateExecution, s"$parentProcess:$parentActivity" +: ancestors)
       }
     }
-    val varNames = de.getVariables
-    varNames.asScala("CurrentActivityName") = de.getCurrentActivityName
-    varNames.asScala("ProcessDefinitionId") = de.getProcessDefinitionId
-    varNames.asScala("EventName") = de.getEventName
+    val varNames = de.getVariables.asScala
+    varNames("CurrentActivityName") = de.getCurrentActivityName
+    varNames("ProcessDefinitionId") = de.getProcessDefinitionId
+    varNames("EventName") = de.getEventName
     val bpmnAncestors = getAncestors(de)
     if (bpmnAncestors.nonEmpty)
-      varNames.asScala("BPMN-Ancestors") = bpmnAncestors.mkString("[", ", ", "]")
-    log(className, methodName, eventName, varNames)
+      varNames("BPMN-Ancestors") = bpmnAncestors.mkString("[", ", ", "]")
+    log(className, methodName, eventName, varNames.map(kv => (kv._1, kv._2.toString)).toSeq: _*)
   }
 
   def audit(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {

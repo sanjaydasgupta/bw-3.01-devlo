@@ -10,6 +10,10 @@ import org.bson.types.ObjectId
 
 object ProjectApi extends HttpUtils {
 
+  def listProjects(): Seq[DynDoc] = {
+    BWMongoDB3.projects.find()
+  }
+
   def projectById(projectOid: ObjectId): DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
 
   def exists(projectOid: ObjectId): Boolean = BWMongoDB3.projects.find(Map("_id" -> projectOid)).nonEmpty
@@ -191,5 +195,13 @@ object ProjectApi extends HttpUtils {
       throw new IllegalArgumentException(s"Project named '$newProjectName' already exists")
     true
   }
+
+  def timeZone(project: DynDoc): String = {
+    if (project.has("tz"))
+      project.tz[String]
+    else
+      PersonApi.personById(project.admin_person_id[ObjectId]).tz[String]
+  }
+
 
 }

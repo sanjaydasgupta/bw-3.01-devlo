@@ -1,24 +1,40 @@
 package com.buildwhiz.infra
 
 import java.lang.management.ManagementFactory
-import java.util.{Timer, TimerTask}
+import java.util.{Calendar, Timer, TimerTask, TimeZone}
 
+import com.buildwhiz.baf2.ProjectApi
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 
 object TimerModule extends HttpUtils {
 
   val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
 
-  private def newDay(ms: Long): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"Midnight-Tick")
+  private def fridayMorning(ms: Long, project: DynDoc): Unit = {
+    BWLogger.log(classOf[TimerTask].getSimpleName, "fridayMorning",
+        s"Friday morning for project ${project.name[String]}")
+  }
+
+  private def newDay(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
+    BWLogger.log(classOf[TimerTask].getSimpleName, "newDay", s"Midnight for project '${project.name[String]}'")
+    val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+    if (dayOfWeek == Calendar.FRIDAY)
+      fridayMorning(ms, project)
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
     BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", "15-Minute-Tick", performanceData(): _*)
-    val millisecondsInDay = 24 * 60 * 60 * 1000L
-    val msInDay = ms % millisecondsInDay
-    if (msInDay > millisecondsInDay - 5000 || msInDay < 20000)
-      newDay(ms)
+    val projects = ProjectApi.listProjects()
+    for (project <- projects) {
+      val calendar = Calendar.getInstance(TimeZone.getTimeZone(project.tz[String]))
+      calendar.setTimeInMillis(ms)
+      val hours = calendar.get(Calendar.HOUR_OF_DAY)
+      if (hours == 0) {
+        val minutes = calendar.get(Calendar.MINUTE)
+        if (minutes == 0)
+          newDay(ms, project, calendar)
+      }
+    }
   }
 
   private def performanceData(): Seq[(String, String)] = {

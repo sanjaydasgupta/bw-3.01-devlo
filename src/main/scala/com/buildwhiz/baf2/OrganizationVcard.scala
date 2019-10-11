@@ -34,12 +34,7 @@ class OrganizationVcard extends HttpServlet with HttpUtils {
     try {
       val organizationOid = new ObjectId(parameters("organization_id"))
       val organization = OrganizationApi.organizationById(organizationOid)
-      val fileName = organization.name[String].toList.map({
-        case '\\' => '|'
-        case '/' => '|'
-        case ' ' => '-'
-        case c => c
-      }).mkString
+      val fileName = organization.name[String].replaceAll("[^a-zA-Z0-9-]+", "-")
       val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("organization_id" -> organizationOid))
       val vCards = persons.map(person => PersonApi.vCard(Right(person)))
       val outputStream = response.getOutputStream

@@ -30,7 +30,7 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
         """.stripMargin
       val message = s"Password changed on '$instanceName'"
       sendMail(Seq(userOid), message, mailBody, Some(request))
-      SlackApi.sendToUser(message, Left(user), request)
+      SlackApi.sendToUser(message, Left(user), Some(request))
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
       val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"

@@ -29,7 +29,8 @@ object SlackApi {
     }
   }
 
-  def sendToUser(messageText: String, user: Either[DynDoc, ObjectId], request: HttpServletRequest): Unit = {
+  def sendToUser(messageText: String, user: Either[DynDoc, ObjectId], request: Option[HttpServletRequest] = None):
+      Unit = {
     BWLogger.log(getClass.getName, "sendToUser", "ENTRY", request)
     val personRecord: DynDoc = user match {
       case Left(dd) => dd
@@ -45,7 +46,7 @@ object SlackApi {
     }
   }
 
-  def sendToChannel(messageText: String, channel: String, request: HttpServletRequest): Unit = {
+  def sendToChannel(messageText: String, channel: String, request: Option[HttpServletRequest] = None): Unit = {
     BWLogger.log(getClass.getName, "sendToChannel", "ENTRY", request)
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")

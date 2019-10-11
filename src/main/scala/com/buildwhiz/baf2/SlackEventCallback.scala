@@ -23,16 +23,16 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
           innerEvent.`type`[String] match {
             case "message" =>
               val commandResult = CommandLineProcessor.process(innerEvent.text[String], user)
-              SlackApi.sendToChannel(commandResult, innerEvent.channel[String], request)
+              SlackApi.sendToChannel(commandResult, innerEvent.channel[String], Some(request))
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
                   s"Inner-Event type=$eventType NOT handled", request)
               SlackApi.sendToChannel(s"Received event type '$eventType' - Not handled",
-                innerEvent.channel[String], request)
+                innerEvent.channel[String], Some(request))
           }
         case None =>
           SlackApi.sendToChannel(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
-            innerEvent.channel[String], request)
+            innerEvent.channel[String], Some(request))
       }
       BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)
     } else

@@ -33,13 +33,19 @@ class OrganizationVcard extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {
       val organizationOid = new ObjectId(parameters("organization_id"))
-      if (!OrganizationApi.exists(organizationOid))
-        throw new IllegalArgumentException(s"Bad organization_id: '$organizationOid'")
+      val organization = OrganizationApi.organizationById(organizationOid)
+      val fileName = organization.name[String].toList.map({
+        case '\\' => '|'
+        case '/' => '|'
+        case ' ' => '-'
+        case c => c
+      }).mkString
       val persons: Seq[DynDoc] = BWMongoDB3.persons.find(Map("organization_id" -> organizationOid))
       val vCards = persons.map(person => PersonApi.vCard(Right(person)))
       val outputStream = response.getOutputStream
-      zipVCards(vCards, outputStream, request)
       response.setContentType("application/zip")
+      response.setHeader("Content-Disposition", s"attachment; filename=$fileName.zip")
+      zipVCards(vCards, outputStream, request)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
     } catch {

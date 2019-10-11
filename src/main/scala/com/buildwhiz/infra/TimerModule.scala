@@ -1,25 +1,44 @@
 package com.buildwhiz.infra
 
 import java.lang.management.ManagementFactory
-import java.util.{Calendar, Timer, TimerTask, TimeZone}
+import java.util.{Calendar, TimeZone, Timer, TimerTask}
 
-import com.buildwhiz.baf2.ProjectApi
+import com.buildwhiz.baf2.{ActivityApi, ProcessApi, ProjectApi, SlackApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import org.bson.types.ObjectId
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object TimerModule extends HttpUtils {
 
   val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
 
   private def fridayMorning(ms: Long, project: DynDoc): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "fridayMorning",
-        s"Friday morning for project ${project.name[String]}")
+    BWLogger.log(classOf[TimerTask].getSimpleName, "fridayMorning", s"Friday for project ${project.name[String]}")
+    // Perform any project-specific end-of-week activities here
+    val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
+    val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+    for (activity <- runningActivities) {
+      val assignments = ActivityApi.teamAssignment.list(activity._id[ObjectId])
+      val mainAssignment = assignments.find(a => a.role[String] == activity.role[String] &&
+          a.status[String].matches("running|active"))
+      mainAssignment match {
+        case Some(assignment) => // Send status update request by Slack/mail
+          val personOid = assignment.person_id[ObjectId]
+          SlackApi.sendToUser(s"Time to file status report for '${activity.name[String]}'!", Right(personOid))
+        case _ =>
+      }
+    }
   }
 
   private def newDay(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "newDay", s"Midnight for project '${project.name[String]}'")
+    BWLogger.log(classOf[TimerTask].getSimpleName, "newDay",
+        s"Midnight for project '${project.name[String]}' (${project.tz[String]})")
     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
     if (dayOfWeek == Calendar.FRIDAY)
       fridayMorning(ms, project)
+    // Perform any project-specific daily activities here
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
@@ -35,6 +54,7 @@ object TimerModule extends HttpUtils {
           newDay(ms, project, calendar)
       }
     }
+    // Perform any global quarter-hourly activities here
   }
 
   private def performanceData(): Seq[(String, String)] = {
@@ -47,12 +67,11 @@ object TimerModule extends HttpUtils {
   }
 
   private def timerTicks(): Unit = {
-    //BWLogger.log(classOf[TimerTask].getSimpleName, "run", s"Timer-Tick ($logMessage)")
     val ms: Long = System.currentTimeMillis()
     val millisecondsIn15Minutes = 15 * 60 * 1000
     val msModulo15Minutes = (ms % millisecondsIn15Minutes).asInstanceOf[Int]
     if (msModulo15Minutes > millisecondsIn15Minutes - 5000 || msModulo15Minutes < 20000)
-      fifteenMinutes(ms)
+      Future {fifteenMinutes(ms)}
     // perform scheduled tasks
   }
 

@@ -12,8 +12,12 @@ class PersonVcard extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val personOid = new ObjectId(parameters("person_id"))
-      response.getWriter.print(PersonApi.vCard(Left(personOid)))
+      val person = PersonApi.personById(personOid)
+      response.getWriter.print(PersonApi.vCard(Right(person)))
       response.setContentType("text/directory")
+      val fileName = s"${person.first_name[String]}-${person.last_name[String]}".toList.
+        filter(c => c.isLetter || c.isDigit || c == '-').mkString
+      response.setHeader("Content-Disposition", s"attachment; filename=$fileName.vcf")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

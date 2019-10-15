@@ -123,6 +123,8 @@ object ProcessApi {
       val timestamps: DynDoc = process.timestamps[Document]
       if (timestamps.has("end"))
         "ended"
+      else if (timestamps.has("start"))
+        "zombie"
       else
         "dormant"
     }

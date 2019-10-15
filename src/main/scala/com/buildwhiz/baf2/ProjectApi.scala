@@ -178,11 +178,15 @@ object ProjectApi extends HttpUtils {
       throw new IllegalArgumentException(s"Bad operation: '$operation'")
   }
 
+  def hasZombies(project: DynDoc): Boolean = allPhases(project).exists(PhaseApi.hasZombies)
+
   def displayStatus(project: DynDoc): String = {
-    if (isActive(project))
-      "active"
-    else
-      "dormant"
+    (isActive(project), hasZombies(project)) match {
+      case (false, false) => "dormant"
+      case (false, true) => "has-zombie"
+      case (true, false) => "active"
+      case (true, true) => "active+zombie"
+    }
   }
 
   def validateNewName(newProjectName: String): Boolean = {

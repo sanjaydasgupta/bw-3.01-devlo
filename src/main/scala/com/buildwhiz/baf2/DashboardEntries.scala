@@ -36,7 +36,7 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         s"phase_id=${pair._2._id[ObjectId]}",
         s"phase_name=${pair._2.name[String]}"
       ).mkString("?", "&", "")
-      val phaseStatus = if (PhaseApi.isActive(pair._2)) "active" else "dormant"
+      val phaseStatus = PhaseApi.displayStatus(pair._2)
       val statusTime = pair._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
       Map(

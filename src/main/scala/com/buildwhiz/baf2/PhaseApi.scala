@@ -85,11 +85,15 @@ object PhaseApi {
     phases.filter(phase => hasRole(personOid, phase))
   }
 
+  def hasZombies(phase: DynDoc): Boolean = allProcesses(phase).exists(ProcessApi.isZombie)
+
   def displayStatus(phase: DynDoc): String = {
-    if (isActive(phase))
-      "active"
-    else
-      "dormant"
+    (isActive(phase), hasZombies(phase)) match {
+      case (false, false) => "dormant"
+      case (false, true) => "has-zombie"
+      case (true, false) => "active"
+      case (true, true) => "active+zombie"
+    }
   }
 
   def validateNewName(newPhaseName: String, projectOid: ObjectId): Boolean = {

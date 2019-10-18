@@ -36,7 +36,7 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         s"phase_id=${pair._2._id[ObjectId]}",
         s"phase_name=${pair._2.name[String]}"
       ).mkString("?", "&", "")
-      val phaseStatus = PhaseApi.displayStatus(pair._2)
+      val phaseDisplayStatus = PhaseApi.displayStatus(pair._2)
       val statusTime = pair._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
       Map(
@@ -57,7 +57,8 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
         "expenses_so_far" -> Map("value" -> "000", "url" -> ("/etc" + params + "&type=So-Far")),
         "excess_expenses_so_far" -> Map("value" -> "000", "url" -> ("/etc" + params + "&type=Excess-so-Far")),
 
-        "status_date" -> statusDate, "status" -> phaseStatus, "due_date" -> "0000-00-00"
+        "status_date" -> statusDate, "status" -> phaseDisplayStatus, "due_date" -> "0000-00-00",
+        "display_status" -> phaseDisplayStatus
       )
     })
 

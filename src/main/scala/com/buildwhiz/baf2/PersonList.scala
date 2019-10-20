@@ -9,17 +9,22 @@ class PersonList extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
-    val skillOption: Option[String] = parameters.get("skill") match {
-      case Some(skill) =>
-        if (RoleListSecondary.secondaryRoles.contains(skill))
-          None
-        else
-          Some(skill)
-      case other => other
-    }
-    val organisationOidOption = parameters.get("organization_id").map(new ObjectId(_))
     try {
-      val persons = PersonApi.fetch(None, organisationOidOption, skillOption)
+      val skillOption: Option[String] = parameters.get("skill") match {
+        case Some(skill) =>
+          if (RoleListSecondary.secondaryRoles.contains(skill))
+            None
+          else
+            Some(skill)
+        case other => other
+      }
+      val organisationOidOption = parameters.get("organization_id").map(new ObjectId(_))
+      val projectOidOption = parameters.get("project_id").map(new ObjectId(_))
+      val phaseOidOption = parameters.get("phase_id").map(new ObjectId(_))
+      val processOidOption = parameters.get("process_id").map(new ObjectId(_))
+      val activityOidOption = parameters.get("activity_id").map(new ObjectId(_))
+      val persons = PersonApi.fetch(None, organisationOidOption, skillOption, projectOidOption, phaseOidOption,
+          processOidOption, activityOidOption)
       val personDocuments = persons.map(PersonApi.person2document).sortBy(p => p.getString("name"))
       response.getWriter.print(personDocuments.map(bson2json).mkString("[", ",", "]"))
       response.setContentType("application/json")

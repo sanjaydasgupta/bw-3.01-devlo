@@ -34,18 +34,37 @@ object PersonApi {
         person1.organization_id[ObjectId] == person2.organization_id[ObjectId]
   }
 
-  def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None, optSkill: Option[String] = None): Seq[DynDoc] = {
-    (optWorkEmail, optOrganizationOid, optSkill) match {
-      case (Some(workEmail), _, _) =>
-        BWMongoDB3.persons.find(Map("emails" -> Map("$elemMatch" ->
-          Map("$eq" -> Map("type" -> "work", "email" -> workEmail)))))
-      case (None, Some(organizationOid), Some(skill)) =>
-        BWMongoDB3.persons.find(Map("organization_id" -> organizationOid, "skills" -> skill))
-      case (None, Some(organizationOid), None) =>
-        BWMongoDB3.persons.find(Map("organization_id" -> organizationOid))
-      case (None, None, Some(skill)) => BWMongoDB3.persons.find(Map("skills" -> skill))
-      case _ => BWMongoDB3.persons.find()
+  def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None,
+      optSkill: Option[String] = None, optProjectOid: Option[ObjectId] = None, optPhaseOid: Option[ObjectId] = None,
+      optProcessOid: Option[ObjectId] = None, optActivityOid: Option[ObjectId] = None): Seq[DynDoc] = {
+    def assigneeOid(assignment: DynDoc): Option[ObjectId] =
+        if (assignment.has("person_id")) Some(assignment.person_id[ObjectId]) else None
+    val assigneeOids: (Boolean, Seq[ObjectId]) = (optProjectOid, optPhaseOid, optProcessOid, optActivityOid) match {
+      case (_, _, _, Some(activityOid)) =>
+        (true, BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid)).flatMap(assigneeOid))
+      case (_, _, Some(processOid), None) =>
+        (true, BWMongoDB3.activity_assignments.find(Map("process_id" -> processOid)).flatMap(assigneeOid))
+      case (_, Some(phaseOid), None, None) =>
+        (true, BWMongoDB3.activity_assignments.find(Map("phase_id" -> phaseOid)).flatMap(assigneeOid))
+      case (Some(projectOid), None, None, None) =>
+        (true, BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid)).flatMap(assigneeOid))
+      case _ => (false, Nil)
     }
+    val query1: Map[String, Any] = (optWorkEmail, optOrganizationOid, optSkill) match {
+      case (Some(workEmail), _, _) =>
+        Map("emails" -> Map($elemMatch -> Map("$eq" -> Map("type" -> "work", "email" -> workEmail))))
+      case (None, Some(organizationOid), Some(skill)) =>
+        Map("organization_id" -> organizationOid, "skills" -> skill)
+      case (None, Some(organizationOid), None) =>
+        Map("organization_id" -> organizationOid)
+      case (None, None, Some(skill)) => Map("skills" -> skill)
+      case _ => Map.empty
+    }
+    val query2: Map[String, Any] = if (assigneeOids._1)
+      query1 ++ Map("_id" -> Map($in -> assigneeOids._2.distinct))
+    else
+      query1
+    BWMongoDB3.persons.find(query2)
   }
 
   def deleteDocumentTag(personOid: ObjectId, tagName: String): Unit = {

@@ -17,7 +17,7 @@ class ProjectList extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       val projects: Seq[DynDoc] = if (isAdmin) {
         BWMongoDB3.projects.find()
       } else {

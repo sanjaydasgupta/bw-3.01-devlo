@@ -1,6 +1,7 @@
 package com.buildwhiz.baf
 
 import com.buildwhiz.api.Project
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
@@ -44,7 +45,7 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
       val parentProject: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       if (!isAdmin && freshUserRecord._id[ObjectId] != parentProject.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
       val deAssignedPersonOid = thePhase.admin_person_id[ObjectId]

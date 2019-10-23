@@ -17,7 +17,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       if (!isAdmin)
         throw new IllegalArgumentException("Not permitted")
 

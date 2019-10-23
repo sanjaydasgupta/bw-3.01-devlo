@@ -43,7 +43,7 @@ class ProjectAdministratorSet extends HttpServlet with HttpUtils with MailUtils 
       val projectOid = new ObjectId(parameters("project_id"))
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val user: DynDoc = getUser(request)
-      if (!user.roles[Many[String]].contains("BW-Admin"))
+      if (!PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
       val deAssignedPersonOid = theProject.admin_person_id[ObjectId]
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),

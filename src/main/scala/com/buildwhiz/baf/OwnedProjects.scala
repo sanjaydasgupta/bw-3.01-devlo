@@ -1,6 +1,7 @@
 package com.buildwhiz.baf
 
 import com.buildwhiz.api.Project
+import com.buildwhiz.baf2.PersonApi
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
@@ -18,7 +19,7 @@ class OwnedProjects extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       val query: Document = if (isAdmin) {
         Map.empty[String, Any]
       } else {

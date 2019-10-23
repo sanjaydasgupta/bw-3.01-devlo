@@ -1,5 +1,6 @@
 package com.buildwhiz.baf
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc.Many
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
@@ -18,7 +19,7 @@ class UserPasswordRenew extends HttpServlet with HttpUtils with CryptoUtils {
     try {
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       if (!isAdmin)
         throw new IllegalArgumentException("not permitted")
       val targetUserOid = new ObjectId(parameters("user_id"))

@@ -26,7 +26,7 @@ class OwnedPhases extends HttpServlet with HttpUtils with DateTimeUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       val projectOid = new ObjectId(parameters("project_id"))
       val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val projectIsPublic = (project has "public") && project.public[Boolean]

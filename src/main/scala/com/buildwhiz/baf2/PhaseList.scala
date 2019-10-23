@@ -18,7 +18,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       val parentProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val phases: Seq[DynDoc] = if (isAdmin) {
         ProjectApi.allPhases(parentProject)

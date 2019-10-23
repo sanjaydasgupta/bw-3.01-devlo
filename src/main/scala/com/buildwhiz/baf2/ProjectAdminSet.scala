@@ -21,7 +21,7 @@ class ProjectAdminSet extends HttpServlet with HttpUtils {
       val theProject: DynDoc = ProjectApi.projectById(projectOid)
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       if (!isAdmin && freshUserRecord._id[ObjectId] != theProject.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")
       val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),

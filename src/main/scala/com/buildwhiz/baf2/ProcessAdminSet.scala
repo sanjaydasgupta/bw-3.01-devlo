@@ -23,7 +23,7 @@ class ProcessAdminSet extends HttpServlet with HttpUtils {
       val parentProject: DynDoc = PhaseApi.parentProject(parentPhase._id[ObjectId])
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val isAdmin = freshUserRecord.roles[Many[String]].contains("BW-Admin")
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
       if (!isAdmin && freshUserRecord._id[ObjectId] != parentProject.admin_person_id[ObjectId] &&
         freshUserRecord._id[ObjectId] != parentPhase.admin_person_id[ObjectId])
         throw new IllegalArgumentException("Not permitted")

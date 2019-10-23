@@ -3,9 +3,11 @@ package com.buildwhiz.infra
 import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 
-import com.buildwhiz.baf2.{ActivityApi, ProcessApi, ProjectApi, SlackApi}
+import com.buildwhiz.baf2.{ActivityApi, PersonApi, ProcessApi, ProjectApi, SlackApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.infra.BWMongoDB3._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -14,9 +16,7 @@ object TimerModule extends HttpUtils {
 
   val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
 
-  private def fridayMorning(ms: Long, project: DynDoc): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "fridayMorning", s"Friday for project ${project.name[String]}")
-    // Perform any project-specific end-of-week activities here
+  private def issueTaskStatusUpdateReminders(ms: Long, project: DynDoc): Unit = {
     val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
     val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
     for (activity <- runningActivities) {
@@ -26,7 +26,29 @@ object TimerModule extends HttpUtils {
       mainAssignment match {
         case Some(assignment) => // Send status update request by Slack/mail
           val personOid = assignment.person_id[ObjectId]
-          SlackApi.sendToUser(s"Time to file status report for '${activity.name[String]}'!", Right(personOid))
+          SlackApi.sendToUser(s"Please file weekly status updates for '${activity.name[String]}'!", Right(personOid))
+        case _ =>
+      }
+    }
+  }
+
+  private def fridayMorning(ms: Long, project: DynDoc): Unit = {
+    BWLogger.log(classOf[TimerTask].getSimpleName, "fridayMorning", s"Friday for project ${project.name[String]}")
+    // Perform any project-specific end-of-week activities here
+    issueTaskStatusUpdateReminders(ms, project)
+  }
+
+  private def issueTaskDurationReminders(ms: Long, project: DynDoc): Unit = {
+    val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
+    val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+    for (activity <- runningActivities) {
+      val assignments = ActivityApi.teamAssignment.list(activity._id[ObjectId])
+      val mainAssignment = assignments.find(a => a.role[String] == activity.role[String] &&
+        a.status[String].matches("running|active"))
+      mainAssignment match {
+        case Some(assignment) => // Send duration reminder by Slack/mail
+          val personOid = assignment.person_id[ObjectId]
+          SlackApi.sendToUser(s"This is a daily reminder for '${activity.name[String]}'!", Right(personOid))
         case _ =>
       }
     }
@@ -39,6 +61,22 @@ object TimerModule extends HttpUtils {
     if (dayOfWeek == Calendar.FRIDAY)
       fridayMorning(ms, project)
     // Perform any project-specific daily activities here
+    issueTaskDurationReminders(ms, project)
+  }
+
+  private def processHealthCheck(ms: Long): Unit = {
+    val allProcesses = ProcessApi.listProcesses()
+    val goodProcesses = allProcesses.filterNot(p => p.has("isZombie") && p.isZombie[Boolean])
+    val newZombies = goodProcesses.filterNot(ProcessApi.isHealthy)
+    for (p <- newZombies) {
+      BWMongoDB3.processes.updateOne(Map("_id" -> p._id[ObjectId]), Map($set -> Map("isZombie" -> true)))
+      val processIdentity = s"${p.name[String]} (${p._id[ObjectId]})"
+      for (admin <- PersonApi.listAdmins) {
+        SlackApi.sendToUser(s"Process apparently killed: $processIdentity", Left(admin))
+      }
+      BWLogger.log(classOf[TimerTask].getSimpleName, "processHealthCheck",
+          s"ERROR: Process apparently killed: $processIdentity")
+    }
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
@@ -55,6 +93,7 @@ object TimerModule extends HttpUtils {
       }
     }
     // Perform any global quarter-hourly activities here
+    processHealthCheck(ms)
   }
 
   private def performanceData(): Seq[(String, String)] = {

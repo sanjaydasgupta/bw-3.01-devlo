@@ -12,6 +12,8 @@ object PersonApi {
 
   val possibleIndividualRoles: Seq[String] = Seq("Principal", "Admin", "Finance", "Contract", "Lead", "Contributor")
 
+  def listAdmins: Seq[DynDoc] = BWMongoDB3.persons.find(Map("roles" -> "BW-Admin"))
+
   def personsByIds(personOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids)))
 
@@ -198,5 +200,7 @@ object PersonApi {
       throw new IllegalArgumentException(s"Name conflicts with another person in same organization")
     true
   }
+
+  def allRoles(person: DynDoc): Seq[String] = person.roles[Many[String]]
 
 }

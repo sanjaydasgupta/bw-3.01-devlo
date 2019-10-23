@@ -11,6 +11,10 @@ import org.camunda.bpm.engine.ProcessEngines
 
 object ProcessApi {
 
+  def listProcesses(): Seq[DynDoc] = {
+    BWMongoDB3.processes.find()
+  }
+
   def processesByIds(processOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.processes.find(Map("_id" -> Map($in -> processOids)))
 

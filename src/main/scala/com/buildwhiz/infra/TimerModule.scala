@@ -64,9 +64,30 @@ object TimerModule extends HttpUtils {
     issueTaskDurationReminders(ms, project)
   }
 
-  private def processHealthCheck(ms: Long): Unit = {
+  private def activityDelayedCheck(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
+    val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
+    val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+    for (activity <- runningActivities if !ActivityApi.isDelayed(activity)) {
+      val scheduledEndDatetimeMs = ActivityApi.scheduledEnd(activity) match {
+        case Some(ms) => ms
+        case None => 0
+      }
+      if (ms > scheduledEndDatetimeMs) {
+        BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck",
+          s"ERROR: Activity is delayed: ${activity.name[String]} (${activity._id[ObjectId]})")
+        ActivityApi.setDelayed(activity, delayed=true)
+        val stillActiveAssignees = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
+            filter(_.status[String] == "running").map(_.person_id[ObjectId])
+        for (recipient <- ActivityApi.managers(activity) ++ stillActiveAssignees) {
+          SlackApi.sendToUser(s"Activity is delayed: ${activity.name[String]}", Right(recipient))
+        }
+      }
+    }
+  }
+
+    private def processHealthCheck(ms: Long): Unit = {
     val allProcesses = ProcessApi.listProcesses()
-    val goodProcesses = allProcesses.filterNot(p => p.has("isZombie") && p.isZombie[Boolean])
+    val goodProcesses = allProcesses.filterNot(ProcessApi.isZombie)
     val newZombies = goodProcesses.filterNot(ProcessApi.isHealthy)
     for (p <- newZombies) {
       BWMongoDB3.processes.updateOne(Map("_id" -> p._id[ObjectId]), Map($set -> Map("isZombie" -> true)))
@@ -85,6 +106,7 @@ object TimerModule extends HttpUtils {
     for (project <- projects) {
       val calendar = Calendar.getInstance(TimeZone.getTimeZone(project.tz[String]))
       calendar.setTimeInMillis(ms)
+      activityDelayedCheck(ms, project, calendar)
       val hours = calendar.get(Calendar.HOUR_OF_DAY)
       if (hours == 0) {
         val minutes = calendar.get(Calendar.MINUTE)

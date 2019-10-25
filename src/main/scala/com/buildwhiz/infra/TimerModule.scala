@@ -74,11 +74,11 @@ object TimerModule extends HttpUtils {
       }
       if (ms > scheduledEndDatetimeMs) {
         BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck",
-          s"ERROR: Activity is delayed: ${activity.name[String]} (${activity._id[ObjectId]})")
+          s"INFO: Activity is delayed: ${activity.name[String]} (${activity._id[ObjectId]})")
         ActivityApi.setDelayed(activity, delayed=true)
         val stillActiveAssignees = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
             filter(_.status[String] == "running").map(_.person_id[ObjectId])
-        for (recipient <- ActivityApi.managers(activity) ++ stillActiveAssignees) {
+        for (recipient <- (ActivityApi.managers(activity) ++ stillActiveAssignees).distinct) {
           SlackApi.sendToUser(s"Activity is delayed: ${activity.name[String]}", Right(recipient))
         }
       }
@@ -96,7 +96,7 @@ object TimerModule extends HttpUtils {
         SlackApi.sendToUser(s"Process apparently killed: $processIdentity", Left(admin))
       }
       BWLogger.log(classOf[TimerTask].getSimpleName, "processHealthCheck",
-          s"ERROR: Process apparently killed: $processIdentity")
+          s"INFO: Process apparently killed: $processIdentity")
     }
   }
 

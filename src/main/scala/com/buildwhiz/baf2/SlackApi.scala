@@ -41,7 +41,7 @@ object SlackApi {
       sendToChannel(messageText, slackChannel, request)
       BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", request)
     } else {
-      val message = s"ERROR: Message dropped as ${PersonApi.fullName(personRecord)} is not connected to Slack"
+      val message = s"ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$messageText'"
       BWLogger.log(getClass.getName, "sendToUser", message, request)
     }
   }

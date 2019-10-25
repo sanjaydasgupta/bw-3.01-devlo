@@ -91,6 +91,8 @@ object TimerModule extends HttpUtils {
     val newZombies = goodProcesses.filterNot(ProcessApi.isHealthy)
     for (p <- newZombies) {
       BWMongoDB3.processes.updateOne(Map("_id" -> p._id[ObjectId]), Map($set -> Map("isZombie" -> true)))
+      val allActivityOids = ProcessApi.allActivities(p).map(_._id[ObjectId])
+      BWMongoDB3.activities.updateOne(Map("_id" -> Map($in -> allActivityOids)), Map($set -> Map("isZombie" -> true)))
       val processIdentity = s"${p.name[String]} (${p._id[ObjectId]})"
       for (admin <- PersonApi.listAdmins) {
         SlackApi.sendToUser(s"Process apparently killed: $processIdentity", Left(admin))

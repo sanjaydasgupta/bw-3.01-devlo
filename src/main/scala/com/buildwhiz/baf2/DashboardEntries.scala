@@ -39,12 +39,14 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
       val phaseDisplayStatus = PhaseApi.displayStatus(pair._2)
       val statusTime = pair._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
+      val tasksOverdue = PhaseApi.allProcesses(phaseOid).filter(ProcessApi.isActive).flatMap(ProcessApi.allActivities).
+        count(ActivityApi.isDelayed)
       Map(
         "project_name" -> projectName,
         "project_id" -> projectOid.toString,
         "phase_name" -> phaseName,
         "phase_id" -> phaseOid.toString,
-        "tasks_overdue" -> Map("value" -> "000", "url" -> ("/task-list" + params + "&type=Overdue")),
+        "tasks_overdue" -> Map("value" -> f"$tasksOverdue%03d", "url" -> ("/task-list" + params + "&type=Overdue")),
         "rfis_open" -> Map("value" -> "000", "url" -> ("/rfis" + params + "&type=Open")),
         "issues_open" -> Map("value" -> "000", "url" -> ("/etc" + params + "&type=Open")),
         "submittals_pending" -> Map("value" -> "000", "url" -> ("/etc" + params + "&type=Pending")),

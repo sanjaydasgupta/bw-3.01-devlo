@@ -207,5 +207,7 @@ object ProjectApi extends HttpUtils {
       PersonApi.personById(project.admin_person_id[ObjectId]).tz[String]
   }
 
+  def managers(project: DynDoc): Seq[ObjectId] = project.assigned_roles[Many[Document]].
+    filter(_.role_name[String].matches(".*(?i)manager")).map(_.person_id[ObjectId])
 
 }

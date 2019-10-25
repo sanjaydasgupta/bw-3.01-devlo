@@ -109,4 +109,12 @@ object PhaseApi {
     true
   }
 
+  def managers(phase: DynDoc): Seq[ObjectId] = {
+    val project = parentProject(phase._id[ObjectId])
+    val projectManagers = ProjectApi.managers(project)
+    val phaseManagers = phase.assigned_roles[Many[Document]].
+    filter(_.role_name[String].matches(".*(?i)manager")).map(_.person_id[ObjectId])
+    projectManagers ++ phaseManagers
+  }
+
 }

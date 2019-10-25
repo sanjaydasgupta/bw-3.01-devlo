@@ -11,14 +11,30 @@ import org.bson.types.ObjectId
 class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val parameters = getParameterMap(request)
+    val queryType = parameters.getOrElse("type", "none")
     try {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord = PersonApi.personById(userOid)
-      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
-      val goodAssignments = assignments.filter(a => ActivityApi.exists(a.activity_id[ObjectId]))
+
+      val assignments: Seq[DynDoc] = if (PersonApi.isBuildWhizAdmin(Right(user)))
+        BWMongoDB3.activity_assignments.find(Map("isZombie" -> Map($exists -> false)))
+      else
+        BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid, "isZombie" -> Map($exists -> false)))
+
+      val goodAssignments = assignments.filter(a => {
+        val activity = ActivityApi.activityById(a.activity_id[ObjectId])
+        ActivityApi.parentProcess(activity._id[ObjectId])
+
+        val status = activity.status[String]
+        val queryTypeCondition = queryType match {
+          case "Overdue" => status == "running" && ActivityApi.isDelayed(activity)
+          case _ => true
+        }
+        queryTypeCondition
+      })
 
       val uniqueAssignments: Seq[DynDoc] = goodAssignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
         val seq = t._2

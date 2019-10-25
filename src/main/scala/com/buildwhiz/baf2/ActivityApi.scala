@@ -208,6 +208,26 @@ object ActivityApi {
       theActivity.status[String]
   }
 
+  def isDelayed(activity: DynDoc): Boolean = activity.has("isDelayed") && activity.isDelayed[Boolean]
+
+  def setDelayed(activity: DynDoc, delayed: Boolean): Unit = {
+    (isDelayed(activity), delayed) match {
+      case (true, false) =>
+        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($unset -> Map("isDelayed" -> true)))
+      case (false, true) =>
+        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($set -> Map("isDelayed" -> true)))
+      case (true, true) => // do nothing
+      case (false, false) => // do nothing
+    }
+  }
+
+  def managers(activity: DynDoc): Seq[ObjectId] = {
+    val process = parentProcess(activity._id[ObjectId])
+    val phase = ProcessApi.parentPhase(process._id[ObjectId])
+    val project = PhaseApi.parentProject(phase._id[ObjectId])
+    ProcessApi.managers(process) ++ PhaseApi.managers(phase) ++ ProjectApi.managers(project)
+  }
+
   object teamAssignment {
 
     private def assignmentToString(assignment: Either[DynDoc, ObjectId]): String = {

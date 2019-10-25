@@ -128,12 +128,18 @@ object TimerModule extends HttpUtils {
   }
 
   private def timerTicks(): Unit = {
-    val ms: Long = System.currentTimeMillis()
-    val millisecondsIn15Minutes = 15 * 60 * 1000
-    val msModulo15Minutes = (ms % millisecondsIn15Minutes).asInstanceOf[Int]
-    if (msModulo15Minutes > millisecondsIn15Minutes - 5000 || msModulo15Minutes < 20000)
-      Future {fifteenMinutes(ms)}
-    // perform scheduled tasks
+    try {
+      val ms: Long = System.currentTimeMillis()
+      val millisecondsIn15Minutes = 15 * 60 * 1000
+      val msModulo15Minutes = (ms % millisecondsIn15Minutes).asInstanceOf[Int]
+      if (msModulo15Minutes > millisecondsIn15Minutes - 5000 || msModulo15Minutes < 20000)
+        Future {fifteenMinutes(ms)}
+      // perform scheduled tasks
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(classOf[TimerTask].getSimpleName, "timerTicks",
+          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+    }
   }
 
   private val bwTimer = new Timer(true)

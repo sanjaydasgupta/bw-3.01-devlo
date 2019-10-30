@@ -149,4 +149,14 @@ object ProcessApi {
     phaseManagers ++ processManagers
   }
 
+  def timeZone(process: DynDoc): String = {
+    if (process.has("tz")) {
+      process.tz[String]
+    } else {
+      val managerOids = managers(process)
+      PersonApi.personsByIds(managerOids).map(_.tz[String]).groupBy(t => t).
+        map(p => (p._1, p._2.length)).reduce((a, b) => if (a._2 > b._2) a else b)._1
+    }
+  }
+
 }

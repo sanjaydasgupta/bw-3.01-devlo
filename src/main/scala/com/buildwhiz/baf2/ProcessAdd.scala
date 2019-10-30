@@ -1,8 +1,7 @@
 package com.buildwhiz.baf2
 
-import java.util.Calendar
+import java.util.{Calendar, TimeZone}
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
@@ -145,7 +144,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
-          n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[\\$\\{\\}]", "")).head
+          n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${\\}]", "")).head
         val duration = extensionProperties(timerNode, "bw-duration") match {
           case dur +: _ => valueAttribute(dur)
           case Nil => "00:00:00"
@@ -305,12 +304,12 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def date2long(date: String): Long = {
+  private def date2long(date: String, timeZone: String): Long = {
     if (date.isEmpty)
       -1L
     else {
       val Array(year, month, day) = date.split("-").map(_.toInt)
-      val calendar = java.util.Calendar.getInstance()
+      val calendar = java.util.Calendar.getInstance(TimeZone.getTimeZone(timeZone))
       calendar.set(year, month - 1, day)
       calendar.getTimeInMillis
     }
@@ -330,8 +329,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         case None => user._id[ObjectId]
         case Some(id) => new ObjectId(id)
       }
+      val thePhase = PhaseApi.phaseById(phaseOid)
       val parentProject = PhaseApi.parentProject(phaseOid)
-      if (!PhaseApi.isAdmin(user._id[ObjectId], PhaseApi.phaseById(phaseOid)) &&
+      if (!PhaseApi.isAdmin(user._id[ObjectId], thePhase) &&
           !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
 
@@ -369,13 +369,14 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
           "assignee_person_id" -> adminPersonOid, "duration" -> activityDuration,
           "start" -> "00:00:00", "end" -> "00:00:00", "on_critical_path" -> false)
+        val timeZone = PhaseApi.timeZone(thePhase)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
           "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration,
-          "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart),
-          "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd),
-          "bpmn_actual_start_date" -> date2long(bpmnActualStart),
-          "bpmn_actual_end_date" -> date2long(bpmnActualEnd), "on_critical_path" -> false)
+          "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
+          "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
+          "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone),
+          "bpmn_actual_end_date" -> date2long(bpmnActualEnd, timeZone), "on_critical_path" -> false)
         BWMongoDB3.activities.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),

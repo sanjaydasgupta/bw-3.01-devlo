@@ -120,12 +120,7 @@ object ProcessApi {
       isManager(personOid, process) || isAdmin(personOid, process) ||
       PhaseApi.canManage(personOid, parentPhase(process._id[ObjectId]))
 
-  def isZombie(process: DynDoc): Boolean = {
-    !isActive(process) && {
-      val timestamps: DynDoc = process.timestamps[Document]
-      timestamps.has("start") && !timestamps.has("end")
-    }
-  }
+  def isZombie(process: DynDoc): Boolean = process.has("is_zombie") && process.is_zombie[Boolean]
 
   def displayStatus(process: DynDoc): String = {
     if (isActive(process)) {

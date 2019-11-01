@@ -20,9 +20,9 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
       val freshUserRecord = PersonApi.personById(userOid)
 
       val assignments: Seq[DynDoc] = if (PersonApi.isBuildWhizAdmin(Right(user)))
-        BWMongoDB3.activity_assignments.find(Map("isZombie" -> Map($exists -> false)))
+        BWMongoDB3.activity_assignments.find()
       else
-        BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid, "isZombie" -> Map($exists -> false)))
+        BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
 
       val goodAssignments = assignments.filter(a => {
         val activity = ActivityApi.activityById(a.activity_id[ObjectId])

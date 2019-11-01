@@ -208,16 +208,15 @@ object ActivityApi {
       theActivity.status[String]
   }
 
-  def isDelayed(activity: DynDoc): Boolean = activity.has("isDelayed") && activity.isDelayed[Boolean]
+  def isDelayed(activity: DynDoc): Boolean = activity.has("is_delayed") && activity.is_delayed[Boolean]
 
   def setDelayed(activity: DynDoc, delayed: Boolean): Unit = {
     (isDelayed(activity), delayed) match {
       case (true, false) =>
-        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($unset -> Map("isDelayed" -> true)))
+        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($unset -> Map("is_delayed" -> true)))
       case (false, true) =>
-        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($set -> Map("isDelayed" -> true)))
-      case (true, true) => // do nothing
-      case (false, false) => // do nothing
+        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($set -> Map("is_delayed" -> true)))
+      case _ => // do nothing
     }
   }
 

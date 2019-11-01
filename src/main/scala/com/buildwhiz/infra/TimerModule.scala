@@ -3,7 +3,7 @@ package com.buildwhiz.infra
 import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 
-import com.buildwhiz.baf2.{ActivityApi, PersonApi, ProcessApi, ProjectApi, SlackApi}
+import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi, SlackApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
@@ -65,6 +65,7 @@ object TimerModule extends HttpUtils {
   }
 
   private def activityDelayedCheck(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
+    BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck", s"project: ${project.name[String]}")
     val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
     val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
     for (activity <- runningActivities if !ActivityApi.isDelayed(activity)) {
@@ -72,9 +73,10 @@ object TimerModule extends HttpUtils {
         case Some(ms) => ms
         case None => 0
       }
-      if (ms > scheduledEndDatetimeMs) {
-        BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck",
-          s"INFO: Activity is delayed: ${activity.name[String]} (${activity._id[ObjectId]})")
+      val delayed: Boolean = ms > scheduledEndDatetimeMs
+      BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck",
+          s"project: ${project.name[String]}, activity: ${activity.name[String]}, delayed: $delayed")
+      if (delayed) {
         ActivityApi.setDelayed(activity, delayed=true)
         val stillActiveAssignees = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
             filter(_.status[String] == "running").map(_.person_id[ObjectId])
@@ -87,24 +89,26 @@ object TimerModule extends HttpUtils {
 
     private def processHealthCheck(ms: Long): Unit = {
     val allProcesses = ProcessApi.listProcesses()
-    val goodProcesses = allProcesses.filterNot(ProcessApi.isZombie)
-    val newZombies = goodProcesses.filterNot(ProcessApi.isHealthy)
-    for (p <- newZombies) {
-      BWMongoDB3.processes.updateOne(Map("_id" -> p._id[ObjectId]), Map($set -> Map("isZombie" -> true)))
-      val allActivityOids = ProcessApi.allActivities(p).map(_._id[ObjectId])
-      BWMongoDB3.activities.updateOne(Map("_id" -> Map($in -> allActivityOids)), Map($set -> Map("isZombie" -> true)))
-      val processIdentity = s"${p.name[String]} (${p._id[ObjectId]})"
+    val nonZombies = allProcesses.filterNot(ProcessApi.isZombie)
+    val newZombies = nonZombies.filterNot(ProcessApi.isHealthy)
+    for (zp <- newZombies) {
+      BWMongoDB3.processes.updateOne(Map("_id" -> zp._id[ObjectId]), Map($set -> Map("is_zombie" -> true)))
+      val allActivityOids: Seq[ObjectId] = zp.activity_ids[Many[ObjectId]]
+      BWMongoDB3.activities.updateOne(Map("_id" -> Map($in -> allActivityOids)), Map($set -> Map("is_zombie" -> true)))
+      val phase = ProcessApi.parentPhase(zp._id[ObjectId])
+      val project = PhaseApi.parentProject(phase._id[ObjectId])
+      val processIdentity = s"${project.name[String]}/${phase.name[String]}/${zp.name[String]}"
       for (admin <- PersonApi.listAdmins) {
-        SlackApi.sendToUser(s"Process apparently killed: $processIdentity", Left(admin))
+        SlackApi.sendToUser(s"Process killed: $processIdentity", Left(admin))
       }
-      BWLogger.log(classOf[TimerTask].getSimpleName, "processHealthCheck",
-          s"INFO: Process apparently killed: $processIdentity")
+      BWLogger.log(classOf[TimerTask].getSimpleName, "processHealthCheck", s"INFO: Process killed: $processIdentity")
     }
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
-    BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", "15-Minute-Tick", performanceData(): _*)
     val projects = ProjectApi.listProjects()
+    val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
+    BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", message, performanceData(): _*)
     for (project <- projects) {
       val calendar = Calendar.getInstance(TimeZone.getTimeZone(project.tz[String]))
       calendar.setTimeInMillis(ms)

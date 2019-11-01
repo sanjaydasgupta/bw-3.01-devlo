@@ -46,10 +46,10 @@ object PersonApi {
         (true, BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid)).flatMap(assigneeOid))
       case (_, _, Some(processOid), None) =>
         (true, BWMongoDB3.activity_assignments.find(Map("process_id" -> processOid)).flatMap(assigneeOid))
-      case (_, Some(phaseOid), None, None) =>
-        (true, BWMongoDB3.activity_assignments.find(Map("phase_id" -> phaseOid)).flatMap(assigneeOid))
-      case (Some(projectOid), None, None, None) =>
-        (true, BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid)).flatMap(assigneeOid))
+//      case (_, Some(phaseOid), None, None) =>
+//        (true, BWMongoDB3.activity_assignments.find(Map("phase_id" -> phaseOid)).flatMap(assigneeOid))
+//      case (Some(projectOid), None, None, None) =>
+//        (true, BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid)).flatMap(assigneeOid))
       case _ => (false, Nil)
     }
     val query1: Map[String, Any] = (optWorkEmail, optOrganizationOid, optSkill) match {

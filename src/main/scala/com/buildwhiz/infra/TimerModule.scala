@@ -147,7 +147,7 @@ object TimerModule extends HttpUtils {
       val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
       BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", message, performanceData(): _*)
       for (project <- projects) {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone(project.tz[String]))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone(ProjectApi.timeZone(project)))
         calendar.setTimeInMillis(ms)
         activityDelayedCheck(ms, project, calendar)
         val hours = calendar.get(Calendar.HOUR_OF_DAY)

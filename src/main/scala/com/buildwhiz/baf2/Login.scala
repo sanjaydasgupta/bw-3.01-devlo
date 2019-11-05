@@ -60,6 +60,14 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
     person.asDoc.put("menu_items", /*documentMenu ++ */menuItems)
   }
 
+  private def defaultPhase(projectOid: ObjectId, personRecord: DynDoc): Option[DynDoc] = {
+    val candidatePhases = ProjectApi.allPhases(projectOid).filter(PhaseApi.hasRole(personRecord._id[ObjectId], _))
+    candidatePhases.find(PhaseApi.isActive) match {
+      case anActivePhase: Some[DynDoc] => anActivePhase
+      case None => candidatePhases.headOption
+    }
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
@@ -81,10 +89,15 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
             addMenuItems(personRecord)
             if (!personRecord.containsKey("document_filter_labels"))
               personRecord.put("document_filter_labels", Seq.empty[String])
-            if (!personRecord.containsKey("selected_project_id"))
+            if (!personRecord.containsKey("selected_project_id")) {
               personRecord.put("selected_project_id", "")
-            if (!personRecord.containsKey("selected_phase_id"))
               personRecord.put("selected_phase_id", "")
+            } else if (!personRecord.containsKey("selected_phase_id")) {
+              defaultPhase(personRecord.getObjectId("selected_project_id"), personRecord) match {
+                case None => personRecord.put("selected_phase_id", "")
+                case Some(phase) => personRecord.put("selected_phase_id", phase._id[ObjectId])
+              }
+            }
             val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))

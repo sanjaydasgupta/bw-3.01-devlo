@@ -95,10 +95,14 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
         case None => ""
       }
 
-      val phones: java.util.Collection[Document] = parameters.get("work_phone") match {
+      val phones: Many[Document] = parameters.get("work_phone") match {
         case Some(wrkPhone) => Seq(new Document("type", "work").append("phone", wrkPhone)).asJava
         case None => Seq(new Document("type", "work").append("phone", "")).asJava
       }
+
+      val mobileNumber = parameters.getOrElse("mobile_phone", "")
+      val mobileRecord = new Document("type", "mobile").append("phone", mobileNumber)
+      phones.add(mobileRecord)
 
       val timezone: String = parameters.get("timezone") match {
         case Some(tz) => tz

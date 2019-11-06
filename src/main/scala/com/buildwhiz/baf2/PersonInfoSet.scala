@@ -71,6 +71,16 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       val workPhoneIndex = person.phones[Many[Document]].indexWhere(_.`type`[String] == "work")
       if (workPhoneIndex == -1)
         throw new IllegalArgumentException("Work phone not pre-defined in user record")
+      val mobilePhoneIndex = person.phones[Many[Document]].indexWhere(_.`type`[String] == "mobile") match {
+        case -1 => person.phones[Many[Document]].length
+        case idx => idx
+      }
+      if (mobilePhoneIndex == -1) {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
+          Map($push -> Map("phones" -> Map("type" -> "mobile", "phone" -> ""))))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
 
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("first_name", (_.trim, "first_name")),
@@ -83,6 +93,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         ("active", (_.toBoolean, "enabled")),
         ("work_email", (_.trim, s"emails.$workEmailIndex.email")),
         ("work_phone", (_.trim, s"phones.$workPhoneIndex.phone")),
+        ("mobile_phone", (_.trim, s"phones.$mobilePhoneIndex.phone")),
         ("phone_can_text", (_.toBoolean, "phone_can_text")),
         ("person_id", (new ObjectId(_), "person_id"))
       )

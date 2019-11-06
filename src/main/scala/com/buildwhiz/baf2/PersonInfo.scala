@@ -42,6 +42,11 @@ class PersonInfo extends HttpServlet with HttpUtils {
       case Some(workPhoneRecord) => workPhoneRecord.phone[String]
     }
     val workPhone = wrap(bareWorkPhone, editable)
+    val bareMobilePhone = phones.find(_.`type`[String] == "mobile") match {
+      case None => ""
+      case Some(mobilePhoneRecord) => mobilePhoneRecord.phone[String]
+    }
+    val mobilePhone = wrap(bareMobilePhone, editable)
     val workAddress = wrap(if (person.has("work_address"))
       person.work_address[String]
     else
@@ -57,7 +62,8 @@ class PersonInfo extends HttpServlet with HttpUtils {
         append("skills", skills).append("years_experience", yearsExperience).append("active", active).
         append("work_email", workEmail).append("work_phone", workPhone).append("work_address", workAddress).
         append("phone_can_text", phoneCanText).append("individual_roles", individualRoles).
-        append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava)
+        append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava).
+        append("mobile_phone", mobilePhone)
     bson2json(personDoc)
   }
 

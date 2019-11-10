@@ -1,6 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.jelly.ActivityHandlerEnd
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
@@ -11,6 +12,10 @@ class TaskStatusReport2 extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
         optPercentComplete: Option[String], endDates: Seq[(String, Long)]): Unit = {
+
+    if (endDates.nonEmpty) {
+      BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> endDates.toMap))
+    }
 
     def superUsersAssignment(assignment: DynDoc, user: DynDoc): Boolean = {
       val parentProcess = ActivityApi.parentProcess(assignment.activity_id[ObjectId])

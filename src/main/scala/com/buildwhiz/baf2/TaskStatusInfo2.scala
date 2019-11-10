@@ -129,6 +129,14 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
     } else
       actualStart
 
+    val endDates = Seq("end_date_pessimistic", "end_date_likely", "end_date_optimistic").map(dateType => {
+      val date: String = if (theActivity.has(dateType))
+        dateTimeString(theActivity.asDoc.getLong(dateType), Some(user.tz[String]))
+      else
+        "NA"
+      (dateType, date)
+    })
+
     val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
@@ -147,7 +155,14 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
         append("update_panel_title", updatePanelTitle).
         append("display_percent_complete", userCanContribute).
         append("status_dropdown_title", statusDropdownTitle).
-        append("end_date_not_before", earliestStartDate)
+        append("end_date_not_before", earliestStartDate).
+        append("end_date_pessimistic", wrap(scheduledEnd, editable = false)).
+        append("end_date_likely", wrap(scheduledEnd, editable = false)).
+        append("end_date_optimistic", wrap(scheduledEnd, editable = false))
+    for (ed <- endDates) {
+      val (dateType, date) = ed
+      record.append(dateType, wrap(date, editable = false))
+    }
     bson2json(record)
   }
 

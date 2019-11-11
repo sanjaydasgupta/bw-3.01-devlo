@@ -15,8 +15,8 @@ import scala.collection.mutable
 
 class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTimeUtils with ProjectUtils {
 
-  private def getVariables(process: DynDoc, processName: String): Seq[Document] = {
-    val variables: Seq[DynDoc] = process.variables[Many[Document]].filter(_.bpmn_name[String] == processName)
+  private def getVariables(process: DynDoc, bpmnFileName: String): Seq[Document] = {
+    val variables: Seq[DynDoc] = process.variables[Many[Document]].filter(_.bpmn_name[String] == bpmnFileName)
     variables.map(variable => {
       variable.asDoc
     })

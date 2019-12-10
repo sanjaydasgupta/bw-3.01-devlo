@@ -137,11 +137,21 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
       (dateType, date)
     })
 
+    val actualDuration = ActivityApi.actualDuration(theActivity) match {
+      case -1 => "NA"
+      case d: Float => d.toString
+    }
+
+    val estimatedDuration = ActivityApi.scheduledDuration(theActivity) match {
+      case -1 => "NA"
+      case d: Float => d.toString
+    }
+
     val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val record = new Document("status", wrap(ActivityApi.stateSubState(theActivity), editable = false)).
         append("on_critical_path", wrap(theActivity.on_critical_path[String], editable = false)).
-        append("estimated_duration", wrap(ActivityApi.scheduledDuration(theActivity), editable = false)).
-        append("actual_duration", wrap(ActivityApi.actualDuration(theActivity), editable = false)).
+        append("estimated_duration", wrap(estimatedDuration, editable = false)).
+        append("actual_duration", wrap(actualDuration, editable = false)).
         append("estimated_start_date", wrap(scheduledStart, isAdmin)).
         append("actual_start_date", wrap(actualStart, isAdmin)).
         append("estimated_end_date", wrap(scheduledEnd, isAdmin)).

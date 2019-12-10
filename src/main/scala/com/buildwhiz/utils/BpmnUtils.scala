@@ -14,14 +14,14 @@ trait BpmnUtils {
   def getProcessDefinition(de: DelegateExecution): ProcessDefinition = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala
+      repositoryService.createProcessDefinitionQuery().list().asScala
     allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head
   }
 
   def getProcessDefinition(bpmnName: String): ProcessDefinition = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala
+      repositoryService.createProcessDefinitionQuery().list().asScala
     allProcessDefinitions.find(_.getKey == bpmnName) match {
       case Some(pd) => pd
       case None =>

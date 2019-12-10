@@ -47,10 +47,10 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
         s"${updater.first_name} ${updater.last_name}"
       } else
         "-"
-      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[Any].toString else "-"
+      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[Any].toString else "0"
       new Document("date_time", dateTime).append("updated_by", updatedBy).append("percent_complete", percentComplete).
         append("description", entry.description[String])
-    })
+    }).reverse
   }
 
   private def taskStatusRecord(user: DynDoc, theActivity: DynDoc, request: HttpServletRequest): String = {
@@ -82,7 +82,7 @@ class TaskStatusInfo2 extends HttpServlet with HttpUtils with DateTimeUtils {
       case None => "NA"
       case Some(ms) => dateTimeString(ms, Some(timezone)).split(" ").head
     }
-    val percentComplete = changeLog.reverse.find(_.has("percent_complete")) match {
+    val percentComplete = changeLog.find(_.has("percent_complete")) match {
       case None => "0"
       case Some(d) => d.get("percent_complete", classOf[Any]).toString
     }

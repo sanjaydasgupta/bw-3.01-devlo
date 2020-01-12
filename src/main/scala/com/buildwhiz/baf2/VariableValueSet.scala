@@ -52,9 +52,14 @@ object VariableValueSet extends HttpUtils {
 
     if (theProcess.status[String] != "ended") {
       if (ProcessApi.isActive(theProcess)) {
-        val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-        val processInstanceId = theProcess.process_instance_id[String]
-        rts.setVariable(processInstanceId, variables(variableIdx).name[String], typedValue)
+        theProcess.bpmn_timestamps[Many[Document]].find(_.name[String] == bpmnName) match {
+          case Some(ts) => if (ts.has("process_instance_id")) {
+            val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
+            val processInstanceId = theProcess.process_instance_id[String]
+            rts.setVariable(processInstanceId, variables(variableIdx).name[String], typedValue)
+          }
+          case None =>
+        }
       }
       val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))

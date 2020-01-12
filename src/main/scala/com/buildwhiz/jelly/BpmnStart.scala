@@ -36,14 +36,17 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       setupEssentials(de)
+      val processInstanceId = de.getProcessInstanceId
       val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
       val theProcess: DynDoc = ProcessApi.processById(processOid)
       val bpmnName = getBpmnName(de)
+      val msNow = System.currentTimeMillis
       if (de.hasVariable("top_level_bpmn") && de.getVariable("top_level_bpmn") == bpmnName) {
         val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
-          Map("$set" -> Map("status" -> "running", "timestamps.start" -> System.currentTimeMillis),
+          Map("$set" -> Map("status" -> "running", "timestamps.start" -> msNow),
             "$push" -> Map("bpmn_timestamps" -> Map("name" -> bpmnName, "parent_name" -> "",
-              "status" -> "running", "timestamps" -> Map("start" -> System.currentTimeMillis)))))
+            "status" -> "running", "timestamps" -> Map("start" -> msNow),
+            "process_instance_id" -> processInstanceId))))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       } else {
@@ -52,8 +55,8 @@ class BpmnStart extends ExecutionListener with BpmnUtils with DateTimeUtils {
         val idx = bpmnTimestamps.indexWhere(ts => ts.name[String] == bpmnName &&
           ts.parent_name[String] == callerBpmnName)
         val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> theProcess._id[ObjectId]), Map("$set" ->
-          Map(s"bpmn_timestamps.$idx.status" -> "running",
-          s"bpmn_timestamps.$idx.timestamps.start" -> System.currentTimeMillis)))
+          Map(s"bpmn_timestamps.$idx.status" -> "running", s"bpmn_timestamps.$idx.timestamps.start" -> msNow,
+            s"bpmn_timestamps.$idx.process_instance_id" -> processInstanceId)))
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")
       }

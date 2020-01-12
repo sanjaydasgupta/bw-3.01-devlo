@@ -58,10 +58,13 @@ object TimerDurationSet extends DateTimeUtils {
       throw new IllegalArgumentException("Bad duration format")
     val duration = formatDuration(inDuration)
     if (theProcess.status[String] != "ended") {
-      if (theProcess.has("process_instance_id")) {
-        val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-        val processInstanceId = theProcess.process_instance_id[String]
-        rts.setVariable(processInstanceId, timers(timerIdx).variable[String], duration2iso(duration))
+      theProcess.bpmn_timestamps[Many[Document]].find(_.name[String] == bpmnName) match {
+        case Some(ts) => if (ts.has("process_instance_id")) {
+          val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
+          val processInstanceId = theProcess.process_instance_id[String]
+          rts.setVariable(processInstanceId, timers(timerIdx).variable[String], duration2iso(duration))
+        }
+        case None =>
       }
       val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
         Map("$set" -> Map(s"timers.$timerIdx.duration" -> duration)))

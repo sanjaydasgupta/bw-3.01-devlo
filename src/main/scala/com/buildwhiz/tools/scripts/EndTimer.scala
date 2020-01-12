@@ -2,13 +2,8 @@ package com.buildwhiz.tools.scripts
 
 import java.util.Calendar
 
-import com.buildwhiz.baf2.ProcessApi
-import com.buildwhiz.infra.DynDoc
-import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.bson.types.ObjectId
-import org.bson.Document
 import org.camunda.bpm.engine.ProcessEngines
 
 object EndTimer {
@@ -48,7 +43,7 @@ object EndTimer {
       response.setContentType("text/plain")
       BWLogger.log(getClass.getName, "main()", "EXIT-OK", request)
     } else {
-      val msg = "FAILURE: Usage is 'EndTimer process-id timer-bpmn_id [update]'"
+      val msg = "FAILURE: Usage is 'EndTimer process-instance-id timer-bpmn_id [update]'"
       writer.println(msg)
       writer.flush()
       response.setContentType("text/plain")

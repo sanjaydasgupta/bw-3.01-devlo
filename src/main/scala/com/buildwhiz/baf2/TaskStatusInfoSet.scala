@@ -8,8 +8,6 @@ import org.bson.types.ObjectId
 
 class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def date2ms(date: String) = milliseconds(date)
-
   private def validateReportingInterval(interval: String): String = {
     if (interval.matches("daily|weekly|biweekly|monthly"))
       interval
@@ -22,6 +20,11 @@ class TaskStatusInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+
+    val user: DynDoc = getUser(request)
+    val timeZone = user.tz[String]
+    def date2ms(date: String) = milliseconds(date, Some(timeZone))
+
     val parameters = getParameterMap(request)
     try {
       val parameterConverters: Map[String, (String => Any, String)] = Map(

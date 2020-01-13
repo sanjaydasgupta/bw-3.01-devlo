@@ -83,6 +83,7 @@ class TaskStatusReport2 extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
+      val timeZone = user.tz[String]
       val activityOid = new ObjectId(parameters("activity_id"))
       val optPercentComplete = parameters.get("percent_complete")
       if (optPercentComplete.map(_.toFloat).exists(pc => pc < 0 || pc > 100))
@@ -90,7 +91,7 @@ class TaskStatusReport2 extends HttpServlet with HttpUtils with DateTimeUtils {
       val comments = parameters("comments")
       val status = parameters("status")
       val endDates: Seq[(String, Long)] = Seq("end_date_optimistic", "end_date_likely", "end_date_pessimistic").
-          filter(parameters.contains).map(paramName => (paramName, milliseconds(parameters(paramName))))
+          filter(parameters.contains).map(paramName => (paramName, milliseconds(parameters(paramName), Some(timeZone))))
 
       ActivityApi.addChangeLogEntry(activityOid, s"$status: $comments", Some(user._id[ObjectId]), optPercentComplete)
       handleNewStatus(status, user, activityOid, comments, optPercentComplete, endDates)

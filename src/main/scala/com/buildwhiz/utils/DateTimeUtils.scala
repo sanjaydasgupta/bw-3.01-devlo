@@ -11,11 +11,14 @@ trait DateTimeUtils {
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
-  def milliseconds(yyyymmdd: String): Long = {
+  def milliseconds(yyyymmdd: String, timeZoneCode: Option[String] = Some("GMT")): Long = {
     val Array(year, month, date) = yyyymmdd.split("-").map(_.toInt)
     val calendar = Calendar.getInstance()
     calendar.set(year, month - 1, date)
-    calendar.getTimeInMillis
+    val timeZone = TimeZone.getTimeZone(timeZoneCode.get)
+    val ms = calendar.getTimeInMillis
+    val offset = timeZone.getOffset(ms)
+    ms - offset
   }
 
   private val durationRe = "(\\d+):(\\d+):(\\d+)".r
@@ -37,4 +40,15 @@ trait DateTimeUtils {
     s"P${days}DT${hours}H${minutes}M"
   }
 
+}
+
+object DateTimeUtils extends App with DateTimeUtils {
+  val ms = System.currentTimeMillis()
+  println(s"GMT: ${dateTimeString(ms)}")
+  println(s"""Kolkata: ${dateTimeString(ms, Some("Asia/Kolkata"))}""")
+  println(s"""Pacific: ${dateTimeString(ms, Some("US/Pacific"))}""")
+  println("******************************************")
+  println(s"GMT: ${milliseconds("2020-01-13")}")
+  println(s"""Kolkata: ${milliseconds("2020-01-13", Some("Asia/Kolkata"))}""")
+  println(s"""Pacific: ${milliseconds("2020-01-13", Some("US/Pacific"))}""")
 }

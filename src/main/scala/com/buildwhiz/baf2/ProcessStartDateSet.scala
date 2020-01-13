@@ -14,6 +14,7 @@ class ProcessStartDateSet extends HttpServlet with HttpUtils with DateTimeUtils 
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
+      val timeZone = user.tz[String]
       val userOid = user._id[ObjectId]
       val processOid = new ObjectId(parameters("process_id"))
       if (!ProcessApi.exists(processOid))
@@ -23,7 +24,7 @@ class ProcessStartDateSet extends HttpServlet with HttpUtils with DateTimeUtils 
         throw new IllegalArgumentException("No permission")
       if (theProcess.status[String] != "defined")
         throw new IllegalArgumentException("Wrong state")
-      val dateTime = milliseconds(parameters("datetime"))
+      val dateTime = milliseconds(parameters("datetime"), Some(timeZone))
       val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
         Map($set -> Map(s"timestamps.planned_start" -> dateTime)))
       if (updateResult.getMatchedCount == 0)

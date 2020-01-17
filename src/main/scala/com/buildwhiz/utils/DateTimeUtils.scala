@@ -40,7 +40,7 @@ trait DateTimeUtils {
 
 }
 
-object DateTimeUtils extends App with DateTimeUtils {
+object DateTimeUtilsTest extends App with DateTimeUtils {
   val ms = System.currentTimeMillis()
   println(s"GMT: ${dateTimeString(ms)}")
   println(s"""Kolkata: ${dateTimeString(ms, Some("Asia/Kolkata"))}""")

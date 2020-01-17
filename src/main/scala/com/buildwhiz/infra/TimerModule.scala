@@ -90,7 +90,7 @@ object TimerModule extends HttpUtils {
 
   private def activityDelayedCheck(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
     try {
-      BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck", s"project: ${project.name[String]}")
+      //BWLogger.log(classOf[TimerTask].getSimpleName, "activityDelayedCheck", s"project: ${project.name[String]}")
       val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
       val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
       for (activity <- runningActivities if !ActivityApi.isDelayed(activity)) {
@@ -144,8 +144,8 @@ object TimerModule extends HttpUtils {
   private def fifteenMinutes(ms: Long): Unit = {
     try {
       val projects = ProjectApi.listProjects()
-      val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
-      BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", message, performanceData(): _*)
+      //val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
+      //BWLogger.log(classOf[TimerTask].getSimpleName, "fifteenMinutes", message, performanceData(): _*)
       for (project <- projects) {
         val calendar = Calendar.getInstance(TimeZone.getTimeZone(ProjectApi.timeZone(project)))
         calendar.setTimeInMillis(ms)

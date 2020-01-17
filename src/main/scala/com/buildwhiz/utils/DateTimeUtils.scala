@@ -13,12 +13,10 @@ trait DateTimeUtils {
 
   def milliseconds(yyyymmdd: String, timeZoneCode: Option[String] = Some("GMT")): Long = {
     val Array(year, month, date) = yyyymmdd.split("-").map(_.toInt)
-    val calendar = Calendar.getInstance()
-    calendar.set(year, month - 1, date)
-    val timeZone = TimeZone.getTimeZone(timeZoneCode.get)
-    val ms = calendar.getTimeInMillis
-    val offset = timeZone.getOffset(ms)
-    ms - offset
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone(timeZoneCode.get))
+    calendar.clear()
+    calendar.set(year, month - 1, date, 0, 0, 0)
+    calendar.getTimeInMillis
   }
 
   private val durationRe = "(\\d+):(\\d+):(\\d+)".r
@@ -51,4 +49,9 @@ object DateTimeUtils extends App with DateTimeUtils {
   println(s"GMT: ${milliseconds("2020-01-13")}")
   println(s"""Kolkata: ${milliseconds("2020-01-13", Some("Asia/Kolkata"))}""")
   println(s"""Pacific: ${milliseconds("2020-01-13", Some("US/Pacific"))}""")
+  println("******************************************")
+  val utcMillis = milliseconds("2020-01-13")
+  println(s"GMT: ${dateTimeString(utcMillis)}")
+  println(s"""Kolkata: ${dateTimeString(utcMillis, Some("Asia/Kolkata"))}""")
+  println(s"""Pacific: ${dateTimeString(utcMillis, Some("US/Pacific"))}""")
 }

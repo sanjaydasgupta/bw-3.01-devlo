@@ -33,20 +33,26 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getSubProcessCalls(process: DynDoc, processName: String): Seq[Document] = {
+  private def getSubProcessCalls(process: DynDoc, processName: String, processActivities: Seq[DynDoc]):
+      Seq[Document] = {
+    val bpmnActivities = processActivities.filter(_.bpmn_name[String] == processName)
+    val startDates = bpmnActivities.map(_.start[String]).sorted
+    val startDate = if (startDates.nonEmpty) startDates.head else "NA"
+    val endDates = bpmnActivities.map(_.end[String]).sorted
+    val endDate = if (endDates.nonEmpty) endDates.last else "NA"
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
-        new Document("name", "Start-Offset").append("value", start),
-        new Document("name", "End-Offset").append("value", end),
+        new Document("name", "Start").append("value", startDate),
+        new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
-        append("start", start).append("end", end).append("status", stamp.status[String]).
+        append("start", startDate).append("end", endDate).append("status", stamp.status[String]).
         append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
         append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
     })
@@ -57,44 +63,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val activities: Seq[DynDoc] = BWMongoDB3.activities.
       find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> processName))
     val returnActivities = activities.map(activity => {
-//      val actions: Seq[DynDoc] = activity.actions[Many[Document]]
-//      val tasks = actions.map(action => {
-//        val ownTask = user._id[ObjectId] == action.assignee_person_id[ObjectId]
-//        val status = if (ownTask && action.status[String] == "waiting")
-//          "waiting"
-//        else if (action.status[String] == "waiting")
-//          "waiting2"
-//        else
-//          action.status[String]
-//        val assignee: DynDoc = BWMongoDB3.persons.find(Map("_id" -> action.assignee_person_id[ObjectId])).head
-//        val shortAssignee = new Document("_id", assignee._id[ObjectId]).
-//          append("name", s"${assignee.first_name[String]} ${assignee.last_name[String]}")
-//        val actionType = action.`type`[String]
-//        val actionRole = if (action.has("assignee_role")) {
-//          action.assignee_role[String]
-//        } else if (action.has("role")) {
-//          action.role[String]
-//        } else if (activity.has("assignee_role")) {
-//          if (actionType == "main")
-//            activity.assignee_role[String]
-//          else
-//            s"${activity.assignee_role[String]}-$actionType"
-//        } else if (activity.has("role")) {
-//          if (actionType == "main")
-//            activity.role[String]
-//          else
-//            s"${activity.role[String]}-$actionType"
-//        } else {
-//          s"???-$actionType"
-//        }
-//        //val baseRole = if (action.has("role")) action.role[String] else activity.role[String]
-//        //val actionRole = if (actionType == "main") baseRole else s"$baseRole-$actionType"
-//        new Document("type", actionType).append("name", action.name[String]).append("status", status).
-//          append("duration", action.duration[String]).append("assignee", shortAssignee).
-//          append("start", action.start[String]).append("end", action.end[String]).append("role", actionRole).
-//          append("on_critical_path",
-//              if (action.has("on_critical_path")) action.on_critical_path[Boolean] else false)
-//      })
       val tasks = Seq.empty[Document]
       val status = if (tasks.exists(_.get("status") == "waiting"))
         "waiting"
@@ -164,8 +132,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
-        append("name", activity.name[String]).append("on_critical_path",
-            if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
+        append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
+        append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })
     returnActivities
   }
@@ -207,7 +175,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processVariables = getVariables(process, bpmnFileName)
       val processTimers = getTimers(process, bpmnFileName)
       val processActivities = getActivities(process, bpmnFileName, user)
-      val processCalls = getSubProcessCalls(process, bpmnFileName)
+      val processCalls = getSubProcessCalls(process, bpmnFileName, processActivities)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

@@ -33,15 +33,38 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getSubProcessCalls(process: DynDoc, processName: String, processActivities: Seq[DynDoc]):
+  private def activityStartAndEndDate(activity: DynDoc, timezone: String): (String, String) = {
+    val activityStart = ActivityApi.actualStart(activity) match {
+      case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (A)"
+      case None => ActivityApi.scheduledStart(activity) match {
+        case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (S)"
+        case None => "NA"
+      }
+    }
+
+    val activityEnd = ActivityApi.actualEnd(activity) match {
+      case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (A)"
+      case None => ActivityApi.scheduledEnd(activity) match {
+        case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (S)"
+        case None => "NA"
+      }
+    }
+
+    (activityStart, activityEnd)
+  }
+
+  private def getSubProcessCalls(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
       Seq[Document] = {
-    val bpmnActivities = processActivities.filter(_.bpmn_name[String] == processName)
-    val startDates = bpmnActivities.map(_.start[String]).sorted
-    val startDate = if (startDates.nonEmpty) startDates.head else "NA"
-    val endDates = bpmnActivities.map(_.end[String]).sorted
-    val endDate = if (endDates.nonEmpty) endDates.last else "NA"
+    val timezone = user.tz[String]
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
+      val calledBpmnName = stamp.name[String]
+      val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
+      val startAndEndDates = bpmnActivities.map(a => activityStartAndEndDate(a, timezone))
+      val startDates = startAndEndDates.map(_._1).sorted
+      val startDate = if (startDates.nonEmpty) startDates.head else "NA"
+      val endDates = startAndEndDates.map(_._2).sorted
+      val endDate = if (endDates.nonEmpty) endDates.last else "NA"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
@@ -58,10 +81,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getActivities(process: DynDoc, processName: String, user: DynDoc): Seq[Document] = {
-    val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> processName))
+  private def getActivities(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
+      Seq[Document] = {
+    val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val returnActivities = activities.map(activity => {
       val tasks = Seq.empty[Document]
       val status = if (tasks.exists(_.get("status") == "waiting"))
@@ -73,21 +95,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       val timezone = user.tz[String]
 
-      val activityStart = ActivityApi.actualStart(activity) match {
-        case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (A)"
-        case None => ActivityApi.scheduledStart(activity) match {
-          case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (S)"
-          case None => "NA"
-        }
-      }
-
-      val activityEnd = ActivityApi.actualEnd(activity) match {
-        case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (A)"
-        case None => ActivityApi.scheduledEnd(activity) match {
-          case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (S)"
-          case None => "NA"
-        }
-      }
+      val (activityStart, activityEnd) = activityStartAndEndDate(activity, timezone)
 
       val assignments: Seq[DynDoc] = ActivityApi.teamAssignment.list(activity._id[ObjectId])
 
@@ -174,8 +182,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val process: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
       val processVariables = getVariables(process, bpmnFileName)
       val processTimers = getTimers(process, bpmnFileName)
-      val processActivities = getActivities(process, bpmnFileName, user)
-      val processCalls = getSubProcessCalls(process, bpmnFileName, processActivities)
+      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
+      val processActivities = getActivities(process, bpmnFileName, user, allActivities)
+      val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

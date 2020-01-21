@@ -7,7 +7,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-class SlackActionCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
+class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   private def userBySlackId(slackUserId: String): Option[DynDoc] = {
     BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption

@@ -33,7 +33,7 @@ object SlackApi {
 
   def sendToUser(messageText: String, user: Either[DynDoc, ObjectId], request: Option[HttpServletRequest] = None):
       Unit = {
-    BWLogger.log(getClass.getName, "sendToUser", "ENTRY", request)
+    BWLogger.log(getClass.getName, "sendToUser", "ENTRY")
     val personRecord: DynDoc = user match {
       case Left(dd) => dd
       case Right(oid) => PersonApi.personById(oid)
@@ -44,12 +44,12 @@ object SlackApi {
       BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", request)
     } else {
       val message = s"ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$messageText'"
-      BWLogger.log(getClass.getName, "sendToUser", message, request)
+      BWLogger.log(getClass.getName, "sendToUser", message)
     }
   }
 
   def sendToChannel(messageText: String, channel: String, request: Option[HttpServletRequest] = None): Unit = {
-    BWLogger.log(getClass.getName, "sendToChannel", "ENTRY", request)
+    BWLogger.log(getClass.getName, "sendToChannel", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
     post.setHeader("Authorization",
@@ -65,7 +65,27 @@ object SlackApi {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
-    BWLogger.log(getClass.getName, "sendToChannel", "EXIT-OK", request)
+    BWLogger.log(getClass.getName, "sendToChannel", "EXIT-OK")
+  }
+
+  def openView(viewText: String, triggerId: String): Unit = {
+    BWLogger.log(getClass.getName, "openView", "ENTRY")
+    val httpClient = HttpClients.createDefault()
+    val post = new HttpPost("https://slack.com/api/views.open")
+    post.setHeader("Authorization",
+      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
+      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+    post.setHeader("Content-Type", "application/json; charset=utf-8")
+    val bodyText = s"""{"view": $viewText, "trigger_id": "$triggerId"}"""
+    post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
+    val response = httpClient.execute(post)
+    val responseContent = new ByteArrayOutputStream()
+    response.getEntity.writeTo(responseContent)
+    val contentString = responseContent.toString
+    val statusLine = response.getStatusLine
+    if (statusLine.getStatusCode != 200)
+      throw new IllegalArgumentException(s"Bad views.open status: $contentString")
+    BWLogger.log(getClass.getName, "openView", s"EXIT-OK ($contentString)")
   }
 
 }

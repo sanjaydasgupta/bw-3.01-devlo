@@ -3,6 +3,7 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.slack.SlackApi
 import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document

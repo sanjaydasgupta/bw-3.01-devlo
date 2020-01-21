@@ -3,11 +3,12 @@ package com.buildwhiz.infra
 import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 
-import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi, SlackApi}
+import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.slack.SlackApi
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

@@ -1,4 +1,4 @@
-package com.buildwhiz.baf2
+package com.buildwhiz.slack
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._

@@ -1,7 +1,8 @@
-package com.buildwhiz.baf2
+package com.buildwhiz.slack
 
 import java.io.ByteArrayOutputStream
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.BWLogger
 import javax.servlet.http.HttpServletRequest
@@ -9,6 +10,7 @@ import org.apache.http.Consts
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.impl.client.HttpClients
+
 import org.bson.types.ObjectId
 
 object SlackApi {

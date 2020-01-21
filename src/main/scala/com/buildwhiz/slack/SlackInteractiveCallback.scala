@@ -1,11 +1,11 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import org.bson.Document
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
@@ -17,24 +17,13 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val teamId = parameters("team_id")
-      //val enterpriseId = parameters("enterprise_id")
-      val slackUserId: String = parameters("user_id")
-      val slackUserName: String = parameters("user_name")
-      val channelId = parameters("channel_id")
-      val channelName = parameters("channel_name")
-      val triggerId = parameters("trigger_id")
-      val text = parameters("text")
-      userBySlackId(slackUserId) match {
-        case Some(user: DynDoc) =>
-          val userName = PersonApi.fullName(user)
-          response.getWriter.print(s"""{"text": "Hi $slackUserName ($userName),""" +
-            """ your message is being processed"}""")
-        case None =>
-          response.getWriter.print(s"""{"text": "Hi $slackUserName, your Slack-Id is not registered""" +
-            """ and your message was ignored"}""")
+      val payload: DynDoc = Document.parse(parameters("payload"))
+      if (payload.has("trigger_id") && payload.`type`[String] == "message_action") {
+        val triggerId = payload.trigger_id[String]
+        val user: DynDoc = payload.user[Document]
+        //val channel: DynDoc = payload.channel[Document]
+        SlackApi.openView(viewInvite, triggerId)
       }
-      response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
@@ -43,4 +32,32 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         throw t
     }
   }
+
+  private val viewInvite =
+    """{
+      |  "type": "modal",
+      |  "callback_id": "modal-identifier",
+      |  "title": {
+      |    "type": "plain_text",
+      |    "text": "Just a modal"
+      |  },
+      |  "blocks": [
+      |    {
+      |      "type": "section",
+      |      "block_id": "section-identifier",
+      |      "text": {
+      |        "type": "mrkdwn",
+      |        "text": "*Welcome* to ~my~ Block Kit _modal_!"
+      |      },
+      |      "accessory": {
+      |        "type": "button",
+      |        "text": {
+      |          "type": "plain_text",
+      |          "text": "A button",
+      |        },
+      |        "action_id": "button-identifier",
+      |      }
+      |    }
+      |  ],
+      |}""".stripMargin
 }

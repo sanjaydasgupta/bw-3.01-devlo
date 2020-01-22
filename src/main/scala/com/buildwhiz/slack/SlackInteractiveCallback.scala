@@ -1,18 +1,18 @@
 package com.buildwhiz.slack
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
-    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
-  }
-
+//  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
+//    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
+//  }
+//
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
@@ -20,11 +20,13 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       val payload: DynDoc = Document.parse(parameters("payload"))
       if (payload.has("trigger_id") && payload.`type`[String] == "message_action") {
         val triggerId = payload.trigger_id[String]
-        val user: DynDoc = payload.user[Document]
-        //val channel: DynDoc = payload.channel[Document]
         SlackApi.openView(viewInvite, triggerId)
+      } else if (payload.`type`[String] == "view_submission") {
+      } else if (payload.`type`[String] == "block_action") {
+        //val user: DynDoc = payload.user[Document]
+        //val channel: DynDoc = payload.channel[Document]
       }
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -36,28 +38,56 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
   private val viewInvite =
     """{
       |  "type": "modal",
-      |  "callback_id": "modal-identifier",
+      |  "callback_id": "BW-modal-identifier",
       |  "title": {
       |    "type": "plain_text",
-      |    "text": "Just a modal"
+      |    "text": "BuildWhiz User Interface"
+      |  },
+      |  "submit": {
+      |    "type": "plain_text",
+      |    "text": "Submit",
+      |    "emoji": true
       |  },
       |  "blocks": [
       |    {
       |      "type": "section",
-      |      "block_id": "section-identifier",
+      |      "block_id": "BW-section-identifier-options",
       |      "text": {
       |        "type": "mrkdwn",
-      |        "text": "*Welcome* to ~my~ Block Kit _modal_!"
+      |        "text": "Select desired area of operation"
       |      },
       |      "accessory": {
-      |        "type": "button",
-      |        "text": {
+      |        "action_id": "BW-SELECTION",
+      |        "type": "static_select",
+      |        "placeholder": {
       |          "type": "plain_text",
-      |          "text": "A button",
+      |          "text": "Select area"
       |        },
-      |        "action_id": "button-identifier",
+      |        "options": [
+      |          {
+      |            "text": {
+      |              "type": "plain_text",
+      |              "text": "Projects, phases, processes"
+      |            },
+      |            "value": "BW-SELECTION-projects-phases-processes"
+      |          },
+      |          {
+      |            "text": {
+      |              "type": "plain_text",
+      |              "text": "Active tasks"
+      |            },
+      |            "value": "BW-SELECTION-active-tasks"
+      |          },
+      |          {
+      |            "text": {
+      |              "type": "plain_text",
+      |              "text": "Alerts"
+      |            },
+      |            "value": "BW-SELECTION-alerts"
+      |          }
+      |        ]
       |      }
       |    }
-      |  ],
+      |  ]
       |}""".stripMargin
 }

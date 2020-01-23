@@ -1,9 +1,10 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.{PersonApi, SlackApi}
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.slack.SlackApi
 
 import scala.util.parsing.combinator.RegexParsers
 

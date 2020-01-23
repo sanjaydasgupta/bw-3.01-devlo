@@ -157,9 +157,9 @@ object DocumentRecordsRedo extends App {
     "content_type" -> "application/octet-stream", "document_type" -> "text")
 
   val allDocuments = Seq(docRfiRequest, docRfiResponse, docSubmittal)  ++ processDrawings() ++ processDocuments()
-  println(s"Original count: ${BWMongoDB3.document_master.count()}")
+  println(s"Original count: ${BWMongoDB3.document_master.countDocuments()}")
   BWMongoDB3.document_master.drop()
-  println(s"After Drop count: ${BWMongoDB3.document_master.count()}")
+  println(s"After Drop count: ${BWMongoDB3.document_master.countDocuments()}")
   BWMongoDB3.document_master.insertMany(allDocuments.asJava)
-  println(s"Final count: ${BWMongoDB3.document_master.count()}")
+  println(s"Final count: ${BWMongoDB3.document_master.countDocuments()}")
 }

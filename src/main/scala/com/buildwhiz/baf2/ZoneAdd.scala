@@ -31,7 +31,7 @@ class ZoneAdd extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
 
       val queryRecord = Map("name" -> zoneName, "project_id" -> projectOid, "phase_id" -> phaseOid)
-      if (BWMongoDB3.zones.count(queryRecord) > 0)
+      if (BWMongoDB3.zones.countDocuments(queryRecord) > 0)
         throw new IllegalArgumentException(s"Zone '$zoneName' already exists")
 
       val area = parameters("area")

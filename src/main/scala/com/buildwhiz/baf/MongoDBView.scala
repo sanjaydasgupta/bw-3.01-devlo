@@ -30,7 +30,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
     s"""{"status": $status, "new_archive": "$fileName", "purged_archives": $ftd}"""
   }
 
-  private def collectionSchema(request: HttpServletRequest, response: HttpServletResponse, collectionName: String) = {
+  private def collectionSchema(request: HttpServletRequest, response: HttpServletResponse, collectionName: String): Unit = {
     def generateSchema(baseName: String, obj: Any, acc: mutable.Map[String, (Int, Set[String])]): Unit = obj match {
       case dd: DynDoc => generateSchema(baseName, dd.asDoc, acc)
       case fi: FindIterable[Document] @unchecked => fi.asScala.foreach(d => generateSchema(baseName, d, acc))
@@ -98,7 +98,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
             throw new IllegalArgumentException(s"No match found")
         case _ =>
           val names: Seq[String] = BWMongoDB3.collectionNames
-          val counts: Seq[Long] = names.map(BWMongoDB3(_).count())
+          val counts: Seq[Long] = names.map(BWMongoDB3(_).countDocuments())
           val nameAndCounts = names.zip(counts).sortWith(_._1 < _._1)
           val jsonStrings = nameAndCounts.map(nc => s"""{"name": "${nc._1}", "count": ${nc._2}}""")
           writer.print(jsonStrings.mkString("[", ", ", "]"))

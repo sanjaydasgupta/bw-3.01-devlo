@@ -20,7 +20,7 @@ class ActivityAssignmentDelete extends HttpServlet with HttpUtils {
       //        throw new IllegalArgumentException("Not permitted")
 
       val assignmentOid = new ObjectId(parameters("assignment_id"))
-      if (BWMongoDB3.activity_assignments.count(Map("_id" -> assignmentOid)) == 0)
+      if (BWMongoDB3.activity_assignments.countDocuments(Map("_id" -> assignmentOid)) == 0)
         throw new IllegalArgumentException(s"Bad assignment_id: '$assignmentOid'")
 
       teamAssignment.deleteAssignment(assignmentOid, userOid)

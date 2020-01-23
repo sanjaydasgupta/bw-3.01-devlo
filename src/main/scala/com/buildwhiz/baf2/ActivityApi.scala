@@ -364,7 +364,7 @@ object ActivityApi {
           throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
       } else {
         val role = theAssignment.role[String]
-        val count = BWMongoDB3.activity_assignments.count(Map("activity_id" -> activityOid, "role" -> role))
+        val count = BWMongoDB3.activity_assignments.countDocuments(Map("activity_id" -> activityOid, "role" -> role))
         if (count > 1) {
           val deleteResult = BWMongoDB3.activity_assignments.deleteOne(Map("_id" -> assignmentOid))
           if (deleteResult.getDeletedCount == 0)

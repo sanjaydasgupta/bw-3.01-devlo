@@ -76,7 +76,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       val documentOid = Try { new ObjectId(documentId) }
       val docRecordExists = documentOid match {
         case Failure(_) => false
-        case Success(oid) => BWMongoDB3.document_master.count(Map("_id" -> oid)) > 0
+        case Success(oid) => BWMongoDB3.document_master.countDocuments(Map("_id" -> oid)) > 0
       }
       val labelSequence = labels.split(",").map(_.trim).toSeq
       if (docRecordExists) {

@@ -48,7 +48,7 @@ object MigrateProcess {
         s"Verified $toActivityCount nascent entries", request)
 
     val deleteResult = BWMongoDB3.activity_assignments.deleteMany(Map("process_id" -> toProcessOid))
-    val count = BWMongoDB3.activity_assignments.count(Map("process_id" -> toProcessOid))
+    val count = BWMongoDB3.activity_assignments.countDocuments(Map("process_id" -> toProcessOid))
     if (toActivityCount != deleteResult.getDeletedCount && count != 0) {
       val errorMessage = s"Delete (${deleteResult.getDeletedCount}) of ($toActivityCount), residue still $count"
       BWLogger.log(getClass.getName, "copyAssignments", s"$errorMessage ... ", request)

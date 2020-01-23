@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 class BrowseMongoDB extends HttpServlet {
 
-  private def collectionSchema(request: HttpServletRequest, response: HttpServletResponse, collectionName: String) = {
+  private def collectionSchema(request: HttpServletRequest, response: HttpServletResponse, collectionName: String): Unit = {
     def generateSchema(baseName: String, obj: Any, acc: mutable.Map[String, (Int, Set[String])]): Unit = obj match {
       case dd: DynDoc => generateSchema(baseName, dd.asDoc, acc)
       case fi: FindIterable[Document] @unchecked => fi.asScala.foreach(d => generateSchema(baseName, d, acc))
@@ -54,7 +54,7 @@ class BrowseMongoDB extends HttpServlet {
     response.setStatus(HttpServletResponse.SC_OK)
   }
 
-  private def mongoCollection(request: HttpServletRequest, response: HttpServletResponse, collectionName: String) = {
+  private def mongoCollection(request: HttpServletRequest, response: HttpServletResponse, collectionName: String): Unit = {
     val writer = response.getWriter
     writer.println(s"<html><head><title>BuildWhiz Collection $collectionName</title></head>")
     writer.println(s"""<body><h2 align="center">Collection '$collectionName'</h2>""")
@@ -69,7 +69,7 @@ class BrowseMongoDB extends HttpServlet {
     response.setStatus(HttpServletResponse.SC_OK)
   }
 
-  private def mongoDatabase(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String) = {
+  private def mongoDatabase(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String): Unit = {
     val writer = response.getWriter
     writer.println("<html><head><title>MongoDB Database</title></head>")
     writer.println("<body><h2 align=\"center\">MongoDB Database Collections</h2>")
@@ -78,7 +78,7 @@ class BrowseMongoDB extends HttpServlet {
     sb.append(List("Collection", "Count").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     val collectionNames: Seq[String] = BWMongoDB3.collectionNames
-    val collectionSizes: Seq[Long] = collectionNames.map(BWMongoDB3(_).count())
+    val collectionSizes: Seq[Long] = collectionNames.map(BWMongoDB3(_).countDocuments())
     val collectionData = collectionNames.zip(collectionSizes).sortWith(_._1 < _._1)
     val traceLogRows = collectionData.map(p => {
       val collectionRef = s"""<a href="$uriRoot/${p._1}">${p._1}</a>"""

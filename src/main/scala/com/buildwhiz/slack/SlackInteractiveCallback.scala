@@ -9,10 +9,10 @@ import org.bson.Document
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-//  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
-//    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
-//  }
-//
+  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
+    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
@@ -22,11 +22,11 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         val triggerId = payload.trigger_id[String]
         SlackApi.openView(viewInvite, triggerId)
       } else if (payload.`type`[String] == "view_submission") {
+        val view: DynDoc = payload.view[Document]
+        val state: DynDoc = view.state[Document]
       } else if (payload.`type`[String] == "block_action") {
-        //val user: DynDoc = payload.user[Document]
-        //val channel: DynDoc = payload.channel[Document]
       }
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -38,7 +38,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
   private val viewInvite =
     """{
       |  "type": "modal",
-      |  "callback_id": "BW-modal-identifier",
+      |  "callback_id": "BW-modal",
       |  "title": {
       |    "type": "plain_text",
       |    "text": "BuildWhiz User Interface"
@@ -48,21 +48,26 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       |    "text": "Submit",
       |    "emoji": true
       |  },
+      |  "close": {
+      |    "type": "plain_text",
+      |    "text": "Cancel",
+      |    "emoji": true
+      |  },
       |  "blocks": [
       |    {
-      |      "type": "section",
-      |      "block_id": "BW-section-identifier-options",
-      |      "text": {
-      |        "type": "mrkdwn",
+      |      "type": "input",
+      |      "block_id": "BW-SELECTION-block",
+      |      "label": {
+      |        "type": "plain_text",
       |        "text": "Select desired area of operation"
       |      },
-      |      "accessory": {
-      |        "action_id": "BW-SELECTION",
+      |      "element": {
       |        "type": "static_select",
       |        "placeholder": {
       |          "type": "plain_text",
       |          "text": "Select area"
       |        },
+      |        "action_id": "BW-SELECTION-options",
       |        "options": [
       |          {
       |            "text": {

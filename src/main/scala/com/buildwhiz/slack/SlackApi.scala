@@ -88,4 +88,24 @@ object SlackApi {
     BWLogger.log(getClass.getName, "openView", s"EXIT-OK ($contentString)")
   }
 
+  def pushView(viewText: String, triggerId: String): Unit = {
+    BWLogger.log(getClass.getName, "pushView", "ENTRY")
+    val httpClient = HttpClients.createDefault()
+    val post = new HttpPost("https://slack.com/api/views.push")
+    post.setHeader("Authorization",
+      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
+      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+    post.setHeader("Content-Type", "application/json; charset=utf-8")
+    val bodyText = s"""{"view": $viewText, "trigger_id": "$triggerId"}"""
+    post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
+    val response = httpClient.execute(post)
+    val responseContent = new ByteArrayOutputStream()
+    response.getEntity.writeTo(responseContent)
+    val contentString = responseContent.toString
+    val statusLine = response.getStatusLine
+    if (statusLine.getStatusCode != 200)
+      throw new IllegalArgumentException(s"Bad views.open status: $contentString")
+    BWLogger.log(getClass.getName, "pushView", s"EXIT-OK ($contentString)")
+  }
+
 }

@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
+class TaskList extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -19,36 +19,12 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
       val userOid = user._id[ObjectId]
       val freshUserRecord = PersonApi.personById(userOid)
 
-      val assignments: Seq[DynDoc] = if (PersonApi.isBuildWhizAdmin(Right(user)))
-        BWMongoDB3.activity_assignments.find()
-      else
-        BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
+      val assignments = TaskList.uniqueAssignments(freshUserRecord, queryType)
 
-      val goodAssignments = assignments.filter(a => {
-        val activity = ActivityApi.activityById(a.activity_id[ObjectId])
-        ActivityApi.parentProcess(activity._id[ObjectId])
-
-        val status = activity.status[String]
-        val queryTypeCondition = queryType match {
-          case "Overdue" => status == "running" && ActivityApi.isDelayed(activity)
-          case _ => true
-        }
-        queryTypeCondition
-      })
-
-      val uniqueAssignments: Seq[DynDoc] = goodAssignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
-        val seq = t._2
-        val roles = seq.map(_.role[String])
-        val head = seq.head
-        head.role = roles.mkString(", ")
-        head
-      })
-
-      response.getWriter.print(uniqueAssignments.map(assignment => assignment2json(assignment, freshUserRecord)).
-          mkString("[", ", ", "]"))
+      response.getWriter.print(assignments.map(a => bson2json(a.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${goodAssignments.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${assignments.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -57,50 +33,76 @@ class TaskList extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
-  private def assignment2json(assignment: DynDoc, user: DynDoc): String = {
-    val activityOid = assignment.activity_id[ObjectId]
+}
 
-    val viewAction: DynDoc = new Document()
+object TaskList extends DateTimeUtils {
 
-    val (startDateTime, endDateTime) = if (assignment.has("timestamps")) {
-      val timezone = user.tz[String]
-      val timestamps: DynDoc = assignment.timestamps[Document]
-      (timestamps.has("start"), timestamps.has("end")) match {
-        case (true, true) => (dateTimeString(timestamps.start[Long], Some(timezone)),
-          dateTimeString(timestamps.end[Long], Some(timezone)))
-        case (true, false) => (dateTimeString(timestamps.start[Long], Some(timezone)), "NA")
-        case (false, true) => ("NA", dateTimeString(timestamps.end[Long], Some(timezone)))
-        case (false, false) => ("NA", "NA")
+  def uniqueAssignments(user: DynDoc, queryType: String="none"): Seq[DynDoc] = {
+    val userOid = user._id[ObjectId]
+    val assignments: Seq[DynDoc] = if (PersonApi.isBuildWhizAdmin(Right(user)))
+      BWMongoDB3.activity_assignments.find()
+    else
+      BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
+
+    val goodAssignments = assignments.filter(a => {
+      val activity = ActivityApi.activityById(a.activity_id[ObjectId])
+      ActivityApi.parentProcess(activity._id[ObjectId])
+
+      val status = activity.status[String]
+      val queryTypeCondition = queryType match {
+        case "Overdue" => status == "running" && ActivityApi.isDelayed(activity)
+        case _ => true
       }
-    } else {
-      ("NA", "NA")
-    }
-    viewAction.start_datetime = startDateTime
-    viewAction.end_datetime = endDateTime
+      queryTypeCondition
+    })
 
-    val theProcess = ActivityApi.parentProcess(activityOid)
-    viewAction.process_name = theProcess.name[String]
-    viewAction.process_id = theProcess._id[ObjectId]
+    goodAssignments.groupBy(_.activity_id[ObjectId]).toSeq.map(t => {
+      val seq = t._2
+      val roles = seq.map(_.role[String])
+      val assignment = seq.head
+      assignment.role = roles.mkString(", ")
 
-    val thePhase = ProcessApi.parentPhase(theProcess._id[ObjectId])
-    viewAction.phase_name = thePhase.name[String]
-    viewAction.phase_id = thePhase._id[ObjectId]
+      val theProcess = ProcessApi.processById(assignment.process_id[ObjectId])
+      assignment.process_name = theProcess.name[String]
+      assignment.process_id = theProcess._id[ObjectId]
 
-    val theProject = PhaseApi.parentProject(thePhase._id[ObjectId])
-    viewAction.project_name = theProject.name[String]
-    viewAction.project_id = theProject._id[ObjectId]
+      val thePhase = PhaseApi.phaseById(assignment.phase_id[ObjectId])
+      assignment.phase_name = thePhase.name[String]
+      assignment.phase_id = thePhase._id[ObjectId]
 
-    val theActivity = ActivityApi.activityById(activityOid)
-    viewAction.activity_name = theActivity.name[String]
-    viewAction.activity_id = theActivity._id[ObjectId]
-    viewAction.activity_description = theActivity.description[String]
+      val theProject = ProjectApi.projectById(assignment.project_id[ObjectId])
+      assignment.project_name = theProject.name[String]
+      assignment.project_id = theProject._id[ObjectId]
 
-    viewAction.bpmn_name = theActivity.bpmn_name[String]
-    viewAction.name = theActivity.name[String]
-    viewAction.status = theActivity.status[String]
-    viewAction.`type` = assignment.role[String]
+      val theActivity = ActivityApi.activityById(assignment.activity_id[ObjectId])
+      assignment.activity_name = theActivity.name[String]
+      assignment.activity_id = theActivity._id[ObjectId]
+      assignment.activity_description = theActivity.description[String]
 
-    bson2json(viewAction.asDoc)
+      assignment.bpmn_name = theActivity.bpmn_name[String]
+      assignment.name = theActivity.name[String]
+      assignment.status = theActivity.status[String]
+      assignment.`type` = assignment.role[String]
+
+      val (startDateTime, endDateTime) = if (assignment.has("timestamps")) {
+        val timezone = user.tz[String]
+        val timestamps: DynDoc = assignment.timestamps[Document]
+        (timestamps.has("start"), timestamps.has("end")) match {
+          case (true, true) => (dateTimeString(timestamps.start[Long], Some(timezone)),
+            dateTimeString(timestamps.end[Long], Some(timezone)))
+          case (true, false) => (dateTimeString(timestamps.start[Long], Some(timezone)), "NA")
+          case (false, true) => ("NA", dateTimeString(timestamps.end[Long], Some(timezone)))
+          case (false, false) => ("NA", "NA")
+        }
+      } else {
+        ("NA", "NA")
+      }
+      assignment.start_datetime = startDateTime
+      assignment.end_datetime = endDateTime
+
+      assignment
+    })
+
   }
 
 }

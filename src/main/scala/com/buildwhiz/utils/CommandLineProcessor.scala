@@ -1,10 +1,11 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.slack.SlackApi
+import org.bson.types.ObjectId
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -30,7 +31,18 @@ object CommandLineProcessor {
   }
 
   private def listTasks(user: DynDoc): String = {
-    "You have no tasks now"
+    val assignments = TaskList.uniqueAssignments(user)
+    val rows = assignments.map(a => {
+      val id = a.activity_id[ObjectId]
+      val project = a.project_name[String]
+      val phase = a.phase_name[String]
+      val process = a.process_name[String]
+      val name = a.activity_name[String]
+      val end = a.end_datetime[String]
+      val start = a.start_datetime[String]
+      s"ID: $id, NAME: $name, END: $end, START: $start, PROJECT: $project, PHASE: $phase, PROCESS: $process"
+    })
+    rows.mkString("\n")
   }
 
   private def whoAmI(user: DynDoc): String = {
@@ -58,8 +70,6 @@ object CommandLineProcessor {
 
   private object commandLineParser extends RegexParsers {
 
-    implicit def keyword(keyword: Symbol): Parser[String] = s"(?i)${keyword.name}\\b".r
-
     // Type for CLI processor parsers ...
     private type CLIP = Parser[DynDoc => String]
 
@@ -67,18 +77,19 @@ object CommandLineProcessor {
     private lazy val helpParser: CLIP = "(?i)help" ^^ {_ => help}
 
     // Slack membership command ...
-    private lazy val slackManageParser: CLIP = 'slack ~> ('invite | 'status) ~ rep1("\\S+".r) ^^
+    private lazy val slackManageParser: CLIP = "slack" ~> ("invite" | "status") ~ rep1("\\S+".r) ^^
       {parseResult => slackManage(parseResult._1, parseResult._2)}
 
     // List documents command ...
-    private lazy val listEntitiesParser: CLIP = 'list ~> ('documents | 'projects | 'tasks) ^^ {
-      case "documents" => listDocuments
-      case "projects" => listProjects
-      case "tasks" => listTasks
+    private lazy val listEntitiesParser: CLIP =
+        "(?i)list|show|display|query".r ~> ("documents?".r | "projects?".r | "tasks?".r) ^^ {
+      case "document" | "documents" => listDocuments
+      case "project" | "projects" => listProjects
+      case "task" | "tasks" => listTasks
     }
 
     // Who am I command ...
-    private lazy val whoAmIParser: CLIP = 'who ~ 'am ~ 'I ^^ {_ => whoAmI}
+    private lazy val whoAmIParser: CLIP = "who" ~ "am" ~ "I" ^^ {_ => whoAmI}
 
     private lazy val none: CLIP = ".*".r ^^ {_ => help}
 

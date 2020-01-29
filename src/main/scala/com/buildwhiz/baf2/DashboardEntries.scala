@@ -35,14 +35,14 @@ class DashboardEntries extends HttpServlet with HttpUtils {
 
 object DashboardEntries extends DateTimeUtils {
 
-  def compareDashboardEntries(a: DynDoc, b: DynDoc): Boolean = {
+  private def compareDashboardEntries(a: DynDoc, b: DynDoc): Boolean = {
     val levels = Map("urgent" -> 3, "important" -> 2, "normal" -> 1)
     val (lvla, lvlb) = (levels(a.status[String]), levels(b.status[String]))
     val (dda, ddb) = (a.due_date[String], b.due_date[String])
     (lvla > lvlb) || (lvla == lvlb) && (dda < ddb)
   }
 
-  private def dashboardEntries(user: DynDoc): Seq[DynDoc] = {
+  def dashboardEntries(user: DynDoc): Seq[DynDoc] = {
     val timeZone = user.tz[String]
     val userOid = user._id[ObjectId]
 

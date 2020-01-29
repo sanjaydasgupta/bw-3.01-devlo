@@ -1,10 +1,11 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.{PersonApi, TaskList}
+import com.buildwhiz.baf2.{DashboardEntries, PersonApi, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.slack.SlackApi
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.util.parsing.combinator.RegexParsers
@@ -17,6 +18,7 @@ object CommandLineProcessor {
 
   private def help(user: DynDoc): String = {
     """Commands:
+      |+  dash[board]
       |+  list {projects|tasks|documents}
       |+  slack {invite|status} first-name [last-name]
       |+  who am I""".stripMargin
@@ -32,15 +34,28 @@ object CommandLineProcessor {
 
   private def listTasks(user: DynDoc): String = {
     val assignments = TaskList.uniqueAssignments(user)
-    val rows = assignments.map(a => {
-      val id = a.activity_id[ObjectId]
-      val project = a.project_name[String]
-      val phase = a.phase_name[String]
-      val process = a.process_name[String]
-      val name = a.activity_name[String]
-      val end = a.end_datetime[String]
-      val start = a.start_datetime[String]
-      s"ID: $id, NAME: $name, END: $end, START: $start, PROJECT: $project, PHASE: $phase, PROCESS: $process"
+    val rows = assignments.map(assignment => {
+      val id = assignment.activity_id[ObjectId]
+      val project = assignment.project_name[String]
+      val phase = assignment.phase_name[String]
+      val process = assignment.process_name[String]
+      val name = assignment.activity_name[String]
+      val end = assignment.end_datetime[String].split(" ").head
+      val start = assignment.start_datetime[String].split(" ").head
+      s"$name (END: $end, START: $start) ID: $project/$phase/$process($id)"
+    })
+    rows.mkString("\n")
+  }
+
+  private def dashboard(user: DynDoc): String = {
+    val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
+    val rows = entries.map(entry => {
+      val project = entry.project_name[String]
+      val phase = entry.phase_name[String]
+      val status = entry.display_status[String]
+      val tasksOverdueDetail: DynDoc = entry.tasks_overdue[Document]
+      val tasksOverdue = tasksOverdueDetail.value[String]
+      s"Project: $project, Phase: $phase, Status: $status, Tasks-Overdue: $tasksOverdue"
     })
     rows.mkString("\n")
   }
@@ -80,20 +95,29 @@ object CommandLineProcessor {
     private lazy val slackManageParser: CLIP = "slack" ~> ("invite" | "status") ~ rep1("\\S+".r) ^^
       {parseResult => slackManage(parseResult._1, parseResult._2)}
 
-    // List documents command ...
+    // List entities command ...
+    private lazy val entityNamesParser: Parser[String] =
+      "(?i)documents?".r ^^ {_ => "documents"} |
+      "(?i)projects?".r ^^ {_ => "projects"} |
+      "(?i)tasks?".r ^^ {_ => "tasks"}
+
     private lazy val listEntitiesParser: CLIP =
-        "(?i)list|show|display|query".r ~> ("documents?".r | "projects?".r | "tasks?".r) ^^ {
-      case "document" | "documents" => listDocuments
-      case "project" | "projects" => listProjects
-      case "task" | "tasks" => listTasks
+        "(?i)list|show|display|query".r ~> entityNamesParser ^^ {
+      case "documents" => listDocuments
+      case "projects" => listProjects
+      case "tasks" => listTasks
     }
+
+    // Dashboard command ...
+    private lazy val dashboardParser: CLIP = "(?i)dash(?:board)?".r ^^ {_ => dashboard}
 
     // Who am I command ...
     private lazy val whoAmIParser: CLIP = "who" ~ "am" ~ "I" ^^ {_ => whoAmI}
 
     private lazy val none: CLIP = ".*".r ^^ {_ => help}
 
-    private lazy val allCommands: CLIP = helpParser | listEntitiesParser | whoAmIParser | slackManageParser | none
+    private lazy val allCommands: CLIP =
+        dashboardParser | helpParser | listEntitiesParser | whoAmIParser | slackManageParser | none
 
     def cliProcessor(command: String, user: DynDoc): String = {
       parseAll(allCommands, command) match {

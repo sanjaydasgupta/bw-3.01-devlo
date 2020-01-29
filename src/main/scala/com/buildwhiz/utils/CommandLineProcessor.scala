@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 import scala.util.parsing.combinator.RegexParsers
 
-object CommandLineProcessor {
+object CommandLineProcessor extends DateTimeUtils {
 
   def process(command: String, user: DynDoc): String = {
     commandLineParser.cliProcessor(command, user)
@@ -19,7 +19,7 @@ object CommandLineProcessor {
   private def help(user: DynDoc): String = {
     """Commands:
       |+  dash[board]
-      |+  list {projects|tasks|documents}
+      |+  list {active users|documents|projects|tasks}
       |+  slack {invite|status} first-name [last-name]
       |+  who am I""".stripMargin
   }
@@ -45,6 +45,20 @@ object CommandLineProcessor {
       s"$name (END: $end, START: $start) ID: $project/$phase/$process($id)"
     })
     rows.mkString("\n")
+  }
+
+  private def activeUsers(user: DynDoc): String = {
+    val msStart = System.currentTimeMillis() - (60L * 60L * 1000L)
+    val logs: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map($gte -> msStart)))
+    val namedLogs = logs.filter(_.variables[Document].has("u$nm"))
+    val lastOccurrence: Seq[DynDoc] = namedLogs.groupBy(_.variables[Document].getString("u$nm")).
+        map(_._2.maxBy(_.milliseconds[Long])).toSeq.sortBy(_.milliseconds[Long] * -1)
+    val rows = lastOccurrence.map(occurrence => {
+      val name = occurrence.variables[Document].getString("u$nm")
+      val time = dateTimeString(occurrence.milliseconds[Long], Some(user.tz[String]))
+      s"\t$time  $name\n"
+    })
+    rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users.")
   }
 
   private def dashboard(user: DynDoc): String = {
@@ -97,12 +111,13 @@ object CommandLineProcessor {
 
     // List entities command ...
     private lazy val entityNamesParser: Parser[String] =
+      ("(?i)active".r ~ "(?i)users?".r) ^^ {_ => "active-users"} |
       "(?i)documents?".r ^^ {_ => "documents"} |
       "(?i)projects?".r ^^ {_ => "projects"} |
       "(?i)tasks?".r ^^ {_ => "tasks"}
 
-    private lazy val listEntitiesParser: CLIP =
-        "(?i)list|show|display|query".r ~> entityNamesParser ^^ {
+    private lazy val listEntitiesParser: CLIP = "(?i)list|show|display|query".r ~> entityNamesParser ^^ {
+      case "active-users" => activeUsers
       case "documents" => listDocuments
       case "projects" => listProjects
       case "tasks" => listTasks
@@ -112,12 +127,12 @@ object CommandLineProcessor {
     private lazy val dashboardParser: CLIP = "(?i)dash(?:board)?".r ^^ {_ => dashboard}
 
     // Who am I command ...
-    private lazy val whoAmIParser: CLIP = "who" ~ "am" ~ "I" ^^ {_ => whoAmI}
+    private lazy val whoAmIParser: CLIP = "(?i)who".r ~ "(?i)am".r ~ "[iI]".r ^^ {_ => whoAmI}
 
     private lazy val none: CLIP = ".*".r ^^ {_ => help}
 
     private lazy val allCommands: CLIP =
-        dashboardParser | helpParser | listEntitiesParser | whoAmIParser | slackManageParser | none
+        dashboardParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
 
     def cliProcessor(command: String, user: DynDoc): String = {
       parseAll(allCommands, command) match {
@@ -137,9 +152,12 @@ object CommandLineProcessor {
   }
 
   def main(args: Array[String]): Unit = {
+    println(commandLineParser.testParser("Who am i"))
+    println(commandLineParser.testParser("DashBoard"))
+    println(commandLineParser.testParser("query Active UsErS"))
     println(commandLineParser.testParser("list documents"))
     println(commandLineParser.testParser("list projects"))
-    println(commandLineParser.testParser("list tasks"))
+    //println(commandLineParser.testParser("list tasks"))
     println(commandLineParser.testParser("slack status caroline"))
     //println(commandLineParser.testParser("list phases"))
   }

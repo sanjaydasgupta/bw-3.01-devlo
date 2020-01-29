@@ -10,7 +10,30 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
+class DashboardEntries extends HttpServlet with HttpUtils {
+
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    try {
+      val user: DynDoc = getUser(request)
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
+      val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(freshUserRecord)
+
+      response.getWriter.println(entries.map(_.asDoc.toJson).mkString("[", ", ", "]"))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${entries.length})", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+}
+
+object DashboardEntries extends DateTimeUtils {
 
   def compareDashboardEntries(a: DynDoc, b: DynDoc): Boolean = {
     val levels = Map("urgent" -> 3, "important" -> 2, "normal" -> 1)
@@ -65,25 +88,6 @@ class DashboardEntries extends HttpServlet with HttpUtils with DateTimeUtils {
     })
 
     dashboardEntries//.sortWith(compareDashboardEntries)
-  }
-
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    try {
-      val user: DynDoc = getUser(request)
-      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val entries: Seq[DynDoc] = dashboardEntries(freshUserRecord)
-
-      response.getWriter.println(entries.map(_.asDoc.toJson).mkString("[", ", ", "]"))
-      response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${entries.length})", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
-    }
   }
 
 }

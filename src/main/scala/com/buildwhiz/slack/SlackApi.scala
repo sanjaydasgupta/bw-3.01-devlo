@@ -31,8 +31,8 @@ object SlackApi {
     }
   }
 
-  def sendToUser(messageText: String, user: Either[DynDoc, ObjectId], request: Option[HttpServletRequest] = None):
-      Unit = {
+  def sendToUser(stringOrBlocks: Either[String, Seq[DynDoc]], user: Either[DynDoc, ObjectId],
+      request: Option[HttpServletRequest] = None): Unit = {
     BWLogger.log(getClass.getName, "sendToUser", "ENTRY")
     val personRecord: DynDoc = user match {
       case Left(dd) => dd
@@ -40,15 +40,16 @@ object SlackApi {
     }
     if (personRecord.has("slack_id")) {
       val slackChannel = personRecord.slack_id[String]
-      sendToChannel(messageText, slackChannel, request)
+      sendToChannel(stringOrBlocks, slackChannel, request)
       BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", request)
     } else {
-      val message = s"ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$messageText'"
+      val message = s"ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
       BWLogger.log(getClass.getName, "sendToUser", message)
     }
   }
 
-  def sendToChannel(messageText: String, channel: String, request: Option[HttpServletRequest] = None): Unit = {
+  def sendToChannel(textOrBlocks: Either[String, Seq[DynDoc]], channel: String,
+                    request: Option[HttpServletRequest] = None): Unit = {
     BWLogger.log(getClass.getName, "sendToChannel", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
@@ -56,7 +57,13 @@ object SlackApi {
       //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
       "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
     post.setHeader("Content-Type", "application/json")
-    val bodyText = s"""{"text": "$messageText", "channel": "$channel"}"""
+    val bodyText = textOrBlocks match {
+      case Left(messageText) => s"""{"text": "$messageText", "channel": "$channel"}"""
+      case Right(blocks) =>
+        val blocksText = blocks.map(_.asDoc.toJson).mkString(",")
+        s"""{"blocks": [$blocksText], "channel": "$channel"}"""
+    }
+    BWLogger.log(getClass.getName, "sendToChannel", s"Message: $bodyText")
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
     val responseContent = new ByteArrayOutputStream()
@@ -66,6 +73,25 @@ object SlackApi {
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
     BWLogger.log(getClass.getName, "sendToChannel", "EXIT-OK")
+  }
+
+  // https://api.slack.com/messaging/interactivity
+
+  def createSectionWithButton(descriptionText: String, buttonText: String, buttonValue: String): DynDoc = Map(
+    "type" -> "section",
+    "text" -> Map("type" -> "mrkdwn", "text" -> descriptionText),
+    "accessory" -> createButton(buttonText, buttonValue)
+  )
+
+  def createButton(buttonText: String, buttonValue: String): DynDoc = Map(
+    "type" -> "button",
+    "text" -> Map("type" -> "plain_text", "text" -> buttonText, "emoji" -> true),
+    "value" -> buttonValue
+  )
+
+  def createMultipleChoiceMessage(optionDescriptionsAndTexts: Seq[(String, String)], messageId: String):
+      Seq[DynDoc] = {
+    optionDescriptionsAndTexts.map(dt => createSectionWithButton(dt._1, "Select", s"$messageId-${dt._2}"))
   }
 
   def openView(viewText: String, triggerId: String): Unit = {
@@ -106,6 +132,12 @@ object SlackApi {
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad views.open status: $contentString")
     BWLogger.log(getClass.getName, "pushView", s"EXIT-OK ($contentString)")
+  }
+
+  def main(args: Array[String]): Unit = {
+    val specs = Seq(("One description", "one"), ("Two description", "two"), ("Three description", "three"))
+    val mcm = createMultipleChoiceMessage(specs, "message_id")
+    println(mcm.map(_.asDoc.toJson).mkString(",\n"))
   }
 
 }

@@ -12,27 +12,29 @@ import scala.util.parsing.combinator.RegexParsers
 
 object CommandLineProcessor extends DateTimeUtils {
 
-  def process(command: String, user: DynDoc): String = {
+  type ParserResult = Either[String, Seq[DynDoc]]
+
+  def process(command: String, user: DynDoc): ParserResult = {
     commandLineParser.cliProcessor(command, user)
   }
 
-  private def help(user: DynDoc): String = {
-    """Commands:
+  private def help(user: DynDoc): ParserResult = {
+    Left("""Commands:
       |+  dash[board]
       |+  list {active users|documents|projects|tasks}
       |+  slack {invite|status} first-name [last-name]
-      |+  who am I""".stripMargin
+      |+  who am I""".stripMargin)
   }
 
-  private def listDocuments(user: DynDoc): String = {
-    "You have no documents now"
+  private def listDocuments(user: DynDoc): ParserResult = {
+    Left("You have no documents now")
   }
 
-  private def listProjects(user: DynDoc): String = {
-    "You have no projects now"
+  private def listProjects(user: DynDoc): ParserResult = {
+    Left("You have no projects now")
   }
 
-  private def listTasks(user: DynDoc): String = {
+  private def listTasks(user: DynDoc): ParserResult = {
     val assignments = TaskList.uniqueAssignments(user)
     val rows = assignments.map(assignment => {
       val id = assignment.activity_id[ObjectId]
@@ -42,12 +44,12 @@ object CommandLineProcessor extends DateTimeUtils {
       val name = assignment.activity_name[String]
       val end = assignment.end_datetime[String].split(" ").head
       val start = assignment.start_datetime[String].split(" ").head
-      s"$name (END: $end, START: $start) ID: $project/$phase/$process($id)"
+      (s"$name (END: $end, START: $start)", id.toString)
     })
-    rows.mkString("\n")
+    Right(SlackApi.createMultipleChoiceMessage(rows, "task-list"))
   }
 
-  private def activeUsers(user: DynDoc): String = {
+  private def activeUsers(user: DynDoc): ParserResult = {
     val msStart = System.currentTimeMillis() - (60L * 60L * 1000L)
     val logs: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map($gte -> msStart)))
     val namedLogs = logs.filter(_.variables[Document].has("u$nm"))
@@ -58,10 +60,10 @@ object CommandLineProcessor extends DateTimeUtils {
       val time = dateTimeString(occurrence.milliseconds[Long], Some(user.tz[String]))
       s"\t$time  $name\n"
     })
-    rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users.")
+    Left(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
   }
 
-  private def dashboard(user: DynDoc): String = {
+  private def dashboard(user: DynDoc): ParserResult = {
     val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
     val rows = entries.map(entry => {
       val project = entry.project_name[String]
@@ -71,16 +73,16 @@ object CommandLineProcessor extends DateTimeUtils {
       val tasksOverdue = tasksOverdueDetail.value[String]
       s"Project: $project, Phase: $phase, Status: $status, Tasks-Overdue: $tasksOverdue"
     })
-    rows.mkString("\n")
+    Left(rows.mkString("\n"))
   }
 
-  private def whoAmI(user: DynDoc): String = {
-    s"You are ${PersonApi.fullName(user)}"
+  private def whoAmI(user: DynDoc): ParserResult = {
+    Left(s"You are ${PersonApi.fullName(user)}")
   }
 
-  private def slackManage(op: String, names: List[String]): DynDoc => String = {
+  private def slackManage(op: String, names: List[String]): DynDoc => ParserResult = {
     if (!op.toLowerCase.matches("invite|status"))
-      return _ => s"Unknown operation: $op"
+      return _ => Left(s"Unknown operation: $op")
     val persons: Seq[DynDoc] = names match {
       case firstName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName")))
       case firstName +: lastName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName"),
@@ -88,19 +90,20 @@ object CommandLineProcessor extends DateTimeUtils {
       case _ => Nil
     }
     persons.length match {
-      case 0 => _ => s"""Unknown user name: ${names.mkString(" ")}"""
+      case 0 => _ => Left(s"""Unknown user name: ${names.mkString(" ")}""")
       case 1 => op.toLowerCase match {
-        case "invite" => SlackApi.invite(persons.head)
-        case "status" => SlackApi.status(persons.head)
+        case "invite" => dd => Left(SlackApi.invite(persons.head)(dd))
+        case "status" => dd => Left(SlackApi.status(persons.head)(dd))
       }
-      case _ => _ => s"""Ambiguous user name: ${names.mkString(" ")}"""
+      case _ => _ => Left(s"""Ambiguous user name: ${names.mkString(" ")}""")
     }
   }
 
   private object commandLineParser extends RegexParsers {
 
     // Type for CLI processor parsers ...
-    private type CLIP = Parser[DynDoc => String]
+    // ... a function that takes a person object as input and returns the result string
+    private type CLIP = Parser[DynDoc => ParserResult]
 
     // Help command ...
     private lazy val helpParser: CLIP = "(?i)help" ^^ {_ => help}
@@ -134,18 +137,18 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val allCommands: CLIP =
         dashboardParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
 
-    def cliProcessor(command: String, user: DynDoc): String = {
+    def cliProcessor(command: String, user: DynDoc): ParserResult = {
       parseAll(allCommands, command) match {
         case Success(result, _) => result(user)
-        case NoSuccess(result, _) => result
+        case NoSuccess(result, _) => Left(result)
       }
     }
 
-    def testParser(command: String): String = {
+    def testParser(command: String): ParserResult = {
       val sanjay: DynDoc = BWMongoDB3.persons.find(Map("last_name" -> "Dasgupta")).head
       parseAll(allCommands, command) match {
         case Success(result, _) => result(sanjay)
-        case NoSuccess(result, _) => result
+        case NoSuccess(result, _) => Left(result)
       }
     }
 

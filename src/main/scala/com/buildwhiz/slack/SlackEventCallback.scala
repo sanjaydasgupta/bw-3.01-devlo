@@ -27,11 +27,11 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             case eventType =>
               BWLogger.log(getClass.getName, "handleCallback",
                   s"Inner-Event type=$eventType NOT handled", request)
-              SlackApi.sendToChannel(s"Received event type '$eventType' - Not handled",
+              SlackApi.sendToChannel(Left(s"Received event type '$eventType' - Not handled"),
                 innerEvent.channel[String], Some(request))
           }
         case None =>
-          SlackApi.sendToChannel(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz",
+          SlackApi.sendToChannel(Left(s"Your Slack-Id ($slackUserId) is not registered with BuildWhiz"),
             innerEvent.channel[String], Some(request))
       }
       BWLogger.log(getClass.getName, "handleCallback", "EXIT-OK", request)

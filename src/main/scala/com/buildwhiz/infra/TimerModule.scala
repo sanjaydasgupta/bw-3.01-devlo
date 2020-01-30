@@ -28,7 +28,7 @@ object TimerModule extends HttpUtils {
         mainAssignment match {
           case Some(assignment) => // Send status update request by Slack/mail
             val personOid = assignment.person_id[ObjectId]
-            SlackApi.sendToUser(s"Please file weekly status updates for '${activity.name[String]}'!", Right(personOid))
+            SlackApi.sendToUser(Left(s"Please file weekly status updates for '${activity.name[String]}'!"), Right(personOid))
           case _ =>
         }
       }
@@ -62,7 +62,7 @@ object TimerModule extends HttpUtils {
         mainAssignment match {
           case Some(assignment) => // Send duration reminder by Slack/mail
             val personOid = assignment.person_id[ObjectId]
-            SlackApi.sendToUser(s"This is a daily reminder for '${activity.name[String]}'!", Right(personOid))
+            SlackApi.sendToUser(Left(s"This is a daily reminder for '${activity.name[String]}'!"), Right(personOid))
           case _ =>
         }
       }
@@ -107,7 +107,7 @@ object TimerModule extends HttpUtils {
           val stillActiveAssignees = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
             filter(_.status[String] == "running").map(_.person_id[ObjectId])
           for (recipient <- (ActivityApi.managers(activity) ++ stillActiveAssignees).distinct) {
-            SlackApi.sendToUser(s"Activity is delayed: ${activity.name[String]}", Right(recipient))
+            SlackApi.sendToUser(Left(s"Activity is delayed: ${activity.name[String]}"), Right(recipient))
           }
         }
       }
@@ -131,7 +131,7 @@ object TimerModule extends HttpUtils {
         val project = PhaseApi.parentProject(phase._id[ObjectId])
         val processIdentity = s"${project.name[String]}/${phase.name[String]}/${zp.name[String]}"
         for (admin <- PersonApi.listAdmins) {
-          SlackApi.sendToUser(s"Process killed: $processIdentity", Left(admin))
+          SlackApi.sendToUser(Left(s"Process killed: $processIdentity"), Left(admin))
         }
         BWLogger.log(classOf[TimerTask].getSimpleName, "processHealthCheck", s"INFO: Process killed: $processIdentity")
       }

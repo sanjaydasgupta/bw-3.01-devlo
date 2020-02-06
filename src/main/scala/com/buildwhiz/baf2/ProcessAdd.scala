@@ -315,7 +315,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
@@ -332,7 +332,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val thePhase = PhaseApi.phaseById(phaseOid)
       val parentProject = PhaseApi.parentProject(phaseOid)
       if (!PhaseApi.isAdmin(user._id[ObjectId], thePhase) &&
-          !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(Right(user)))
+        !ProjectApi.isAdmin(user._id[ObjectId], parentProject) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
 
       val allProcessNameAndDoms = getBpmnDomByName(bpmnName)
@@ -345,8 +345,8 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val variables: Many[Document] = allProcessNameAndDoms.flatMap(getVariableDefinitions).map(kv =>
       {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "type" -> kv._3, "value" -> kv._4, "label" -> kv._5); doc}).asJava
       val timers: Many[Document] = allProcessNameAndDoms.flatMap(getTimerDefinitions).map(kv =>
-        {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
-          "duration" -> kv._5, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
+      {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
+        "duration" -> kv._5, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val subProcessCalls: Many[Document] = allProcessNameAndDoms.flatMap(getCallDefinitions).map(t => {
         new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
           append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")
@@ -364,7 +364,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val namesRolesAndDescriptions = allProcessNameAndDoms.flatMap(getActivityNameRoleDescriptionDurationAndId)
       for ((bpmn, activityName, activityRole, activityDescription, activityDuration,
-            bpmnScheduledStart, bpmnScheduledEnd, bpmnActualStart, bpmnActualEnd, bpmnId) <- namesRolesAndDescriptions) {
+      bpmnScheduledStart, bpmnScheduledEnd, bpmnActualStart, bpmnActualEnd, bpmnId) <- namesRolesAndDescriptions) {
         val action: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "type" -> "main", "status" -> "defined",
           "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
           "assignee_person_id" -> adminPersonOid, "duration" -> activityDuration,
@@ -384,9 +384,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (updateResult.getModifiedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
-//      BWLogger.log(getClass.getName, request.getMethod,
-//          "Calling ProcessBpmnTraverse.scheduleBpmnElements()", request)
-//      ProcessBpmnTraverse.scheduleBpmnElements(bpmnName, processOid, request)
+      //      BWLogger.log(getClass.getName, request.getMethod,
+      //          "Calling ProcessBpmnTraverse.scheduleBpmnElements()", request)
+      //      ProcessBpmnTraverse.scheduleBpmnElements(bpmnName, processOid, request)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, request.getMethod, s"""Added Process ${newProcess.get("name")}""", request)
     } catch {
@@ -395,6 +395,10 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         //t.printStackTrace()
         throw t
     }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWMongoDB3.withTransaction(doPostTransaction(request, response))
   }
 
 }

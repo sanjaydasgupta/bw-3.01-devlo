@@ -66,17 +66,14 @@ object BWMongoDB3 extends Dynamic {
   def withTransaction[T](body: =>T): T = {
     val clientSession = mongoClient.startSession()
     try {
-      clientSession.startTransaction(txnOptions)
       val transactionBody = new TransactionBody[T] {
         override def execute(): T = body
       }
-      val result = clientSession.withTransaction(transactionBody)
-      clientSession.commitTransaction()
+      val result = clientSession.withTransaction(transactionBody, txnOptions)
       BWLogger.log(getClass.getName, "withTransaction", "Transaction Commit SUCCESS")
       result
     } catch {
       case t: Throwable =>
-        clientSession.abortTransaction()
         BWLogger.log(getClass.getName, "withTransaction", "Transaction Commit FAILURE")
         throw t
     } finally {

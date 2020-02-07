@@ -4,7 +4,7 @@ import java.net.InetAddress
 
 import com.buildwhiz.infra.DynDoc.document2DynDoc
 import com.buildwhiz.utils.BWLogger
-import com.mongodb.{MongoClient, MongoClientURI, ReadConcern, ReadPreference, TransactionOptions, WriteConcern}
+import com.mongodb.{MongoClient, MongoClientException, MongoClientURI, ReadConcern, ReadPreference, TransactionOptions, WriteConcern}
 import com.mongodb.client.{FindIterable, MongoCollection, TransactionBody}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -64,20 +64,30 @@ object BWMongoDB3 extends Dynamic {
     readConcern(ReadConcern.LOCAL).writeConcern(WriteConcern.MAJORITY).build()
 
   def withTransaction[T](body: =>T): T = {
-    val clientSession = mongoClient.startSession()
+    val optionalClientSession = try {
+      Some(mongoClient.startSession())
+    } catch {
+      case _: MongoClientException => None
+      case t => throw t
+    }
     try {
       val transactionBody = new TransactionBody[T] {
         override def execute(): T = body
       }
-      val result = clientSession.withTransaction(transactionBody, txnOptions)
-      BWLogger.log(getClass.getName, "withTransaction", "Transaction Commit SUCCESS")
+      val (result, logMessage) = optionalClientSession match {
+        case Some(session) =>
+          (session.withTransaction(transactionBody, txnOptions), "SUCCESS with Transaction Commit")
+        case None =>
+          (transactionBody.execute(), "SUCCESS with NO Transaction")
+      }
+      BWLogger.log(getClass.getName, "withTransaction", logMessage)
       result
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "withTransaction", "Transaction Commit FAILURE")
         throw t
     } finally {
-      clientSession.close()
+      optionalClientSession.map(_.close())
     }
   }
 

@@ -4,13 +4,14 @@ import java.io.ByteArrayOutputStream
 
 import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 import javax.servlet.http.HttpServletRequest
 import org.apache.http.Consts
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.impl.client.HttpClients
-
+import org.bson.Document
 import org.bson.types.ObjectId
 
 object SlackApi {
@@ -94,7 +95,34 @@ object SlackApi {
     optionDescriptionsAndTexts.map(dt => createSectionWithButton(dt._1, "Select", s"$messageId-${dt._2}"))
   }
 
-  def openView(viewText: String, triggerId: String): Unit = {
+  def createModalView(title: String, id: String, blocks: Seq[Map[String, _]]): Document = {
+    Map(
+      "type" -> "modal",
+      "callback_id" -> s"$id-modal",
+      "title" -> Map("type" -> "plain_text", "text" -> title),
+      "submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true),
+      "close" -> Map("type" -> "plain_text", "text" -> "Cancel", "emoji" -> true),
+      "blocks" -> blocks
+    )
+  }
+
+  def createSelectInputBlock(label: String, placeHolderText: String, id: String, options: Seq[(String, String)]):
+  Map[String, _] = {
+    Map(
+      "type" -> "input",
+      "block_id" -> s"$id-block",
+      "label"-> Map("type" -> "plain_text", "text" -> label),
+      "element"-> Map(
+        "type" -> "static_select",
+        "placeholder" -> Map("type" -> "plain_text", "text" -> placeHolderText),
+        "action_id" -> s"$id-options",
+        "options" -> options.map(option =>
+          Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
+      )
+    )
+  }
+
+  def viewOpen(viewText: String, triggerId: String): Unit = {
     BWLogger.log(getClass.getName, "openView", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.open")
@@ -114,7 +142,7 @@ object SlackApi {
     BWLogger.log(getClass.getName, "openView", s"EXIT-OK ($contentString)")
   }
 
-  def pushView(viewText: String, triggerId: String): Unit = {
+  def viewPush(viewText: String, triggerId: String): Unit = {
     BWLogger.log(getClass.getName, "pushView", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.push")

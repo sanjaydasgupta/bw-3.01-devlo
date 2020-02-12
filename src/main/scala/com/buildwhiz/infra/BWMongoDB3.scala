@@ -68,7 +68,7 @@ object BWMongoDB3 extends Dynamic {
       Some(mongoClient.startSession())
     } catch {
       case _: MongoClientException => None
-      case t => throw t
+      case t: Throwable => throw t
     }
     try {
       val transactionBody = new TransactionBody[T] {

@@ -8,22 +8,25 @@ import org.bson.Document
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
-//  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
-//    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
-//  }
-//
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val payload: DynDoc = Document.parse(parameters("payload"))
+      val slackUserInfo: DynDoc = payload.user[Document]
+      val slackUserId = slackUserInfo.id[String]
+      val bwUserRecord: DynDoc = SlackApi.userBySlackId(slackUserId) match {
+        case Some(userRecord) => userRecord
+        case None =>
+          val slackUserName = slackUserInfo.name[String]
+          throw new IllegalArgumentException(s"Slack user '$slackUserName' ($slackUserId) unknown to BuildWhiz")
+      }
       if (payload.has("trigger_id") && payload.`type`[String] == "message_action") {
         val triggerId = payload.trigger_id[String]
-
-//        val rootOptions = makeSelectInputBlock("Select operation area", "Select option", "BW-root",
-//          Seq(("Projects ...", "projects"), ("Tasks", "tasks"), ("Alerts", "alerts")))
-//        val rootModalView = makeModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions))
-        SlackApi.openView(viewRoot, triggerId)
+        val rootOptions = SlackApi.createSelectInputBlock("Select operation area", "Select option", "BW-root",
+          Seq(("Dashboard", "dashboard"), ("Tasks", "tasks")))
+        val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions))
+        SlackApi.viewOpen(rootModalView.toJson, triggerId)
       } else if (payload.has("trigger_id") && payload.`type`[String] == "view_submission") {
         val triggerId = payload.trigger_id[String]
         val view: DynDoc = payload.view[Document]
@@ -31,20 +34,17 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         val stateJson = state.toJson
         BWLogger.log(getClass.getName, request.getMethod, s"state.toJson: $stateJson")
         if (stateJson.contains("BW-root-tasks")) {
-//          val taskOptions = makeSelectInputBlock("Select a task", "Select task", "BW-tasks",
-//            Seq(("Task A", "task-a"), ("Task B", "task-b"), ("Task C", "task-c"), ("Task D", "task-d")))
-//          val tasksModalView = makeModalView("Select Task", "BW-tasks", Seq(taskOptions))
-          SlackApi.pushView(viewTasks, triggerId)
-        } else if (stateJson.contains("BW-root-projects")) {
-//          val projectOptions = makeSelectInputBlock("Select a project", "Select project", "BW-projects",
-//            Seq(("Project A1", "project-A1"), ("Project B2", "project-B2")))
-//          val projectsModalView = makeModalView("Select Project", "BW-projects", Seq(projectOptions))
-          SlackApi.pushView(viewTasks, triggerId)
-        } else if (stateJson.contains("BW-root-alerts")) {
-//          val alertOptions = makeSelectInputBlock("Select an alert", "Select alert", "BW-alerts",
-//            Seq(("Alert X22", "alert-X22"), ("Alert ABC33", "alert-ABC33")))
-//          val alertsModalView = makeModalView("Select Alert", "BW-alerts", Seq(alertOptions))
-          SlackApi.pushView(viewTasks, triggerId)
+          val taskViewMessage = SlackApi.createTaskSelectionView(bwUserRecord)
+          val responseText = taskViewMessage.toJson
+          BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+          response.getWriter.println(responseText)
+          response.setContentType("application/json")
+        } else if (stateJson.contains("BW-root-dashboard")) {
+          val dashboardViewMessage = SlackApi.createDashboardView(bwUserRecord)
+          val responseText = dashboardViewMessage.toJson
+          BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+          response.getWriter.println(responseText)
+          response.setContentType("application/json")
         } else {
 
         }
@@ -57,33 +57,6 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         //t.printStackTrace()
         throw t
     }
-  }
-
-  def makeModalView(title: String, id: String, blocks: Seq[Map[String, _]]): Document = {
-    Map(
-      "type" -> "modal",
-      "callback_id" -> s"$id-modal",
-      "title" -> Map("type" -> "plain_text", "text" -> title),
-      "submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true),
-      "close" -> Map("type" -> "plain_text", "text" -> "Cancel", "emoji" -> true),
-      "blocks" -> blocks
-    )
-  }
-
-  def makeSelectInputBlock(label: String, placeHolderText: String, id: String, options: Seq[(String, String)]):
-      Map[String, _] = {
-    Map(
-      "type" -> "input",
-      "block_id" -> s"$id-block",
-      "label"-> Map("type" -> "plain_text", "text" -> label),
-      "element"-> Map(
-        "type" -> "static_select",
-        "placeholder" -> Map("type" -> "plain_text", "text" -> placeHolderText),
-        "action_id" -> s"$id-options",
-        "options" -> options.map(option =>
-            Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
-      )
-    )
   }
 
   private val viewMessage: Document = Map(
@@ -113,63 +86,66 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
 
   private val viewTasks =
     """{
-      |  "type": "modal",
-      |  "callback_id": "BW-tasks",
-      |  "title": {
-      |    "type": "plain_text",
-      |    "text": "Active Tasks List"
-      |  },
-      |  "submit": {
-      |    "type": "plain_text",
-      |    "text": "Submit",
-      |    "emoji": true
-      |  },
-      |  "close": {
-      |    "type": "plain_text",
-      |    "text": "Cancel",
-      |    "emoji": true
-      |  },
-      |  "blocks": [
-      |    {
-      |      "type": "input",
-      |      "block_id": "BW-tasks-block",
-      |      "label": {
-      |        "type": "plain_text",
-      |        "text": "Select desired task"
-      |      },
-      |      "element": {
-      |        "type": "static_select",
-      |        "placeholder": {
+      |  "response_action": "push",
+      |  "view": {
+      |    "type": "modal",
+      |    "callback_id": "BW-tasks",
+      |    "title": {
+      |      "type": "plain_text",
+      |      "text": "Active Tasks List"
+      |    },
+      |    "submit": {
+      |      "type": "plain_text",
+      |      "text": "Submit",
+      |      "emoji": true
+      |    },
+      |    "close": {
+      |      "type": "plain_text",
+      |      "text": "Cancel",
+      |      "emoji": true
+      |    },
+      |    "blocks": [
+      |      {
+      |        "type": "input",
+      |        "block_id": "BW-tasks-block",
+      |        "label": {
       |          "type": "plain_text",
-      |          "text": "Select task"
+      |          "text": "Select desired task"
       |        },
-      |        "action_id": "BW-tasks-options",
-      |        "options": [
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Task Alpha"
-      |            },
-      |            "value": "BW-tasks-alpha"
+      |        "element": {
+      |          "type": "static_select",
+      |          "placeholder": {
+      |            "type": "plain_text",
+      |            "text": "Select task"
       |          },
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Task Beta"
+      |          "action_id": "BW-tasks-options",
+      |          "options": [
+      |            {
+      |              "text": {
+      |                "type": "plain_text",
+      |                "text": "Task Alpha"
+      |              },
+      |              "value": "BW-tasks-alpha"
       |            },
-      |            "value": "BW-tasks-beta"
-      |          },
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Task Gamma"
+      |            {
+      |              "text": {
+      |                "type": "plain_text",
+      |                "text": "Task Beta"
+      |              },
+      |              "value": "BW-tasks-beta"
       |            },
-      |            "value": "BW-tasks-gamma"
-      |          }
-      |        ]
+      |            {
+      |              "text": {
+      |                "type": "plain_text",
+      |                "text": "Task Gamma"
+      |              },
+      |              "value": "BW-tasks-gamma"
+      |            }
+      |          ]
+      |        }
       |      }
-      |    }
-      |  ]
+      |    ]
+      |  }
       |}""".stripMargin
 
   private val viewRoot =
@@ -232,4 +208,15 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       |    }
       |  ]
       |}""".stripMargin
+}
+
+object SlackInteractiveCallbackTest extends App {
+
+  val taskOptions = SlackApi.createSelectInputBlock("Select a task", "Select task", "BW-tasks",
+    Seq(("Task A", "task-a"), ("Task B", "task-b"), ("Task C", "task-c"), ("Task D", "task-d")))
+  val tasksModalView = SlackApi.createModalView("Select Task", "BW-tasks", Seq(taskOptions))
+  val viewMessage: Document = Map("view" -> tasksModalView, "response_action" -> "push")
+  val responseText = viewMessage.toJson
+
+  println(responseText)
 }

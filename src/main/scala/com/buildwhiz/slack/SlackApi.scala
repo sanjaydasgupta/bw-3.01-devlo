@@ -2,8 +2,9 @@ package com.buildwhiz.slack
 
 import java.io.ByteArrayOutputStream
 
-import com.buildwhiz.baf2.PersonApi
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.baf2.{DashboardEntries, PersonApi, TaskList}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 import javax.servlet.http.HttpServletRequest
@@ -15,6 +16,10 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 object SlackApi {
+
+  def userBySlackId(slackUserId: String): Option[DynDoc] = {
+    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
+  }
 
   def invite(who: DynDoc): DynDoc => String = {
     user => {
@@ -120,6 +125,42 @@ object SlackApi {
           Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
       )
     )
+  }
+
+  def createTaskSelectionView(bwUser: DynDoc): Document = {
+    val assignments = TaskList.uniqueAssignments(bwUser)
+    val tasks = assignments.map(assignment => {
+      val id = assignment.activity_id[ObjectId]
+      val project = assignment.project_name[String]
+      val phase = assignment.phase_name[String]
+      val process = assignment.process_name[String]
+      val name = assignment.activity_name[String]
+      val status = assignment.status[String]
+      val end = assignment.end_datetime[String].split(" ").head
+      val start = assignment.start_datetime[String].split(" ").head
+      (s"$name/$phase/$project ($status)", id.toString)
+    })
+    val taskOptions = createSelectInputBlock("Select a task and click 'Submit' for details", "Select a task",
+        "BW-tasks-update-display-", tasks)
+    val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions))
+    Map("view" -> tasksModalView, "response_action" -> "push")
+  }
+
+  def createDashboardView(user: DynDoc): Document = {
+    val dashboardEntries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
+    val dashboardInfoArray = dashboardEntries.map(entry => {
+      val project = entry.project_name[String]
+      val phase = entry.phase_name[String]
+      val phaseId = entry.phase_id[String]
+      val status = entry.display_status[String]
+      val tasksOverdueDetail: DynDoc = entry.tasks_overdue[Document]
+      val tasksOverdue = tasksOverdueDetail.value[String]
+      (s"$project/$phase ($status) Overdue: $tasksOverdue", phaseId)
+    })
+    val dashboardOptions = createSelectInputBlock("Select item and click 'Submit' for details",
+        "Select dashboard entry", "BW-dashboard-detail-phase-", dashboardInfoArray)
+    val dashboardModalView = createModalView("Dashboard Display", "BW-dashboard", Seq(dashboardOptions))
+    Map("view" -> dashboardModalView, "response_action" -> "push")
   }
 
   def viewOpen(viewText: String, triggerId: String): Unit = {

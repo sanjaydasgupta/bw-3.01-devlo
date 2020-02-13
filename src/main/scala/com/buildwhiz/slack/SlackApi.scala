@@ -141,7 +141,7 @@ object SlackApi {
       (s"$name/$phase/$project ($status)", id.toString)
     })
     val taskOptions = createSelectInputBlock("Select a task and click 'Submit' for details", "Select a task",
-        "BW-tasks-update-display-", tasks)
+        "BW-tasks-update-display", tasks)
     val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions))
     Map("view" -> tasksModalView, "response_action" -> "push")
   }
@@ -158,7 +158,7 @@ object SlackApi {
       (s"$project/$phase ($status) Overdue: $tasksOverdue", phaseId)
     })
     val dashboardOptions = createSelectInputBlock("Select item and click 'Submit' for details",
-        "Select dashboard entry", "BW-dashboard-detail-phase-", dashboardInfoArray)
+        "Select dashboard entry", "BW-dashboard-detail-phase", dashboardInfoArray)
     val dashboardModalView = createModalView("Dashboard Display", "BW-dashboard", Seq(dashboardOptions))
     Map("view" -> dashboardModalView, "response_action" -> "push")
   }

@@ -83,10 +83,10 @@ object SlackApi {
 
   // https://api.slack.com/messaging/interactivity
 
-  def createSectionWithButton(descriptionText: String, buttonText: String, buttonValue: String): DynDoc = Map(
+  def createSectionWithAccessory(descriptionText: String, accessory: DynDoc): DynDoc = Map(
     "type" -> "section",
     "text" -> Map("type" -> "mrkdwn", "text" -> descriptionText),
-    "accessory" -> createButton(buttonText, buttonValue)
+    "accessory" -> accessory
   )
 
   def createButton(buttonText: String, buttonValue: String): DynDoc = Map(
@@ -95,12 +95,25 @@ object SlackApi {
     "value" -> buttonValue
   )
 
+  def createInputBlock(label: String, id: String, element: DynDoc): DynDoc = Map(
+    "type" -> "input",
+    "block_id" -> s"$id-block",
+    "label"-> Map("type" -> "plain_text", "text" -> label),
+    "element"-> element
+  )
+
+  def createDatepicker(placeholderText: String, actionId: String, initialDate: String): DynDoc = Map(
+    "type" -> "datepicker", "action_id" -> actionId, "initial_date" -> initialDate,
+    "placeholder" -> Map("type" -> "plain_text", "text" -> placeholderText, "emoji" -> true)
+  )
+
   def createMultipleChoiceMessage(optionDescriptionsAndTexts: Seq[(String, String)], messageId: String):
       Seq[DynDoc] = {
-    optionDescriptionsAndTexts.map(dt => createSectionWithButton(dt._1, "Select", s"$messageId-${dt._2}"))
+    optionDescriptionsAndTexts.map(dt => createSectionWithAccessory(dt._1,
+        createButton("Select", s"$messageId-${dt._2}")))
   }
 
-  def createModalView(title: String, id: String, blocks: Seq[Map[String, _]]): Document = {
+  def createModalView(title: String, id: String, blocks: Seq[DynDoc]): Document = {
     Map(
       "type" -> "modal",
       "callback_id" -> s"$id-modal",
@@ -125,6 +138,14 @@ object SlackApi {
           Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
       )
     )
+  }
+
+  def createTaskStatusUpdateView(bwUser: DynDoc, activityId: ObjectId): Document = {
+    val blocks = Seq(("optimistic", "2020-06-15"), ("likely", "2020-06-30"), ("pessimistic", "2020-07-07")).
+        map(dt => createInputBlock(s"Select ${dt._1} Date", s"BW-tasks-update-${dt._1}-completion-block",
+        SlackApi.createDatepicker("Select date", s"BW-tasks-update-${dt._1}-completion-date", dt._2)))
+    val tasksModalView = createModalView(s"Update Task $activityId Status", "BW-tasks-update", blocks)
+    Map("view" -> tasksModalView, "response_action" -> "push")
   }
 
   def createTaskSelectionView(bwUser: DynDoc): Document = {

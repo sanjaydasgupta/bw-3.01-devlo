@@ -5,6 +5,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
@@ -45,8 +46,15 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
           response.getWriter.println(responseText)
           response.setContentType("application/json")
+        } else if (stateJson.contains("BW-tasks-update-display")) {
+          val activityOid = new ObjectId(stateJson.split("-").last.substring(0, 24))
+          val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, activityOid)
+          val responseText = taskStatusUpdateViewMessage.toJson
+          BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+          response.getWriter.println(responseText)
+          response.setContentType("application/json")
         } else {
-
+//BW-tasks-update-display--5d1b5b4ab5650204c12079a4
         }
       } else if (payload.`type`[String] == "block_action") {
       }

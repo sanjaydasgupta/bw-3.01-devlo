@@ -102,6 +102,8 @@ object SlackApi {
     "element"-> element
   )
 
+  def createDivider(): DynDoc = Map("type" -> "divider")
+
   def createDatepicker(placeholderText: String, actionId: String, initialDate: String): DynDoc = Map(
     "type" -> "datepicker", "action_id" -> actionId, "initial_date" -> initialDate,
     "placeholder" -> Map("type" -> "plain_text", "text" -> placeholderText, "emoji" -> true)
@@ -116,7 +118,7 @@ object SlackApi {
   def createModalView(title: String, id: String, blocks: Seq[DynDoc]): Document = {
     Map(
       "type" -> "modal",
-      "callback_id" -> s"$id-modal",
+      //"callback_id" -> s"$id-modal",
       "title" -> Map("type" -> "plain_text", "text" -> title),
       "submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true),
       "close" -> Map("type" -> "plain_text", "text" -> "Cancel", "emoji" -> true),
@@ -144,7 +146,10 @@ object SlackApi {
     val blocks = Seq(("optimistic", "2020-06-15"), ("likely", "2020-06-30"), ("pessimistic", "2020-07-07")).
         map(dt => createInputBlock(s"Select ${dt._1} Date", s"BW-tasks-update-${dt._1}-completion-block",
         SlackApi.createDatepicker("Select date", s"BW-tasks-update-${dt._1}-completion-date", dt._2)))
-    val tasksModalView = createModalView(s"Update Task $activityId Status", "BW-tasks-update", blocks)
+    val topSection: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn",
+        "text" -> s"Update status of task id-$activityId by modifying values in fields below and clicking the Submit button"))
+    val allBlocks = topSection +: createDivider() +: (blocks ++ Seq(createDivider()))
+    val tasksModalView = createModalView(s"Update Task Status", "BW-tasks-update", allBlocks)
     Map("view" -> tasksModalView, "response_action" -> "push")
   }
 

@@ -1,6 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.jelly.ActivityHandlerEnd
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
@@ -10,7 +11,11 @@ import org.bson.types.ObjectId
 class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def handleNewStatus(status: String, user: DynDoc, activityOid: ObjectId, comments: String,
-        optPercentComplete: Option[String]): Unit = {
+        optPercentComplete: Option[String], endDates: Seq[(String, Long)]): Unit = {
+
+    if (endDates.nonEmpty) {
+      BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> endDates.toMap))
+    }
 
     def superUsersAssignment(assignment: DynDoc, user: DynDoc): Boolean = {
       val parentProcess = ActivityApi.parentProcess(assignment.activity_id[ObjectId])
@@ -78,15 +83,18 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
+      val timeZone = user.tz[String]
       val activityOid = new ObjectId(parameters("activity_id"))
       val optPercentComplete = parameters.get("percent_complete")
       if (optPercentComplete.map(_.toFloat).exists(pc => pc < 0 || pc > 100))
         throw new IllegalArgumentException(s"Bad percent-complete: '$optPercentComplete'")
       val comments = parameters("comments")
       val status = parameters("status")
+      val endDates: Seq[(String, Long)] = Seq("end_date_optimistic", "end_date_likely", "end_date_pessimistic").
+          filter(parameters.contains).map(paramName => (paramName, milliseconds(parameters(paramName), Some(timeZone))))
 
       ActivityApi.addChangeLogEntry(activityOid, s"$status: $comments", Some(user._id[ObjectId]), optPercentComplete)
-      handleNewStatus(status, user, activityOid, comments, optPercentComplete)
+      handleNewStatus(status, user, activityOid, comments, optPercentComplete, endDates)
 
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

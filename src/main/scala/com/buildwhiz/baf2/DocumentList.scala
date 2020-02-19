@@ -8,7 +8,20 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  private def i2s(i: Long): String = {
+    if (i < 1000)
+      f"$i%d bytes"
+    else if (i < 1000000L)
+      f"${(i / 100) / 10.0}%3.1f kB"
+    else if (i < 1000000000L)
+      f"${(i / 100000L) / 10.0}%3.1f MB"
+    else
+      f"${(i / 100000000L) / 10.0}%3.1f GB"
+  }
 
   private def getDocuments(user: DynDoc, request: HttpServletRequest): Seq[Document] = {
     val docOid2labels: Map[ObjectId, Seq[String]] = DocumentApi.docOid2UserTags(user)
@@ -41,7 +54,10 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val documentProperties: Document = if (versionCount != 0) {
         val lastVersion: DynDoc = versions.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
         val fileType = lastVersion.file_name[String].split("\\.").last
-        val fileSize = lastVersion.asDoc.getOrDefault("size", "NA").toString
+        val fileSize = if (lastVersion.has("size"))
+          i2s(lastVersion.size)
+        else
+          "NA"
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
         val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {
@@ -66,13 +82,18 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    //val parameters = getParameterMap(request)
+    val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
+      val projectOid = new ObjectId(parameters("project_id"))
       val user: DynDoc = getUser(request)
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val allDocuments = getDocuments(freshUserRecord, request)
-      response.getWriter.print(allDocuments.map(document => bson2json(document)).mkString("[", ", ", "]"))
+      val canRename = ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid))
+      val canDelete = freshUserRecord.first_name[String] == "Prabhas"
+      val allDocuments = getDocuments(freshUserRecord, request).asJava
+      val result = new Document("document_list", allDocuments).append("can_rename", canRename).
+          append("can_delete", canDelete)
+      response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${allDocuments.length})", request)

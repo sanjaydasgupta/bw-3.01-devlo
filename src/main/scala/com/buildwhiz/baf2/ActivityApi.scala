@@ -3,12 +3,13 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.utils.DateTimeUtils
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
 
-object ActivityApi {
+object ActivityApi extends DateTimeUtils {
 
   def activitiesByIds(activityOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
@@ -122,6 +123,36 @@ object ActivityApi {
     (actualStart(activity), actualEnd(activity)) match {
       case (Some(start), Some(end)) => (end - start) / 86400000L
       case _ => -1
+    }
+  }
+
+  def changeLogItems(user: DynDoc, theActivity: DynDoc): Seq[Document] = {
+    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
+      theActivity.change_log[Many[Document]]
+    else
+      Seq.empty[DynDoc]
+    changeLogEntries.map(entry => {
+      val dateTime = dateTimeString(entry.timestamp[Long], Some(user.tz[String]))
+      val updatedBy = if (entry.has("updater_person_id")) {
+        val updaterOid = entry.updater_person_id[ObjectId]
+        val updater = PersonApi.personById(updaterOid)
+        s"${updater.first_name} ${updater.last_name}"
+      } else
+        "-"
+      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[Any].toString else "0"
+      new Document("date_time", dateTime).append("updated_by", updatedBy).append("percent_complete", percentComplete).
+        append("description", entry.description[String])
+    }).reverse
+  }
+
+  def percentComplete(theActivity: DynDoc): String = {
+    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
+      theActivity.change_log[Many[Document]]
+    else
+      Seq.empty[DynDoc]
+    changeLogEntries.reverse.find(_.has("percent_complete")) match {
+      case Some(logEntry) => logEntry.percent_complete[Any].toString
+      case None => "0"
     }
   }
 

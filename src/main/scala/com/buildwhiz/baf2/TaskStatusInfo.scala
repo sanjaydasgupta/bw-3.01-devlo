@@ -9,25 +9,6 @@ import org.bson.types.ObjectId
 
 class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def changeLogItems(user: DynDoc, theActivity: DynDoc): Seq[Document] = {
-    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
-      theActivity.change_log[Many[Document]]
-    else
-      Seq.empty[DynDoc]
-    changeLogEntries.map(entry => {
-      val dateTime = dateTimeString(entry.timestamp[Long], Some(user.tz[String]))
-      val updatedBy = if (entry.has("updater_person_id")) {
-        val updaterOid = entry.updater_person_id[ObjectId]
-        val updater = PersonApi.personById(updaterOid)
-        s"${updater.first_name} ${updater.last_name}"
-      } else
-        "-"
-      val percentComplete = if (entry.has("percent_complete")) entry.percent_complete[Any].toString else "0"
-      new Document("date_time", dateTime).append("updated_by", updatedBy).append("percent_complete", percentComplete).
-        append("description", entry.description[String])
-    }).reverse
-  }
-
   private def taskStatusRecord(user: DynDoc, theActivity: DynDoc, request: HttpServletRequest): String = {
     def wrap(rawValue: Any, editable: Boolean): Document = {
       new Document("editable", editable).append("value", rawValue)
@@ -38,7 +19,7 @@ class TaskStatusInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     else
       "weekly"
 
-    val changeLog = changeLogItems(user, theActivity)
+    val changeLog = ActivityApi.changeLogItems(user, theActivity)
 
     val timezone = user.tz[String]
     val scheduledStart = ActivityApi.scheduledStart(theActivity) match {

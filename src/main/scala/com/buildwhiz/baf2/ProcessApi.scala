@@ -63,6 +63,15 @@ object ProcessApi {
 
   def canDelete(process: DynDoc): Boolean = !isActive(process)
 
+  def canLaunch(process: DynDoc, parentPhase: DynDoc, user: DynDoc): Boolean = {
+    val allActivitiesAssigned = ProcessApi.allActivityOids(process).forall(activityOid => {
+      val assignments = ActivityApi.teamAssignment.list(activityOid)
+      assignments.forall(_.has("person_id"))
+    })
+    allActivitiesAssigned && PhaseApi.canManage(user._id[ObjectId], parentPhase) &&
+        process.status[String] == "defined"
+  }
+
   def isActive(process: DynDoc): Boolean = {
     //val processName = process.name[String]
     if (process.has("process_instance_id")) {
@@ -81,29 +90,6 @@ object ProcessApi {
   }
 
   def isHealthy(process: DynDoc): Boolean = (process.status[String] == "running") == isActive(process)
-
-  def processProcess(process: DynDoc, project: DynDoc, personOid: ObjectId): DynDoc = {
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> process.activity_ids[Many[ObjectId]])))
-    val isRelevant = activities.flatMap(_.actions[Many[Document]]).
-      exists(_.assignee_person_id[ObjectId] == personOid)
-    process.can_launch = process.status[String] == "defined" && project.status[String] == "running"
-    process.is_managed = process.admin_person_id[ObjectId] == personOid
-    process.is_relevant = isRelevant || process.is_managed[Boolean]
-    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
-    if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
-      process.display_status = "waiting"
-    else if (actions.exists(action => action.status[String] == "waiting"))
-      process.display_status = "waiting2"
-    else
-      process.display_status = process.status[String]
-    val subBpmns: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "")
-    process.sub_bpmns = subBpmns.sortBy(_.name[String]).map(_.asDoc)
-    process.healthy = isHealthy(process)
-    process.docsUrl = s"docs?process_id=${process._id[ObjectId]}"
-    process.remove("activity_ids")
-    process
-  }
 
   def hasRole(personOid: ObjectId, process: DynDoc): Boolean = {
     isAdmin(personOid, process) || allActivities(process).exists(activity => ActivityApi.hasRole(personOid, activity))

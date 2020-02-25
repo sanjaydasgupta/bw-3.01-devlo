@@ -40,6 +40,28 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       append("manager", adminName).append("can_launch", canLaunch).append("phase_id", phaseId)
   }
 
+  def legacyUiProcess(process: DynDoc, phase: DynDoc, person: DynDoc): DynDoc = {
+    val activities = ProcessApi.allActivities(process)
+    val personOid = person._id[ObjectId]
+    val statusValues = activities.map(_.status[String])
+    val displayStatus = if (statusValues.contains("running"))
+      "running"
+    else if (statusValues.forall(_ == "defined"))
+      "defined"
+    else if (statusValues.forall(_ == "ended"))
+      "ended"
+    else
+      "running"
+    val sortedSubBpmns: Many[Document] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "").
+        sortBy(_.name[String]).map(_.asDoc).asJava
+    Map("_id" -> process._id[ObjectId].toString, "name" -> process.name[String], "status" -> process.status[String],
+      "can_launch" -> ProcessApi.canLaunch(process, phase, person), "sub_bpmns" -> sortedSubBpmns,
+      "display_status" -> displayStatus, "is_managed" -> ProcessApi.isManager(personOid, process),
+      "healthy" -> ProcessApi.isHealthy(process), "is_relevant" -> ProcessApi.hasRole(personOid, process),
+      "docsUrl" -> s"docs?process_id=${process._id[ObjectId]}", "bpmn_name" -> process.bpmn_name[String]
+    )
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -48,16 +70,17 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       val user: DynDoc = getUser(request)
       val Seq(optPhaseId, optProjectId) = Seq("phase_id", "project_id").map(parameters.get)
 
-      val (processes, parentProject, canAddProcess, addButtonToolTipText) = (optPhaseId, optProjectId) match {
+      val (processes, canAddProcess, optPhase, addButtonToolTipText) = (optPhaseId, optProjectId) match {
         case (Some(phaseId), _) =>
           val phaseOid = new ObjectId(phaseId)
           if (!PhaseApi.exists(phaseOid))
             throw new IllegalArgumentException(s"Bad phase_id: $phaseId")
-          val canAddProcess = PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
+          val phase = PhaseApi.phaseById(phaseOid)
+          val canAddProcess = PhaseApi.canManage(user._id[ObjectId], phase)
           val toolTipText = if (canAddProcess) "" else "No permission"
           val allProcesses = PhaseApi.allProcesses(phaseOid)
           allProcesses.foreach(_.phase_id = phaseOid)
-          (allProcesses, PhaseApi.parentProject(phaseOid), canAddProcess, toolTipText)
+          (allProcesses, canAddProcess, Some(phase), toolTipText)
         case (None, Some(projectId)) =>
           val projectOid = new ObjectId(projectId)
           if (!ProjectApi.exists(projectOid))
@@ -69,7 +92,7 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
             processes.foreach(_.phase_id = phase._id[ObjectId])
             processes
           })
-          (allProcesses, ProjectApi.projectById(projectOid), false, toolTipText)
+          (allProcesses, false, None, toolTipText)
         case (None, None) =>
           throw new IllegalArgumentException(s"No input parameters ")
       }
@@ -80,7 +103,10 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       }
 
       val processDetails: Many[Document] = if (detail) {
-        processes.map(process => ProcessApi.processProcess(process, parentProject, user._id[ObjectId]).asDoc).asJava
+        optPhase match {
+          case Some(phase) => processes.map(process => legacyUiProcess(process, phase, user).asDoc).asJava
+          case None => throw new IllegalArgumentException("Phase not available")
+        }
       } else {
         processes.map(process => process2document(process, user)).asJava
       }

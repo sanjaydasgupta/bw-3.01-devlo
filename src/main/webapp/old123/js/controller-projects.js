@@ -290,7 +290,7 @@
       $http.get(query).then(
         function(resp) {
           self.busy = false;
-          self.processes = resp.data;
+          self.processes = resp.data.process_list;
           $log.log('OK GET ' + query + ' (' + self.processes.length + ') objects');
           self.selectedPhase = self.phases.filter(function(p){return p._id == phaseId;})[0];
           self.selectedPhaseManager = self.phaseManagers.

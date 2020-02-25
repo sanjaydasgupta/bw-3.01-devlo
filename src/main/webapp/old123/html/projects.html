@@ -207,7 +207,7 @@
                 <td>{{projectsCtrl.selectedProcess.status}}</td>
                 <td>{{projectsCtrl.selectedProcess.start}}</td>
                 <td>{{projectsCtrl.selectedProcess.end}}</td>
-                <td><a href="baf2/ProcessConfigDownload?process_id={{projectsCtrl.selectedProcess._id}}&bpmn_name={{projectsCtrl.selectedPhase.bpmn_name}}"
+                <td><a href="baf2/ProcessConfigDownload?process_id={{projectsCtrl.selectedProcess._id}}&bpmn_name={{projectsCtrl.selectedProcess.bpmn_name}}"
                        download="{{projectsCtrl.selectedProcess.bpmn_name}}.xlsx">download</a>&nbsp;&nbsp;&nbsp;
                        <button style="margin-left:25px;" class="btn btn-xs btn-primary" data-ng-click="projectsCtrl.startUpload(projectsCtrl.selectedPhase.bpmn_name)">Upload</button></td>
                 <input id="configuration-upload-button" type="file" style="display:none;" />

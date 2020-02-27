@@ -2,7 +2,7 @@ package com.buildwhiz.slack
 
 import java.io.ByteArrayOutputStream
 
-import com.buildwhiz.baf2.{DashboardEntries, PersonApi, TaskList}
+import com.buildwhiz.baf2.{ActivityApi, DashboardEntries, PersonApi, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -104,9 +104,12 @@ object SlackApi {
 
   def createDivider(): DynDoc = Map("type" -> "divider")
 
-  def createDatepicker(placeholderText: String, actionId: String, initialDate: String): DynDoc = Map(
-    "type" -> "datepicker", "action_id" -> actionId, "initial_date" -> initialDate,
-    "placeholder" -> Map("type" -> "plain_text", "text" -> placeholderText, "emoji" -> true)
+  def createDatePicker(placeholderText: String, actionId: String, initialDate: String): DynDoc = Map(
+    "type" -> "datepicker", "action_id" -> actionId,
+    if (initialDate.trim.isEmpty)
+      "placeholder" -> Map("type" -> "plain_text", "text" -> placeholderText, "emoji" -> true)
+    else
+      "initial_date" -> initialDate
   )
 
   def createMultipleChoiceMessage(optionDescriptionsAndTexts: Seq[(String, String)], messageId: String):
@@ -143,12 +146,19 @@ object SlackApi {
   }
 
   def createTaskStatusUpdateView(bwUser: DynDoc, activityId: ObjectId): Document = {
-    val blocks = Seq(("optimistic", "2020-06-15"), ("likely", "2020-06-30"), ("pessimistic", "2020-07-07")).
-        map(dt => createInputBlock(s"Select ${dt._1} Date", s"BW-tasks-update-${dt._1}-completion-block",
-        SlackApi.createDatepicker("Select date", s"BW-tasks-update-${dt._1}-completion-date", dt._2)))
-    val topSection: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn",
-        "text" -> s"Update status of task id-$activityId by modifying values in fields below and clicking the Submit button"))
-    val allBlocks = topSection +: createDivider() +: (blocks ++ Seq(createDivider()))
+    val theActivity = ActivityApi.activityById(activityId)
+    val (name, status) = (theActivity.name[String], theActivity.status[String])
+    val dateBlocks = Seq(("optimistic", "2020-06-15"), ("likely", ""), ("pessimistic", "2020-07-07")).
+        map(dt => createInputBlock(s"Select *${dt._1}* completion date", s"task-${dt._1}-date",
+        SlackApi.createDatePicker("Select date", s"BW-tasks-update-${dt._1}-completion-date", dt._2)))
+    val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn",
+        "text" -> s"Update status of task '$name' by modifying fields below.\nThen click Submit button"))
+    val percentCompleteBlock = createInputBlock("Enter % complete (100% means complete)",
+        "BW-tasks-update-percent-complete", Map("type" -> "plain_text_input",
+        "action_id" -> "tasks-update-percent-complete"))
+    val commentBlock = createInputBlock("Comments for this update", "BW-tasks-update-comments",
+      Map("type" -> "plain_text_input", "multiline" -> true, "action_id" -> "tasks-update-comments"))
+    val allBlocks = topBlock +: createDivider() +: (dateBlocks ++ Seq(createDivider(), percentCompleteBlock, commentBlock))
     val tasksModalView = createModalView(s"Update Task Status", "BW-tasks-update", allBlocks)
     Map("view" -> tasksModalView, "response_action" -> "push")
   }

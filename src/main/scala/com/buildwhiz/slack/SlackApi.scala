@@ -145,19 +145,18 @@ object SlackApi {
     )
   }
 
-  def createTaskStatusUpdateView(bwUser: DynDoc, activityId: ObjectId): Document = {
-    val theActivity = ActivityApi.activityById(activityId)
+  def createTaskStatusUpdateView(bwUser: DynDoc, theActivity: DynDoc): Document = {
     val (name, status) = (theActivity.name[String], theActivity.status[String])
     val dateBlocks = Seq(("optimistic", "2020-06-15"), ("likely", ""), ("pessimistic", "2020-07-07")).
         map(dt => createInputBlock(s"Select *${dt._1}* completion date", s"BW-tasks-update-completion-date-${dt._1}",
-        SlackApi.createDatePicker("Select date", s"BW-tasks-update-completion-date-${dt._1}-$activityId", dt._2)))
+        SlackApi.createDatePicker("Select date", s"BW-tasks-update-completion-date-${dt._1}", dt._2)))
     val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn",
         "text" -> s"Update status of task '$name' by modifying fields below.\nThen click Submit button"))
     val percentCompleteBlock = createInputBlock("Enter % complete (100% means complete)",
         "BW-tasks-update-percent-complete", Map("type" -> "plain_text_input",
-        "action_id" -> s"BW-tasks-update-percent-complete-$activityId"))
+        "action_id" -> s"BW-tasks-update-percent-complete"))
     val commentBlock = createInputBlock("Comments for this update", "BW-tasks-update-comments",
-      Map("type" -> "plain_text_input", "multiline" -> true, "action_id" -> s"BW-tasks-update-comments-$activityId"))
+      Map("type" -> "plain_text_input", "multiline" -> true, "action_id" -> s"BW-tasks-update-comments"))
     val allBlocks = topBlock +: createDivider() +: (dateBlocks ++ Seq(createDivider(), percentCompleteBlock, commentBlock))
     val tasksModalView = createModalView(s"Update Task Status", "BW-tasks-update", allBlocks)
     Map("view" -> tasksModalView, "response_action" -> "push")

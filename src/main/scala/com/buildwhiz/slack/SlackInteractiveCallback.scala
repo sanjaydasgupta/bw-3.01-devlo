@@ -1,5 +1,6 @@
 package com.buildwhiz.slack
 
+import com.buildwhiz.baf2.ActivityApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -31,8 +32,8 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       } else if (payload.has("trigger_id") && payload.`type`[String] == "view_submission") {
         val triggerId = payload.trigger_id[String]
         val view: DynDoc = payload.view[Document]
-        val state: Document = view.state[Document]
-        val stateJson = state.toJson
+        val state: DynDoc = view.state[Document]
+        val stateJson = state.asDoc.toJson
         BWLogger.log(getClass.getName, request.getMethod, s"state.toJson: $stateJson")
         if (stateJson.contains("BW-root-tasks")) {
           val taskViewMessage = SlackApi.createTaskSelectionView(bwUserRecord)
@@ -48,13 +49,33 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           response.setContentType("application/json")
         } else if (stateJson.contains("BW-tasks-update-display")) {
           val activityOid = new ObjectId(stateJson.split("-").last.substring(0, 24))
-          val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, activityOid)
+          val theActivity = ActivityApi.activityById(activityOid)
+          val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, theActivity)
           val responseText = taskStatusUpdateViewMessage.toJson
           BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
           response.getWriter.println(responseText)
           response.setContentType("application/json")
+        } else if (stateJson.contains("BW-tasks-update-completion-date")) {
+          val values = state.values[Document]
+          val optimisticCompletionBlock = values.get("BW-tasks-update-completion-date-optimistic-block").asInstanceOf[Document]
+          val optimisticCompletionDatepicker = optimisticCompletionBlock.get("BW-tasks-update-completion-date-optimistic").asInstanceOf[Document]
+          val optimisticCompletionDate = optimisticCompletionDatepicker.getString("selected_date")
+          val pessimisticCompletionBlock = values.get("BW-tasks-update-completion-date-pessimistic-block").asInstanceOf[Document]
+          val pessimisticCompletionDatepicker = pessimisticCompletionBlock.get("BW-tasks-update-completion-date-pessimistic").asInstanceOf[Document]
+          val pessimisticCompletionDate = pessimisticCompletionDatepicker.getString("selected_date")
+          val likelyCompletionBlock = values.get("BW-tasks-update-completion-date-likely-block").asInstanceOf[Document]
+          val likelyCompletionDatepicker = likelyCompletionBlock.get("BW-tasks-update-completion-date-likely").asInstanceOf[Document]
+          val likelyCompletionDate = likelyCompletionDatepicker.getString("selected_date")
+          val percentCompleteBlock = values.get("BW-tasks-update-percent-complete-block").asInstanceOf[Document]
+          val percentCompleteInput = percentCompleteBlock.get("BW-tasks-update-percent-complete").asInstanceOf[Document]
+          val percentCompleteValue = percentCompleteInput.getString("value")
+          val completionCommentsBlock = values.get("BW-tasks-update-comments-block").asInstanceOf[Document]
+          val completionCommentsInput = completionCommentsBlock.get("BW-tasks-update-comments").asInstanceOf[Document]
+          val completionCommentsValue = completionCommentsInput.getString("value")
+          val message = s"optimistic: $optimisticCompletionDate, pessimistic: $pessimisticCompletionDate, " +
+            s"likely: $likelyCompletionDate, % complete: $percentCompleteValue, comments: $completionCommentsValue"
+          BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message")
         } else {
-//BW-tasks-update-display--5d1b5b4ab5650204c12079a4
         }
       } else if (payload.`type`[String] == "block_action") {
       }
@@ -66,156 +87,6 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         throw t
     }
   }
-
-  private val viewMessage: Document = Map(
-    "type" -> "modal",
-    "callback_id" -> "BW-root-modal",
-    "title" -> Map("type" -> "plain_text", "text" -> "BuildWhiz User Interface"),
-    "submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true),
-    "close" -> Map("type" -> "plain_text", "text" -> "Cancel", "emoji" -> true),
-    "blocks" -> Seq(
-      Map(
-        "type" -> "input",
-        "block_id" -> "BW-root-block",
-        "label"-> Map("type" -> "plain_text", "text" -> "Select desired area of operation"),
-        "element"-> Map(
-          "type" -> "static_select",
-          "placeholder" -> Map("type" -> "plain_text", "text" -> "Select area"),
-          "action_id" -> "BW-root-options",
-          "options" -> Seq(
-            Map("text" -> Map("type" -> "plain_text", "text" -> "Projects, ..."), "value" -> "BW-root-projects"),
-            Map("text" -> Map("type" -> "plain_text", "text" -> "Tasks"), "value" -> "BW-root-tasks"),
-            Map("text" -> Map("type" -> "plain_text", "text" -> "Alerts"), "value" -> "BW-root-alerts"),
-          )
-        )
-      )
-    )
-  )
-
-  private val viewTasks =
-    """{
-      |  "response_action": "push",
-      |  "view": {
-      |    "type": "modal",
-      |    "callback_id": "BW-tasks",
-      |    "title": {
-      |      "type": "plain_text",
-      |      "text": "Active Tasks List"
-      |    },
-      |    "submit": {
-      |      "type": "plain_text",
-      |      "text": "Submit",
-      |      "emoji": true
-      |    },
-      |    "close": {
-      |      "type": "plain_text",
-      |      "text": "Cancel",
-      |      "emoji": true
-      |    },
-      |    "blocks": [
-      |      {
-      |        "type": "input",
-      |        "block_id": "BW-tasks-block",
-      |        "label": {
-      |          "type": "plain_text",
-      |          "text": "Select desired task"
-      |        },
-      |        "element": {
-      |          "type": "static_select",
-      |          "placeholder": {
-      |            "type": "plain_text",
-      |            "text": "Select task"
-      |          },
-      |          "action_id": "BW-tasks-options",
-      |          "options": [
-      |            {
-      |              "text": {
-      |                "type": "plain_text",
-      |                "text": "Task Alpha"
-      |              },
-      |              "value": "BW-tasks-alpha"
-      |            },
-      |            {
-      |              "text": {
-      |                "type": "plain_text",
-      |                "text": "Task Beta"
-      |              },
-      |              "value": "BW-tasks-beta"
-      |            },
-      |            {
-      |              "text": {
-      |                "type": "plain_text",
-      |                "text": "Task Gamma"
-      |              },
-      |              "value": "BW-tasks-gamma"
-      |            }
-      |          ]
-      |        }
-      |      }
-      |    ]
-      |  }
-      |}""".stripMargin
-
-  private val viewRoot =
-    """{
-      |  "type": "modal",
-      |  "callback_id": "BW-root",
-      |  "title": {
-      |    "type": "plain_text",
-      |    "text": "BuildWhiz User Interface"
-      |  },
-      |  "submit": {
-      |    "type": "plain_text",
-      |    "text": "Submit",
-      |    "emoji": true
-      |  },
-      |  "close": {
-      |    "type": "plain_text",
-      |    "text": "Cancel",
-      |    "emoji": true
-      |  },
-      |  "blocks": [
-      |    {
-      |      "type": "input",
-      |      "block_id": "BW-root-block",
-      |      "label": {
-      |        "type": "plain_text",
-      |        "text": "Select desired area of operation"
-      |      },
-      |      "element": {
-      |        "type": "static_select",
-      |        "placeholder": {
-      |          "type": "plain_text",
-      |          "text": "Select area"
-      |        },
-      |        "action_id": "BW-root-options",
-      |        "options": [
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Projects, phases, processes"
-      |            },
-      |            "value": "BW-root-projects"
-      |          },
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Active tasks"
-      |            },
-      |            "value": "BW-root-tasks"
-      |          },
-      |          {
-      |            "text": {
-      |              "type": "plain_text",
-      |              "text": "Alerts"
-      |            },
-      |            "value": "BW-root-alerts"
-      |          }
-      |        ]
-      |      }
-      |    }
-      |  ]
-      |}""".stripMargin
 }
 
 object SlackInteractiveCallbackTest extends App {

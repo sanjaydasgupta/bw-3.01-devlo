@@ -142,7 +142,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
       response.getWriter.print(assignmentList)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${assignments.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

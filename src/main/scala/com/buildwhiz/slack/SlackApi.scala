@@ -160,7 +160,7 @@ object SlackApi extends DateTimeUtils {
         "1970-01-01"
     })
     val dateBlocks = Seq(("optimistic", endDates(2)), ("likely", endDates(1)), ("pessimistic", endDates.head)).
-      map(dt => createInputBlock(s"Select *${dt._1}* completion date", s"BW-tasks-update-completion-date-${dt._1}",
+      map(dt => createInputBlock(s"Select ${dt._1} completion date", s"BW-tasks-update-completion-date-${dt._1}",
         SlackApi.createDatePicker("Select date", s"BW-tasks-update-completion-date-${dt._1}", dt._2)))
     val viewBlocks: Seq[DynDoc] = if (status == "running") {
       val percentComplete = ActivityApi.percentComplete(theActivity)

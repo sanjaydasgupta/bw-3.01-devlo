@@ -6,7 +6,7 @@ import com.buildwhiz.baf2.{ActivityApi, DashboardEntries, PersonApi, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.BWLogger
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils}
 import javax.servlet.http.HttpServletRequest
 import org.apache.http.Consts
 import org.apache.http.client.methods.HttpPost
@@ -15,7 +15,7 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
-object SlackApi {
+object SlackApi extends DateTimeUtils {
 
   def userBySlackId(slackUserId: String): Option[DynDoc] = {
     BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
@@ -118,15 +118,21 @@ object SlackApi {
         createButton("Select", s"$messageId-${dt._2}")))
   }
 
-  def createModalView(title: String, id: String, blocks: Seq[DynDoc]): Document = {
-    Map(
+  def createModalView(title: String, id: String, blocks: Seq[DynDoc], withSubmitButton: Boolean): Document = {
+    val basicFields = Seq(
       "type" -> "modal",
       //"callback_id" -> s"$id-modal",
       "title" -> Map("type" -> "plain_text", "text" -> title),
-      "submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true),
       "close" -> Map("type" -> "plain_text", "text" -> "Cancel", "emoji" -> true),
       "blocks" -> blocks
     )
+
+    val allFields = if (withSubmitButton)
+      ("submit" -> Map("type" -> "plain_text", "text" -> "Submit", "emoji" -> true)) +: basicFields
+    else
+      basicFields
+
+    allFields.toMap
   }
 
   def createSelectInputBlock(label: String, placeHolderText: String, id: String, options: Seq[(String, String)]):
@@ -147,18 +153,37 @@ object SlackApi {
 
   def createTaskStatusUpdateView(bwUser: DynDoc, theActivity: DynDoc): Document = {
     val (name, status) = (theActivity.name[String], theActivity.status[String])
-    val dateBlocks = Seq(("optimistic", "2020-06-15"), ("likely", ""), ("pessimistic", "2020-07-07")).
-        map(dt => createInputBlock(s"Select *${dt._1}* completion date", s"BW-tasks-update-completion-date-${dt._1}",
+    val endDates = Seq("end_date_pessimistic", "end_date_likely", "end_date_optimistic").map(dateType => {
+      if (theActivity.has(dateType))
+        dateTimeString(theActivity.asDoc.getLong(dateType), Some(bwUser.tz[String])).split(" ").head
+      else
+        "1970-01-01"
+    })
+    val dateBlocks = Seq(("optimistic", endDates(2)), ("likely", endDates(1)), ("pessimistic", endDates.head)).
+      map(dt => createInputBlock(s"Select *${dt._1}* completion date", s"BW-tasks-update-completion-date-${dt._1}",
         SlackApi.createDatePicker("Select date", s"BW-tasks-update-completion-date-${dt._1}", dt._2)))
-    val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn",
-        "text" -> s"Update status of task '$name' by modifying fields below.\nThen click Submit button"))
-    val percentCompleteBlock = createInputBlock("Enter % complete (100% means complete)",
-        "BW-tasks-update-percent-complete", Map("type" -> "plain_text_input",
-        "action_id" -> s"BW-tasks-update-percent-complete"))
-    val commentBlock = createInputBlock("Comments for this update", "BW-tasks-update-comments",
-      Map("type" -> "plain_text_input", "multiline" -> true, "action_id" -> s"BW-tasks-update-comments"))
-    val allBlocks = topBlock +: createDivider() +: (dateBlocks ++ Seq(createDivider(), percentCompleteBlock, commentBlock))
-    val tasksModalView = createModalView(s"Update Task Status", "BW-tasks-update", allBlocks)
+    val viewBlocks: Seq[DynDoc] = if (status == "running") {
+      val percentComplete = ActivityApi.percentComplete(theActivity)
+      val percentCompleteBlock = createInputBlock("Enter % complete (100% means complete)",
+          "BW-tasks-update-percent-complete", Map("type" -> "plain_text_input",
+          "action_id" -> s"BW-tasks-update-percent-complete",
+          "placeholder" -> Map("type" -> "plain_text", "text" -> percentComplete)))
+      val commentBlock = createInputBlock("Comments for this update", "BW-tasks-update-comments",
+          Map("type" -> "plain_text_input", "multiline" -> true, "action_id" -> s"BW-tasks-update-comments"))
+      val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn", "text" ->
+          s"Update status of active task *'$name'* by modifying fields below. Then click *Submit* button"))
+      topBlock +: createDivider() +:
+        (dateBlocks ++ Seq(createDivider(), percentCompleteBlock, commentBlock))
+    } else if (status == "ended") {
+      val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn", "text" ->
+          s"This task is complete. There is nothing to update."))
+      Seq(topBlock)
+    } else {
+      val topBlock: DynDoc = Map("type" -> "section", "text" -> Map("type" -> "mrkdwn", "text" ->
+         s"Update status of scheduled task *'$name'* by modifying fields below. Then click *Submit* button"))
+      topBlock +: dateBlocks
+    }
+    val tasksModalView = createModalView(s"Task '$name'", "BW-tasks-update", viewBlocks, status != "ended")
     Map("view" -> tasksModalView, "response_action" -> "push")
   }
 
@@ -177,7 +202,7 @@ object SlackApi {
     })
     val taskOptions = createSelectInputBlock("Select a task and click 'Submit' for details", "Select a task",
         "BW-tasks-update-display", tasks)
-    val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions))
+    val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions), withSubmitButton = true)
     Map("view" -> tasksModalView, "response_action" -> "push")
   }
 
@@ -194,7 +219,8 @@ object SlackApi {
     })
     val dashboardOptions = createSelectInputBlock("Select item and click 'Submit' for details",
         "Select dashboard entry", "BW-dashboard-detail-phase", dashboardInfoArray)
-    val dashboardModalView = createModalView("Dashboard Display", "BW-dashboard", Seq(dashboardOptions))
+    val dashboardModalView = createModalView("Dashboard Display", "BW-dashboard", Seq(dashboardOptions),
+        withSubmitButton = true)
     Map("view" -> dashboardModalView, "response_action" -> "push")
   }
 

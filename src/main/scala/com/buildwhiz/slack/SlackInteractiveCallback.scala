@@ -27,7 +27,8 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         val triggerId = payload.trigger_id[String]
         val rootOptions = SlackApi.createSelectInputBlock("Select operation area", "Select option", "BW-root",
           Seq(("Dashboard", "dashboard"), ("Tasks", "tasks")))
-        val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions))
+        val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions),
+            withSubmitButton = true)
         SlackApi.viewOpen(rootModalView.toJson, triggerId)
       } else if (payload.has("trigger_id") && payload.`type`[String] == "view_submission") {
         val triggerId = payload.trigger_id[String]
@@ -93,7 +94,7 @@ object SlackInteractiveCallbackTest extends App {
 
   val taskOptions = SlackApi.createSelectInputBlock("Select a task", "Select task", "BW-tasks",
     Seq(("Task A", "task-a"), ("Task B", "task-b"), ("Task C", "task-c"), ("Task D", "task-d")))
-  val tasksModalView = SlackApi.createModalView("Select Task", "BW-tasks", Seq(taskOptions))
+  val tasksModalView = SlackApi.createModalView("Select Task", "BW-tasks", Seq(taskOptions), withSubmitButton = true)
   val viewMessage: Document = Map("view" -> tasksModalView, "response_action" -> "push")
   val responseText = viewMessage.toJson
 

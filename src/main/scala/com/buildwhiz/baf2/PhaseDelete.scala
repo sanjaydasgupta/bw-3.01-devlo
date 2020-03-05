@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
 class PhaseDelete extends HttpServlet with HttpUtils {
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
@@ -26,4 +26,7 @@ class PhaseDelete extends HttpServlet with HttpUtils {
     }
   }
 
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    doPostTransaction(request, response)
+  }
 }

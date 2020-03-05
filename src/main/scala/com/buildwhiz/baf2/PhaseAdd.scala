@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 import scala.collection.JavaConverters._
 
 class PhaseAdd extends HttpServlet with HttpUtils {
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
@@ -75,4 +75,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
     }
   }
 
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWMongoDB3.withTransaction(doPostTransaction(request, response))
+  }
 }

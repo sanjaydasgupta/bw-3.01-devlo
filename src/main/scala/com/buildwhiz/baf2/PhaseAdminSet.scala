@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 class PhaseAdminSet extends HttpServlet with HttpUtils {
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
@@ -39,5 +39,9 @@ class PhaseAdminSet extends HttpServlet with HttpUtils {
         //t.printStackTrace()
         throw t
     }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWMongoDB3.withTransaction(doPostTransaction(request, response))
   }
 }

@@ -225,7 +225,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
     s"${timersSheet.getPhysicalNumberOfRows - 1} roles(s)"
   }
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
     try {
@@ -261,5 +261,9 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
         //t.printStackTrace()
         throw t
     }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    doPostTransaction(request, response)
   }
 }

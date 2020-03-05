@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 class ProjectCreate extends HttpServlet with HttpUtils {
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
@@ -63,5 +63,9 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         //t.printStackTrace()
         throw t
     }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    doPostTransaction(request, response)
   }
 }

@@ -16,6 +16,10 @@ import scala.collection.JavaConverters._
 class ProcessBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    doGetTransaction(request, response)
+  }
+
+  private def doGetTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
     try {

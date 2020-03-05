@@ -39,8 +39,8 @@ class ProcessLaunch extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
-      val phaseLogMessage = s"Launched phase '${theProcess.name[String]}' ($processId)"
-      BWLogger.audit(getClass.getName, "doPost", phaseLogMessage, request)
+      val processLogMessage = s"Launched process '${theProcess.name[String]}' ($processId)"
+      BWLogger.audit(getClass.getName, "doPost", processLogMessage, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

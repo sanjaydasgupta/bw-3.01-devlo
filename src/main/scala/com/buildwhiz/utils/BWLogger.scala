@@ -50,7 +50,8 @@ object BWLogger extends HttpUtils {
     val bpmnAncestors = getAncestors(de)
     if (bpmnAncestors.nonEmpty)
       varNames("BPMN-Ancestors") = bpmnAncestors.mkString("[", ", ", "]")
-    log(className, methodName, eventName, varNames.map(kv => (kv._1, kv._2.toString)).toSeq: _*)
+    log(className, methodName, eventName, varNames.
+        map(kv => (kv._1, if (kv._2 == null) "" else kv._2.toString)).toSeq: _*)
   }
 
   def audit(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {

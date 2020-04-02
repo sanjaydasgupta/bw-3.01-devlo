@@ -46,28 +46,35 @@ object SlackApi extends DateTimeUtils {
     }
     if (personRecord.has("slack_id")) {
       val slackChannel = personRecord.slack_id[String]
-      sendToChannel(stringOrBlocks, slackChannel, request)
+      sendToChannel(stringOrBlocks, slackChannel, request=request)
       BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", request)
     } else {
-      val message = s"ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
+      val message = s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
       BWLogger.log(getClass.getName, "sendToUser", message)
     }
   }
 
-  def sendToChannel(textOrBlocks: Either[String, Seq[DynDoc]], channel: String,
-                    request: Option[HttpServletRequest] = None): Unit = {
+  def sendToChannel(textOrBlocks: Either[String, Seq[DynDoc]], channel: String, optThreadTs: Option[String] = None,
+      request: Option[HttpServletRequest] = None): Unit = {
+    // https://api.slack.com/messaging/sending
+    // https://api.slack.com/messaging/retrieving#finding_threads
+    // https://api.slack.com/messaging/managing#threading
     BWLogger.log(getClass.getName, "sendToChannel", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
     post.setHeader("Authorization",
       //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
       "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
-    post.setHeader("Content-Type", "application/json")
-    val bodyText = textOrBlocks match {
-      case Left(messageText) => s"""{"text": "$messageText", "channel": "$channel"}"""
-      case Right(blocks) =>
+    post.setHeader("Content-Type", "application/json; charset=utf-8")
+    val bodyText = (textOrBlocks, optThreadTs) match {
+      case (Left(messageText), None) => s"""{"text": "$messageText", "channel": "$channel"}"""
+      case (Left(messageText), Some(threadTs)) => s"""{"text": "$messageText", "channel": "$channel", "thread_ts": "$threadTs"}"""
+      case (Right(blocks), None) =>
         val blocksText = blocks.map(_.asDoc.toJson).mkString(",")
         s"""{"blocks": [$blocksText], "channel": "$channel"}"""
+      case (Right(blocks), Some(threadTs)) =>
+        val blocksText = blocks.map(_.asDoc.toJson).mkString(",")
+        s"""{"blocks": [$blocksText], "channel": "$channel", "thread_ts": "$threadTs"}"""
     }
     BWLogger.log(getClass.getName, "sendToChannel", s"Message: $bodyText")
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
@@ -78,7 +85,7 @@ object SlackApi extends DateTimeUtils {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
-    BWLogger.log(getClass.getName, "sendToChannel", "EXIT-OK")
+    BWLogger.log(getClass.getName, "sendToChannel", s"EXIT-OK ($contentString)")
   }
 
   // https://api.slack.com/messaging/interactivity
@@ -136,7 +143,7 @@ object SlackApi extends DateTimeUtils {
   }
 
   def createSelectInputBlock(label: String, placeHolderText: String, id: String, options: Seq[(String, String)]):
-  Map[String, _] = {
+      Map[String, _] = {
     Map(
       "type" -> "input",
       "block_id" -> s"$id-block",
@@ -145,6 +152,20 @@ object SlackApi extends DateTimeUtils {
         "type" -> "static_select",
         "placeholder" -> Map("type" -> "plain_text", "text" -> placeHolderText),
         "action_id" -> s"$id-options",
+        "options" -> options.map(option =>
+          Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
+      )
+    )
+  }
+
+  def createCheckboxInputBlock(label: String, id: String, options: Seq[(String, String)]):
+      Map[String, _] = {
+    Map(
+      "type" -> "input",
+      "block_id" -> s"$id-block",
+      "label"-> Map("type" -> "plain_text", "text" -> label, "emoji" -> true),
+      "element"-> Map(
+        "type" -> "checkboxes",
         "options" -> options.map(option =>
           Map("text" -> Map("type" -> "plain_text", "text" -> option._1), "value" -> s"$id-${option._2}"))
       )
@@ -201,8 +222,11 @@ object SlackApi extends DateTimeUtils {
       (s"$name/$phase/$project ($status)", id.toString)
     })
     val taskOptions = createSelectInputBlock("Select a task and click 'Submit' for details", "Select a task",
-        "BW-tasks-update-display", tasks)
-    val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions), withSubmitButton = true)
+        "BW-tasks-update-display-task-list", tasks)
+    val taskCheckboxes = createCheckboxInputBlock("Choose 'Status' or 'Documents'",
+        "BW-tasks-update-display-checkboxes", Seq(("Status", "status"), ("Documents", "documents")))
+    val tasksModalView = createModalView("Current Tasks", "BW-tasks", Seq(taskOptions, createDivider(), taskCheckboxes),
+        withSubmitButton = true)
     Map("view" -> tasksModalView, "response_action" -> "push")
   }
 

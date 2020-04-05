@@ -56,7 +56,7 @@ object CommandLineProcessor extends DateTimeUtils {
         s"""*Task '$name' (end: $end, start: $start) id:$id*
            |process: '$process', phase: '$phase', project: '$project'
            |(_open a *thread* to start an interaction_)""".stripMargin
-      Future {SlackApi.sendToChannel(Left(messageText), postData.channel[String], Some(postData.ts[String]))}.onComplete {
+      Future {SlackApi.sendToChannel(Left(messageText), postData.channel[String], None)}.onComplete {
         case Failure(ex) =>
           BWLogger.log(getClass.getName, "listTasks()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
         case Success(_) =>

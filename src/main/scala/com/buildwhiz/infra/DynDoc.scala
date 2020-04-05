@@ -1,9 +1,8 @@
 package com.buildwhiz.infra
 
-import java.util
-
 import org.bson.Document
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.language.dynamics
 import scala.language.implicitConversions
@@ -18,6 +17,11 @@ class DynDoc(d: Document) extends Dynamic {
   def asDoc: Document = d
   def has(key: String): Boolean = d.containsKey(key)
   def remove(fieldName: String): Unit = d.remove(fieldName)
+
+  def get[T](fieldName: String): Option[T] = if (d.containsKey(fieldName))
+    Some(d.get(fieldName).asInstanceOf[T])
+  else
+    None
 }
 
 object DynDoc {
@@ -47,6 +51,7 @@ object DynDoc {
       case other => other
     }).asJava
 
+    @tailrec
     def pairs2document(seq: Seq[(String, Any)], document: Document = new Document()): Document = seq match {
       case Nil => document
       case head +: tail =>

@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.util.Either
+
 object ProjectApi extends HttpUtils {
 
   def listProjects(): Seq[DynDoc] = {
@@ -207,7 +209,13 @@ object ProjectApi extends HttpUtils {
       PersonApi.personById(project.admin_person_id[ObjectId]).tz[String]
   }
 
-  def managers(project: DynDoc): Seq[ObjectId] = project.assigned_roles[Many[Document]].
-    filter(_.role_name[String].matches(".*(?i)manager")).map(_.person_id[ObjectId])
+  def managers(projectIn: Either[ObjectId, DynDoc]): Seq[ObjectId] = {
+    val project: DynDoc = projectIn match {
+      case Right(projObj) => projObj
+      case Left(projOid) => projectById(projOid)
+    }
+    project.assigned_roles[Many[Document]].filter(_.role_name[String].matches(".*(?i)manager")).
+        map(_.person_id[ObjectId])
+  }
 
 }

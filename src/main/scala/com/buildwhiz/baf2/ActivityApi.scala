@@ -255,7 +255,7 @@ object ActivityApi extends DateTimeUtils {
     val process = parentProcess(activity._id[ObjectId])
     val phase = ProcessApi.parentPhase(process._id[ObjectId])
     val project = PhaseApi.parentProject(phase._id[ObjectId])
-    ProcessApi.managers(process) ++ PhaseApi.managers(phase) ++ ProjectApi.managers(project)
+    ProcessApi.managers(process) ++ PhaseApi.managers(phase) ++ ProjectApi.managers(Right(project))
   }
 
   object teamAssignment {

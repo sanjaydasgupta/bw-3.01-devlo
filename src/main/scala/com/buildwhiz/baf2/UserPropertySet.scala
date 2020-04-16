@@ -3,6 +3,7 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.slack.SlackApi
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -94,10 +95,13 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       if (userRecord._id[ObjectId] != personOid && !PersonApi.isBuildWhizAdmin(Right(userRecord)))
         throw new IllegalArgumentException("Not permitted")
       properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))
-      response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set property for $personLog""", request)
+      val info: DynDoc = BWMongoDB3.instance_info.find().head
+      val instanceName = info.instance[String]
+      val message = s"""Updated ${properties.mkString(", ")} for '${PersonApi.fullName(thePerson)}' on '$instanceName'"""
+      SlackApi.sendToUser(Left(message), Left(thePerson), Some(request))
+      BWLogger.audit(getClass.getName, "doPost", message, request)
+      response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

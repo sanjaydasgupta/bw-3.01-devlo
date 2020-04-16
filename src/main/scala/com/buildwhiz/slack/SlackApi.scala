@@ -54,6 +54,13 @@ object SlackApi extends DateTimeUtils {
     }
   }
 
+  def sendNotification(message: String, user: Either[DynDoc, ObjectId],
+      optRequest: Option[HttpServletRequest] = None): Unit = {
+    val info: DynDoc = BWMongoDB3.instance_info.find().head
+    val instanceName = info.instance[String]
+    sendToUser(Left(s"$message on '$instanceName'"), user, optRequest)
+  }
+
   def sendToChannel(textOrBlocks: Either[String, Seq[DynDoc]], channel: String, optThreadTs: Option[String] = None,
       request: Option[HttpServletRequest] = None): Unit = {
     // https://api.slack.com/messaging/sending

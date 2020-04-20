@@ -2,6 +2,7 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.slack.SlackApi
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -58,6 +59,10 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       response.setStatus(HttpServletResponse.SC_OK)
       val parametersChanged = mongoDbNameValuePairs.map(_._1).mkString("[", ", ", "]")
       val message = s"""Updated parameters $parametersChanged of phase $phaseOid"""
+      val managers = PhaseApi.managers(Left(phaseOid))
+      for (manager <- managers) {
+        SlackApi.sendNotification(message, Right(manager), Some(request))
+      }
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

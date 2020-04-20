@@ -124,7 +124,7 @@ object ProcessApi {
 
   def managers(process: DynDoc): Seq[ObjectId] = {
     val phase = parentPhase(process._id[ObjectId])
-    val phaseManagers = PhaseApi.managers(phase)
+    val phaseManagers = PhaseApi.managers(Right(phase))
     val processManagers = process.admin_person_id[ObjectId] +: process.assigned_roles[Many[Document]].
       filter(_.role_name[String].matches(".*(?i)manager")).map(_.person_id[ObjectId])
     phaseManagers ++ processManagers

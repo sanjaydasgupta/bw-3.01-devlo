@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.util.Either
+
 object PhaseApi {
 
   def phasesByIds(phaseOids: Seq[ObjectId]): Seq[DynDoc] =
@@ -109,7 +111,11 @@ object PhaseApi {
     true
   }
 
-  def managers(phase: DynDoc): Seq[ObjectId] = {
+  def managers(phaseIn: Either[ObjectId, DynDoc]): Seq[ObjectId] = {
+    val phase: DynDoc = phaseIn match {
+      case Right(phaseObj) => phaseObj
+      case Left(phaseOid) => phaseById(phaseOid)
+    }
     val project = parentProject(phase._id[ObjectId])
     val projectManagers = ProjectApi.managers(Right(project))
     val phaseManagers = phase.assigned_roles[Many[Document]].
@@ -121,7 +127,7 @@ object PhaseApi {
     if (phase.has("tz")) {
       phase.tz[String]
     } else {
-      val managerOids = managers(phase)
+      val managerOids = managers(Right(phase))
       PersonApi.personsByIds(managerOids).map(_.tz[String]).groupBy(t => t).
         map(p => (p._1, p._2.length)).reduce((a, b) => if (a._2 > b._2) a else b)._1
     }

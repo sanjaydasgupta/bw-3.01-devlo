@@ -120,7 +120,7 @@ object PhaseApi {
     val projectManagers = ProjectApi.managers(Right(project))
     val phaseManagers = phase.assigned_roles[Many[Document]].
     filter(_.role_name[String].matches(".*(?i)manager")).map(_.person_id[ObjectId])
-    projectManagers ++ phaseManagers
+    (projectManagers ++ phaseManagers).distinct
   }
 
   def timeZone(phase: DynDoc): String = {

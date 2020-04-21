@@ -1,6 +1,6 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.{DashboardEntries, PersonApi, TaskList}
+import com.buildwhiz.baf2.{DashboardEntries, PersonApi, ProjectApi, ProjectInfo, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -35,7 +35,7 @@ object CommandLineProcessor extends DateTimeUtils {
 
   private def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
     val dashboardEntries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
-    val projects = dashboardEntries.map(e => s"${e.project_name[String]} (${e.project_id[ObjectId]})")
+    val projects = dashboardEntries.map(e => s"${e.project_name[String]} (${e.project_id[ObjectId]})").distinct
     Left(projects.mkString("\n"))
   }
 
@@ -94,7 +94,21 @@ object CommandLineProcessor extends DateTimeUtils {
     Left(rows.mkString("\n"))
   }
 
-  private def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
+  private def describeProject(projectId: String): (DynDoc, DynDoc) => ParserResult = {
+    (user: DynDoc, postData: DynDoc) => {
+      val projectOid = new ObjectId(projectId)
+      val project = ProjectApi.projectById(projectOid)
+      val projectInfo: DynDoc = Document.parse(ProjectInfo.project2json(project, user))
+      val name = projectInfo.name[Document].y.value[String]
+      val status = projectInfo.status[Document].y.value[String]
+      val description = projectInfo.description[Document].y.value[String]
+      val phases: Seq[DynDoc] = projectInfo.phase_info[Document].y.value[Many[Document]]
+      val phaseInfos = phases.map(phase => s"${phase.name[String]} (${phase.status[String]})").mkString(", ")
+      Left(s"Name: $name\nStatus: $status\nDescription: $description\nPhases: $phaseInfos")
+    }
+  }
+
+    private def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
     Left(s"You are ${PersonApi.fullName(user)}")
   }
 
@@ -137,11 +151,19 @@ object CommandLineProcessor extends DateTimeUtils {
       "(?i)projects?".r ^^ {_ => "projects"} |
       "(?i)tasks?".r ^^ {_ => "tasks"}
 
-    private lazy val listEntitiesParser: CLIP = "(?i)list|show|display|query".r ~> entityNamesParser ^^ {
+    private lazy val listEntitiesParser: CLIP = "(?i)display|list|query|show".r ~> opt("(?i)my".r) ~> entityNamesParser ^^ {
       case "active-users" => activeUsers
       case "documents" => listDocuments
       case "projects" => listProjects
       case "tasks" => listTasks
+    }
+
+    // Describe entity command ...
+    private lazy val id: Parser[String] = "(?i)[0-9a-f]{24}".r
+
+    private lazy val describeEntityParser: CLIP = "(?i)describe|display|dump|show".r ~> entityNamesParser ~ id ^^ {
+      case "projects" ~ id => describeProject(id)
+      case _ => (user, postData) => help(user, postData)
     }
 
     // Dashboard command ...
@@ -153,7 +175,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val none: CLIP = ".*".r ^^ {_ => help}
 
     private lazy val allCommands: CLIP =
-        dashboardParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
+        dashboardParser | describeEntityParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
 
     def cliProcessor(command: String, user: DynDoc, postData: DynDoc): ParserResult = {
       parseAll(allCommands, command) match {
@@ -165,7 +187,7 @@ object CommandLineProcessor extends DateTimeUtils {
     def testParser(command: String): ParserResult = {
       val sanjay: DynDoc = BWMongoDB3.persons.find(Map("last_name" -> "Dasgupta")).head
       parseAll(allCommands, command) match {
-        case Success(result, _) => result(sanjay, ???)
+        case Success(result, _) => result(sanjay, null)
         case NoSuccess(result, _) => Left(result)
       }
     }
@@ -174,7 +196,9 @@ object CommandLineProcessor extends DateTimeUtils {
 
   def main(args: Array[String]): Unit = {
     println(commandLineParser.testParser("Who am i"))
-    println(commandLineParser.testParser("DashBoard"))
+    println(commandLineParser.testParser("describe project 5caffdb93c364b1b6f270688"))
+    println(commandLineParser.testParser("list projects"))
+    //println(commandLineParser.testParser("DashBoard"))
     println(commandLineParser.testParser("query Active UsErS"))
     println(commandLineParser.testParser("list documents"))
     println(commandLineParser.testParser("list projects"))

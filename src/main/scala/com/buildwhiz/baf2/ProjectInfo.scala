@@ -12,10 +12,34 @@ import scala.collection.JavaConverters._
 
 class ProjectInfo extends HttpServlet with HttpUtils {
 
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val parameters = getParameterMap(request)
+    try {
+      val projectOid = new ObjectId(parameters("project_id"))
+      val projectRecord: DynDoc = ProjectApi.projectById(projectOid)
+      val user: DynDoc = getUser(request)
+      response.getWriter.print(ProjectInfo.project2json(projectRecord, user))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+}
+
+object ProjectInfo {
+
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
     project.admin_person_id[ObjectId] == userOid || project.assigned_roles[Many[Document]].
-        exists(role => role.person_id[ObjectId] == userOid && role.role_name[String] == "Project-Manager")
+      exists(role => role.person_id[ObjectId] == userOid && role.role_name[String] == "Project-Manager")
   }
 
   private def phaseInformation(project: DynDoc): Many[Document] = {
@@ -24,21 +48,22 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     val returnValue: Seq[Document] = phases.map(phase => {
       val displayStatus = PhaseApi.displayStatus(phase)
       Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus,
-          "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString)
+        "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString)
     })
     returnValue.asJava
   }
 
   private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean, defaultValue: Any = ""):
-      Document = {
+  Document = {
     val names = structuredName.split("/").map(_.trim)
     val value = names.init.foldLeft(project.asDoc)((dd, s) =>
-        dd.getOrDefault(s, new Document()).asInstanceOf[Document]).
-        getOrDefault(names.last, defaultValue.toString).toString
+      dd.getOrDefault(s, new Document()).asInstanceOf[Document]).
+      getOrDefault(names.last, defaultValue.toString).toString
     new Document("editable", editable).append("value", value)
   }
 
-  private def project2json(project: DynDoc, editable: Boolean): String = {
+  def project2json(project: DynDoc, user: DynDoc): String = {
+    val editable = ProjectInfo.isEditable(project, user)
     val bareDocumentTags: Seq[String] = if (project.has("document_tags"))
       project.document_tags[Many[Document]].map(_.name[String])
     else
@@ -69,36 +94,15 @@ class ProjectInfo extends HttpServlet with HttpUtils {
       0.0)
     val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("description", description).
-        append("status", status).append("display_status", displayStatus).
-        append("document_tags", documentTags).
-        append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
-        append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
-        append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).
-        append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
-        append("gps_latitude", latitude).append("gps_longitude", longitude).
-        append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
+      append("status", status).append("display_status", displayStatus).
+      append("document_tags", documentTags).
+      append("type", `type`).append("construction_type", constructionType).append("budget_mm_usd", budgetMmUsd).
+      append("construction_area_sqft", constAreaSqFt).append("land_area_acres", landAreaAcres).
+      append("max_building_height_ft", maxBldgHeightFt).append("phase_info", phaseInfo).
+      append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
+      append("gps_latitude", latitude).append("gps_longitude", longitude).
+      append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
     projectDoc.toJson
-  }
-
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val parameters = getParameterMap(request)
-    try {
-      val projectOid = new ObjectId(parameters("project_id"))
-      val projectRecord: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      val user: DynDoc = getUser(request)
-      val projectIsEditable = isEditable(projectRecord, user)
-      response.getWriter.print(project2json(projectRecord, projectIsEditable))
-      response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
-    }
   }
 
 }

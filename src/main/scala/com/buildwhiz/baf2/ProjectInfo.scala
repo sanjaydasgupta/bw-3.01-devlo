@@ -38,8 +38,7 @@ object ProjectInfo {
 
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
-    project.admin_person_id[ObjectId] == userOid || project.assigned_roles[Many[Document]].
-      exists(role => role.person_id[ObjectId] == userOid && role.role_name[String] == "Project-Manager")
+    ProjectApi.canManage(userOid, project)
   }
 
   private def phaseInformation(project: DynDoc): Many[Document] = {

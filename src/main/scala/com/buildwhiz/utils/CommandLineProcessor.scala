@@ -34,7 +34,9 @@ object CommandLineProcessor extends DateTimeUtils {
   }
 
   private def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
-    Left("You have no projects now")
+    val dashboardEntries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
+    val projects = dashboardEntries.map(e => s"${e.project_name[String]} (${e.project_id[ObjectId]})")
+    Left(projects.mkString("\n"))
   }
 
   private def listTasks(user: DynDoc, postData: DynDoc): ParserResult = {

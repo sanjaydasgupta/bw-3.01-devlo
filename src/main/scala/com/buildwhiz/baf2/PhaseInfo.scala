@@ -1,8 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -10,7 +9,31 @@ import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
 
-class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
+class PhaseInfo extends HttpServlet with HttpUtils {
+
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val parameters = getParameterMap(request)
+    try {
+      val phaseOid = new ObjectId(parameters("phase_id"))
+      val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
+      val user: DynDoc = getUser(request)
+      response.getWriter.print(PhaseInfo.phase2json(phaseRecord, user))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+}
+
+object PhaseInfo extends DateTimeUtils {
 
   private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
@@ -31,13 +54,14 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         ("NA", "NA")
       }
       Map("_id" -> process._id[ObjectId].toString, "name" -> process.name[String],
-          "bpmn_name" -> process.bpmn_name[String], "status" -> process.status[String],
-          "display_status" -> ProcessApi.displayStatus(process), "start_date" -> startTime, "end_date" -> endTime)
+        "bpmn_name" -> process.bpmn_name[String], "status" -> process.status[String],
+        "display_status" -> ProcessApi.displayStatus(process), "start_date" -> startTime, "end_date" -> endTime)
     })
     returnValue.asJava
   }
 
-  private def phase2json(phase: DynDoc, user: DynDoc, editable: Boolean): String = {
+  def phase2json(phase: DynDoc, user: DynDoc): String = {
+    val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
     val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
@@ -47,34 +71,13 @@ class PhaseInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         val thePerson = PersonApi.personById(role.person_id[ObjectId])
         val personName = PersonApi.fullName(thePerson)
         new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
-    }).asJava
+      }).asJava
     val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
     val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
     val projectDoc = new Document("name", name).append("description", description).append("status", status).
-        append("display_status", displayStatus).append("managers", phaseManagers).
-        append("process_info", processInformation(phase, user)).append("can_add_process", canManage)
+      append("display_status", displayStatus).append("managers", phaseManagers).
+      append("process_info", processInformation(phase, user)).append("can_add_process", canManage)
     projectDoc.toJson
-  }
-
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val parameters = getParameterMap(request)
-    try {
-      val phaseOid = new ObjectId(parameters("phase_id"))
-      val phaseRecord: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      val user: DynDoc = getUser(request)
-      val phaseIsEditable = isEditable(phaseRecord, user)
-      response.getWriter.print(phase2json(phaseRecord, user, phaseIsEditable))
-      response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
-    }
   }
 
 }

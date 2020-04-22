@@ -28,8 +28,10 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
       case (Some(slackUserId), None, "message", None) =>
         userBySlackId(slackUserId) match {
           case Some(bwUser) =>
-            val commandResult = CommandLineProcessor.process(event.text[String], bwUser, event)
-            SlackApi.sendToChannel(commandResult, channel, None, Some(request))
+            CommandLineProcessor.process(event.text[String], bwUser, event) match {
+              case Some(message) => SlackApi.sendToChannel(Left(message), channel, None, Some(request))
+              case None =>
+            }
           case None =>
             val message = s"Slack-id '$slackUserId' is not registered with BuildWhiz"
             SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))

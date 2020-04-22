@@ -15,14 +15,14 @@ import scala.util.parsing.combinator.RegexParsers
 
 object CommandLineProcessor extends DateTimeUtils {
 
-  type ParserResult = Either[String, Seq[DynDoc]]
+  type ParserResult = Option[String]
 
   def process(command: String, user: DynDoc, postData: DynDoc): ParserResult = {
     commandLineParser.cliProcessor(command, user, postData)
   }
 
   private def help(user: DynDoc, postData: DynDoc): ParserResult = {
-    Left("""Commands:
+    Some("""Commands:
       |+  dash[board]
       |+  list {active users|documents|projects|tasks}
       |+  slack {invite|status} first-name [last-name]
@@ -30,18 +30,18 @@ object CommandLineProcessor extends DateTimeUtils {
   }
 
   private def listDocuments(user: DynDoc, postData: DynDoc): ParserResult = {
-    Left("You have no documents now")
+    Some("You have no documents now")
   }
 
   private def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
     val dashboardEntries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
     val projects = dashboardEntries.map(e => s"${e.project_name[String]} (${e.project_id[ObjectId]})").distinct
-    Left(projects.mkString("\n"))
+    Some(projects.mkString("\n"))
   }
 
   private def listTasks(user: DynDoc, postData: DynDoc): ParserResult = {
     val assignments = TaskList.uniqueAssignments(user)
-    val tasksInfo = assignments.map(assignment => {
+    val taskMessages = assignments.map(assignment => {
       val id = assignment.activity_id[ObjectId]
       val project = assignment.project_name[String]
       val phase = assignment.phase_name[String]
@@ -49,22 +49,19 @@ object CommandLineProcessor extends DateTimeUtils {
       val name = assignment.activity_name[String]
       val end = assignment.end_datetime[String].split(" ").head
       val start = assignment.start_datetime[String].split(" ").head
-      //(s"$name (END: $end, START: $start)", id.toString)
-      (name, process, phase, project, end, start, id.toString)
+      s"""*Task '$name' (end: $end, start: $start) id:$id*
+         |process: '$process', phase: '$phase', project: '$project'""".stripMargin
     })
-    for (task <- tasksInfo) {
-      val (name, process, phase, project, end, start, id) = task
-      val messageText =
-        s"""*Task '$name' (end: $end, start: $start) id:$id*
-           |process: '$process', phase: '$phase', project: '$project'
-           |(_open a *thread* to start an interaction_)""".stripMargin
-      Future {SlackApi.sendToChannel(Left(messageText), postData.channel[String], None)}.onComplete {
+    val allMessages = s"""You have ${taskMessages.length} task(s). Task messages follow.
+                         |(_open a *thread* to start an interaction_)""".stripMargin +: taskMessages
+    for (message <- allMessages) {
+      Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
         case Failure(ex) =>
           BWLogger.log(getClass.getName, "listTasks()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
         case Success(_) =>
       }
     }
-    Left(s"You have ${tasksInfo.length} task(s). Individual detail messages follow.")
+    None
   }
 
   private def activeUsers(user: DynDoc, postData: DynDoc): ParserResult = {
@@ -78,20 +75,29 @@ object CommandLineProcessor extends DateTimeUtils {
       val time = dateTimeString(occurrence.milliseconds[Long], Some(user.tz[String]))
       s"\t$time  $name\n"
     })
-    Left(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
+    Some(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
   }
 
   private def dashboard(user: DynDoc, postData: DynDoc): ParserResult = {
     val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
-    val rows = entries.map(entry => {
+    val messages = entries.map(entry => {
       val project = entry.project_name[String]
       val phase = entry.phase_name[String]
       val status = entry.display_status[String]
       val tasksOverdueDetail: DynDoc = entry.tasks_overdue[Document]
       val tasksOverdue = tasksOverdueDetail.value[String]
-      s"Project: $project, Phase: $phase, Status: $status, Tasks-Overdue: $tasksOverdue"
+      s"""Project '$project', Phase: '$phase', Status: '$status', Tasks-Overdue: $tasksOverdue""".stripMargin
     })
-    Left(rows.mkString("\n"))
+    val allMessages = s"""You have ${messages.length} dashboard item(s). Item messages follow.
+                         |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+    for (message <- allMessages) {
+      Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        case Failure(ex) =>
+          BWLogger.log(getClass.getName, "dashboard()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
+        case Success(_) =>
+      }
+    }
+    None
   }
 
   private def describeProject(projectId: String): (DynDoc, DynDoc) => ParserResult = {
@@ -104,17 +110,17 @@ object CommandLineProcessor extends DateTimeUtils {
       val description = projectInfo.description[Document].y.value[String]
       val phases: Seq[DynDoc] = projectInfo.phase_info[Document].y.value[Many[Document]]
       val phaseInfos = phases.map(phase => s"${phase.name[String]} (${phase.status[String]})").mkString(", ")
-      Left(s"Name: $name\nStatus: $status\nDescription: $description\nPhases: $phaseInfos")
+      Some(s"Name: $name\nStatus: $status\nDescription: $description\nPhases: $phaseInfos")
     }
   }
 
     private def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
-    Left(s"You are ${PersonApi.fullName(user)}")
+      Some(s"You are ${PersonApi.fullName(user)}")
   }
 
   private def slackManage(op: String, names: List[String]): (DynDoc, DynDoc) => ParserResult = {
     if (!op.toLowerCase.matches("invite|status"))
-      return (_, _) => Left(s"Unknown operation: $op")
+      return (_, _) => Some(s"Unknown operation: $op")
     val persons: Seq[DynDoc] = names match {
       case firstName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName")))
       case firstName +: lastName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName"),
@@ -122,12 +128,12 @@ object CommandLineProcessor extends DateTimeUtils {
       case _ => Nil
     }
     persons.length match {
-      case 0 => (_, _) => Left(s"""Unknown user name: ${names.mkString(" ")}""")
+      case 0 => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
       case 1 => op.toLowerCase match {
-        case "invite" => (dd, _) => Left(SlackApi.invite(persons.head)(dd))
-        case "status" => (dd, _) => Left(SlackApi.status(persons.head)(dd))
+        case "invite" => (dd, _) => Some(SlackApi.invite(persons.head)(dd))
+        case "status" => (dd, _) => Some(SlackApi.status(persons.head)(dd))
       }
-      case _ => (_, _) => Left(s"""Ambiguous user name: ${names.mkString(" ")}""")
+      case _ => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
     }
   }
 
@@ -180,7 +186,7 @@ object CommandLineProcessor extends DateTimeUtils {
     def cliProcessor(command: String, user: DynDoc, postData: DynDoc): ParserResult = {
       parseAll(allCommands, command) match {
         case Success(result, _) => result(user, postData)
-        case NoSuccess(result, _) => Left(result)
+        case NoSuccess(result, _) => Some(result)
       }
     }
 
@@ -188,7 +194,7 @@ object CommandLineProcessor extends DateTimeUtils {
       val sanjay: DynDoc = BWMongoDB3.persons.find(Map("last_name" -> "Dasgupta")).head
       parseAll(allCommands, command) match {
         case Success(result, _) => result(sanjay, null)
-        case NoSuccess(result, _) => Left(result)
+        case NoSuccess(result, _) => Some(result)
       }
     }
 

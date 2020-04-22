@@ -1,6 +1,6 @@
 package com.buildwhiz.utils
 
-import com.buildwhiz.baf2.{DashboardEntries, PersonApi, ProjectApi, ProjectInfo, TaskList}
+import com.buildwhiz.baf2.{DashboardEntries, PersonApi, PhaseApi, PhaseInfo, ProjectApi, ProjectInfo, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -34,9 +34,18 @@ object CommandLineProcessor extends DateTimeUtils {
   }
 
   private def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
-    val dashboardEntries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
-    val projects = dashboardEntries.map(e => s"${e.project_name[String]} (${e.project_id[ObjectId]})").distinct
-    Some(projects.mkString("\n"))
+    val projects = ProjectApi.projectsByUser(user._id[ObjectId])
+    val messages = projects.map(project => s"Name: '${project.name[String]}', Status: '${project.status[String]}'")
+    val allMessages = s"""You have ${projects.length} project(s). Project messages follow.
+                         |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+    for (message <- allMessages) {
+      Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        case Failure(ex) =>
+          BWLogger.log(getClass.getName, "listProjects()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
+        case Success(_) =>
+      }
+    }
+    None
   }
 
   private def listTasks(user: DynDoc, postData: DynDoc): ParserResult = {
@@ -114,7 +123,21 @@ object CommandLineProcessor extends DateTimeUtils {
     }
   }
 
-    private def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
+  private def describePhase(phaseId: String): (DynDoc, DynDoc) => ParserResult = {
+    (user: DynDoc, postData: DynDoc) => {
+      val phaseOid = new ObjectId(phaseId)
+      val phase = PhaseApi.phaseById(phaseOid)
+      val phaseInfo: DynDoc = Document.parse(PhaseInfo.phase2json(phase, user))
+      val name = phaseInfo.name[Document].y.value[String]
+      val status = phaseInfo.status[Document].y.value[String]
+      val description = phaseInfo.description[Document].y.value[String]
+      val processes: Seq[DynDoc] = phaseInfo.process_info[Many[Document]]
+      val processInfos = processes.map(process => s"${process.name[String]} (${process.status[String]})").mkString(", ")
+      Some(s"Name: $name\nStatus: $status\nDescription: $description\nProcesses: $processInfos")
+    }
+  }
+
+  private def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
       Some(s"You are ${PersonApi.fullName(user)}")
   }
 
@@ -154,6 +177,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val entityNamesParser: Parser[String] =
       ("(?i)active".r ~ "(?i)users?".r) ^^ {_ => "active-users"} |
       "(?i)documents?".r ^^ {_ => "documents"} |
+      "(?i)phases?".r ^^ {_ => "phases"} |
       "(?i)projects?".r ^^ {_ => "projects"} |
       "(?i)tasks?".r ^^ {_ => "tasks"}
 
@@ -169,6 +193,7 @@ object CommandLineProcessor extends DateTimeUtils {
 
     private lazy val describeEntityParser: CLIP = "(?i)describe|display|dump|show".r ~> entityNamesParser ~ id ^^ {
       case "projects" ~ id => describeProject(id)
+      case "phases" ~ id => describePhase(id)
       case _ => (user, postData) => help(user, postData)
     }
 

@@ -8,25 +8,44 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
+class RfiList extends HttpServlet with HttpUtils {
 
-  private def getRfiList(request: HttpServletRequest): Seq[Document] = {
-    val parameters = getParameterMap(request)
-    val user: DynDoc = getUser(request)
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    try {
+      val parameters = getParameterMap(request)
+      val params: Seq[Option[String]] =
+          Seq("document_id", "doc_version_timestamp", "activity_id", "phase_id", "project_id").
+          map(parameters.get)
+      val user: DynDoc = getUser(request)
+      val rfiJsons = RfiList.getRfiList(user, params.head, params(1), params(2), params(3), params(4)).map(bson2json)
+      response.getWriter.print(rfiJsons.mkString("[", ", ", "]"))
+      response.setContentType("application/json")
+      response.setStatus(HttpServletResponse.SC_OK)
+      //BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+}
+
+object RfiList extends DateTimeUtils {
+
+  def getRfiList(user: DynDoc, optDocumentId: Option[String], optDocumentVerTs: Option[String],
+      optActivityId: Option[String], optPhaseId: Option[String], optProjectId: Option[String]): Seq[Document] = {
     val userOid = user._id[ObjectId]
     val mongoQuery: Map[String, Any] =
-        Seq("document_id", "activity_id", "phase_id", "project_id").map(parameters.get) match {
-      case Some(documentId) +: _ =>
-        Map("document.document_id" -> new ObjectId(documentId),
-          "document.version" -> parameters("doc_version_timestamp").toLong)
-      case None +: Some(activityId) +: _ =>
-        Map("document.activity_id" -> new ObjectId(activityId))
-      case None +: None +: Some(phaseId) +: _ =>
-        Map("document.phase_id" -> new ObjectId(phaseId))
-      case None +: None +: None +: Some(projectId) +: Nil =>
-        Map("project_id" -> new ObjectId(projectId))
-      case _ =>
-        Map("members" -> userOid)
+        (optDocumentId, optDocumentVerTs, optActivityId, optPhaseId, optProjectId) match {
+      case (Some(documentId), Some(documentVerTs), _, _, _) =>
+        Map("document.document_id" -> new ObjectId(documentId), "document.version" -> documentVerTs)
+      case (_, _, Some(activityId), _, _) => Map("document.activity_id" -> new ObjectId(activityId))
+      case (_, _, _, Some(phaseId), _) => Map("document.phase_id" -> new ObjectId(phaseId))
+      case (_, _, _, _, Some(projectId: String)) => Map("project_id" -> new ObjectId(projectId))
+      case _ => Map("members" -> userOid)
     }
     val allRfi: Seq[DynDoc] = BWMongoDB3.rfi_messages.find(mongoQuery)
     val rfiProperties: Seq[Document] = allRfi.map(rfi => {
@@ -51,22 +70,22 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
       }
 
       val optionalValues: Map[String, Any] =
-          Seq("document_id", "activity_id", "phase_id").map(reference) match {
-        case Some(documentOid: ObjectId) +: _ =>
-          Map("document_id" -> documentOid.toString, "doc_version_timestamp" -> rfi.document[Document].y.version[Long])
-        case None +: Some(activityOid: ObjectId) +: _ =>
-          val theActivity = ActivityApi.activityById(activityOid)
-          val parentProcess = ActivityApi.parentProcess(activityOid)
-          val parentPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
-          Map("activity_id" -> activityOid.toString, "activity_name" -> theActivity.name[String],
+        Seq("document_id", "activity_id", "phase_id").map(reference) match {
+          case Some(documentOid: ObjectId) +: _ =>
+            Map("document_id" -> documentOid.toString, "doc_version_timestamp" -> rfi.document[Document].y.version[Long])
+          case None +: Some(activityOid: ObjectId) +: _ =>
+            val theActivity = ActivityApi.activityById(activityOid)
+            val parentProcess = ActivityApi.parentProcess(activityOid)
+            val parentPhase = ProcessApi.parentPhase(parentProcess._id[ObjectId])
+            Map("activity_id" -> activityOid.toString, "activity_name" -> theActivity.name[String],
               "process_name" -> parentProcess.name[String], "process_id" -> parentProcess._id[ObjectId],
               "bpmn_name" -> theActivity.bpmn_name[String], "phase_id" -> parentPhase._id[ObjectId].toString,
               "phase_name" -> parentPhase.name[String])
-        case None +: None +: Some(phaseOid: ObjectId) +: _ =>
-          val thePhase = PhaseApi.phaseById(phaseOid)
-          Map("phase_id" -> phaseOid.toString, "phase_name" -> thePhase.name[String])
-        case _ => Map.empty[String, Any]
-      }
+          case None +: None +: Some(phaseOid: ObjectId) +: _ =>
+            val thePhase = PhaseApi.phaseById(phaseOid)
+            Map("phase_id" -> phaseOid.toString, "phase_name" -> thePhase.name[String])
+          case _ => Map.empty[String, Any]
+        }
       val theProject = ProjectApi.projectById(rfi.project_id[ObjectId])
       optionalValues ++ Map("_id" -> rfi._id[ObjectId].toString, "priority" -> priority,
         "subject" -> rfi.subject[String], "task" -> "???", "originator" -> originatorName, "own" -> own,
@@ -77,22 +96,6 @@ class RfiList extends HttpServlet with HttpUtils with DateTimeUtils {
         "reference_type" -> referenceType.split("_")(0))
     })
     rfiProperties
-  }
-
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
-    try {
-      val rfiJsons = getRfiList(request).map(bson2json)
-      response.getWriter.print(rfiJsons.mkString("[", ", ", "]"))
-      response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
-    }
   }
 
 }

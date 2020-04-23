@@ -33,9 +33,13 @@ object CommandLineProcessor extends DateTimeUtils {
     Some("You have no documents now")
   }
 
+  private def listIssues(user: DynDoc, postData: DynDoc): ParserResult = {
+    Some("you have no issues now")
+  }
+
   private def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
     val projects = ProjectApi.projectsByUser(user._id[ObjectId])
-    val messages = projects.map(project => s"Name: '${project.name[String]}', Status: '${project.status[String]}'")
+    val messages = projects.map(project => s"Project-name: '${project.name[String]}', Status: '${project.status[String]}'")
     val allMessages = s"""You have ${projects.length} project(s). Project messages follow.
                          |(_open a *thread* to start an interaction_)""".stripMargin +: messages
     for (message <- allMessages) {
@@ -177,6 +181,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val entityNamesParser: Parser[String] =
       ("(?i)active".r ~ "(?i)users?".r) ^^ {_ => "active-users"} |
       "(?i)documents?".r ^^ {_ => "documents"} |
+      "(?i)issues?".r ^^ {_ => "issues"} |
       "(?i)phases?".r ^^ {_ => "phases"} |
       "(?i)projects?".r ^^ {_ => "projects"} |
       "(?i)tasks?".r ^^ {_ => "tasks"}
@@ -184,8 +189,10 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val listEntitiesParser: CLIP = "(?i)display|list|query|show".r ~> opt("(?i)my".r) ~> entityNamesParser ^^ {
       case "active-users" => activeUsers
       case "documents" => listDocuments
+      case "issues" => listIssues
       case "projects" => listProjects
       case "tasks" => listTasks
+      case other => (_, _) => Some(s"Unknown option '$other'")
     }
 
     // Describe entity command ...

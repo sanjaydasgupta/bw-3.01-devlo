@@ -25,11 +25,11 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
     val event: DynDoc = postData.event[Document]
     val channel = event.channel[String]
     (event.get[String]("user"), event.get[String]("thread_ts"), event.`type`[String], event.get[String]("subtype")) match {
-      case (Some(slackUserId), None, "message", None) =>
+      case (Some(slackUserId), whichThread, "message", None) =>
         userBySlackId(slackUserId) match {
           case Some(bwUser) =>
             CommandLineProcessor.process(event.text[String], bwUser, event) match {
-              case Some(message) => SlackApi.sendToChannel(Left(message), channel, None, Some(request))
+              case Some(message) => SlackApi.sendToChannel(Left(message), channel, whichThread, Some(request))
               case None =>
             }
           case None =>
@@ -51,7 +51,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
       case (_, _, "message", Some("message_deleted")) =>
         BWLogger.log(getClass.getName, "handleEventCallback", "'message_deleted' ignored", request)
       case (_, _, "message", Some("bot_message")) =>
-        BWLogger.log(getClass.getName, "handleEventCallback", "'bot_message' ignored", request)
+        BWLogger.log(getClass.getName, "handleEventCallback", s"'bot_message' ignored: ${postData.asDoc.toJson}", request)
       case _ =>
         SlackApi.sendToChannel(Left(s"Received bad message - Not handled"), channel, None, Some(request))
         BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR (bad message): ${postData.asDoc.toJson}")

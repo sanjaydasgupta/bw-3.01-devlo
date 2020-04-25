@@ -17,8 +17,8 @@ object CommandLineProcessor extends DateTimeUtils {
 
   type ParserResult = Option[String]
 
-  def process(command: String, user: DynDoc, postData: DynDoc): ParserResult = {
-    commandLineParser.cliProcessor(command, user, postData)
+  def process(command: String, user: DynDoc, event: DynDoc): ParserResult = {
+    commandLineParser.cliProcessor(command, user, event)
   }
 
   private object helpers {
@@ -42,12 +42,12 @@ object CommandLineProcessor extends DateTimeUtils {
       }
     }
 
-    def whoAmI(user: DynDoc, postData: DynDoc): ParserResult = {
+    def whoAmI(user: DynDoc, event: DynDoc): ParserResult = {
         Some(s"You are ${PersonApi.fullName(user)}")
     }
 
     def describePhase(phaseId: String): (DynDoc, DynDoc) => ParserResult = {
-      (user: DynDoc, postData: DynDoc) => {
+      (user: DynDoc, event: DynDoc) => {
         val phaseOid = new ObjectId(phaseId)
         val phase = PhaseApi.phaseById(phaseOid)
         val phaseInfo: DynDoc = Document.parse(PhaseInfo.phase2json(phase, user))
@@ -61,7 +61,7 @@ object CommandLineProcessor extends DateTimeUtils {
     }
 
     def describeProject(projectId: String): (DynDoc, DynDoc) => ParserResult = {
-      (user: DynDoc, postData: DynDoc) => {
+      (user: DynDoc, event: DynDoc) => {
         val projectOid = new ObjectId(projectId)
         val project = ProjectApi.projectById(projectOid)
         val projectInfo: DynDoc = Document.parse(ProjectInfo.project2json(project, user))
@@ -74,7 +74,7 @@ object CommandLineProcessor extends DateTimeUtils {
       }
     }
 
-    def dashboard(user: DynDoc, postData: DynDoc): ParserResult = {
+    def dashboard(user: DynDoc, event: DynDoc): ParserResult = {
       val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
       val messages = entries.map(entry => {
         val project = entry.project_name[String]
@@ -86,8 +86,9 @@ object CommandLineProcessor extends DateTimeUtils {
       })
       val allMessages = s"""You have ${messages.length} dashboard item(s). Item messages follow.
                            |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+      val whichThread = event.get[String]("thread_ts")
       for (message <- allMessages) {
-        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        Future {SlackApi.sendToChannel(Left(message), event.channel[String], whichThread)}.onComplete {
           case Failure(ex) =>
             BWLogger.log(getClass.getName, "dashboard()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
           case Success(_) =>
@@ -96,7 +97,7 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def activeUsers(user: DynDoc, postData: DynDoc): ParserResult = {
+    def activeUsers(user: DynDoc, event: DynDoc): ParserResult = {
       val msStart = System.currentTimeMillis() - (60L * 60L * 1000L)
       val logs: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map($gte -> msStart)))
       val namedLogs = logs.filter(_.variables[Document].has("u$nm"))
@@ -110,7 +111,7 @@ object CommandLineProcessor extends DateTimeUtils {
       Some(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
     }
 
-    def listTasks(user: DynDoc, postData: DynDoc): ParserResult = {
+    def listTasks(user: DynDoc, event: DynDoc): ParserResult = {
       val assignments = TaskList.uniqueAssignments(user)
       val taskMessages = assignments.map(assignment => {
         val id = assignment.activity_id[ObjectId]
@@ -125,8 +126,9 @@ object CommandLineProcessor extends DateTimeUtils {
       })
       val allMessages = s"""You have ${taskMessages.length} task(s). Task messages follow.
                            |(_open a *thread* to start an interaction_)""".stripMargin +: taskMessages
+      val whichThread = event.get[String]("thread_ts")
       for (message <- allMessages) {
-        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        Future {SlackApi.sendToChannel(Left(message), event.channel[String], whichThread)}.onComplete {
           case Failure(ex) =>
             BWLogger.log(getClass.getName, "listTasks()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
           case Success(_) =>
@@ -135,13 +137,14 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listProjects(user: DynDoc, postData: DynDoc): ParserResult = {
+    def listProjects(user: DynDoc, event: DynDoc): ParserResult = {
       val projects = ProjectApi.projectsByUser(user._id[ObjectId])
       val messages = projects.map(project => s"Project-name: '${project.name[String]}', Status: '${project.status[String]}'")
       val allMessages = s"""You have ${projects.length} project(s). Project messages follow.
                            |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+      val whichThread = event.get[String]("thread_ts")
       for (message <- allMessages) {
-        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        Future {SlackApi.sendToChannel(Left(message), event.channel[String], whichThread)}.onComplete {
           case Failure(ex) =>
             BWLogger.log(getClass.getName, "listProjects()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
           case Success(_) =>
@@ -150,13 +153,14 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listPhases(user: DynDoc, postData: DynDoc): ParserResult = {
+    def listPhases(user: DynDoc, event: DynDoc): ParserResult = {
       val phases = PhaseApi.phasesByUser(user._id[ObjectId])
       val messages = phases.map(phase => s"Phase-name: '${phase.name[String]}', Status: '${phase.status[String]}'")
       val allMessages = s"""You have ${phases.length} phase(s). Phase messages follow.
                            |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+      val whichThread = event.get[String]("thread_ts")
       for (message <- allMessages) {
-        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        Future {SlackApi.sendToChannel(Left(message), event.channel[String], whichThread)}.onComplete {
           case Failure(ex) =>
             BWLogger.log(getClass.getName, "listProjects()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
           case Success(_) =>
@@ -165,14 +169,15 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listIssues(user: DynDoc, postData: DynDoc): ParserResult = {
+    def listIssues(user: DynDoc, event: DynDoc): ParserResult = {
       val issues: Seq[DynDoc] = RfiList.getRfiList(user, None, None, None, None, None)
       val fields = Seq("Subject", "Status", "Priority", "Question")
       val messages = issues.map(issue => fields.map(field => s"$field: ${issue.get[String](field.toLowerCase)}").mkString(", "))
       val allMessages = s"""You have ${issues.length} issue(s). Issue messages follow.
                            |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+      val whichThread = event.get[String]("thread_ts")
       for (message <- allMessages) {
-        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+        Future {SlackApi.sendToChannel(Left(message), event.channel[String], whichThread)}.onComplete {
           case Failure(ex) =>
             BWLogger.log(getClass.getName, "listProjects()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
           case Success(_) =>
@@ -181,11 +186,11 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listDocuments(user: DynDoc, postData: DynDoc): ParserResult = {
+    def listDocuments(user: DynDoc, event: DynDoc): ParserResult = {
       Some("You have no documents now")
     }
 
-    def help(user: DynDoc, postData: DynDoc): ParserResult = {
+    def help(user: DynDoc, event: DynDoc): ParserResult = {
       Some("""Commands:
         |+  dash[board]
         |+  list {active users|documents|projects|tasks}
@@ -233,7 +238,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val describeEntityParser: CLIP = "(?i)describe|display|dump|show".r ~> entityNamesParser ~ id ^^ {
       case "projects" ~ id => helpers.describeProject(id)
       case "phases" ~ id => helpers.describePhase(id)
-      case _ => (user, postData) => helpers.help(user, postData)
+      case _ => (user, event) => helpers.help(user, event)
     }
 
     // Dashboard command ...
@@ -247,9 +252,9 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val allCommands: CLIP =
         dashboardParser | describeEntityParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
 
-    def cliProcessor(command: String, user: DynDoc, postData: DynDoc): ParserResult = {
+    def cliProcessor(command: String, user: DynDoc, event: DynDoc): ParserResult = {
       parseAll(allCommands, command) match {
-        case Success(result, _) => result(user, postData)
+        case Success(result, _) => result(user, event)
         case NoSuccess(result, _) => Some(result)
       }
     }

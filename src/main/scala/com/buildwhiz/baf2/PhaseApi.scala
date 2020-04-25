@@ -81,10 +81,15 @@ object PhaseApi {
       isManager(personOid, phase) || isAdmin(personOid, phase) ||
       ProjectApi.canManage(personOid, parentProject(phase._id[ObjectId]))
 
-  def phasesByUser(personOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] = {
-    val phaseOids: Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> phaseOids))
-    phases.filter(phase => hasRole(personOid, phase))
+  def phasesByUser(personOid: ObjectId, optParentProject: Option[DynDoc] = None): Seq[DynDoc] = {
+    optParentProject match {
+      case Some(parentProject) =>
+        val phaseOids: Seq[ObjectId] = parentProject.phase_ids[Many[ObjectId]]
+        phasesByIds(phaseOids)
+      case None =>
+        val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
+        phases.filter(phase => hasRole(personOid, phase))
+    }
   }
 
   def hasZombies(phase: DynDoc): Boolean = allProcesses(phase).exists(ProcessApi.isZombie)

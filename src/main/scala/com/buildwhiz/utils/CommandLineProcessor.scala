@@ -150,6 +150,21 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
+    def listPhases(user: DynDoc, postData: DynDoc): ParserResult = {
+      val phases = PhaseApi.phasesByUser(user._id[ObjectId])
+      val messages = phases.map(phase => s"Phase-name: '${phase.name[String]}', Status: '${phase.status[String]}'")
+      val allMessages = s"""You have ${phases.length} phase(s). Phase messages follow.
+                           |(_open a *thread* to start an interaction_)""".stripMargin +: messages
+      for (message <- allMessages) {
+        Future {SlackApi.sendToChannel(Left(message), postData.channel[String], None)}.onComplete {
+          case Failure(ex) =>
+            BWLogger.log(getClass.getName, "listProjects()", s"ERROR: ${ex.getClass.getSimpleName}(${ex.getMessage})")
+          case Success(_) =>
+        }
+      }
+      None
+    }
+
     def listIssues(user: DynDoc, postData: DynDoc): ParserResult = {
       val issues: Seq[DynDoc] = RfiList.getRfiList(user, None, None, None, None, None)
       val fields = Seq("Subject", "Status", "Priority", "Question")
@@ -206,6 +221,7 @@ object CommandLineProcessor extends DateTimeUtils {
       case "active-users" => helpers.activeUsers
       case "documents" => helpers.listDocuments
       case "issues" => helpers.listIssues
+      case "phases" => helpers.listPhases
       case "projects" => helpers.listProjects
       case "tasks" => helpers.listTasks
       case other => (_, _) => Some(s"Unknown option '$other'")

@@ -24,7 +24,7 @@ object CommandLineProcessor extends DateTimeUtils {
   private object helpers {
 
     def slackManage(op: String, names: List[String]): (DynDoc, DynDoc) => ParserResult = {
-      if (!op.toLowerCase.matches("invite|status"))
+      if (!op.toLowerCase.matches("home|invite|status"))
         return (_, _) => Some(s"Unknown operation: $op")
       val persons: Seq[DynDoc] = names match {
         case firstName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName")))
@@ -32,13 +32,16 @@ object CommandLineProcessor extends DateTimeUtils {
             "last_name" -> Map($regex -> s"(?i)$lastName")))
         case _ => Nil
       }
-      persons.length match {
-        case 0 => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
-        case 1 => op.toLowerCase match {
-          case "invite" => (dd, _) => Some(SlackApi.invite(persons.head)(dd))
-          case "status" => (dd, _) => Some(SlackApi.status(persons.head)(dd))
-        }
-        case _ => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
+      (op.toLowerCase, persons.length) match {
+        case ("home", 0) => (user, _) => {SlackApi.viewPublish(None, user.slack_id[String], None); None}
+        case ("home", _) => (_, _) => Some(s"""Redundant parameters: ${names.mkString(", ")}""")
+        case ("invite", 1) => (dd, _) => Some(SlackApi.invite(persons.head)(dd))
+        case ("invite", 0) => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
+        case ("invite", _) => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
+        case ("status", 1) => (dd, _) => Some(SlackApi.status(persons.head)(dd))
+        case ("status", 0) => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
+        case ("status", _) => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
+        case _ => (_, _) => None // Just to stop the no-match warning
       }
     }
 
@@ -210,7 +213,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val helpParser: CLIP = "(?i)help" ^^ {_ => helpers.help}
 
     // Slack membership command ...
-    private lazy val slackManageParser: CLIP = "slack" ~> ("invite" | "status") ~ rep1("\\S+".r) ^^
+    private lazy val slackManageParser: CLIP = "slack" ~> ("home" | "invite" | "status") ~ rep("\\S+".r) ^^
       {parseResult => helpers.slackManage(parseResult._1, parseResult._2)}
 
     // List entities command ...

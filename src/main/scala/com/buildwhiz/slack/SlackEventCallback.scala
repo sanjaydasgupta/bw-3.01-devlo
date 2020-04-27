@@ -46,6 +46,9 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))
             BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR ($message)", request)
         }
+      case (Some(slackUserId), _, "message", Some("app_home_opened")) =>
+        SlackApi.viewPublish(None,slackUserId, None)
+        BWLogger.log(getClass.getName, "handleEventCallback", s"app_home_opened: ${postData.asDoc.toJson}", request)
       case (_, _, "message", Some("message_changed")) =>
         BWLogger.log(getClass.getName, "handleEventCallback", "'message_changed' ignored", request)
       case (_, _, "message", Some("message_deleted")) =>

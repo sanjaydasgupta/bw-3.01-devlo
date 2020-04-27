@@ -295,10 +295,107 @@ object SlackApi extends DateTimeUtils {
     BWLogger.log(getClass.getName, "pushView", s"EXIT-OK ($contentString)")
   }
 
+  def viewPublish(optViewText: Option[String] = None, userId: String, optHash: Option[String] = None): Unit = {
+    BWLogger.log(getClass.getName, "viewPublish", "ENTRY")
+    val httpClient = HttpClients.createDefault()
+    val post = new HttpPost("https://slack.com/api/views.publish")
+    post.setHeader("Authorization",
+      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
+      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+    post.setHeader("Content-Type", "application/json; charset=utf-8")
+    val viewText = optViewText match {
+      case Some(txt) => txt
+      case None => homeView
+    }
+    val hash = optHash match {
+      case Some(h) => h
+      case None => System.nanoTime().toString
+    }
+    val bodyText = s"""{"view": $viewText, "user_id": "$userId", "hash": "$hash"}"""
+    post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
+    val response = httpClient.execute(post)
+    val responseContent = new ByteArrayOutputStream()
+    response.getEntity.writeTo(responseContent)
+    val contentString = responseContent.toString
+    val statusLine = response.getStatusLine
+    if (statusLine.getStatusCode != 200)
+      throw new IllegalArgumentException(s"Bad views.open status: $contentString")
+    BWLogger.log(getClass.getName, "viewPublish", s"EXIT-OK ($contentString)")
+  }
+
   def main(args: Array[String]): Unit = {
     val specs = Seq(("One description", "one"), ("Two description", "two"), ("Three description", "three"))
     val mcm = createMultipleChoiceMessage(specs, "message_id")
     println(mcm.map(_.asDoc.toJson).mkString(",\n"))
   }
+
+  private val homeView = """{
+                           |	"type": "home",
+                           |	"blocks": [
+                           |		{
+                           |			"type": "section",
+                           |			"text": {
+                           |				"type": "mrkdwn",
+                           |				"text": "_*Welcome to the BuildWhiz home!*_"
+                           |			}
+                           |		},
+                           |		{
+                           |			"type": "section",
+                           |			"text": {
+                           |				"type": "mrkdwn",
+                           |				"text": "Select an option below:"
+                           |			},
+                           |			"accessory": {
+                           |				"type": "radio_buttons",
+                           |				"initial_option": {
+                           |					"text": {
+                           |						"type": "plain_text",
+                           |						"text": "Dashboard"
+                           |					},
+                           |					"value": "option 1",
+                           |					"description": {
+                           |						"type": "plain_text",
+                           |						"text": "The Dashboard"
+                           |					}
+                           |				},
+                           |				"options": [
+                           |					{
+                           |						"text": {
+                           |							"type": "plain_text",
+                           |							"text": "Dashboard"
+                           |						},
+                           |						"value": "option 1",
+                           |						"description": {
+                           |							"type": "plain_text",
+                           |							"text": "The Dashboard"
+                           |						}
+                           |					},
+                           |					{
+                           |						"text": {
+                           |							"type": "plain_text",
+                           |							"text": "Projects & Phases"
+                           |						},
+                           |						"value": "option 2",
+                           |						"description": {
+                           |							"type": "plain_text",
+                           |							"text": "View projects, phases, and drilldown further"
+                           |						}
+                           |					},
+                           |					{
+                           |						"text": {
+                           |							"type": "plain_text",
+                           |							"text": "Tasks"
+                           |						},
+                           |						"value": "option 3",
+                           |						"description": {
+                           |							"type": "plain_text",
+                           |							"text": "View tasks, and drilldown further"
+                           |						}
+                           |					}
+                           |				]
+                           |			}
+                           |		}
+                           |	]
+                           |}""".stripMargin
 
 }

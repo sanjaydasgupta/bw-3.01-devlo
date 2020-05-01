@@ -311,7 +311,8 @@ object SlackApi extends DateTimeUtils {
       case Some(h) => h
       case None => System.nanoTime().toString
     }
-    val bodyText = s"""{"view": $viewText, "user_id": "$userId", "hash": "$hash"}"""
+    //val bodyText = s"""{"view": $viewText, "user_id": "$userId", "hash": "$hash"}"""
+    val bodyText = s"""{"view": $viewText, "user_id": "$userId"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
     val responseContent = new ByteArrayOutputStream()
@@ -347,17 +348,6 @@ object SlackApi extends DateTimeUtils {
                            |			},
                            |			"accessory": {
                            |				"type": "radio_buttons",
-                           |				"initial_option": {
-                           |					"text": {
-                           |						"type": "plain_text",
-                           |						"text": "Dashboard"
-                           |					},
-                           |					"value": "option 1",
-                           |					"description": {
-                           |						"type": "plain_text",
-                           |						"text": "The Dashboard"
-                           |					}
-                           |				},
                            |				"options": [
                            |					{
                            |						"text": {
@@ -390,6 +380,17 @@ object SlackApi extends DateTimeUtils {
                            |						"description": {
                            |							"type": "plain_text",
                            |							"text": "View tasks, and drilldown further"
+                           |						}
+                           |					},
+                           |					{
+                           |						"text": {
+                           |							"type": "plain_text",
+                           |							"text": "Issues"
+                           |						},
+                           |						"value": "option 4",
+                           |						"description": {
+                           |							"type": "plain_text",
+                           |							"text": "Issues and their details"
                            |						}
                            |					}
                            |				]

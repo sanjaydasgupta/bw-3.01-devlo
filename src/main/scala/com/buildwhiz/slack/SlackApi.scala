@@ -97,16 +97,16 @@ object SlackApi extends DateTimeUtils {
 
   // https://api.slack.com/messaging/interactivity
 
-  def createSectionWithAccessory(descriptionText: String, accessory: DynDoc): DynDoc = Map(
+  def createSectionWithAccessory(descriptionText: String, accessory: DynDoc, misc: Seq[(String, Any)] = Nil):
+      DynDoc = Map(
     "type" -> "section",
     "text" -> Map("type" -> "mrkdwn", "text" -> descriptionText),
     "accessory" -> accessory
-  )
+  ) ++ misc
 
-  def createButton(buttonText: String, buttonValue: String): DynDoc = Map(
-    "type" -> "button",
-    "text" -> Map("type" -> "plain_text", "text" -> buttonText, "emoji" -> true),
-    "value" -> buttonValue
+  def createButton(buttonText: String, buttonValue: String, actionId: String): DynDoc = Map(
+    "type" -> "button", "value" -> buttonValue, "action_id" -> actionId,
+    "text" -> Map("type" -> "plain_text", "text" -> buttonText, "emoji" -> true)
   )
 
   def createInputBlock(label: String, id: String, element: DynDoc): DynDoc = Map(
@@ -129,7 +129,7 @@ object SlackApi extends DateTimeUtils {
   def createMultipleChoiceMessage(optionDescriptionsAndTexts: Seq[(String, String)], messageId: String):
       Seq[DynDoc] = {
     optionDescriptionsAndTexts.map(dt => createSectionWithAccessory(dt._1,
-        createButton("Select", s"$messageId-${dt._2}")))
+        createButton("Select", s"$messageId-${dt._2}", s"action-id-$messageId-${dt._2}")))
   }
 
   def createModalView(title: String, id: String, blocks: Seq[DynDoc], withSubmitButton: Boolean): Document = {
@@ -305,7 +305,7 @@ object SlackApi extends DateTimeUtils {
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val viewText = optViewText match {
       case Some(txt) => txt
-      case None => homeView
+      case None => homePage()
     }
     val hash = optHash match {
       case Some(h) => h
@@ -325,78 +325,28 @@ object SlackApi extends DateTimeUtils {
   }
 
   def main(args: Array[String]): Unit = {
-    val specs = Seq(("One description", "one"), ("Two description", "two"), ("Three description", "three"))
-    val mcm = createMultipleChoiceMessage(specs, "message_id")
-    println(mcm.map(_.asDoc.toJson).mkString(",\n"))
+//    val specs = Seq(("One description", "one"), ("Two description", "two"), ("Three description", "three"))
+//    val mcm = createMultipleChoiceMessage(specs, "message_id")
+//    println(mcm.map(_.asDoc.toJson).mkString(",\n"))
+    print(homePage())
   }
 
-  private val homeView = """{
-                           |	"type": "home",
-                           |	"blocks": [
-                           |		{
-                           |			"type": "section",
-                           |			"text": {
-                           |				"type": "mrkdwn",
-                           |				"text": "_*Welcome to the BuildWhiz home!*_"
-                           |			}
-                           |		},
-                           |		{
-                           |			"type": "section",
-                           |			"text": {
-                           |				"type": "mrkdwn",
-                           |				"text": "Select an option below:"
-                           |			},
-                           |			"accessory": {
-                           |				"type": "radio_buttons",
-                           |				"options": [
-                           |					{
-                           |						"text": {
-                           |							"type": "plain_text",
-                           |							"text": "Dashboard"
-                           |						},
-                           |						"value": "option 1",
-                           |						"description": {
-                           |							"type": "plain_text",
-                           |							"text": "The Dashboard"
-                           |						}
-                           |					},
-                           |					{
-                           |						"text": {
-                           |							"type": "plain_text",
-                           |							"text": "Projects & Phases"
-                           |						},
-                           |						"value": "option 2",
-                           |						"description": {
-                           |							"type": "plain_text",
-                           |							"text": "View projects, phases, and drilldown further"
-                           |						}
-                           |					},
-                           |					{
-                           |						"text": {
-                           |							"type": "plain_text",
-                           |							"text": "Tasks"
-                           |						},
-                           |						"value": "option 3",
-                           |						"description": {
-                           |							"type": "plain_text",
-                           |							"text": "View tasks, and drilldown further"
-                           |						}
-                           |					},
-                           |					{
-                           |						"text": {
-                           |							"type": "plain_text",
-                           |							"text": "Issues"
-                           |						},
-                           |						"value": "option 4",
-                           |						"description": {
-                           |							"type": "plain_text",
-                           |							"text": "Issues and their details"
-                           |						}
-                           |					}
-                           |				]
-                           |			}
-                           |		}
-                           |	]
-                           |}""".stripMargin
+  private def homePage(): String = {
+    val items = Seq(
+      ("Tasks", "(2 delayed, 3 active, 1 completed)"),
+      ("Issues", "(1 new, 2 active, 6 archived)"),
+      ("Projects", "(2 managed, 3 involved)"),
+      ("Organizations", "(7 items. CRUD operations)"),
+      ("Profile", "(contact info, skills, password, etc)")
+    )
+    val blocks = items.map(item => {
+      val button = createButton(item._1, s"go-${item._1}", s"action-id-${item._1}")
+      createSectionWithAccessory(s"*${item._1}* ${item._2}", button, Seq(("block_id", s"block-id-${item._1}")))
+    })
+    val page: DynDoc = Map("type" -> "home", "blocks" -> blocks)
+    page.asDoc.toJson
+  }
+
+  // https://api.slack.com/tutorials/design-expense-block-kit
 
 }

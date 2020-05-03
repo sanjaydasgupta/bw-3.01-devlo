@@ -97,12 +97,13 @@ object SlackApi extends DateTimeUtils {
 
   // https://api.slack.com/messaging/interactivity
 
-  def createSectionWithAccessory(descriptionText: String, accessory: DynDoc, misc: Seq[(String, Any)] = Nil):
-      DynDoc = Map(
+  def createSectionWithAccessory(descriptionText: String, accessory: DynDoc, extraFields: Seq[(String, Any)] = Nil):
+      DynDoc = createSection(descriptionText, ("accessory" -> accessory) +: extraFields)
+
+  def createSection(descriptionText: String, extraFields: Seq[(String, Any)] = Nil): DynDoc = Map(
     "type" -> "section",
     "text" -> Map("type" -> "mrkdwn", "text" -> descriptionText),
-    "accessory" -> accessory
-  ) ++ misc
+  ) ++ extraFields
 
   def createButton(buttonText: String, buttonValue: String, actionId: String): DynDoc = Map(
     "type" -> "button", "value" -> buttonValue, "action_id" -> actionId,
@@ -132,7 +133,7 @@ object SlackApi extends DateTimeUtils {
         createButton("Select", s"$messageId-${dt._2}", s"action-id-$messageId-${dt._2}")))
   }
 
-  def createModalView(title: String, id: String, blocks: Seq[DynDoc], withSubmitButton: Boolean): Document = {
+  def createModalView(title: String, id: String, blocks: Seq[DynDoc], withSubmitButton: Boolean = false): Document = {
     val basicFields = Seq(
       "type" -> "modal",
       //"callback_id" -> s"$id-modal",

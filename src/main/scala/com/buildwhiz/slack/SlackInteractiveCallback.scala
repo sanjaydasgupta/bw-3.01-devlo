@@ -35,6 +35,12 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           val actionIdParts = action.action_id[String].split("-")
           val title = actionIdParts.last
           title match {
+            case "ProjectItemEdit" =>
+              val projectId = actionIdParts.init.init.last
+              val itemName = actionIdParts.init.last
+              val sections = Seq(SlackApi.createSection(s"This panel is under construction.\nPlease check back later!"))
+              val modalView = SlackApi.createModalView(s"Edit '$itemName'", s"modal-view-id-Edit-Project-$itemName", sections)
+              SlackApi.viewPush(modalView.toJson, triggerId)
             case "Project Detail" =>
               val projectId = actionIdParts.init.last
               val sections = SlackInteractiveCallback.modalProjectDetail(bwUserRecord, projectId)
@@ -112,9 +118,12 @@ object SlackInteractiveCallback {
 
   def modalProjectDetail(bwUser: DynDoc, projectId: String): Seq[DynDoc] = {
     val info: DynDoc = Document.parse(ProjectInfo.project2json(ProjectApi.projectById(new ObjectId(projectId)), bwUser))
-    val itemNames = Seq("Name", "Status", "Description")
+    val itemNames = Seq("Name", "Status", "Description", "Type", "Construction type",
+        "Address line1", "Address line2", "Address line3", "Postal code", "State name", "Country name",
+        "GPS latitude", "GPS longitude", "Budget MM USD", "Construction area SqFt", "Land area acres",
+        "Max building height Ft")
     itemNames.map(itemName => {
-      val itemContainer: DynDoc = info.get[Document](itemName.toLowerCase()).get
+      val itemContainer: DynDoc = info.get[Document](itemName.toLowerCase().replace(' ', '_')).get
       val itemValue = itemContainer.value[String]
       val itemEditable = itemContainer.editable[Boolean]
       val editButtonId = s"action-id-$projectId-$itemName-ProjectItemEdit"

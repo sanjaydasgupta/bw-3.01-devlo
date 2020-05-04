@@ -1,6 +1,6 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.ActivityApi
+import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -32,11 +32,23 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           SlackApi.viewOpen(rootModalView.toJson, triggerId)
         case (Some(triggerId), Some("block_actions"), Some(actions)) =>
           val action: DynDoc = actions.head
-          val actionId = action.action_id[String]
-          val title = actionId.split("-").last
-          val section = SlackApi.createSection(s"The *$title* page is under construction.\nPlease check back later!")
-          val modalView = SlackApi.createModalView(title, s"modal-view-id-$title", Seq(section))
-          SlackApi.viewOpen(modalView.toJson, triggerId)
+          val actionIdParts = action.action_id[String].split("-")
+          val title = actionIdParts.last
+          title match {
+            case "Project Detail" =>
+              val projectId = actionIdParts.init.last
+              val sections = SlackInteractiveCallback.modalProjectDetail(bwUserRecord, projectId)
+              val modalView = SlackApi.createModalView("Project Detail", "modal-view-id-Project Detail", sections)
+              SlackApi.viewPush(modalView.toJson, triggerId)
+            case "Projects" =>
+              val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord)
+              val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-Project List", sections)
+              SlackApi.viewOpen(modalProjectsView.toJson, triggerId)
+            case _ =>
+              val sections = Seq(SlackApi.createSection(s"The *$title* page is under construction.\nPlease check back later!"))
+              val modalUnderConstructionView = SlackApi.createModalView(title, "modal-view-id-Project List", sections)
+              SlackApi.viewOpen(modalUnderConstructionView.toJson, triggerId)
+          }
         case (Some(triggerId), Some("view_submission"), _) =>
           val view: DynDoc = payload.view[Document]
           val state: DynDoc = view.state[Document]
@@ -94,6 +106,40 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
         throw t
     }
   }
+}
+
+object SlackInteractiveCallback {
+
+  def modalProjectDetail(bwUser: DynDoc, projectId: String): Seq[DynDoc] = {
+    val info: DynDoc = Document.parse(ProjectInfo.project2json(ProjectApi.projectById(new ObjectId(projectId)), bwUser))
+    val itemNames = Seq("Name", "Status", "Description")
+    itemNames.map(itemName => {
+      val itemContainer: DynDoc = info.get[Document](itemName.toLowerCase()).get
+      val itemValue = itemContainer.value[String]
+      val itemEditable = itemContainer.editable[Boolean]
+      val editButtonId = s"action-id-$projectId-$itemName-ProjectItemEdit"
+      val editButtonValue = s"button-value-$projectId-$itemName-ProjectItemEdit"
+      val editButton = SlackApi.createButton("Edit", editButtonId, editButtonId)
+      if (itemEditable) {
+        SlackApi.createSectionWithAccessory(s"*$itemName*: $itemValue", editButton)
+      } else {
+        SlackApi.createSectionWithAccessory(s"*$itemName*: $itemValue", editButton)
+      }
+    })
+  }
+
+  def modalProjectList(bwUser: DynDoc): Seq[DynDoc] = {
+    val projects = ProjectApi.projectsByUser(bwUser._id[ObjectId])
+    projects.map(project => {
+      val phaseCount = project.phase_ids[Many[ObjectId]].length
+      val description = s"*${project.name[String]}*  (${project.status[String]})\nHas $phaseCount phases."
+      val projectId = project._id[ObjectId].toString
+      val buttonId = s"button-value-$projectId-Project Detail"
+      val button = SlackApi.createButton("Detail", buttonId, buttonId)
+      SlackApi.createSectionWithAccessory(description, button)
+    })
+  }
+
 }
 
 object SlackInteractiveCallbackTest extends App {

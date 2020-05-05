@@ -15,15 +15,9 @@ class ProjectList extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
-      val personOid = user._id[ObjectId]
-      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
-      val projects: Seq[DynDoc] = if (isAdmin) {
-        BWMongoDB3.projects.find()
-      } else {
-        ProjectApi.projectsByUser(personOid)
-      }
-      response.getWriter.print(projects.map(project2json(_, personOid)).mkString("[", ", ", "]"))
+      val userOid = user._id[ObjectId]
+      val projects = ProjectList.getList(userOid, request)
+      response.getWriter.print(projects.map(project2json(_, userOid)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)
@@ -47,4 +41,20 @@ class ProjectList extends HttpServlet with HttpUtils {
     bson2json(projectDocument)
   }
 
+}
+
+object ProjectList extends HttpUtils {
+
+  def getList(userOid: ObjectId, request: HttpServletRequest, doLog: Boolean = false): Seq[DynDoc] = {
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
+    val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
+    val projects: Seq[DynDoc] = if (isAdmin) {
+      BWMongoDB3.projects.find()
+    } else {
+      ProjectApi.projectsByUser(userOid)
+    }
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)
+    projects
+  }
 }

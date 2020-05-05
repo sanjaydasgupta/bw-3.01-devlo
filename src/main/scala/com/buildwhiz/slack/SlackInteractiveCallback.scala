@@ -11,15 +11,19 @@ import org.bson.types.ObjectId
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "Early-ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val payload: DynDoc = Document.parse(parameters("payload"))
       val slackUserInfo: DynDoc = payload.user[Document]
       val slackUserId = slackUserInfo.id[String]
       val bwUserRecord: DynDoc = SlackApi.userBySlackId(slackUserId) match {
-        case Some(userRecord) => userRecord
+        case Some(userRecord) =>
+          request.getSession.setAttribute("bw-user", userRecord.asDoc)
+          BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+          userRecord
         case None =>
+          BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
           val slackUserName = slackUserInfo.name[String]
           throw new IllegalArgumentException(s"Slack user '$slackUserName' ($slackUserId) unknown to BuildWhiz")
       }
@@ -43,7 +47,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Project Detail" =>
               val projectId = actionIdParts.init.last
-              val sections = SlackInteractiveCallback.modalProjectDetail(bwUserRecord, projectId)
+              val sections = SlackInteractiveCallback.modalProjectDetail(projectId, request)
               val modalView = SlackApi.createModalView("Project Detail", "modal-view-id-Project Detail", sections)
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Projects" =>
@@ -59,17 +63,17 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           val view: DynDoc = payload.view[Document]
           val state: DynDoc = view.state[Document]
           val stateJson = state.asDoc.toJson
-          BWLogger.log(getClass.getName, request.getMethod, s"state.toJson: $stateJson")
+          BWLogger.log(getClass.getName, request.getMethod, s"state.toJson: $stateJson", request)
           if (stateJson.contains("BW-root-tasks")) {
             val taskViewMessage = SlackApi.createTaskSelectionView(bwUserRecord)
             val responseText = taskViewMessage.toJson
-            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
             response.getWriter.println(responseText)
             response.setContentType("application/json")
           } else if (stateJson.contains("BW-root-dashboard")) {
             val dashboardViewMessage = SlackApi.createDashboardView(bwUserRecord)
             val responseText = dashboardViewMessage.toJson
-            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
             response.getWriter.println(responseText)
             response.setContentType("application/json")
           } else if (stateJson.contains("BW-tasks-update-display")) {
@@ -77,7 +81,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
             val theActivity = ActivityApi.activityById(activityOid)
             val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, theActivity)
             val responseText = taskStatusUpdateViewMessage.toJson
-            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText")
+            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
             response.getWriter.println(responseText)
             response.setContentType("application/json")
           } else if (stateJson.contains("BW-tasks-update-completion-date")) {
@@ -99,12 +103,12 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
             val completionCommentsValue = completionCommentsInput.getString("value")
             val message = s"optimistic: $optimisticCompletionDate, pessimistic: $pessimisticCompletionDate, " +
               s"likely: $likelyCompletionDate, % complete: $percentCompleteValue, comments: $completionCommentsValue"
-            BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message")
+            BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message", request)
           } else {
           }
         case _ =>
       }
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK")
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -116,8 +120,9 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
 
 object SlackInteractiveCallback {
 
-  def modalProjectDetail(bwUser: DynDoc, projectId: String): Seq[DynDoc] = {
-    val info: DynDoc = Document.parse(ProjectInfo.project2json(ProjectApi.projectById(new ObjectId(projectId)), bwUser))
+  def modalProjectDetail(projectId: String, request: HttpServletRequest): Seq[DynDoc] = {
+    val info: DynDoc = Document.parse(
+        ProjectInfo.project2json(ProjectApi.projectById(new ObjectId(projectId)), request, doLog = true))
     val itemNames = Seq("Name", "Status", "Description", "Type", "Construction type",
         "Address line1", "Address line2", "Address line3", "Postal code", "State name", "Country name",
         "GPS latitude", "GPS longitude", "Budget MM USD", "Construction area SqFt", "Land area acres",

@@ -28,7 +28,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
       case (Some(slackUserId), whichThread, "message", None) =>
         userBySlackId(slackUserId) match {
           case Some(bwUser) =>
-            CommandLineProcessor.process(event.text[String], bwUser, event) match {
+            CommandLineProcessor.process(event.text[String], bwUser, event, request) match {
               case Some(message) => SlackApi.sendToChannel(Left(message), channel, whichThread, Some(request))
               case None =>
             }
@@ -67,7 +67,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "Early-ENTRY", request)
     val postDataStream = getStreamData(request)
     try {
       val postData: DynDoc = Document.parse(postDataStream)
@@ -77,10 +77,16 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
         response.setContentType("text/plain")
         BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK (handled challenge)")
       } else if (postData.has("type") && postData.`type`[String] == "event_callback") {
+        postData.get[Document]("event").flatMap(_.y.get[String]("user")).flatMap(userBySlackId) match {
+          case None =>
+          case Some(user: DynDoc) =>
+            request.getSession.setAttribute("bw-user", user.asDoc)
+            BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+        }
         handleEventCallback(postData, request)
         BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
       } else {
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (unknown message type): $postDataStream")
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (unknown message type): $postDataStream", request)
       }
     } catch {
       case t: Throwable =>

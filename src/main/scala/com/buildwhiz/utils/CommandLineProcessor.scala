@@ -5,6 +5,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.slack.SlackApi
+import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -17,15 +18,15 @@ object CommandLineProcessor extends DateTimeUtils {
 
   type ParserResult = Option[String]
 
-  def process(command: String, user: DynDoc, event: DynDoc): ParserResult = {
-    commandLineParser.cliProcessor(command, user, event)
+  def process(command: String, user: DynDoc, event: DynDoc, request: HttpServletRequest): ParserResult = {
+    commandLineParser.cliProcessor(command, user, event, Some(request))
   }
 
   private object helpers {
 
-    def slackManage(op: String, names: List[String]): (DynDoc, DynDoc) => ParserResult = {
+    def slackManage(op: String, names: List[String]): (DynDoc, DynDoc, Option[HttpServletRequest]) => ParserResult = {
       if (!op.toLowerCase.matches("home|invite|status"))
-        return (_, _) => Some(s"Unknown operation: $op")
+        return (_, _, _) => Some(s"Unknown operation: $op")
       val persons: Seq[DynDoc] = names match {
         case firstName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName")))
         case firstName +: lastName +: Nil => BWMongoDB3.persons.find(Map("first_name" -> Map($regex -> s"(?i)$firstName"),
@@ -33,24 +34,24 @@ object CommandLineProcessor extends DateTimeUtils {
         case _ => Nil
       }
       (op.toLowerCase, persons.length) match {
-        case ("home", 0) => (user, _) => {SlackApi.viewPublish(None, user.slack_id[String], None); None}
-        case ("home", _) => (_, _) => Some(s"""Redundant parameters: ${names.mkString(", ")}""")
-        case ("invite", 1) => (dd, _) => Some(SlackApi.invite(persons.head)(dd))
-        case ("invite", 0) => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
-        case ("invite", _) => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
-        case ("status", 1) => (dd, _) => Some(SlackApi.status(persons.head)(dd))
-        case ("status", 0) => (_, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
-        case ("status", _) => (_, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
-        case _ => (_, _) => None // Just to stop the no-match warning
+        case ("home", 0) => (user, _, _) => {SlackApi.viewPublish(None, user.slack_id[String], None); None}
+        case ("home", _) => (_, _, _) => Some(s"""Redundant parameters: ${names.mkString(", ")}""")
+        case ("invite", 1) => (dd, _, _) => Some(SlackApi.invite(persons.head)(dd))
+        case ("invite", 0) => (_, _, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
+        case ("invite", _) => (_, _, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
+        case ("status", 1) => (dd, _, _) => Some(SlackApi.status(persons.head)(dd))
+        case ("status", 0) => (_, _, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")
+        case ("status", _) => (_, _, _) => Some(s"""Ambiguous user name: ${names.mkString(" ")}""")
+        case _ => (_, _, _) => None // Just to stop the no-match warning
       }
     }
 
-    def whoAmI(user: DynDoc, event: DynDoc): ParserResult = {
+    def whoAmI(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
         Some(s"You are ${PersonApi.fullName(user)}")
     }
 
-    def describePhase(phaseId: String): (DynDoc, DynDoc) => ParserResult = {
-      (user: DynDoc, event: DynDoc) => {
+    def describePhase(phaseId: String): (DynDoc, DynDoc, Option[HttpServletRequest]) => ParserResult = {
+      (user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]) => {
         val phaseOid = new ObjectId(phaseId)
         val phase = PhaseApi.phaseById(phaseOid)
         val phaseInfo: DynDoc = Document.parse(PhaseInfo.phase2json(phase, user))
@@ -63,11 +64,11 @@ object CommandLineProcessor extends DateTimeUtils {
       }
     }
 
-    def describeProject(projectId: String): (DynDoc, DynDoc) => ParserResult = {
-      (user: DynDoc, event: DynDoc) => {
+    def describeProject(projectId: String): (DynDoc, DynDoc, Option[HttpServletRequest]) => ParserResult = {
+      (user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]) => {
         val projectOid = new ObjectId(projectId)
         val project = ProjectApi.projectById(projectOid)
-        val projectInfo: DynDoc = Document.parse(ProjectInfo.project2json(project, user))
+        val projectInfo: DynDoc = Document.parse(ProjectInfo.project2json(project, request.get))
         val name = projectInfo.name[Document].y.value[String]
         val status = projectInfo.status[Document].y.value[String]
         val description = projectInfo.description[Document].y.value[String]
@@ -77,7 +78,7 @@ object CommandLineProcessor extends DateTimeUtils {
       }
     }
 
-    def dashboard(user: DynDoc, event: DynDoc): ParserResult = {
+    def dashboard(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val entries: Seq[DynDoc] = DashboardEntries.dashboardEntries(user)
       val messages = entries.map(entry => {
         val project = entry.project_name[String]
@@ -100,7 +101,7 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def activeUsers(user: DynDoc, event: DynDoc): ParserResult = {
+    def activeUsers(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val msStart = System.currentTimeMillis() - (60L * 60L * 1000L)
       val logs: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map($gte -> msStart)))
       val namedLogs = logs.filter(_.variables[Document].has("u$nm"))
@@ -114,7 +115,7 @@ object CommandLineProcessor extends DateTimeUtils {
       Some(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
     }
 
-    def listTasks(user: DynDoc, event: DynDoc): ParserResult = {
+    def listTasks(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val assignments = TaskList.uniqueAssignments(user)
       val taskMessages = assignments.map(assignment => {
         val id = assignment.activity_id[ObjectId]
@@ -140,7 +141,7 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listProjects(user: DynDoc, event: DynDoc): ParserResult = {
+    def listProjects(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val projects = ProjectApi.projectsByUser(user._id[ObjectId])
       val messages = projects.map(project => s"Project-name: '${project.name[String]}', Status: '${project.status[String]}'")
       val allMessages = s"""You have ${projects.length} project(s). Project messages follow.
@@ -156,7 +157,7 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listPhases(user: DynDoc, event: DynDoc): ParserResult = {
+    def listPhases(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val phases = PhaseApi.phasesByUser(user._id[ObjectId])
       val messages = phases.map(phase => s"Phase-name: '${phase.name[String]}', Status: '${phase.status[String]}'")
       val allMessages = s"""You have ${phases.length} phase(s). Phase messages follow.
@@ -172,7 +173,7 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listIssues(user: DynDoc, event: DynDoc): ParserResult = {
+    def listIssues(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       val issues: Seq[DynDoc] = RfiList.getRfiList(user, None, None, None, None, None)
       val fields = Seq("Subject", "Status", "Priority", "Question")
       val messages = issues.map(issue => fields.map(field => s"$field: ${issue.get[String](field.toLowerCase)}").mkString(", "))
@@ -189,11 +190,11 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listDocuments(user: DynDoc, event: DynDoc): ParserResult = {
+    def listDocuments(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       Some("You have no documents now")
     }
 
-    def help(user: DynDoc, event: DynDoc): ParserResult = {
+    def help(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       Some("""Commands:
         |+  dash[board]
         |+  list {active users|documents|projects|tasks}
@@ -207,7 +208,7 @@ object CommandLineProcessor extends DateTimeUtils {
 
     // Type for CLI processor parsers ...
     // ... a function that takes a person object as input and returns the result string
-    private type CLIP = Parser[(DynDoc, DynDoc) => ParserResult]
+    private type CLIP = Parser[(DynDoc, DynDoc, Option[HttpServletRequest]) => ParserResult]
 
     // Help command ...
     private lazy val helpParser: CLIP = "(?i)help" ^^ {_ => helpers.help}
@@ -232,7 +233,7 @@ object CommandLineProcessor extends DateTimeUtils {
       case "phases" => helpers.listPhases
       case "projects" => helpers.listProjects
       case "tasks" => helpers.listTasks
-      case other => (_, _) => Some(s"Unknown option '$other'")
+      case other => (_, _, _) => Some(s"Unknown option '$other'")
     }
 
     // Describe entity command ...
@@ -241,7 +242,7 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val describeEntityParser: CLIP = "(?i)describe|display|dump|show".r ~> entityNamesParser ~ id ^^ {
       case "projects" ~ id => helpers.describeProject(id)
       case "phases" ~ id => helpers.describePhase(id)
-      case _ => (user, event) => helpers.help(user, event)
+      case _ => (user, event, request) => helpers.help(user, event, None)
     }
 
     // Dashboard command ...
@@ -255,9 +256,9 @@ object CommandLineProcessor extends DateTimeUtils {
     private lazy val allCommands: CLIP =
         dashboardParser | describeEntityParser | helpParser | listEntitiesParser | slackManageParser | whoAmIParser | none
 
-    def cliProcessor(command: String, user: DynDoc, event: DynDoc): ParserResult = {
+    def cliProcessor(command: String, user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       parseAll(allCommands, command) match {
-        case Success(result, _) => result(user, event)
+        case Success(result, _) => result(user, event, request)
         case NoSuccess(result, _) => Some(result)
       }
     }
@@ -265,7 +266,7 @@ object CommandLineProcessor extends DateTimeUtils {
     def testParser(command: String): ParserResult = {
       val sanjay: DynDoc = BWMongoDB3.persons.find(Map("last_name" -> "Dasgupta")).head
       parseAll(allCommands, command) match {
-        case Success(result, _) => result(sanjay, null)
+        case Success(result, _) => result(sanjay, null, None)
         case NoSuccess(result, _) => Some(result)
       }
     }
@@ -273,15 +274,15 @@ object CommandLineProcessor extends DateTimeUtils {
   }
 
   def main(args: Array[String]): Unit = {
-    println(commandLineParser.testParser("Who am i"))
-    println(commandLineParser.testParser("describe project 5caffdb93c364b1b6f270688"))
-    println(commandLineParser.testParser("list projects"))
+    //println(commandLineParser.testParser("Who am i"))
+    //println(commandLineParser.testParser("describe project 5caffdb93c364b1b6f270688"))
+    //println(commandLineParser.testParser("list projects"))
     //println(commandLineParser.testParser("DashBoard"))
-    println(commandLineParser.testParser("query Active UsErS"))
-    println(commandLineParser.testParser("list documents"))
-    println(commandLineParser.testParser("list projects"))
+    //println(commandLineParser.testParser("query Active UsErS"))
+    //println(commandLineParser.testParser("list documents"))
+    //println(commandLineParser.testParser("list projects"))
     //println(commandLineParser.testParser("list tasks"))
-    println(commandLineParser.testParser("slack status caroline"))
+    //println(commandLineParser.testParser("slack status caroline"))
     //println(commandLineParser.testParser("list phases"))
   }
 

@@ -19,8 +19,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val projectRecord: DynDoc = ProjectApi.projectById(projectOid)
-      val user: DynDoc = getUser(request)
-      response.getWriter.print(ProjectInfo.project2json(projectRecord, user))
+      response.getWriter.print(ProjectInfo.project2json(projectRecord, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
@@ -34,7 +33,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
 
 }
 
-object ProjectInfo {
+object ProjectInfo extends HttpUtils {
 
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
@@ -61,7 +60,10 @@ object ProjectInfo {
     new Document("editable", editable).append("value", value)
   }
 
-  def project2json(project: DynDoc, user: DynDoc): String = {
+  def project2json(project: DynDoc, request: HttpServletRequest, doLog: Boolean = false): String = {
+    if(doLog)
+      BWLogger.log(getClass.getName, "project2json", s"ENTRY", request)
+    val user: DynDoc = getUser(request)
     val editable = ProjectInfo.isEditable(project, user)
     val bareDocumentTags: Seq[String] = if (project.has("document_tags"))
       project.document_tags[Many[Document]].map(_.name[String])
@@ -101,6 +103,8 @@ object ProjectInfo {
       append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
       append("gps_latitude", latitude).append("gps_longitude", longitude).
       append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
+    if(doLog)
+      BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)
     projectDoc.toJson
   }
 

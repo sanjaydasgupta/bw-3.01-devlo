@@ -1,6 +1,6 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo}
+import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -51,7 +51,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
               val modalView = SlackApi.createModalView("Project Detail", "modal-view-id-Project Detail", sections)
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Projects" =>
-              val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord)
+              val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord, request)
               val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-Project List", sections)
               SlackApi.viewOpen(modalProjectsView.toJson, triggerId)
             case _ =>
@@ -142,8 +142,8 @@ object SlackInteractiveCallback {
     })
   }
 
-  def modalProjectList(bwUser: DynDoc): Seq[DynDoc] = {
-    val projects = ProjectApi.projectsByUser(bwUser._id[ObjectId])
+  def modalProjectList(bwUser: DynDoc, request: HttpServletRequest): Seq[DynDoc] = {
+    val projects = ProjectList.getList(bwUser._id[ObjectId], request, doLog = true)
     projects.map(project => {
       val phaseCount = project.phase_ids[Many[ObjectId]].length
       val description = s"*${project.name[String]}*  (${project.status[String]})\nHas $phaseCount phases."

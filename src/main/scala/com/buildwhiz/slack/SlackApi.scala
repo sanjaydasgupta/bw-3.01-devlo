@@ -112,9 +112,14 @@ object SlackApi extends DateTimeUtils {
 
   def createInputBlock(label: String, id: String, element: DynDoc): DynDoc = Map(
     "type" -> "input",
-    "block_id" -> s"$id-block",
-    "label"-> Map("type" -> "plain_text", "text" -> label),
+    "block_id" -> id,
+    "label"-> Map("type" -> "plain_text", "text" -> label, "emoji" -> true),
     "element"-> element
+  )
+
+  def createPlainTextInput(multiline: Boolean = false): DynDoc = Map(
+    "type" -> "plain_text_input",
+    "multiline" -> multiline
   )
 
   def createDivider(): DynDoc = Map("type" -> "divider")

@@ -18,11 +18,11 @@ class RfiList extends HttpServlet with HttpUtils {
           Seq("document_id", "doc_version_timestamp", "activity_id", "phase_id", "project_id").
           map(parameters.get)
       val user: DynDoc = getUser(request)
-      val rfiJsons = RfiList.getRfiList(user, params.head, params(1), params(2), params(3), params(4)).map(bson2json)
+      val rfiJsons = RfiList.getRfiList(user, None, params.head, params(1), params(2), params(3), params(4)).map(bson2json)
       response.getWriter.print(rfiJsons.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      //BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
+      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -33,10 +33,16 @@ class RfiList extends HttpServlet with HttpUtils {
 
 }
 
-object RfiList extends DateTimeUtils {
+object RfiList extends DateTimeUtils with HttpUtils {
 
-  def getRfiList(user: DynDoc, optDocumentId: Option[String], optDocumentVerTs: Option[String],
-      optActivityId: Option[String], optPhaseId: Option[String], optProjectId: Option[String]): Seq[Document] = {
+  def getRfiList(user: DynDoc, optRequest: Option[HttpServletRequest], optDocumentId: Option[String] = None,
+      optDocumentVerTs: Option[String] = None, optActivityId: Option[String] = None, optPhaseId: Option[String] = None,
+      optProjectId: Option[String] = None, doLog: Boolean = false): Seq[Document] = {
+    (doLog, optRequest) match {
+      case (true, Some(request)) =>
+        BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+      case _ =>
+    }
     val userOid = user._id[ObjectId]
     val mongoQuery: Map[String, Any] =
         (optDocumentId, optDocumentVerTs, optActivityId, optPhaseId, optProjectId) match {
@@ -95,6 +101,11 @@ object RfiList extends DateTimeUtils {
         "closeable" -> closeable, "rfi_type" -> rfiType,
         "reference_type" -> referenceType.split("_")(0))
     })
+    (doLog, optRequest) match {
+      case (true, Some(request)) =>
+        BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiProperties.length})", request)
+      case _ =>
+    }
     rfiProperties
   }
 

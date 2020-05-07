@@ -42,8 +42,11 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
             case "ProjectItemEdit" =>
               val projectId = actionIdParts.init.init.last
               val itemName = actionIdParts.init.last
-              val sections = Seq(SlackApi.createSection(s"This panel is under construction.\nPlease check back later!"))
-              val modalView = SlackApi.createModalView(s"Edit '$itemName'", s"modal-view-id-Edit-Project-$itemName", sections)
+              val textInputField = SlackApi.createPlainTextInput(true)
+              val inputBlock = SlackApi.createInputBlock(itemName,
+                  s"modal-view-id-$projectId-$itemName-Project Item Edit", textInputField)
+              val modalView = SlackApi.createModalView(s"Edit Project Field",
+                  s"modal-view-id-$itemName-Edit Project Item", Seq(inputBlock), withSubmitButton = true)
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Project Detail" =>
               val projectId = actionIdParts.init.last

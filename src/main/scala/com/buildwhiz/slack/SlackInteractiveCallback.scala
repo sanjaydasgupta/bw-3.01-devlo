@@ -1,6 +1,6 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList}
+import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList, RfiList}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -57,6 +57,10 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
               val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord, request)
               val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-Project List", sections)
               SlackApi.viewOpen(modalProjectsView.toJson, triggerId)
+            case "Issues" =>
+              val sections = SlackInteractiveCallback.modalIssueList(bwUserRecord, request)
+              val modalIssuesView = SlackApi.createModalView("Issues List", "modal-view-id-Issues List", sections)
+              SlackApi.viewOpen(modalIssuesView.toJson, triggerId)
             case _ =>
               val sections = Seq(SlackApi.createSection(s"The *$title* page is under construction.\nPlease check back later!"))
               val modalUnderConstructionView = SlackApi.createModalView(title, "modal-view-id-Project List", sections)
@@ -155,6 +159,30 @@ object SlackInteractiveCallback {
       val button = SlackApi.createButton("Detail", buttonId, buttonId)
       SlackApi.createSectionWithAccessory(description, button)
     })
+  }
+
+  def modalIssueList(bwUser: DynDoc, request: HttpServletRequest): Seq[DynDoc] = {
+    val issues: Seq[DynDoc] = RfiList.getRfiList(bwUser, Some(request), doLog = true)
+    if (issues.nonEmpty) {
+      issues.map(issue => {
+        val startDate = issue.origination_date[String].split("\\s").head
+        val priority = issue.priority[String]
+        val originator = issue.originator[String]
+        val subject = issue.subject[String]
+        val question = issue.question[String]
+        val state = issue.state[String]
+        val sectionText =
+          s"""*Date* $startDate *Priority* $priority *Subject* $subject *Question* $question *State* $state
+             |*Originator* $originator""".stripMargin
+        val issueId = issue._id[String]
+        val buttonId = s"button-value-$issueId-Issue Detail"
+        val button = SlackApi.createButton("Detail", buttonId, buttonId)
+        SlackApi.createSectionWithAccessory(sectionText, button)
+      })
+    } else {
+      Seq(SlackApi.createSection("You have no issues at this time")
+      )
+    }
   }
 
 }

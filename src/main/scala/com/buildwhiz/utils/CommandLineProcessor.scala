@@ -173,8 +173,8 @@ object CommandLineProcessor extends DateTimeUtils {
       None
     }
 
-    def listIssues(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
-      val issues: Seq[DynDoc] = RfiList.getRfiList(user, None, None, None, None, None)
+    def listIssues(user: DynDoc, event: DynDoc, optRequest: Option[HttpServletRequest]): ParserResult = {
+      val issues: Seq[DynDoc] = RfiList.getRfiList(user, optRequest, None, None, None, None, None)
       val fields = Seq("Subject", "Status", "Priority", "Question")
       val messages = issues.map(issue => fields.map(field => s"$field: ${issue.get[String](field.toLowerCase)}").mkString(", "))
       val allMessages = s"""You have ${issues.length} issue(s). Issue messages follow.

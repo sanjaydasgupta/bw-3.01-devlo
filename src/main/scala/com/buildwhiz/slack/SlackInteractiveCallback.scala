@@ -1,6 +1,6 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList, RfiList}
+import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList, RfiDetails, RfiList}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -57,6 +57,11 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
               val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord, request)
               val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-Project List", sections)
               SlackApi.viewOpen(modalProjectsView.toJson, triggerId)
+            case "Issue Detail" =>
+              val issueId = actionIdParts.init.last
+              val messageSections = SlackInteractiveCallback.modalIssueDetail(issueId, bwUserRecord, request)
+              val modalView = SlackApi.createModalView("Issue Detail", "modal-view-id-Issue Detail", messageSections)
+              SlackApi.viewPush(modalView.toJson, triggerId)
             case "Issues" =>
               val sections = SlackInteractiveCallback.modalIssueList(bwUserRecord, request)
               val modalIssuesView = SlackApi.createModalView("Issues List", "modal-view-id-Issues List", sections)
@@ -144,7 +149,7 @@ object SlackInteractiveCallback {
       if (itemEditable) {
         SlackApi.createSectionWithAccessory(s"*$itemName*: $itemValue", editButton)
       } else {
-        SlackApi.createSectionWithAccessory(s"*$itemName*: $itemValue", editButton)
+        SlackApi.createSection(s"*$itemName*: $itemValue")
       }
     })
   }
@@ -158,6 +163,16 @@ object SlackInteractiveCallback {
       val buttonId = s"button-value-$projectId-Project Detail"
       val button = SlackApi.createButton("Detail", buttonId, buttonId)
       SlackApi.createSectionWithAccessory(description, button)
+    })
+  }
+
+  def modalIssueDetail(issueId: String, user: DynDoc, request: HttpServletRequest): Seq[DynDoc] = {
+    val messages = RfiDetails.getMessages(issueId, user, request, doLog = true)
+    messages.map(message => {
+      val messageText =
+        s"""*Time:* ${message.timestamp[String]}, *Sender:* ${message.sender[String]}
+           |${message.text[String]}""".stripMargin
+      SlackApi.createSection(messageText)
     })
   }
 

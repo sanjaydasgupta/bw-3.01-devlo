@@ -339,10 +339,11 @@ object SlackApi extends DateTimeUtils {
 
   private def homePage(): String = {
     val items = Seq(
-      ("Tasks", "(2 delayed, 3 active, 1 completed)"),
-      ("Issues", "(1 new, 2 active, 6 archived)"),
-      ("Projects", "(2 managed, 3 involved)"),
-      ("Organizations", "(7 items. CRUD operations)"),
+      ("Work Context", "(Project: *not selected*, Phase: *not selected*"),
+      ("Tasks", "(click button to see list of tasks)"),
+      ("Issues", "(click button to see list of tasks)"),
+      ("Projects", "(click button to see list of tasks)"),
+      ("Organizations", "(click button to see list of tasks)"),
       ("Profile", "(contact info, skills, password, etc)")
     )
     val blocks = items.map(item => {

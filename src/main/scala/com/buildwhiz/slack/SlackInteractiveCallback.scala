@@ -8,6 +8,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -27,14 +29,15 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           val slackUserName = slackUserInfo.name[String]
           throw new IllegalArgumentException(s"Slack user '$slackUserName' ($slackUserId) unknown to BuildWhiz")
       }
-      (payload.get[String]("trigger_id"), payload.get[String]("type"), payload.get[Many[Document]]("actions")) match {
-        case (Some(triggerId), Some("message_action"), _) =>
+      (payload.get[String]("trigger_id"), payload.get[String]("type")) match {
+        case (Some(triggerId), Some("message_action")) =>
           val rootOptions = SlackApi.createSelectInputBlock("Select operation area", "Select option", "BW-root",
             Seq(("Dashboard", "dashboard"), ("Tasks", "tasks")))
           val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions),
             withSubmitButton = true)
           SlackApi.viewOpen(rootModalView.toJson, triggerId)
-        case (Some(triggerId), Some("block_actions"), Some(actions)) =>
+        case (Some(triggerId), Some("block_actions")) =>
+          val actions: Many[Document] = payload.actions[Many[Document]]
           val action: DynDoc = actions.head
           val actionIdParts = action.action_id[String].split("-")
           val title = actionIdParts.last
@@ -42,25 +45,25 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
             case "ProjectItemEdit" =>
               val projectId = actionIdParts.init.init.last
               val itemName = actionIdParts.init.last
-              val textInputField = SlackApi.createPlainTextInput(true)
+              val textInputField = SlackApi.createPlainTextInput(s"input-id", multiline = true)
               val inputBlock = SlackApi.createInputBlock(itemName,
-                  s"modal-view-id-$projectId-$itemName-Project Item Edit", textInputField)
+                  s"block-id-$projectId-$itemName-EditProjectItem", textInputField)
               val modalView = SlackApi.createModalView(s"Edit Project Field",
-                  s"modal-view-id-$itemName-Edit Project Item", Seq(inputBlock), withSubmitButton = true)
+                  s"modal-view-id-$itemName-EditProjectItem", Seq(inputBlock), withSubmitButton = true)
               SlackApi.viewPush(modalView.toJson, triggerId)
-            case "Project Detail" =>
+            case "ProjectDetail" =>
               val projectId = actionIdParts.init.last
               val sections = SlackInteractiveCallback.modalProjectDetail(projectId, request)
-              val modalView = SlackApi.createModalView("Project Detail", "modal-view-id-Project Detail", sections)
+              val modalView = SlackApi.createModalView("Project Detail", "modal-view-id-ProjectDetail", sections)
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Projects" =>
               val sections = SlackInteractiveCallback.modalProjectList(bwUserRecord, request)
-              val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-Project List", sections)
+              val modalProjectsView = SlackApi.createModalView("Project List", "modal-view-id-ProjectList", sections)
               SlackApi.viewOpen(modalProjectsView.toJson, triggerId)
-            case "Issue Detail" =>
+            case "IssueDetail" =>
               val issueId = actionIdParts.init.last
               val messageSections = SlackInteractiveCallback.modalIssueDetail(issueId, bwUserRecord, request)
-              val modalView = SlackApi.createModalView("Issue Detail", "modal-view-id-Issue Detail", messageSections)
+              val modalView = SlackApi.createModalView("Issue Detail", "modal-view-id-IssueDetail", messageSections)
               SlackApi.viewPush(modalView.toJson, triggerId)
             case "Issues" =>
               val sections = SlackInteractiveCallback.modalIssueList(bwUserRecord, request)
@@ -68,54 +71,64 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
               SlackApi.viewOpen(modalIssuesView.toJson, triggerId)
             case _ =>
               val sections = Seq(SlackApi.createSection(s"The *$title* page is under construction.\nPlease check back later!"))
-              val modalUnderConstructionView = SlackApi.createModalView(title, "modal-view-id-Project List", sections)
+              val modalUnderConstructionView = SlackApi.createModalView(title, "modal-view-id-UnderConstruction", sections)
               SlackApi.viewOpen(modalUnderConstructionView.toJson, triggerId)
           }
-        case (Some(triggerId), Some("view_submission"), _) =>
-          val view: DynDoc = payload.view[Document]
-          val state: DynDoc = view.state[Document]
-          val stateJson = state.asDoc.toJson
-          BWLogger.log(getClass.getName, request.getMethod, s"state.toJson: $stateJson", request)
-          if (stateJson.contains("BW-root-tasks")) {
+        case (Some(triggerId), Some("view_submission")) =>
+          val state: Document = payload.view[Document].y.state[Document]
+          val returnedValues: Map[String, AnyRef] = state.y.values[Document].entrySet.asScala.
+              map(es => (es.getKey, es.getValue)).toMap
+          //val view: DynDoc = payload.view[Document]
+          //val state: DynDoc = view.state[Document]
+          //val stateJson = state.asDoc.toJson
+          BWLogger.log(getClass.getName, request.getMethod, s"state: $returnedValues", request)
+
+          if (returnedValues.head._1.matches("block-id-[0-9a-f]{24}-[^-]+-EditProjectItem")) {
+            val projectItemInfo = returnedValues.head._1.split("-")
+            val projectId = projectItemInfo.init.init.last
+            val elementName = projectItemInfo.init.last
+            val elementValue = returnedValues.head._2.asInstanceOf[Document].y.`input-id`[Document].y.value[String]
+            BWLogger.log(getClass.getName, request.getMethod, s"*** $projectId, $elementName, $elementValue ***", request)
+          } else if (returnedValues.keys.exists(_.matches("BW-root-tasks"))) {
             val taskViewMessage = SlackApi.createTaskSelectionView(bwUserRecord)
             val responseText = taskViewMessage.toJson
             BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
             response.getWriter.println(responseText)
             response.setContentType("application/json")
-          } else if (stateJson.contains("BW-root-dashboard")) {
+          } else if (returnedValues.keys.exists(_.matches("BW-root-dashboard"))) {
             val dashboardViewMessage = SlackApi.createDashboardView(bwUserRecord)
             val responseText = dashboardViewMessage.toJson
             BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
             response.getWriter.println(responseText)
             response.setContentType("application/json")
-          } else if (stateJson.contains("BW-tasks-update-display")) {
-            val activityOid = new ObjectId(stateJson.split("-").last.substring(0, 24))
-            val theActivity = ActivityApi.activityById(activityOid)
-            val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, theActivity)
-            val responseText = taskStatusUpdateViewMessage.toJson
-            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
-            response.getWriter.println(responseText)
-            response.setContentType("application/json")
-          } else if (stateJson.contains("BW-tasks-update-completion-date")) {
-            val values = state.values[Document]
-            val optimisticCompletionBlock = values.get("BW-tasks-update-completion-date-optimistic-block").asInstanceOf[Document]
-            val optimisticCompletionDatepicker = optimisticCompletionBlock.get("BW-tasks-update-completion-date-optimistic").asInstanceOf[Document]
-            val optimisticCompletionDate = optimisticCompletionDatepicker.getString("selected_date")
-            val pessimisticCompletionBlock = values.get("BW-tasks-update-completion-date-pessimistic-block").asInstanceOf[Document]
-            val pessimisticCompletionDatepicker = pessimisticCompletionBlock.get("BW-tasks-update-completion-date-pessimistic").asInstanceOf[Document]
-            val pessimisticCompletionDate = pessimisticCompletionDatepicker.getString("selected_date")
-            val likelyCompletionBlock = values.get("BW-tasks-update-completion-date-likely-block").asInstanceOf[Document]
-            val likelyCompletionDatepicker = likelyCompletionBlock.get("BW-tasks-update-completion-date-likely").asInstanceOf[Document]
-            val likelyCompletionDate = likelyCompletionDatepicker.getString("selected_date")
-            val percentCompleteBlock = values.get("BW-tasks-update-percent-complete-block").asInstanceOf[Document]
-            val percentCompleteInput = percentCompleteBlock.get("BW-tasks-update-percent-complete").asInstanceOf[Document]
-            val percentCompleteValue = percentCompleteInput.getString("value")
-            val completionCommentsBlock = values.get("BW-tasks-update-comments-block").asInstanceOf[Document]
-            val completionCommentsInput = completionCommentsBlock.get("BW-tasks-update-comments").asInstanceOf[Document]
-            val completionCommentsValue = completionCommentsInput.getString("value")
-            val message = s"optimistic: $optimisticCompletionDate, pessimistic: $pessimisticCompletionDate, " +
-              s"likely: $likelyCompletionDate, % complete: $percentCompleteValue, comments: $completionCommentsValue"
-            BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message", request)
+          } else if (returnedValues.keys.exists(_.matches("BW-tasks-update-display"))) {
+//            val activityOid = new ObjectId(stateJson.split("-").last.substring(0, 24))
+//            val theActivity = ActivityApi.activityById(activityOid)
+//            val taskStatusUpdateViewMessage = SlackApi.createTaskStatusUpdateView(bwUserRecord, theActivity)
+//            val responseText = taskStatusUpdateViewMessage.toJson
+//            BWLogger.log(getClass.getName, request.getMethod, s"response: $responseText", request)
+//            response.getWriter.println(responseText)
+//            response.setContentType("application/json")
+          } else if (returnedValues.keys.exists(_.matches("BW-tasks-update-completion-date"))) {
+//            val values = state.values[Document]
+//            val optimisticCompletionBlock = values.get("BW-tasks-update-completion-date-optimistic-block").asInstanceOf[Document]
+//            val optimisticCompletionDatepicker = optimisticCompletionBlock.get("BW-tasks-update-completion-date-optimistic").asInstanceOf[Document]
+//            val optimisticCompletionDate = optimisticCompletionDatepicker.getString("selected_date")
+//            val pessimisticCompletionBlock = values.get("BW-tasks-update-completion-date-pessimistic-block").asInstanceOf[Document]
+//            val pessimisticCompletionDatepicker = pessimisticCompletionBlock.get("BW-tasks-update-completion-date-pessimistic").asInstanceOf[Document]
+//            val pessimisticCompletionDate = pessimisticCompletionDatepicker.getString("selected_date")
+//            val likelyCompletionBlock = values.get("BW-tasks-update-completion-date-likely-block").asInstanceOf[Document]
+//            val likelyCompletionDatepicker = likelyCompletionBlock.get("BW-tasks-update-completion-date-likely").asInstanceOf[Document]
+//            val likelyCompletionDate = likelyCompletionDatepicker.getString("selected_date")
+//            val percentCompleteBlock = values.get("BW-tasks-update-percent-complete-block").asInstanceOf[Document]
+//            val percentCompleteInput = percentCompleteBlock.get("BW-tasks-update-percent-complete").asInstanceOf[Document]
+//            val percentCompleteValue = percentCompleteInput.getString("value")
+//            val completionCommentsBlock = values.get("BW-tasks-update-comments-block").asInstanceOf[Document]
+//            val completionCommentsInput = completionCommentsBlock.get("BW-tasks-update-comments").asInstanceOf[Document]
+//            val completionCommentsValue = completionCommentsInput.getString("value")
+//            val message = s"optimistic: $optimisticCompletionDate, pessimistic: $pessimisticCompletionDate, " +
+//              s"likely: $likelyCompletionDate, % complete: $percentCompleteValue, comments: $completionCommentsValue"
+//            BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message", request)
           } else {
           }
         case _ =>
@@ -160,7 +173,7 @@ object SlackInteractiveCallback {
       val phaseCount = project.phase_ids[Many[ObjectId]].length
       val description = s"*${project.name[String]}*  (${project.status[String]})\nHas $phaseCount phases."
       val projectId = project._id[ObjectId].toString
-      val buttonId = s"button-value-$projectId-Project Detail"
+      val buttonId = s"button-value-$projectId-ProjectDetail"
       val button = SlackApi.createButton("Detail", buttonId, buttonId)
       SlackApi.createSectionWithAccessory(description, button)
     })
@@ -190,7 +203,7 @@ object SlackInteractiveCallback {
           s"""*Date* $startDate *Priority* $priority *Subject* $subject *Question* $question *State* $state
              |*Originator* $originator""".stripMargin
         val issueId = issue._id[String]
-        val buttonId = s"button-value-$issueId-Issue Detail"
+        val buttonId = s"button-value-$issueId-IssueDetail"
         val button = SlackApi.createButton("Detail", buttonId, buttonId)
         SlackApi.createSectionWithAccessory(sectionText, button)
       })

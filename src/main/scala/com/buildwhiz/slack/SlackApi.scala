@@ -117,8 +117,9 @@ object SlackApi extends DateTimeUtils {
     "element"-> element
   )
 
-  def createPlainTextInput(multiline: Boolean = false): DynDoc = Map(
+  def createPlainTextInput(actionId: String, multiline: Boolean = false): DynDoc = Map(
     "type" -> "plain_text_input",
+    "action_id" -> actionId,
     "multiline" -> multiline
   )
 

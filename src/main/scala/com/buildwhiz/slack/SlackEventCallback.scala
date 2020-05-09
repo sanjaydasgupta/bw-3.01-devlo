@@ -34,7 +34,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             }
           case None =>
             val message = s"Slack-id '$slackUserId' is not registered with BuildWhiz"
-            SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))
+            //SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))
             BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR ($message)", request)
         }
       case (Some(slackUserId), Some(threadTs), "message", Some("file_share")) =>
@@ -43,7 +43,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             fileUpload(bwUser, threadTs, event, request)
           case None =>
             val message = s"Slack-id '$slackUserId' is not registered with BuildWhiz"
-            SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))
+            //SlackApi.sendToChannel(Left(s"Your $message"), channel, None, Some(request))
             BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR ($message)", request)
         }
       case (Some(slackUserId), _, "app_home_opened", _) =>
@@ -79,12 +79,13 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
       } else if (postData.has("type") && postData.`type`[String] == "event_callback") {
         postData.get[Document]("event").flatMap(_.y.get[String]("user")).flatMap(userBySlackId) match {
           case None =>
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (No 'user' field): ${postData.asDoc.toJson}", request)
           case Some(user: DynDoc) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
             BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+            handleEventCallback(postData, request)
         }
-        handleEventCallback(postData, request)
-        BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+        //BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
       } else {
         BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (unknown message type): $postDataStream", request)
       }

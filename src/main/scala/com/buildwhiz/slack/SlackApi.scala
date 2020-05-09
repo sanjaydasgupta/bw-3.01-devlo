@@ -17,6 +17,9 @@ import org.bson.types.ObjectId
 
 object SlackApi extends DateTimeUtils {
 
+  //xoxp-644537296277-644881565541-1120001615844-38c9f9525da75f895634393576d2f75c
+  //xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2
+
   def userBySlackId(slackUserId: String): Option[DynDoc] = {
     BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
   }
@@ -70,8 +73,7 @@ object SlackApi extends DateTimeUtils {
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
     post.setHeader("Authorization",
-      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
-      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+      "Bearer xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2")
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val bodyText = (textOrBlocks, optThreadTs) match {
       case (Left(messageText), None) => s"""{"text": "$messageText", "channel": "$channel"}"""
@@ -267,8 +269,7 @@ object SlackApi extends DateTimeUtils {
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.open")
     post.setHeader("Authorization",
-      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
-      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+      "Bearer xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2")
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val bodyText = s"""{"view": $viewText, "trigger_id": "$triggerId"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
@@ -287,8 +288,7 @@ object SlackApi extends DateTimeUtils {
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.push")
     post.setHeader("Authorization",
-      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
-      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+      "Bearer xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2")
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val bodyText = s"""{"view": $viewText, "trigger_id": "$triggerId"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
@@ -307,8 +307,7 @@ object SlackApi extends DateTimeUtils {
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.publish")
     post.setHeader("Authorization",
-      //"Bearer xoxp-644537296277-644881565541-687602244033-a112c341c2a73fe62b1baf98d9304c1f")
-      "Bearer xoxb-644537296277-708634256516-vIeyFBxDJVd0aBJHts5EoLCp")
+      "Bearer xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2")
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val viewText = optViewText match {
       case Some(txt) => txt

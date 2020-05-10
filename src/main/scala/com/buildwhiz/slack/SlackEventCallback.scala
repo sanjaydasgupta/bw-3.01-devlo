@@ -53,13 +53,13 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
           case "messages" =>
           case _ =>
         }
-        BWLogger.log(getClass.getName, "handleEventCallback", s"app_home_opened: ${postData.asDoc.toJson}", request)
+        BWLogger.log(getClass.getName, "handleEventCallback", s"app_home_opened", request)
       case (_, _, "message", Some("message_changed")) =>
-        BWLogger.log(getClass.getName, "handleEventCallback", "'message_changed' ignored", request)
+        BWLogger.log(getClass.getName, "handleEventCallback", "'message_changed' NOT-IMPLEMENTED", request)
       case (_, _, "message", Some("message_deleted")) =>
-        BWLogger.log(getClass.getName, "handleEventCallback", "'message_deleted' ignored", request)
+        BWLogger.log(getClass.getName, "handleEventCallback", "'message_deleted' NOT-IMPLEMENTED", request)
       case (_, _, "message", Some("bot_message")) =>
-        BWLogger.log(getClass.getName, "handleEventCallback", s"'bot_message' ignored: ${postData.asDoc.toJson}", request)
+        BWLogger.log(getClass.getName, "handleEventCallback", "'bot_message' NOT-IMPLEMENTED", request)
       case _ =>
         SlackApi.sendToChannel(Left(s"Received bad message - Not handled"), channel, None, Some(request))
         BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR (bad message): ${postData.asDoc.toJson}")
@@ -76,18 +76,35 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
         response.getWriter.print(challenge)
         response.setContentType("text/plain")
         BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK (handled challenge)")
-      } else if (postData.has("type") && postData.`type`[String] == "event_callback") {
-        postData.get[Document]("event").flatMap(_.y.get[String]("user")).flatMap(userBySlackId) match {
-          case None =>
-            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (No 'user' field): ${postData.asDoc.toJson}", request)
-          case Some(user: DynDoc) =>
+      } else {
+        val optType: Option[String] = postData.get[Document]("event").flatMap(_.y.get[String]("type"))
+        val optBwUser: Option[DynDoc] = postData.get[Document]("event").flatMap(_.y.get[String]("user")).
+            flatMap(userBySlackId)
+        val optSubType: Option[String] = postData.get[Document]("event").flatMap(_.y.get[String]("subtype"))
+        (optType, optSubType, optBwUser) match {
+          case (Some("event_callback"), Some("bot_message"), _) =>
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (type: 'event_callback', subtype: 'bot_message' IGNORED)", request)
+          case (Some("event_callback"), Some(subType), Some(user)) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
-            BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+            BWLogger.log(getClass.getName, request.getMethod, s"ENTRY (type: 'event_callback', subtype: '$subType')", request)
             handleEventCallback(postData, request)
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+          case (Some("message"), None, Some(user)) =>
+            request.getSession.setAttribute("bw-user", user.asDoc)
+            BWLogger.log(getClass.getName, request.getMethod, s"ENTRY (type: 'message', subtype: NA)", request)
+            handleEventCallback(postData, request)
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+          case (Some("message"), subType, None) =>
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (type: 'message', subtype: $subType, user: NA IGNORED)", request)
+          case (Some("app_home_opened"), None, Some(user)) =>
+            request.getSession.setAttribute("bw-user", user.asDoc)
+            BWLogger.log(getClass.getName, request.getMethod, s"ENTRY (type: 'app_home_opened', subtype: NA)", request)
+            handleEventCallback(postData, request)
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+          case _ =>
+            BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Unknown message: $postDataStream", request)
         }
         //BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
-      } else {
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR (unknown message type): $postDataStream", request)
       }
     } catch {
       case t: Throwable =>

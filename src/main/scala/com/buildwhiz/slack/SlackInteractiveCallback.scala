@@ -1,6 +1,6 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.baf2.{ActivityApi, ProjectApi, ProjectInfo, ProjectList, RfiDetails, RfiList}
+import com.buildwhiz.baf2.{ProjectApi, ProjectInfo, ProjectInfoSet, ProjectList, RfiDetails, RfiList}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, "Early-ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val payload: DynDoc = Document.parse(parameters("payload"))
@@ -22,10 +22,8 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       val bwUserRecord: DynDoc = SlackApi.userBySlackId(slackUserId) match {
         case Some(userRecord) =>
           request.getSession.setAttribute("bw-user", userRecord.asDoc)
-          BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
           userRecord
         case None =>
-          BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
           val slackUserName = slackUserInfo.name[String]
           throw new IllegalArgumentException(s"Slack user '$slackUserName' ($slackUserId) unknown to BuildWhiz")
       }
@@ -86,9 +84,9 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           if (returnedValues.head._1.matches("block-id-[0-9a-f]{24}-[^-]+-EditProjectItem")) {
             val projectItemInfo = returnedValues.head._1.split("-")
             val projectId = projectItemInfo.init.init.last
-            val elementName = projectItemInfo.init.last
+            val elementName = projectItemInfo.init.last.toLowerCase.replace(' ', '_')
             val elementValue = returnedValues.head._2.asInstanceOf[Document].y.`input-id`[Document].y.value[String]
-            BWLogger.log(getClass.getName, request.getMethod, s"*** $projectId, $elementName, $elementValue ***", request)
+            ProjectInfoSet.setProjectFields(projectId, Seq((elementName, elementValue)), request, doLog = true)
           } else if (returnedValues.keys.exists(_.matches("BW-root-tasks"))) {
             val taskViewMessage = SlackApi.createTaskSelectionView(bwUserRecord)
             val responseText = taskViewMessage.toJson

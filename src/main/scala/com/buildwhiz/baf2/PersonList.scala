@@ -12,7 +12,8 @@ class PersonList extends HttpServlet with HttpUtils {
     try {
       val skillOption: Option[String] = parameters.get("skill") match {
         case Some(skill) =>
-          if (RoleListSecondary.secondaryRoles.contains(skill))
+          if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
+          //if (RoleListSecondary.secondaryRoles.contains(skill))
             None
           else
             Some(skill)

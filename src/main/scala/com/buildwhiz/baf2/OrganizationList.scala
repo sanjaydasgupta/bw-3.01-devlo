@@ -35,7 +35,8 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 
       val organizations: Seq[Document] = (skillParameter, optActivityOids, optPhaseOid, optProjectOid) match {
         case (Some(skill), _, _, _) =>
-          if (RoleListSecondary.secondaryRoles.contains(skill))
+          if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
+          //if (RoleListSecondary.secondaryRoles.contains(skill))
             allOrganizations
           else
             organizationList(skillParameter)

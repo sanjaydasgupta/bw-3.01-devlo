@@ -30,8 +30,8 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
         throw new IllegalArgumentException(s"parts.length != 1")
       val part = request.getParts.iterator.next()
       val uploadSize = part.getSize
-      if (uploadSize > 1e7)
-        throw new IllegalArgumentException(s"attachment size > 10Mb")
+      //if (uploadSize > 1e7)
+      //  throw new IllegalArgumentException(s"attachment size > 10Mb")
       val submittedFilename = part.getSubmittedFileName
       val fullFileName = if (submittedFilename == null || submittedFilename.isEmpty)
         "unknown.tmp"

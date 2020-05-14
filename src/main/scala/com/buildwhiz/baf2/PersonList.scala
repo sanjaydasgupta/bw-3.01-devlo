@@ -10,15 +10,16 @@ class PersonList extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val skillOption: Option[String] = parameters.get("skill") match {
-        case Some(skill) =>
-          if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
-          //if (RoleListSecondary.secondaryRoles.contains(skill))
-            None
-          else
-            Some(skill)
-        case other => other
-      }
+//      val skillOption: Option[String] = parameters.get("skill") match {
+//        case Some(skill) =>
+//          if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
+//          //if (RoleListSecondary.secondaryRoles.contains(skill))
+//            None
+//          else
+//            Some(skill)
+//        case other => other
+//      }
+      val skillOption: Option[String] = None
       val organisationOidOption = parameters.get("organization_id").map(new ObjectId(_))
       val projectOidOption = parameters.get("project_id").map(new ObjectId(_))
       val phaseOidOption = parameters.get("phase_id").map(new ObjectId(_))

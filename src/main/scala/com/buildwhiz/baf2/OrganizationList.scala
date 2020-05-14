@@ -29,7 +29,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOids = parameters.get("activity_id").map(_.split(",").map(id => new ObjectId(id.trim)))
-      val skillParameter = parameters.get("skill")
+      val skillParameter: Option[String] = None //parameters.get("skill")
 
       val allOrganizations = organizationList()
 

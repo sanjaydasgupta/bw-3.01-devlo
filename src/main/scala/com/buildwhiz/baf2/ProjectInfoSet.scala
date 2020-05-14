@@ -68,7 +68,7 @@ object ProjectInfoSet {
     val message = s"""Updated parameters $parametersChanged of project $projectOid"""
     val managers = ProjectApi.managers(Left(projectOid))
     for (manager <- managers) {
-      SlackApi.sendNotification(message, Right(manager), Some(request))
+      SlackApi.sendNotification(message, Right(manager), Some(projectOid), Some(request))
     }
     if (doLog)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)

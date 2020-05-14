@@ -97,7 +97,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val message = s"""Updated ${properties.mkString(", ")} for '${PersonApi.fullName(thePerson)}'"""
-      SlackApi.sendNotification(message, Left(thePerson), Some(request))
+      SlackApi.sendNotification(message, Left(thePerson), None, Some(request))
       BWLogger.audit(getClass.getName, "doPost", message, request)
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {

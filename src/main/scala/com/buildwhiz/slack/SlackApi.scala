@@ -15,6 +15,8 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 object SlackApi extends DateTimeUtils {
 
   //xoxp-644537296277-644881565541-1120001615844-38c9f9525da75f895634393576d2f75c
@@ -41,27 +43,39 @@ object SlackApi extends DateTimeUtils {
   }
 
   def sendToUser(stringOrBlocks: Either[String, Seq[DynDoc]], user: Either[DynDoc, ObjectId],
-      request: Option[HttpServletRequest] = None): Unit = {
+      optProjectOid: Option[ObjectId] = None, optRequest: Option[HttpServletRequest] = None): Unit = {
     BWLogger.log(getClass.getName, "sendToUser", "ENTRY")
     val personRecord: DynDoc = user match {
       case Left(dd) => dd
       case Right(oid) => PersonApi.personById(oid)
     }
-    if (personRecord.has("slack_id")) {
-      val slackChannel = personRecord.slack_id[String]
-      sendToChannel(stringOrBlocks, slackChannel, request=request)
-      BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", request)
+    val optSlackOid: Option[String] = personRecord.get[AnyRef]("slack_id") match {
+      case Some(id: String) => Some(id)
+      case Some(dict: Document) => optProjectOid match {
+        case None => Some(dict.entrySet.asScala.head.getValue.asInstanceOf[String])
+        case Some(prOid: ObjectId) => if (dict.containsKey(prOid)) Some(dict.getString(prOid)) else None
+      }
+      case _ => None
+    }
+    if (optSlackOid.isDefined) {
+      val slackChannel = optSlackOid.get
+      sendToChannel(stringOrBlocks, slackChannel, request=optRequest)
+      BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", optRequest)
     } else {
-      val message = s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
+      val message = optProjectOid match {
+        case None => s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
+        case Some(prOid) => s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack for project $prOid." +
+          s"Message dropped: '$stringOrBlocks'"
+      }
       BWLogger.log(getClass.getName, "sendToUser", message)
     }
   }
 
   def sendNotification(message: String, user: Either[DynDoc, ObjectId],
-      optRequest: Option[HttpServletRequest] = None): Unit = {
+      optProjectOid: Option[ObjectId] = None, optRequest: Option[HttpServletRequest] = None): Unit = {
     val info: DynDoc = BWMongoDB3.instance_info.find().head
     val instanceName = info.instance[String]
-    sendToUser(Left(s"$message on '$instanceName'"), user, optRequest)
+    sendToUser(Left(s"$message on '$instanceName'"), user, optProjectOid, optRequest)
   }
 
   def sendToChannel(textOrBlocks: Either[String, Seq[DynDoc]], channel: String, optThreadTs: Option[String] = None,

@@ -45,10 +45,11 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       val mongoDbNameValuePairs = parameterNames.filter(postData.containsKey).
           map(paramName => (parameterConverters(paramName)._2,
           parameterConverters(paramName)._1(postData.getString(paramName))))
+      val parentProject = PhaseApi.parentProject(phaseOid)
+      val parentProjectOid = parentProject._id[ObjectId]
       if (mongoDbNameValuePairs.exists(_._1 == "name")) {
-        val parentProject = PhaseApi.parentProject(phaseOid)
         val name = mongoDbNameValuePairs.find(_._1 == "name").get._2.asInstanceOf[String]
-        PhaseApi.validateNewName(name, parentProject._id[ObjectId])
+        PhaseApi.validateNewName(name, parentProjectOid)
       }
       if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
@@ -61,7 +62,7 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       val message = s"""Updated parameters $parametersChanged of phase $phaseOid"""
       val managers = PhaseApi.managers(Left(phaseOid))
       for (manager <- managers) {
-        SlackApi.sendNotification(message, Right(manager), Some(request))
+        SlackApi.sendNotification(message, Right(manager), Some(parentProjectOid), Some(request))
       }
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {

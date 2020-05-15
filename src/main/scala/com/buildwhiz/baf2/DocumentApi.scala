@@ -67,25 +67,33 @@ object DocumentApi extends HttpUtils {
   }
 
   def documentsByProjectId(request: HttpServletRequest): Seq[DynDoc] = {
-    //val user: DynDoc = getUser(request)
+    val user: DynDoc = getUser(request)
+    val isPrabhasAdmin = PersonApi.fullName(user) == "Prabhas Admin"
     val parameters = getParameterMap(request)
     val parameterValues = Array("action_name", "activity_id", "process_id", "phase_id", "project_id").
         map(n => parameters.get(n))
     def oid(id: String): ObjectId = new ObjectId(id)
-
+    val privateDocumentIndicator = Map("labels" -> Map($not -> Map($in -> Seq("Contract", "Invoice"))))
     val allDocuments: Seq[DynDoc] = parameterValues match {
 //      case Array(Some(actionName), Some(activityId), _, _, _) =>
 //        BWMongoDB3.document_master.find(Map("activity_id" -> oid(activityId), "action_name" -> actionName))
-      case Array(_, Some(activityId), _, _, _) if ActivityApi.exists(oid(activityId))=>
-        BWMongoDB3.document_master.find(Map($or ->
-            Seq(Map("activity_id" -> oid(activityId)), Map("activity_ids" -> oid(activityId)))))
+      case Array(_, Some(activityId), _, _, _) if ActivityApi.exists(oid(activityId)) =>
+        val activitySelector = Map($or -> Seq("activity_id" -> oid(activityId), "activity_ids" -> oid(activityId)))
+        val selector: Map[String, Any] = if (isPrabhasAdmin)
+          activitySelector
+        else
+          Map($and -> Seq(privateDocumentIndicator, activitySelector))
+        BWMongoDB3.document_master.find(selector)
 //      case Array(None, None, Some(processId), _, _) =>
 //        BWMongoDB3.document_master.find(Map("process_id" -> oid(processId), "activity_id" -> Map("$exists" -> false)))
 //      case Array(None, None, None, Some(phaseId), _) =>
 //        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
 //          "activity_id" -> Map("$exists" -> false)))
       case Array(_, _, _, _, Some(projectId)) =>
-        BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId)))
+        if (isPrabhasAdmin)
+          BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId)))
+        else
+          BWMongoDB3.document_master.find(Map($and -> Seq(Map("project_id" -> oid(projectId)), privateDocumentIndicator)))
       case _ => Seq.empty[DynDoc]
     }
     allDocuments.filter(_.has("name"))

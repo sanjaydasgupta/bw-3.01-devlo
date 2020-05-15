@@ -47,13 +47,15 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR ($message)", request)
         }
       case (Some(slackUserId), _, "app_home_opened", _) =>
-        event.tab[String] match {
-          case "home" =>
+        event.get[String]("tab") match {
+          case Some("home") =>
+            BWLogger.log(getClass.getName, "handleEventCallback", "app_home_opened(home)", request)
             SlackApi.viewPublish(None, slackUserId, None)
-          case "messages" =>
-          case _ =>
+          case Some(other) =>
+            BWLogger.log(getClass.getName, "handleEventCallback", s"app_home_opened($other) IGNORED", request)
+          case None =>
+            BWLogger.log(getClass.getName, "handleEventCallback", "app_home_opened (no 'tab') IGNORED", request)
         }
-        BWLogger.log(getClass.getName, "handleEventCallback", s"app_home_opened", request)
       case (_, _, "message", Some("message_changed")) =>
         BWLogger.log(getClass.getName, "handleEventCallback", "'message_changed' NOT-IMPLEMENTED", request)
       case (_, _, "message", Some("message_deleted")) =>

@@ -102,17 +102,17 @@ object CommandLineProcessor extends DateTimeUtils {
     }
 
     def activeUsers(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
-      val msStart = System.currentTimeMillis() - (60L * 60L * 1000L)
+      val msStart = System.currentTimeMillis() - (24L * 60L * 60L * 1000L)
       val logs: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map($gte -> msStart)))
       val namedLogs = logs.filter(_.variables[Document].has("u$nm"))
       val lastOccurrence: Seq[DynDoc] = namedLogs.groupBy(_.variables[Document].getString("u$nm")).
           map(_._2.maxBy(_.milliseconds[Long])).toSeq.sortBy(_.milliseconds[Long] * -1)
       val rows = lastOccurrence.map(occurrence => {
         val name = occurrence.variables[Document].getString("u$nm")
-        val time = dateTimeString(occurrence.milliseconds[Long], Some(user.tz[String]))
+        val time = dateTimeString(occurrence.milliseconds[Long], Some(user.tz[String])).split(" ").init.last
         s"\t$time  $name\n"
       })
-      Some(rows.mkString("Last presence in past 1 hour\n", "", s"Total ${rows.length} users."))
+      Some(rows.mkString("Last presence in past 24 hours\n", "", s"Total ${rows.length} users."))
     }
 
     def listTasks(user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {

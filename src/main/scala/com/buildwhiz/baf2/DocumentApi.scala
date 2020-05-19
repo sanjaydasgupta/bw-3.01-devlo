@@ -28,10 +28,17 @@ object DocumentApi extends HttpUtils {
   }
 
   def createProjectDocumentRecord(name: String, description: String, fileType: String, systemLabels: Seq[String],
-      projectOid: ObjectId, phaseOid: Option[ObjectId] = None, action: Option[(ObjectId, String)] = None,
+      projectOid: ObjectId, optPhaseOid: Option[ObjectId] = None, optAction: Option[(ObjectId, String)] = None,
       optCategory: Option[String] = None): ObjectId = {
 
-    val query = ((phaseOid, action, optCategory) match {
+    val optPhaseOid2: Option[ObjectId] = (optPhaseOid, optAction) match {
+      case (optPhOid: Some[ObjectId], _) => optPhOid
+      case (None, Some((pOid, _))) =>
+        Some(ProcessApi.parentPhase(ActivityApi.parentProcess(pOid)._id[ObjectId])._id[ObjectId])
+      case _ => None
+    }
+
+    val query = ((optPhaseOid2, optAction, optCategory) match {
       case (Some(phOid), Some((actOid, actName)), Some(category)) => Map("phase_id" -> phOid, "activity_id" -> actOid,
         "action_name" -> actName, "category" -> category)
       case (Some(phOid), Some((actOid, actName)), None) => Map("phase_id" -> phOid, "activity_id" -> actOid,

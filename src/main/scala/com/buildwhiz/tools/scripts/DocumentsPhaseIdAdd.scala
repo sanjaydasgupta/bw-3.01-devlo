@@ -22,7 +22,7 @@ object DocumentsPhaseIdAdd {
       response.getWriter.println(s"WARN: Found ${orphanedDocuments.length} orphaned documents, list follows")
       for (orphan <- orphanedDocuments) {
         val documentName = orphan.get[String]("name") match {
-          case None => "Undefined"
+          case None => "(Undefined)"
           case Some(name) => name
         }
         val projectName = orphan.get[ObjectId]("project_id") match {
@@ -45,7 +45,10 @@ object DocumentsPhaseIdAdd {
     if (orphanedDocuments.nonEmpty) {
       response.getWriter.println(s"WARN: Found ${orphanedDocuments.length} orphaned documents, list follows")
       for (orphan <- orphanedDocuments) {
-        val documentName = orphan.name[String]
+        val documentName = orphan.get[String]("name") match {
+          case None => "(Undefined)"
+          case Some(name) => name
+        }
         val projectName = orphan.get[ObjectId]("project_id") match {
           case None => "Undefined"
           case Some(projectOid) => BWMongoDB3.projects.find(Map("_id" -> projectOid)).headOption match {
@@ -76,7 +79,10 @@ object DocumentsPhaseIdAdd {
     if (candidateDocuments.nonEmpty) {
       response.getWriter.println(s"INFO: Found ${candidateDocuments.length} orphaned documents, list follows")
       for (candidate <- candidateDocuments) {
-        val documentName = candidate.name[String]
+        val documentName = candidate.get[String]("name") match {
+          case None => "(Undefined)"
+          case Some(name) => name
+        }
         val projectName = candidate.get[ObjectId]("project_id") match {
           case None => "Undefined"
           case Some(projectOid) => BWMongoDB3.projects.find(Map("_id" -> projectOid)).headOption match {

@@ -2,7 +2,7 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, TagLogicProcessor}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
@@ -23,10 +23,10 @@ class DocumentTagAdd extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val tagName: String = parameters("tag_name")
-      if (!DocumentApi.labelIsValid(tagName))
+      if (!TagLogicProcessor.labelIsValid(tagName))
         throw new IllegalArgumentException(s"Bad tag name '$tagName'")
 
-      val tagLogic: Option[String] = parameters.get("logic").map(DocumentApi.logicIsValid) match {
+      val tagLogic: Option[String] = parameters.get("logic").map(TagLogicProcessor.logicIsValid) match {
         case None => None
         case Some(true) => Some(parameters("logic"))
         case Some(false) => throw new IllegalArgumentException("Bad logic expression")

@@ -138,4 +138,6 @@ object PhaseApi {
     }
   }
 
+  def phaseDocumentTagName(phaseName: String): String = s"@phase($phaseName)"
+
 }

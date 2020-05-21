@@ -1,5 +1,7 @@
 package com.buildwhiz.utils
 
+import com.buildwhiz.baf2.PhaseApi
+
 import scala.util.parsing.combinator.RegexParsers
 
 object TagLogicProcessor extends RegexParsers {
@@ -11,7 +13,7 @@ object TagLogicProcessor extends RegexParsers {
   private val NOT: Parser[String] = "(?i)NOT(?![A-Z0-9._-])".r
 
   private val inPhase: Parser[TestSet] = "(?i)@phase".r ~> "(" ~> "[^) ]+".r <~ ")" ^^
-    { phaseName => (set: Set[String]) => set.contains(s"@phase(${phaseName.toLowerCase})") }
+    { phaseName => (set: Set[String]) => set.contains(PhaseApi.phaseDocumentTagName(phaseName.toLowerCase)) }
 
   private val inTask: Parser[TestSet] = "(?i)@task".r ~> "(" ~> "[^) ]+".r <~ ")" ^^
     { phaseName => (set: Set[String]) => set.contains(s"@task(${phaseName.toLowerCase})") }

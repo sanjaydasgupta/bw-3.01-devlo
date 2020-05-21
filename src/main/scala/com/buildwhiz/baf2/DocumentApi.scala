@@ -107,14 +107,24 @@ object DocumentApi extends HttpUtils {
   }
 
   def getSystemTags(doc: DynDoc): Seq[String] = {
+
     def fix(str: String) = str.replaceAll("\\s+", "-")
-    val legacyLabels = if (doc.has("category") && doc.has("subcategory")) {
-      Seq(fix(doc.category[String]), fix(doc.subcategory[String]))
-    } else {
-      Seq.empty[String]
+
+//    val legacyLabels = if (doc.has("category") && doc.has("subcategory")) {
+//      Seq(fix(doc.category[String]), fix(doc.subcategory[String]))
+//    } else {
+//      Seq.empty[String]
+//    }
+//
+    val phaseLabel = doc.get[ObjectId]("phase_id") match {
+      case Some(phaseOid) =>
+        val thePhase = PhaseApi.phaseById(phaseOid)
+        Seq(PhaseApi.phaseDocumentTagName(thePhase.name[String]))
+      case None => Seq.empty[String]
     }
     val documentLabels: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
-    (documentLabels ++ legacyLabels).distinct
+
+    (phaseLabel ++ documentLabels/* ++ legacyLabels*/).distinct
   }
 
   def docOid2UserTags(user: DynDoc): Map[ObjectId, Seq[String]] = {

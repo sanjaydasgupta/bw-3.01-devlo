@@ -40,9 +40,10 @@ class DocumentGroupSystemTags extends HttpServlet with HttpUtils {
       val commonProjectOid = projectOids.reduceLeft((a, b) => if (a == b) a else b)
       if (commonProjectOid != projectOids.head)
         throw new IllegalArgumentException("Documents not from same project")
-
+      val phases = ProjectApi.allPhases(commonProjectOid)
+      val phaseTags = phases.map(phase => PhaseApi.phaseDocumentTagName(phase.name[String]))
       val allSystemTagNames: Seq[String] = ProjectApi.documentTags(ProjectApi.projectById(commonProjectOid)).
-          map(_.name[String])
+          map(_.name[String]) ++ phaseTags
       val systemTagsByDocument: Seq[Seq[String]] =
           documentRecords.map(docRecord => DocumentApi.getSystemTags(docRecord))
       val documentCountsByTagName: Seq[(String, Int)] = allSystemTagNames.map(tagName =>

@@ -107,7 +107,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     response.setContentType("application/json")
   }
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val tomcatRe ="tomcat-(.+)".r
@@ -126,7 +126,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
         case _ =>
       }
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

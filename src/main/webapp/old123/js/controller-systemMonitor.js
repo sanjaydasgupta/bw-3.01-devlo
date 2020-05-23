@@ -9,15 +9,15 @@
 
   self.monitor = function(command, name) {
     var dfhQuery = '/bw-dot-2.01/etc/SystemMonitor?command=' + command;
-    $log.log('Calling POST ' + dfhQuery)
-    $http.post(dfhQuery).then(
+    $log.log('Calling GET ' + dfhQuery)
+    $http.get(dfhQuery).then(
       function(resp) {
         self.output = resp.data;
         self.commandName = name;
-        $log.log('OK POST ' + dfhQuery + ', rows: ' + self.output.length)
+        $log.log('OK GET ' + dfhQuery + ', rows: ' + self.output.length)
       },
       function(resp) {
-        $log.log('ERROR POST ' + dfhQuery)
+        $log.log('ERROR GET ' + dfhQuery)
       }
     );
   }

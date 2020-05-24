@@ -2,6 +2,7 @@ package com.buildwhiz.infra
 
 import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
+import java.io.File
 
 import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -12,6 +13,8 @@ import com.buildwhiz.slack.SlackApi
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.sys.process._
 
 object TimerModule extends HttpUtils {
 
@@ -142,6 +145,33 @@ object TimerModule extends HttpUtils {
     }
   }
 
+  private def archiveDatabases(calendar: Calendar): Unit = {
+    BWLogger.log(getClass.getName, "saveDatabases", "ENTRY")
+    val dbDirectoryName = s"camunda-h2-dbs"
+    calendar.setTimeZone(TimeZone.getTimeZone("GMT"))
+    val dbArchiveName = "%d-%02d-%02d-%s.zip".format(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
+        calendar.get(Calendar.DATE), dbDirectoryName)
+    val cmd = Seq("zip", "-r", dbArchiveName, dbDirectoryName)
+    val status = Process(cmd).!
+    if (status == 0) {
+      val NBR_OF_ARCHIVES_TO_KEEP = 3
+      val archiveFiles = new File(".").listFiles(_.getName.matches(s"\\d{4}-\\d{2}-\\d{2}-$dbDirectoryName.zip"))
+      if (archiveFiles.length > NBR_OF_ARCHIVES_TO_KEEP) {
+        val archivesSortedByDate = archiveFiles.sortBy(_.getName)
+        val outdatedArchives = archivesSortedByDate.take(archiveFiles.length - NBR_OF_ARCHIVES_TO_KEEP)
+        for (archive <- outdatedArchives) {
+          val deleteStatus = archive.delete()
+          BWLogger.log(getClass.getName, "saveDatabases", s"Delete outdated (${archive.getName}, status: $deleteStatus)")
+        }
+      }
+    }
+    val logMessage = if (status == 0)
+      s"EXIT-OK (Created archive $dbArchiveName)"
+    else
+      s"EXIT-ERROR (FAILED to create archive $dbArchiveName, status: $status)"
+    BWLogger.log(getClass.getName, "saveDatabases", logMessage)
+  }
+
   private def fifteenMinutes(ms: Long): Unit = {
     try {
       val projects = ProjectApi.listProjects()
@@ -156,6 +186,17 @@ object TimerModule extends HttpUtils {
           val minutes = calendar.get(Calendar.MINUTE)
           if (minutes == 0)
             newDay(ms, project, calendar)
+        }
+      }
+      // Database archival etc (at midnight PST)
+      val calendarPST = Calendar.getInstance(TimeZone.getTimeZone("PST"))
+      calendarPST.setTimeInMillis(ms)
+      val hours = calendarPST.get(Calendar.HOUR_OF_DAY)
+      if (hours == 0) {
+        val minutes = calendarPST.get(Calendar.MINUTE)
+        if (minutes == 0) {
+          // at midnight of PST timezone
+          Future {archiveDatabases(calendarPST)}
         }
       }
       // Perform any global quarter-hourly activities here

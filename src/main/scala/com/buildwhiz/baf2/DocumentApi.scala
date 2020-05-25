@@ -96,6 +96,11 @@ object DocumentApi extends HttpUtils {
 //      case Array(None, None, None, Some(phaseId), _) =>
 //        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
 //          "activity_id" -> Map("$exists" -> false)))
+      case Array(_, _, _, Some(phaseId), _) =>
+        if (isPrabhasAdmin)
+          BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId)))
+        else
+          BWMongoDB3.document_master.find(Map($and -> Seq(Map("phase_id" -> oid(phaseId)), privateDocumentIndicator)))
       case Array(_, _, _, _, Some(projectId)) =>
         if (isPrabhasAdmin)
           BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId)))

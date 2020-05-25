@@ -21,7 +21,17 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
 
       val projectOid = new ObjectId(parameters("project_id"))
       if (!ProjectApi.exists(projectOid))
-        throw new IllegalArgumentException(s"unknown project-id: ${projectOid.toString}")
+        throw new IllegalArgumentException(s"unknown project_id: $projectOid")
+
+      val optPhaseOid = parameters.get("phase_id") match {
+        case None => None
+        case Some(null) | Some("") | Some("null") => None
+        case Some(phaseId) =>
+          val phaseOid = new ObjectId(phaseId)
+          if (!PhaseApi.exists(phaseOid))
+            throw new IllegalArgumentException(s"unknown phase_id: $phaseOid")
+          Some(phaseOid)
+      }
 
       val systemTags = parameters("tags").split(",").map(_.trim).toSeq
 
@@ -51,8 +61,8 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
             None
       }
 
-      val docOid = DocumentApi.createProjectDocumentRecord(name, description, fileType, systemTags, projectOid, None,
-          action, category)
+      val docOid = DocumentApi.createProjectDocumentRecord(name, description, fileType, systemTags, projectOid,
+          optPhaseOid, action, category)
       BWLogger.audit(getClass.getName, request.getMethod, s"Created new document $docOid", request)
 
       val parts = getParts(request)

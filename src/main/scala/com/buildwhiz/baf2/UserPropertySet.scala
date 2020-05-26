@@ -81,7 +81,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val userRecord: DynDoc = getUser(request)
       val personOid: ObjectId = parameters.get("person_id") match {
@@ -96,10 +96,13 @@ class UserPropertySet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
       properties.zip(values).foreach(pv => setProperty(personOid, pv._1, pv._2))
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val message = s"""Updated ${properties.mkString(", ")} for '${PersonApi.fullName(thePerson)}'"""
-      SlackApi.sendNotification(message, Left(thePerson), None, Some(request))
-      BWLogger.audit(getClass.getName, "doPost", message, request)
-      response.setStatus(HttpServletResponse.SC_OK)
+      val propertiesToNotify = properties.filterNot(_.matches("selected_(?:project|phase)_id"))
+      if (propertiesToNotify.nonEmpty) {
+        val notificationMessage = s"""Updated ${propertiesToNotify.mkString(", ")} for '${PersonApi.fullName(thePerson)}'"""
+        SlackApi.sendNotification(notificationMessage, Left(thePerson), None, Some(request))
+      }
+      val logMessage = s"""Updated ${properties.mkString(", ")} for '${PersonApi.fullName(thePerson)}'"""
+      BWLogger.audit(getClass.getName, request.getMethod, logMessage, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

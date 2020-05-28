@@ -105,7 +105,7 @@ object DataConsistencyChecker extends HttpUtils {
     else
       respWriter.println("==== None ====")
     val candidateDocuments = goodDocuments.filter(doc => !doc.has("phase_id"))
-    respWriter.println("\n***** Candidate Documents *****")
+    respWriter.println(s"\n***** Candidate Documents (${candidateDocuments.length}) for Phase-ID Patching *****")
     if (candidateDocuments.nonEmpty)
       respWriter.println(candidateDocuments.map(_.asDoc.toJson).mkString("\n"))
     else
@@ -116,13 +116,24 @@ object DataConsistencyChecker extends HttpUtils {
           map(aOid => (aOid, processOidToPhaseOidMap(ativityOidToProcessOidMap(aOid)))).toMap
 
     if (candidateDocumentsByActivityId.nonEmpty) {
-      if (args.length == 1 && args(0) == "go") {
-        for (activityOidDocumentSeqPair <- candidateDocumentsByActivityId) {
-          val (activityOid: ObjectId, documents: Seq[DynDoc]) = activityOidDocumentSeqPair
-          val documentOids = documents.map(_._id[ObjectId])
-          val phaseOid = activityOidToPhaseOidMap(activityOid)
+      respWriter.println(s"\n***** Patching Info (${candidateDocumentsByActivityId.size}) Follows *****")
+      for (activityOidDocumentSeqPair <- candidateDocumentsByActivityId) {
+        val (activityOid: ObjectId, documents: Seq[DynDoc]) = activityOidDocumentSeqPair
+        val documentOids = documents.map(_._id[ObjectId])
+        val phaseOid = activityOidToPhaseOidMap(activityOid)
+        val targetActivity = oidToExistingActivitiesMap(activityOid)
+        val patchMessage =
+          s"""    **** Patch info for task: ${targetActivity.asDoc.toJson} ****
+             |        Document-ids to patch: ${documentOids.map(_.toString).mkString(", ")}
+             |        Phase-id to add to documents: $phaseOid""".stripMargin
+        respWriter.println(patchMessage)
+        if (args.length == 1 && args(0) == "go") {
           val updateResult = BWMongoDB3.document_master.
-                updateMany(Map("_id" -> Map($in -> documentOids)), Map($set -> Map("phase_id" -> phaseOid)))
+              updateMany(Map("_id" -> Map($in -> documentOids)), Map($set -> Map("phase_id" -> phaseOid)))
+          if (updateResult.getModifiedCount != documentOids.length) {
+            val status = updateResult.toString
+            respWriter.println(s"        #### Failed: $status ####")
+          }
         }
       }
     } else {

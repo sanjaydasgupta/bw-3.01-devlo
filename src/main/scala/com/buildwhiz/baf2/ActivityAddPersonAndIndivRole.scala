@@ -44,7 +44,8 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
             documentAccess, userOid)
       )
 
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+      val message = s"""Added person $personOid in role '$theRole' to activities ${activityOids.mkString(", ")}"""
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

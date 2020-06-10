@@ -25,8 +25,8 @@ class ActivityAssignmentDelete extends HttpServlet with HttpUtils {
 
       teamAssignment.deleteAssignment(assignmentOid, userOid)
 
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      val message = s"Deleted activity assignment $assignmentOid"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

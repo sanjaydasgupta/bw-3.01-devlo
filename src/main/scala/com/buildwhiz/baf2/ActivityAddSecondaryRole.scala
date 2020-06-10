@@ -33,8 +33,8 @@ class ActivityAddSecondaryRole extends HttpServlet with HttpUtils {
 
       teamAssignment.roleAdd(activityOid, newRole, optOrganizationOid, userOid)
 
-      response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+      val message = s"Added new role '$newRole' to activity $activityOid"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

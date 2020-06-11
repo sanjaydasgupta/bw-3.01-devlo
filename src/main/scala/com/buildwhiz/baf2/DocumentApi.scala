@@ -73,6 +73,46 @@ object DocumentApi extends HttpUtils {
     newDocumentRecord.getObjectId("_id")
   }
 
+  def usersDocumentList(user: DynDoc, optProjectOid: Option[ObjectId], request: HttpServletRequest): Seq[DynDoc] = {
+    if (PersonApi.isBuildWhizAdmin(Right(user)) && optProjectOid.isDefined) {
+      BWLogger.log(getClass.getName, "usersDocumentList", "Allowing full access to BW admin", request)
+      BWMongoDB3.document_master.find(Map("project_id" -> optProjectOid.get))
+    } else if (optProjectOid.map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).exists(b => b)) {
+      BWLogger.log(getClass.getName, "usersDocumentList", "Allowing full access to project-manager", request)
+      BWMongoDB3.document_master.find(Map("project_id" -> optProjectOid.get))
+    } else if (optProjectOid.isDefined) {
+      val projectOid = optProjectOid.get
+      val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.
+          find(Map("project_id" -> projectOid, "person_id" -> user._id[ObjectId], "document_access" -> Map($exists -> true)))
+      val accessValues: Seq[String] = assignments.flatMap(_.document_access[Many[String]]).distinct
+      val theProject = ProjectApi.projectById(projectOid)
+      val tagExpressionMap: Map[String, String] = theProject.document_tags[Many[Document]].map(tagSpec => {
+        val name = tagSpec.name[String]
+        if (tagSpec.has("logic")) {
+          (name, s"(${tagSpec.logic[String]})")
+        } else
+          (name, name)
+      }).toMap
+      val accessExpression = accessValues.map(tagExpressionMap).distinct.mkString(" OR ")
+      val allProjectDocs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("project_id" -> optProjectOid.get))
+      val logMessage = s"""#Assignments: ${assignments.length}, Access-Values: ${accessValues.mkString(",")}, """ +
+        s"""Expr-Map: $tagExpressionMap, Access-Expression: $accessExpression"""
+      BWLogger.log(getClass.getName, "usersDocumentList", logMessage, request)
+      val stringBuffer = new StringBuffer("Documents processed: ")
+      val accessibleDocs = allProjectDocs.filter(doc => {
+        val docTags: Seq[String] = doc.labels[Many[String]]
+        val accessible = TagLogicProcessor.evaluateTagLogic(accessExpression, docTags.toSet)
+        stringBuffer.append(s"""[${doc.name[String]}: ${docTags.mkString(", ")} => $accessible], """)
+        accessible
+      })
+      BWLogger.log(getClass.getName, "usersDocumentList", stringBuffer.toString, request)
+      accessibleDocs
+    } else {
+      BWLogger.log(getClass.getName, "usersDocumentList", "User has NO access", request)
+      Nil
+    }
+  }
+
   def documentList(request: HttpServletRequest): Seq[DynDoc] = {
     val user: DynDoc = getUser(request)
     val isPrabhasAdmin = PersonApi.fullName(user) == "Prabhas Admin"
@@ -96,16 +136,13 @@ object DocumentApi extends HttpUtils {
 //      case Array(None, None, None, Some(phaseId), _) =>
 //        BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId), "process_id" -> Map("$exists" -> false),
 //          "activity_id" -> Map("$exists" -> false)))
-      case Array(_, _, _, Some(phaseId), _) =>
-        if (isPrabhasAdmin)
-          BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId)))
-        else
-          BWMongoDB3.document_master.find(Map($and -> Seq(Map("phase_id" -> oid(phaseId)), privateDocumentIndicator)))
-      case Array(_, _, _, None, Some(projectId)) =>
-        if (isPrabhasAdmin)
-          BWMongoDB3.document_master.find(Map("project_id" -> oid(projectId)))
-        else
-          BWMongoDB3.document_master.find(Map($and -> Seq(Map("project_id" -> oid(projectId)), privateDocumentIndicator)))
+//      case Array(_, _, _, Some(phaseId), _) =>
+//        if (isPrabhasAdmin)
+//          BWMongoDB3.document_master.find(Map("phase_id" -> oid(phaseId)))
+//        else
+//          BWMongoDB3.document_master.find(Map($and -> Seq(Map("phase_id" -> oid(phaseId)), privateDocumentIndicator)))
+      case Array(_, _, _, _, Some(projectId)) =>
+        usersDocumentList(user, Some(projectId).map(id => new ObjectId(id)), request)
       case _ => Seq.empty[DynDoc]
     }
     allDocuments.filter(_.has("name"))

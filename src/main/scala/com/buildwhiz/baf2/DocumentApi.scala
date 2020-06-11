@@ -73,7 +73,7 @@ object DocumentApi extends HttpUtils {
     newDocumentRecord.getObjectId("_id")
   }
 
-  def documentsByProjectId(request: HttpServletRequest): Seq[DynDoc] = {
+  def documentList(request: HttpServletRequest): Seq[DynDoc] = {
     val user: DynDoc = getUser(request)
     val isPrabhasAdmin = PersonApi.fullName(user) == "Prabhas Admin"
     val parameters = getParameterMap(request)

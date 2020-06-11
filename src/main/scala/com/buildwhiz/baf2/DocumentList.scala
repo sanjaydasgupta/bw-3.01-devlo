@@ -25,7 +25,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def getDocuments(user: DynDoc, request: HttpServletRequest): Seq[Document] = {
     val docOid2labels: Map[ObjectId, Seq[String]] = DocumentApi.docOid2UserTags(user)
-    val docRecords: Seq[DynDoc] = DocumentApi.documentsByProjectId(request)
+    val docRecords: Seq[DynDoc] = DocumentApi.documentList(request)
     val docProperties: Seq[Document] = docRecords.map(d => {
       val versions: Seq[DynDoc] = DocumentApi.versions(d)
       val systemLabels = DocumentApi.getSystemTags(d)

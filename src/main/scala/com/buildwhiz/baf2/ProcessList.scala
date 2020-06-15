@@ -12,6 +12,15 @@ import scala.collection.JavaConverters._
 
 class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
 
+  private def basicProperties(process: DynDoc, user: DynDoc): Document = {
+    val canManage = ProcessApi.canManage(user._id[ObjectId], process)
+    val canGetConfig = canManage || PersonApi.isBuildWhizAdmin(Right(user))
+    val canSetConfig = canGetConfig && process.status[String] == "defined"
+    new Document("_id", process._id[ObjectId].toString).append("name", process.name[String]).
+      append("status", process.status[String]).append("bpmn_name", process.bpmn_name[String]).
+      append("can_get_config", canGetConfig).append("can_set_config", canSetConfig)
+  }
+
   def process2document(process: DynDoc, user: DynDoc): Document = {
     val adminPersonOid = process.admin_person_id[ObjectId]
     val adminPerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> adminPersonOid)).head
@@ -33,10 +42,8 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
     val canLaunch = allActivitiesAssigned && PhaseApi.canManage(user._id[ObjectId], parentPhase) &&
       process.status[String] == "defined"
     val phaseId = process.phase_id[ObjectId].toString
-    new Document("_id", process._id[ObjectId].toString).append("name", process.name[String]).
-      append("status", process.status[String]).append("display_status", ProcessApi.displayStatus(process)).
-      append("start_time", startTime).append("end_time", endTime).
-      append("admin_person_id", adminPersonOid.toString).append("bpmn_name", process.bpmn_name[String]).
+    basicProperties(process, user).append("display_status", ProcessApi.displayStatus(process)).
+      append("start_time", startTime).append("end_time", endTime).append("admin_person_id", adminPersonOid.toString).
       append("manager", adminName).append("can_launch", canLaunch).append("phase_id", phaseId)
   }
 
@@ -54,12 +61,11 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
       "running"
     val sortedSubBpmns: Many[Document] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] != "").
         sortBy(_.name[String]).map(_.asDoc).asJava
-    Map("_id" -> process._id[ObjectId].toString, "name" -> process.name[String], "status" -> process.status[String],
-      "can_launch" -> ProcessApi.canLaunch(process, phase, person), "sub_bpmns" -> sortedSubBpmns,
-      "display_status" -> displayStatus, "is_managed" -> ProcessApi.isManager(personOid, process),
-      "healthy" -> ProcessApi.isHealthy(process), "is_relevant" -> ProcessApi.hasRole(personOid, process),
-      "docsUrl" -> s"docs?process_id=${process._id[ObjectId]}", "bpmn_name" -> process.bpmn_name[String]
-    )
+    basicProperties(process, person).append("can_launch", ProcessApi.canLaunch(process, phase, person)).
+      append("sub_bpmns", sortedSubBpmns).append("display_status", displayStatus).
+      append("is_managed", ProcessApi.isManager(personOid, process)).append("healthy", ProcessApi.isHealthy(process)).
+      append("is_relevant", ProcessApi.hasRole(personOid, process)).
+      append("docsUrl", s"docs?process_id=${process._id[ObjectId]}")
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

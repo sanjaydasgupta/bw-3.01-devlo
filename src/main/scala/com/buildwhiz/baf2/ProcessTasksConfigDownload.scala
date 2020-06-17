@@ -6,7 +6,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.apache.poi.ss.usermodel.{HorizontalAlignment, VerticalAlignment}
-import org.apache.poi.xssf.usermodel.{XSSFSheet, XSSFWorkbook}
+import org.apache.poi.xssf.usermodel.{XSSFColor, XSSFSheet, XSSFWorkbook}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -22,12 +22,15 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
     cellStyle.setFont(cellFont)
     cellStyle.setLocked(true)
     cellStyle.setVerticalAlignment(VerticalAlignment.CENTER)
+    cellStyle.setWrapText(true)
+    cellStyle.setFillBackgroundColor(new XSSFColor(java.awt.Color.cyan))
     val headerRow = taskSheet.createRow(0)
     headerRow.setRowStyle(cellStyle)
     val rowHeight = if (headerInfo.exists(_._1.contains("\n"))) 36 else 18
     headerRow.setHeightInPoints(rowHeight)
     for (hdrInfo <- headerInfo.zipWithIndex) {
       val cell = headerRow.createCell(hdrInfo._2)
+      cell.setCellStyle(cellStyle)
       cell.setCellValue(hdrInfo._1._1)
       cell.getSheet.setColumnWidth(hdrInfo._2, hdrInfo._1._2 * 125)
     }
@@ -40,6 +43,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       row.createCell(1).setCellValue("--")
       row.createCell(2).setCellValue("--")
       row.createCell(3).setCellValue("--")
+      row.createCell(4).setCellValue("--")
     }
     def addDeliverableRow(taskSheet: XSSFSheet, deliverables: Seq[DynDoc]): Unit = {
       for (deliverable <- deliverables) {
@@ -48,24 +52,28 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         row.createCell(1).setCellValue(deliverable.name[String])
         row.createCell(2).setCellValue(deliverable.`type`[String])
         row.createCell(3).setCellValue(deliverable.constraints[Many[String]].mkString(", "))
+        row.createCell(4).setCellValue(deliverable.operation[String])
       }
     }
     val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
       "bpmn_name" -> bpmnName))
-    val taskSheet = workbook.createSheet(s"$bpmnName=${process._id[ObjectId]}")
-    val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Type", 20), ("Constraints", 60))
+    val taskSheet = workbook.createSheet(process._id[ObjectId].toString)
+    val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Type", 20), ("Constraints", 60), ("Operation", 20))
     makeHeaderRow(taskSheet, headerInfo)
     for (activity <- activities) {
       addTaskRow(taskSheet, activity.name[String])
       if (activity.has("deliverables")) {
-        addDeliverableRow(taskSheet, activity.deliverables[Many[Document]])
+        val deliverables = activity.deliverables[Many[Document]]
+        deliverables.foreach(deliverable => deliverable.operation = "delete")
+        addDeliverableRow(taskSheet, deliverables)
       } else {
-        val constraints: Many[String] = Seq("sample-task?:deliverable?", "sample-bpmn?:task?:deliverable?",
-          "sample-task?:deliverable?", "sample-bpmn?:task?:deliverable?").asJava
+        val constraints: Many[String] = Seq("task:deliverable", "bpmn:task:deliverable", "task:deliverable",
+          "bpmn:task:deliverable").asJava
+        val types = Seq("Labor", "Material", "Equipment", "Work")
         val testDeliverables: Many[Document] = (1 to 4).
-            map(n => new Document("name", s"sample-deliverable#$n").append("type", s"sample-type-$n").
-                append("constraints", constraints)).asJava
+            map(n => new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)).
+                append("constraints", constraints).append("operation", "add")).asJava
         activity.deliverables = testDeliverables
         addDeliverableRow(taskSheet, activity.deliverables[Many[Document]])
       }

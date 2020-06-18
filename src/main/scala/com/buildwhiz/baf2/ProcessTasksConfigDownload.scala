@@ -40,26 +40,37 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
     def addTaskRow(taskSheet: XSSFSheet, taskName: String): Unit = {
       val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
       row.createCell(0).setCellValue(taskName)
-      row.createCell(1).setCellValue("--")
-      row.createCell(2).setCellValue("--")
-      row.createCell(3).setCellValue("--")
-      row.createCell(4).setCellValue("--")
+      row.createCell(1).setCellValue("--") // deliverable
+      row.createCell(2).setCellValue("--") // type
+      row.createCell(3).setCellValue("--") // time-offset
+      row.createCell(4).setCellValue("--") // duration
+      row.createCell(5).setCellValue("--") // constraint
     }
     def addDeliverableRow(taskSheet: XSSFSheet, deliverables: Seq[DynDoc]): Unit = {
       for (deliverable <- deliverables) {
         val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
         row.createCell(0).setCellValue("--")
         row.createCell(1).setCellValue(deliverable.name[String])
-        row.createCell(2).setCellValue(deliverable.`type`[String])
-        row.createCell(3).setCellValue(deliverable.constraints[Many[String]].mkString(", "))
-        row.createCell(4).setCellValue(deliverable.operation[String])
+        val deliverableType = deliverable.`type`[String]
+        row.createCell(2).setCellValue(deliverableType)
+        row.createCell(3).setCellValue(deliverable.offset[Int])
+        row.createCell(4).setCellValue(deliverable.duration[Int])
+        row.createCell(5).setCellValue(deliverable.constraints[Many[String]].mkString(", "))
       }
+    }
+    def createDummyDeliverable(n: Int): Document = {
+      val types = Seq(("Labor", 20, 5), ("Material", 10, 0), ("Equipment", 5, 10), ("Work", 30, 0))
+      val constraints: Many[String] = Seq("task:deliverable", "bpmn:task:deliverable", "task:deliverable",
+        "bpmn:task:deliverable").asJava
+      new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)._1).append("offset", types(n - 1)._2).
+        append("duration", types(n - 1)._3).append("constraints", constraints)
     }
     val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
       "bpmn_name" -> bpmnName))
     val taskSheet = workbook.createSheet(process._id[ObjectId].toString)
-    val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Type", 20), ("Constraints", 60), ("Operation", 20))
+    val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Type", 20), ("Offset", 20), ("Duration", 20),
+      ("Constraints", 120))
     makeHeaderRow(taskSheet, headerInfo)
     for (activity <- activities) {
       addTaskRow(taskSheet, activity.name[String])
@@ -68,12 +79,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         deliverables.foreach(deliverable => deliverable.operation = "delete")
         addDeliverableRow(taskSheet, deliverables)
       } else {
-        val constraints: Many[String] = Seq("task:deliverable", "bpmn:task:deliverable", "task:deliverable",
-          "bpmn:task:deliverable").asJava
-        val types = Seq("Labor", "Material", "Equipment", "Work")
-        val testDeliverables: Many[Document] = (1 to 4).
-            map(n => new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)).
-                append("constraints", constraints).append("operation", "add")).asJava
+        val testDeliverables: Many[Document] = (1 to 4).map(createDummyDeliverable).asJava
         activity.deliverables = testDeliverables
         addDeliverableRow(taskSheet, activity.deliverables[Many[Document]])
       }

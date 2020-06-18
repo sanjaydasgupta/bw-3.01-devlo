@@ -9,12 +9,11 @@ import org.bson.types.ObjectId
 
 class ProjectRoleCandidatesFetch extends HttpServlet with HttpUtils {
 
-  private def getRoleCandidates(projectOid: ObjectId, roleName: String): Seq[DynDoc] = {
-    val activities = ProjectApi.allActivities(projectOid)
-    val assignments = activities.flatMap(activity => ActivityApi.teamAssignment.list(activity._id[ObjectId]))
-    val personOids = assignments.filter(_.has("person_id")).map(_.person_id[ObjectId])
-    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids),
-        "roles" -> Map($regex -> s".*$roleName.*")))
+  private def getRoleCandidates(projectOid: ObjectId): Seq[DynDoc] = {
+    val assignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.
+        find(Map("project_id" -> projectOid, "person_id" -> Map($exists -> true)))
+    val personOids = assignments.map(_.person_id[ObjectId])
+    val candidates: Seq[DynDoc] = BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids)))
     val result: Seq[DynDoc] = candidates.map(candidate => {
       val name = PersonApi.fullName(candidate)
       Map("person_id" -> candidate._id[ObjectId].toString, "name" -> name)
@@ -29,8 +28,8 @@ class ProjectRoleCandidatesFetch extends HttpServlet with HttpUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       if (!ProjectApi.exists(projectOid))
         throw new IllegalArgumentException(s"Bad project_id: '$projectOid'")
-      val roleName = parameters("role_name")
-      val candidates: Seq[DynDoc] = getRoleCandidates(projectOid, roleName)
+      //val roleName = parameters("role_name")
+      val candidates: Seq[DynDoc] = getRoleCandidates(projectOid)
       response.getWriter.println(candidates.map(d => d.asDoc.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

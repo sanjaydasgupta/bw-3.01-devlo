@@ -72,21 +72,31 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     }
   }
 
-  private def processTasksConfig(request: HttpServletRequest, response: HttpServletResponse, taskSheet: Sheet,
-      bpmnName: String): String = {
-    BWLogger.log(getClass.getName, "processTasksConfig", "ENTRY", request)
+  private def processTasksConfig(taskSheet: Sheet, processOid: ObjectId, bpmnName: String): Unit = {
     val configInfoIterator: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = configInfoIterator.take(1).next()
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
     if (taskHeaderCellCount != 7)
       throw new IllegalArgumentException(s"Bad header - expected 7 cells, found $taskHeaderCellCount")
     val taskConfigurations: Seq[Task] = configInfoIterator.toSeq.foldLeft(Seq.empty[Task])(consumeOneConfigRow)
-    s"${taskSheet.getPhysicalNumberOfRows -1} task(s)"
+    val tasksWithoutDeliverables = taskConfigurations.filter(_.deliverables.isEmpty)
+    if (tasksWithoutDeliverables.nonEmpty) {
+      val badTaskNames = tasksWithoutDeliverables.map(_.name).mkString(", ")
+      throw new IllegalArgumentException(s"Found tasks without deliverables: $badTaskNames")
+    }
+    val activities = ProcessApi.allActivities(processOid)
+    if (activities.length != taskConfigurations.length)
+      throw new IllegalArgumentException(s"Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
+    val expectedTaskNames = activities.map(_.name[String].replaceAll("[\\s-]+", "")).toSet
+    val unexpectedTaskNames = taskConfigurations.filterNot(tc => expectedTaskNames.contains(tc.name)).map(_.name)
+    if (unexpectedTaskNames.nonEmpty) {
+      throw new IllegalArgumentException(s"""Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
+    }
   }
 
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
       val process: DynDoc = ProcessApi.processById(processOid)
@@ -104,14 +114,12 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
       val theSheet: Sheet = workbook.sheetIterator.next()
       if (theSheet.getSheetName != processOid.toString)
         throw new IllegalArgumentException(s"Mismatched process_id ($processOid != ${theSheet.getSheetName})")
-      val msg = processTasksConfig(request, response, theSheet, bpmnName)
-      BWLogger.audit(getClass.getName, "doPost", s"Uploaded process configuration Excel ($msg)", request)
-      response.getWriter.print(s"""{"nbrOfSheets": "$nbrOfSheets", "items": "$msg"}""")
-      response.setContentType("application/json")
+      processTasksConfig(theSheet, processOid, bpmnName)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Uploaded process $processOid configuration Excel", request)
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

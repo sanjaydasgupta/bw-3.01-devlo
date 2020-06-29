@@ -61,15 +61,22 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       row.cellIterator().forEachRemaining(_.setCellStyle(cellStyle))
     }
 
-    def addDeliverableRow(taskSheet: XSSFSheet, deliverables: Seq[DynDoc]): Unit = {
+    def addDeliverableRows(taskSheet: XSSFSheet, deliverables: Seq[DynDoc]): Unit = {
 
-      def addConstraintRow(offset: String, duration: String): Unit = {
+      def addConstraintRow(optBpmn: Option[String], optTask: Option[String], deliverable: String, offset: Float,
+          duration: Float): Unit = {
         val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
         row.createCell(0).setCellValue("--") // task
         row.createCell(1).setCellValue("--") // deliverable
         row.createCell(2).setCellValue("--") // type
         row.createCell(3).setCellValue("--") // duration
-        row.createCell(4).setCellValue("bpmn:task:deliverable") // constraint
+        val constraintString = (optBpmn, optTask, deliverable) match {
+          case(Some(bpmn), Some(task), deliverable) => s"$bpmn:$task:$deliverable"
+          case(None, Some(task), deliverable) => s"$task:$deliverable"
+          case(None, None, deliverable) => deliverable
+          case _ => throw new IllegalArgumentException(s"Internal consistency erroe")
+        }
+        row.createCell(4).setCellValue(constraintString) // constraint
         row.createCell(5).setCellValue(offset) // offset
         row.createCell(6).setCellValue(duration) // duration
         val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_CORNFLOWER_BLUE.index)
@@ -83,18 +90,30 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         row.createCell(1).setCellValue(deliverable.name[String])
         val deliverableType = deliverable.`type`[String]
         row.createCell(2).setCellValue(deliverableType)
-        row.createCell(3).setCellValue(deliverable.duration[Int])
+        row.createCell(3).setCellValue(deliverable.duration[Float])
         row.createCell(4).setCellValue("--") // constraint
         row.createCell(5).setCellValue("--") // offset
         row.createCell(6).setCellValue("--") // duration
         row.cellIterator().forEachRemaining(_.setCellStyle(deliverableCellStyle))
-        addConstraintRow("10", "5")
+        val constraints: Seq[DynDoc] = deliverable.constraints[Many[Document]]
+        for (constraint <- constraints) {
+          addConstraintRow(constraint.get[String]("bpmn"), constraint.get[String]("task"),
+              constraint.deliverable[String], constraint.offset[Float], constraint.duration[Float])
+        }
       }
     }
 
     def createDummyDeliverable(n: Int): Document = {
-      val types = Seq(("Labor", 20, 5), ("Material", 10, 0), ("Equipment", 5, 10), ("Work", 30, 0))
-      new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)._1).append("duration", types(n - 1)._3)
+      val types = Seq(("Labor", 20f, 5f), ("Material", 10f, 0f), ("Equipment", 5f, 10f), ("Work", 30f, 0f))
+      val constraint = n % 3 match {
+        case 0 => new Document("bpmn", "bpmn").append("task", "task").append("deliverable", "deliverable").
+            append("offset", 0f).append("duration", 10f)
+        case 1 => new Document("task", "task").append("deliverable", "deliverable").
+            append("offset", 5f).append("duration", 5f)
+        case 2 => new Document("deliverable", "deliverable").append("offset", 10f).append("duration", 0f)
+      }
+      new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)._1).
+          append("duration", types(n - 1)._3).append("constraints", Seq(constraint).asJava)
     }
 
     val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
@@ -109,11 +128,11 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       if (activity.has("deliverables")) {
         val deliverables = activity.deliverables[Many[Document]]
         deliverables.foreach(deliverable => deliverable.operation = "delete")
-        addDeliverableRow(taskSheet, deliverables)
+        addDeliverableRows(taskSheet, deliverables)
       } else {
         val testDeliverables: Many[Document] = (1 to 4).map(createDummyDeliverable).asJava
         activity.deliverables = testDeliverables
-        addDeliverableRow(taskSheet, activity.deliverables[Many[Document]])
+        addDeliverableRows(taskSheet, activity.deliverables[Many[Document]])
       }
     }
     taskSheet.getLastRowNum + 1

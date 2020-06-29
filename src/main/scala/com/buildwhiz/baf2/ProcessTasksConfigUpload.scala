@@ -11,15 +11,42 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
 
 class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils {
 
-  case class Constraint(bpmn: Option[String], task: Option[String], deliverable: String, offset: Float, duration: Float)
-  case class Deliverable(name: String, `type`: String, duration: Float, constraints: Seq[Constraint])
-  case class Task(name: String, deliverables: Seq[Deliverable])
+  private def storeTaskConfigurations(taskConfigurations: Seq[DynDoc], processOid: ObjectId): Unit = {
+  }
 
-  private def useOneConfigRow(configTasks: Seq[Task], configRow:Row): Seq[Task] = {
+  private def validateTaskConfigurations(taskConfigurations: Seq[DynDoc], processOid: ObjectId): Unit = {
+    val tasksWithoutDeliverables = taskConfigurations.filter(_.deliverables[Seq[DynDoc]].isEmpty)
+    if (tasksWithoutDeliverables.nonEmpty) {
+      val namesOfTasksWithoutDeliverables = tasksWithoutDeliverables.map(_.name[String]).mkString(", ")
+      throw new IllegalArgumentException(s"Found tasks without deliverables: $namesOfTasksWithoutDeliverables")
+    }
+    val providedTaskNames: Seq[String] = taskConfigurations.map(_.name[String])
+    val providedTaskNameCounts: Map[String, Int] =
+      providedTaskNames.foldLeft(Map.empty[String, Int])((counts, name) => {
+        val newCount = if (counts.contains(name))
+          counts.map(pair => if (pair._1 == name) (name, pair._2 + 1) else pair)
+        else
+          Map(name -> 1) ++ counts
+        newCount
+      })
+    val duplicatedTaskNames = providedTaskNameCounts.filter(_._2 > 1).keys
+    if (duplicatedTaskNames.nonEmpty) {
+      throw new IllegalArgumentException(s"""Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
+    }
+    val activities = ProcessApi.allActivities(processOid)
+    if (activities.length != taskConfigurations.length)
+      throw new IllegalArgumentException(s"Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
+    val expectedTaskNames = activities.map(_.name[String]).toSet
+    val unexpectedTaskNames = taskConfigurations.map(_.name[String]).filterNot(expectedTaskNames.contains)
+    if (unexpectedTaskNames.nonEmpty) {
+      throw new IllegalArgumentException(s"""Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
+    }
+  }
+
+  private def useOneConfigRow(configTasks: Seq[DynDoc], configRow:Row): Seq[DynDoc] = {
     val rowNumber = configRow.getRowNum + 1
     def getCellValue(cell: Cell): String = {
       cell.getCellType match {
@@ -30,13 +57,13 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
       }
     }
     val cellValues: Seq[Option[String]] = configRow.asScala.toSeq.map(getCellValue).
-        map(s => if (s.replaceAll("[\\s-]+", "").isEmpty) None else Some(s))
+      map(s => if (s.replaceAll("[\\s-]+", "").isEmpty) None else Some(s))
     if (cellValues.length != 7)
       throw new IllegalArgumentException(s"Bad row - expected 7 cells, found ${cellValues.length} in row $rowNumber")
     cellValues match {
       // Task row
       case Seq(Some(taskName), None, None, None, None, None, None) =>
-        val newTask = Task(taskName, Seq.empty[Deliverable])
+        val newTask: DynDoc = new Document("name", taskName).append("deliverables", Seq.empty[DynDoc])
         newTask +: configTasks
       // Deliverable row
       case Seq(None, Some(deliverableName), Some(deliverableType), Some(duration), None, None, None) =>
@@ -44,70 +71,49 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
           throw new IllegalArgumentException(s"Bad deliverable type, found '$deliverableType' in row $rowNumber")
         if (!duration.matches("[0-9.]+"))
           throw new IllegalArgumentException(s"Bad duration value, found '$duration' in row $rowNumber")
-        val newDeliverable = Deliverable(deliverableName, deliverableType.toLowerCase, duration.toFloat,
-            Seq.empty[Constraint])
+        val newDeliverable: DynDoc = new Document("name", deliverableName).append("type", deliverableType.toLowerCase).
+            append("duration", duration.toFloat).append("constraints", Seq.empty[DynDoc])
         val currentTask = configTasks.head
-        val existingDeliverableNames = currentTask.deliverables.map(_.name)
+        val currentDeliverables = currentTask.deliverables[Seq[DynDoc]]
+        val existingDeliverableNames = currentDeliverables.map(_.name[String])
         if (existingDeliverableNames.contains(deliverableName))
           throw new IllegalArgumentException(s"Duplicate deliverable name, found '$deliverableName' in row $rowNumber")
-        val updatedTask = currentTask.copy(deliverables = newDeliverable +: currentTask.deliverables)
-        updatedTask +: configTasks.tail
+        currentTask.deliverables = newDeliverable +: currentDeliverables
+        configTasks
       // Constraint row
       case Seq(None, None, None, None, Some(constraintSpec), Some(offset), Some(duration)) =>
         if (!offset.matches("[0-9.]+"))
           throw new IllegalArgumentException(s"Bad offset value, found '$offset' in row $rowNumber")
         if (!duration.matches("[0-9.]+"))
           throw new IllegalArgumentException(s"Bad duration value, found '$duration' in row $rowNumber")
-        val newConstraint = constraintSpec.split(":").toSeq.map(_.trim) match {
-          case Seq(bpmn, task, deliverable) => Constraint(Some(bpmn), Some(task), deliverable, offset.toFloat, duration.toFloat)
-          case Seq(task, deliverable) => Constraint(None, Some(task), deliverable, offset.toFloat, duration.toFloat)
-          case Seq(deliverable) => Constraint(None, None, deliverable, offset.toFloat, duration.toFloat)
+        val newConstraint: DynDoc = constraintSpec.split(":").toSeq.map(_.trim) match {
+          case Seq(bpmn, task, deliverable) => new Document("bpmn", bpmn).append("task", task).
+              append("deliverable", deliverable).append("offset", offset.toFloat).append("duration", duration.toFloat)
+          case Seq(task, deliverable) => new Document("task", task).append("deliverable", deliverable).
+              append("offset", offset.toFloat).append("duration", duration.toFloat)
+          case Seq(deliverable) => new Document("deliverable", deliverable).append("offset", offset.toFloat).
+              append("duration", duration.toFloat)
           case _ => throw new IllegalArgumentException(s"Bad constraint, found '$constraintSpec' in row $rowNumber")
         }
         val currentTask = configTasks.head
-        val currentDeliverable = currentTask.deliverables.head
-        val updatedDeliverable = currentDeliverable.copy(constraints = newConstraint +: currentDeliverable.constraints)
-        val updatedTask = currentTask.copy(deliverables = updatedDeliverable +: currentTask.deliverables.tail)
-        updatedTask +: configTasks.tail
+        val currentDeliverable: DynDoc = currentTask.deliverables[Seq[DynDoc]].head
+        currentDeliverable.constraints = newConstraint +: currentDeliverable.constraints[Seq[DynDoc]]
+        configTasks
       // ERROR row
       case _ =>
         throw new IllegalArgumentException(s"Bad values in row $rowNumber")
     }
   }
 
-  private def processTasksConfig(taskSheet: Sheet, processOid: ObjectId): Unit = {
+  private def processTasksConfigurations(taskSheet: Sheet, processOid: ObjectId): Seq[DynDoc] = {
     val configInfoIterator: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = configInfoIterator.take(1).next()
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
     if (taskHeaderCellCount != 7)
       throw new IllegalArgumentException(s"Bad header - expected 7 cells, found $taskHeaderCellCount")
-    val taskConfigurations: Seq[Task] = configInfoIterator.toSeq.foldLeft(Seq.empty[Task])(useOneConfigRow)
-    val tasksWithoutDeliverables = taskConfigurations.filter(_.deliverables.isEmpty)
-    if (tasksWithoutDeliverables.nonEmpty) {
-      val namesOfTasksWithoutDeliverables = tasksWithoutDeliverables.map(_.name).mkString(", ")
-      throw new IllegalArgumentException(s"Found tasks without deliverables: $namesOfTasksWithoutDeliverables")
-    }
-    val allProvidedTaskNames = taskConfigurations.map(_.name)
-    val taskNameCounts: Map[String, Int] =
-      allProvidedTaskNames.foldLeft(Map.empty[String, Int])((counts, name) => {
-        val newCount: Map[String, Int] = if (counts.contains(name))
-          counts.map(pair => if (pair._1 == name) (name, pair._2 + 1) else pair)
-        else
-          Map(name -> 1) ++ counts
-        newCount
-      })
-    val duplicatedTaskNames = taskNameCounts.filter(_._2 > 1).keys
-    if (duplicatedTaskNames.nonEmpty) {
-      throw new IllegalArgumentException(s"""Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
-    }
-    val activities = ProcessApi.allActivities(processOid)
-    if (activities.length != taskConfigurations.length)
-      throw new IllegalArgumentException(s"Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
-    val expectedTaskNames = activities.map(_.name[String]).toSet
-    val unexpectedTaskNames = taskConfigurations.filterNot(tc => expectedTaskNames.contains(tc.name)).map(_.name)
-    if (unexpectedTaskNames.nonEmpty) {
-      throw new IllegalArgumentException(s"""Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
-    }
+    val taskConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.foldLeft(Seq.empty[DynDoc])(useOneConfigRow)
+    validateTaskConfigurations(taskConfigurations, processOid)
+    taskConfigurations
   }
 
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -130,7 +136,8 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
       val theSheet: Sheet = workbook.sheetIterator.next()
       if (theSheet.getSheetName != processOid.toString)
         throw new IllegalArgumentException(s"Mismatched process_id ($processOid != ${theSheet.getSheetName})")
-      processTasksConfig(theSheet, processOid)
+      val taskConfigurations = processTasksConfigurations(theSheet, processOid)
+      storeTaskConfigurations(taskConfigurations, processOid)
       BWLogger.audit(getClass.getName, request.getMethod, s"Uploaded process $processOid configuration Excel", request)
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {

@@ -1,8 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.apache.poi.ss.usermodel.{BorderStyle, FillPatternType, HorizontalAlignment, IndexedColors, VerticalAlignment}
@@ -103,7 +102,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       }
     }
 
-    def createDummyDeliverable(n: Int): Document = {
+    def createDummyDeliverable(taskName: String, n: Int): Document = {
       val types = Seq(("Labor", 20d, 5d), ("Material", 10d, 0d), ("Equipment", 5d, 10d), ("Work", 30d, 0d))
       val constraint = n % 3 match {
         case 0 => new Document("bpmn", "bpmn").append("task", "task").append("deliverable", "deliverable").
@@ -112,25 +111,24 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
             append("offset", 5d).append("duration", 5d)
         case 2 => new Document("deliverable", "deliverable").append("offset", 10d).append("duration", 0d)
       }
-      new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)._1).
+      new Document("name", s"$taskName:sample-deliverable-$n").append("type", types(n - 1)._1).
           append("duration", types(n - 1)._3).append("constraints", Seq(constraint).asJava)
     }
 
-    val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
-      "bpmn_name" -> bpmnName))
+    val activities: Seq[DynDoc] = ProcessApi.allActivities(process._id[ObjectId])
     val taskSheet = workbook.createSheet(process._id[ObjectId].toString)
     val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Type", 20), ("Duration\n(days)", 20),
       ("Constraint", 60), ("Offset\n(days)", 20), ("Duration\n(days)", 20))
     addHeaderRow(taskSheet, headerInfo)
     for (activity <- activities) {
-      addTaskRow(taskSheet, activity.name[String])
+      val taskName = activity.name[String]
+      addTaskRow(taskSheet, taskName)
       if (activity.has("deliverables")) {
         val deliverables = activity.deliverables[Many[Document]]
         deliverables.foreach(deliverable => deliverable.operation = "delete")
         addDeliverableRows(taskSheet, deliverables)
       } else {
-        val testDeliverables: Many[Document] = (1 to 4).map(createDummyDeliverable).asJava
+        val testDeliverables: Many[Document] = (1 to 4).map(n => createDummyDeliverable(taskName, n)).asJava
         activity.deliverables = testDeliverables
         addDeliverableRows(taskSheet, activity.deliverables[Many[Document]])
       }

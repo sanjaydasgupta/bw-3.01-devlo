@@ -63,8 +63,8 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
 
     def addDeliverableRows(taskSheet: XSSFSheet, deliverables: Seq[DynDoc]): Unit = {
 
-      def addConstraintRow(optBpmn: Option[String], optTask: Option[String], deliverable: String, offset: Float,
-          duration: Float): Unit = {
+      def addConstraintRow(optBpmn: Option[String], optTask: Option[String], deliverable: String, offset: Double,
+          duration: Double): Unit = {
         val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
         row.createCell(0).setCellValue("--") // task
         row.createCell(1).setCellValue("--") // deliverable
@@ -90,7 +90,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         row.createCell(1).setCellValue(deliverable.name[String])
         val deliverableType = deliverable.`type`[String]
         row.createCell(2).setCellValue(deliverableType)
-        row.createCell(3).setCellValue(deliverable.duration[Float])
+        row.createCell(3).setCellValue(deliverable.duration[Double])
         row.createCell(4).setCellValue("--") // constraint
         row.createCell(5).setCellValue("--") // offset
         row.createCell(6).setCellValue("--") // duration
@@ -98,19 +98,19 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         val constraints: Seq[DynDoc] = deliverable.constraints[Many[Document]]
         for (constraint <- constraints) {
           addConstraintRow(constraint.get[String]("bpmn"), constraint.get[String]("task"),
-              constraint.deliverable[String], constraint.offset[Float], constraint.duration[Float])
+              constraint.deliverable[String], constraint.offset[Double], constraint.duration[Double])
         }
       }
     }
 
     def createDummyDeliverable(n: Int): Document = {
-      val types = Seq(("Labor", 20f, 5f), ("Material", 10f, 0f), ("Equipment", 5f, 10f), ("Work", 30f, 0f))
+      val types = Seq(("Labor", 20d, 5d), ("Material", 10d, 0d), ("Equipment", 5d, 10d), ("Work", 30d, 0d))
       val constraint = n % 3 match {
         case 0 => new Document("bpmn", "bpmn").append("task", "task").append("deliverable", "deliverable").
-            append("offset", 0f).append("duration", 10f)
+            append("offset", 0d).append("duration", 10d)
         case 1 => new Document("task", "task").append("deliverable", "deliverable").
-            append("offset", 5f).append("duration", 5f)
-        case 2 => new Document("deliverable", "deliverable").append("offset", 10f).append("duration", 0f)
+            append("offset", 5d).append("duration", 5d)
+        case 2 => new Document("deliverable", "deliverable").append("offset", 10d).append("duration", 0d)
       }
       new Document("name", s"sample-deliverable-$n").append("type", types(n - 1)._1).
           append("duration", types(n - 1)._3).append("constraints", Seq(constraint).asJava)

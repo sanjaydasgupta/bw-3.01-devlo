@@ -14,6 +14,7 @@ class DynDoc(d: Document) extends Dynamic {
   else
     throw new IllegalArgumentException(s"No field named '$fieldName'")
   def updateDynamic[T](fieldName: String)(value: T): AnyRef = d.put(fieldName, value.asInstanceOf[AnyRef])
+  //def asDoc: Document = DynDoc.pairs2document(d.entrySet().asScala.map(e => (e.getKey, e.getValue)).toSeq)
   def asDoc: Document = d
   def has(key: String): Boolean = d.containsKey(key)
   def remove(fieldName: String): Unit = d.remove(fieldName)
@@ -41,32 +42,29 @@ object DynDoc {
     sd.map(new DynDoc(_))
   }
 
-  implicit def mapToDocument(inMap: Map[String, Any]): Document = {
-
-    def seq2javaList(seq: Seq[_]): java.util.List[_] = seq.map({
-      case m: Map[String, Any] @unchecked => mapToDocument(m)
-      case s: Seq[_] => seq2javaList(s)
-      case dd: DynDoc => dd.asDoc
-      case Nil => Nil.asJava
-      case other => other
-    }).asJava
-
-    @tailrec
-    def pairs2document(seq: Seq[(String, Any)], document: Document = new Document()): Document = seq match {
-      case Nil => document
-      case head +: tail =>
-        document.append(head._1, head._2 match {
-          case m: Map[String, Any] @unchecked => mapToDocument(m)
-          case seq: Seq[_] => seq2javaList(seq)
-          case dd: DynDoc => dd.asDoc
-          case Nil => Nil.asJava
-          case other => other
-        })
-        pairs2document(tail, document)
-    }
-
-    pairs2document(inMap.toSeq)
+  //@tailrec
+  def pairs2document(seq: Seq[(String, Any)], document: Document = new Document()): Document = seq match {
+    case Nil => document
+    case head +: tail =>
+      document.append(head._1, head._2 match {
+        case m: Map[String, Any] @unchecked => mapToDocument(m)
+        case seq: Seq[_] => seq2javaList(seq)
+        case dd: DynDoc => pairs2document(dd.asDoc.entrySet().asScala.map(e => (e.getKey, e.getValue)).toSeq)
+        case Nil => Nil.asJava
+        case other => other
+      })
+      pairs2document(tail, document)
   }
+
+  def seq2javaList(seq: Seq[_]): java.util.List[_] = seq.map({
+    case m: Map[String, Any] @unchecked => mapToDocument(m)
+    case s: Seq[_] => seq2javaList(s)
+    case dd: DynDoc => pairs2document(dd.asDoc.entrySet().asScala.map(e => (e.getKey, e.getValue)).toSeq)
+    case Nil => Nil.asJava
+    case other => other
+  }).asJava
+
+  implicit def mapToDocument(inMap: Map[String, Any]): Document = pairs2document(inMap.toSeq)
 
   implicit def mapToDynDoc(map: Map[String, Any]): DynDoc = new DynDoc(mapToDocument(map))
 

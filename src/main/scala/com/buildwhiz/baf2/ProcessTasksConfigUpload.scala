@@ -121,7 +121,16 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
     if (taskHeaderCellCount != 7)
       throw new IllegalArgumentException(s"Bad header - expected 7 cells, found $taskHeaderCellCount")
-    val taskConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.foldLeft(Seq.empty[DynDoc])(useOneConfigRow)
+    val reversedTaskConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.foldLeft(Seq.empty[DynDoc])(useOneConfigRow)
+    val taskConfigurations = reversedTaskConfigurations.reverse
+    for (config <- taskConfigurations) {
+      val deliverables = config.deliverables[Seq[DynDoc]]
+      for (deliverable <- deliverables) {
+        val constraints = deliverable.constraints[Seq[DynDoc]]
+        deliverable.constraints = constraints.reverse
+      }
+      config.deliverables = deliverables.reverse
+    }
     validateTaskConfigurations(taskConfigurations, processOid)
     taskConfigurations
   }

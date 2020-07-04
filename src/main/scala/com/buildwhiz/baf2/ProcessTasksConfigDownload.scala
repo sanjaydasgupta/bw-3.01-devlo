@@ -34,7 +34,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       val cell = headerRow.createCell(hdrInfo._2)
       cell.setCellValue(hdrInfo._1._1)
       cell.getSheet.setColumnWidth(hdrInfo._2, hdrInfo._1._2 * 125)
-      val cellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.CORAL.index)
+      val cellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.GREY_25_PERCENT.index)
       val cellFont = cellStyle.getFont
       cellFont.setBold(true)
       cellStyle.setFont(cellFont)
@@ -44,7 +44,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
     }
   }
 
-  private def addTasksConfigSheet(workbook: XSSFWorkbook, process: DynDoc, bpmnName: String): Int = {
+  private def addTasksConfigSheet(workbook: XSSFWorkbook, process: DynDoc): Int = {
 
     def addTaskRow(taskSheet: XSSFSheet, taskName: String): Unit = {
       val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
@@ -78,11 +78,13 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         row.createCell(4).setCellValue(constraintString) // constraint
         row.createCell(5).setCellValue(offset) // offset
         row.createCell(6).setCellValue(duration) // duration
-        val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_CORNFLOWER_BLUE.index)
+        //val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_CORNFLOWER_BLUE.index)
+        val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_BLUE.index)
         row.cellIterator().forEachRemaining(_.setCellStyle(constraintCellStyle))
       }
 
-      val deliverableCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.SKY_BLUE.index)
+      //val deliverableCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.CORNFLOWER_BLUE.index)
+      val deliverableCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.PALE_BLUE.index)
       for (deliverable <- deliverables) {
         val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
         row.createCell(0).setCellValue("--")
@@ -141,10 +143,10 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
-      val bpmnName = parameters("bpmn_name")
+      //val bpmnName = parameters("bpmn_name")
       val workbook = new XSSFWorkbook()
       val process: DynDoc = ProcessApi.processById(processOid)
-      val taskNbr = addTasksConfigSheet(workbook, process, bpmnName)
+      val taskNbr = addTasksConfigSheet(workbook, process)
       workbook.write(response.getOutputStream)
       response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       response.setStatus(HttpServletResponse.SC_OK)

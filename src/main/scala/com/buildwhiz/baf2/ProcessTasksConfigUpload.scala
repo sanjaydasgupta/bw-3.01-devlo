@@ -30,9 +30,10 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
       errorList: mutable.Buffer[String]): Unit = {
     val tasksWithoutDeliverables = taskConfigurations.filter(_.deliverables[Seq[DynDoc]].isEmpty)
     if (tasksWithoutDeliverables.nonEmpty) {
-      val namesOfTasksWithoutDeliverables = tasksWithoutDeliverables.map(_.name[String]).mkString(", ")
+      val taskNames = tasksWithoutDeliverables.map(_.name[String]).mkString(", ")
+      val taskRows = tasksWithoutDeliverables.map(_.row[Int]).mkString(", ")
       //throw new IllegalArgumentException(s"Found tasks without deliverables: $namesOfTasksWithoutDeliverables")
-      errorList.append(s"ERROR: Found tasks without deliverables: $namesOfTasksWithoutDeliverables")
+      errorList.append(s"ERROR: Found tasks without deliverables: $taskNames in rows $taskRows")
     }
     val providedTaskNames: Seq[String] = taskConfigurations.map(_.name[String])
     val providedTaskNameCounts: Map[String, Int] =
@@ -55,18 +56,20 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     }
     val taskNameIdMap: Map[String, ObjectId] =
         activities.map(activity => activity.name[String] -> activity._id[ObjectId]).toMap
-    val unexpectedTaskNames = taskConfigurations.map(_.name[String]).filterNot(taskNameIdMap.containsKey)
-    if (unexpectedTaskNames.nonEmpty) {
+    val tasksWithUnexpectedNames = taskConfigurations.filterNot(t => taskNameIdMap.containsKey(t.name[String]))
+    if (tasksWithUnexpectedNames.nonEmpty) {
+      val taskNames = tasksWithUnexpectedNames.map(_.name[String]).mkString(", ")
+      val taskRows = tasksWithUnexpectedNames.map(_.row[Int]).mkString(", ")
       //throw new IllegalArgumentException(s"""Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
-      errorList.append(s"""ERROR: Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
+      errorList.append(s"ERROR: Found unexpected task names: $taskNames in rows: $taskRows")
     }
     taskConfigurations.foreach(config => config._id = taskNameIdMap.getOrElse(config.name[String], new ObjectId()))
   }
 
-  private def useOneConfigRow(configTasksErrorList: (Seq[DynDoc], mutable.Buffer[String]), configRow:Row):
+  private def useOneConfigRow(configTasksErrorList: (Seq[DynDoc], mutable.Buffer[String]), configRow: Row):
       (Seq[DynDoc], mutable.Buffer[String]) = {
     val (configTasks, errorList) = configTasksErrorList
-    val rowNumber = configRow.getRowNum + 1
+    val rowNumber: Int = configRow.getRowNum + 1
     def getCellValue(cell: Cell): String = {
       cell.getCellType match {
         case CellType.NUMERIC => cell.getNumericCellValue.toString.trim
@@ -82,14 +85,13 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     if (cellValues.length != 7) {
       //throw new IllegalArgumentException(s"Bad row - expected 7 cells, found ${cellValues.length} in row $rowNumber")
       errorList.append(s"ERROR: Bad row - expected 7 cells, found ${cellValues.length} in row $rowNumber")
-      val newTask: DynDoc = new Document("name", s"ERROR (bad cell count in row $rowNumber)!!!").
-          append("deliverables", Seq.empty[DynDoc])
-      (newTask +: configTasks, errorList)
+      (configTasks, errorList)
     } else {
       cellValues match {
         // Task row
         case Seq(Some(taskName), None, None, None, None, None, None) =>
-          val newTask: DynDoc = new Document("name", taskName).append("deliverables", Seq.empty[DynDoc])
+          val newTask: DynDoc = new Document("name", taskName).append("deliverables", Seq.empty[DynDoc]).
+              append("row", rowNumber)
           (newTask +: configTasks, errorList)
         // Deliverable row
         case Seq(None, Some(deliverableName), Some(deliverableType), Some(duration), None, None, None) =>
@@ -105,7 +107,7 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
           if (errorList.length == oldErrorCount) {
             val oldErrorCount = errorList.length
             val newDeliverable: DynDoc = new Document("name", deliverableName).append("type", deliverableType.toLowerCase).
-              append("duration", duration.toDouble).append("constraints", Seq.empty[DynDoc])
+              append("duration", duration.toDouble).append("constraints", Seq.empty[DynDoc]).append("row", rowNumber)
             val currentTask = configTasks.head
             val currentDeliverables = currentTask.deliverables[Seq[DynDoc]]
             val existingDeliverableNames = currentDeliverables.map(_.name[String])
@@ -113,8 +115,9 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
               //throw new IllegalArgumentException(s"Duplicate deliverable name, found '$deliverableName' in row $rowNumber")
               errorList.append(s"ERROR: Duplicate deliverable name, found '$deliverableName' in row $rowNumber")
             }
-            if (errorList.length == oldErrorCount)
+            if (errorList.length == oldErrorCount) {
               currentTask.deliverables = newDeliverable +: currentDeliverables
+            }
             (configTasks, errorList)
           } else {
             (configTasks, errorList)
@@ -134,21 +137,28 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
             val oldErrorCount = errorList.length
             val newConstraint: DynDoc = constraintSpec.split(":").toSeq.map(_.trim) match {
               case Seq(bpmn, task, deliverable) => new Document("bpmn", bpmn).append("task", task).
-                append("deliverable", deliverable).append("offset", offset.toDouble).append("duration", duration.toDouble)
+                append("deliverable", deliverable).append("offset", offset.toDouble).append("duration", duration.toDouble).
+                  append("row", rowNumber)
               case Seq(task, deliverable) => new Document("task", task).append("deliverable", deliverable).
-                append("offset", offset.toDouble).append("duration", duration.toDouble)
+                append("offset", offset.toDouble).append("duration", duration.toDouble).append("row", rowNumber)
               case Seq(deliverable) => new Document("deliverable", deliverable).append("offset", offset.toDouble).
-                append("duration", duration.toDouble)
+                append("duration", duration.toDouble).append("row", rowNumber)
               case _ => //throw new IllegalArgumentException(s"Bad constraint, found '$constraintSpec' in row $rowNumber")
                 errorList.append(s"ERROR: Bad constraint, found '$constraintSpec' in row $rowNumber")
                 new Document("deliverable", "ERROR!!!").append("offset", offset.toDouble).
-                  append("duration", duration.toDouble)
+                  append("duration", duration.toDouble).append("row", rowNumber)
             }
             if (errorList.length == oldErrorCount) {
               val currentTask = configTasks.head
-              val currentDeliverable: DynDoc = currentTask.deliverables[Seq[DynDoc]].head
-              currentDeliverable.constraints = newConstraint +: currentDeliverable.constraints[Seq[DynDoc]]
-              (configTasks, errorList)
+              val currentTaskDeliverables = currentTask.deliverables[Seq[DynDoc]]
+              if (currentTaskDeliverables.nonEmpty) {
+                val currentDeliverable: DynDoc = currentTaskDeliverables.head
+                currentDeliverable.constraints = newConstraint +: currentDeliverable.constraints[Seq[DynDoc]]
+                (configTasks, errorList)
+              } else {
+                errorList.append(s"ERROR: Adding constraint without deliverable in row $rowNumber")
+                (configTasks, errorList)
+              }
             } else {
               (configTasks, errorList)
             }

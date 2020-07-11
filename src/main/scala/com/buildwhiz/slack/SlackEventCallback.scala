@@ -1,17 +1,12 @@
 package com.buildwhiz.slack
 
-import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, CommandLineProcessor, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 
 class SlackEventCallback extends HttpServlet with HttpUtils {
-
-  private def userBySlackId(slackUserId: String): Option[DynDoc] = {
-    BWMongoDB3.persons.find(Map("slack_id" -> slackUserId)).headOption
-  }
 
   private def fileUpload(bwUser: DynDoc, threadTS: String, event: DynDoc, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, "fileUpload", "ENTRY", request)
@@ -26,7 +21,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
     val channel = event.channel[String]
     (event.get[String]("user"), event.get[String]("thread_ts"), event.`type`[String], event.get[String]("subtype")) match {
       case (Some(slackUserId), whichThread, "message", None) =>
-        userBySlackId(slackUserId) match {
+        SlackApi.userBySlackId(slackUserId) match {
           case Some(bwUser) =>
             CommandLineProcessor.process(event.text[String], bwUser, event, request) match {
               case Some(message) => SlackApi.sendToChannel(Left(message), channel, whichThread, Some(request))
@@ -38,7 +33,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             BWLogger.log(getClass.getName, "handleEventCallback", s"ERROR ($message)", request)
         }
       case (Some(slackUserId), Some(threadTs), "message", Some("file_share")) =>
-        userBySlackId(slackUserId) match {
+        SlackApi.userBySlackId(slackUserId) match {
           case Some(bwUser) =>
             fileUpload(bwUser, threadTs, event, request)
           case None =>
@@ -81,7 +76,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
       } else {
         val optType: Option[String] = postData.get[Document]("event").flatMap(_.y.get[String]("type"))
         val optBwUser: Option[DynDoc] = postData.get[Document]("event").flatMap(_.y.get[String]("user")).
-            flatMap(userBySlackId)
+            flatMap(SlackApi.userBySlackId)
         val optSubType: Option[String] = postData.get[Document]("event").flatMap(_.y.get[String]("subtype"))
         (optType, optSubType, optBwUser) match {
           case (Some("event_callback"), Some("bot_message"), _) =>

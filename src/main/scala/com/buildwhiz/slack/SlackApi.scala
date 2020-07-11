@@ -49,17 +49,18 @@ object SlackApi extends DateTimeUtils {
       case Left(dd) => dd
       case Right(oid) => PersonApi.personById(oid)
     }
-    val optSlackOid: Option[String] = personRecord.get[AnyRef]("slack_id") match {
-      case Some(id: String) => Some(id)
+    val slackIdValues: Seq[String] = personRecord.get[AnyRef]("slack_id") match {
+      case Some(id: String) => Seq(id)
       case Some(dict: Document) => optProjectOid match {
-        case None => Some(dict.entrySet.asScala.head.getValue.asInstanceOf[String])
-        case Some(prOid: ObjectId) => if (dict.containsKey(prOid)) Some(dict.getString(prOid)) else None
+        case None => dict.values.asScala.toSeq.map(_.asInstanceOf[String])
+        case Some(prOid: ObjectId) => if (dict.containsKey(prOid)) Seq(dict.getString(prOid)) else Nil
       }
-      case _ => None
+      case _ => Nil
     }
-    if (optSlackOid.isDefined) {
-      val slackChannel = optSlackOid.get
-      sendToChannel(stringOrBlocks, slackChannel, request=optRequest)
+    if (slackIdValues.nonEmpty) {
+      for (slackChannel <- slackIdValues) {
+        sendToChannel(stringOrBlocks, slackChannel, request=optRequest)
+      }
       BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", optRequest)
     } else {
       val message = optProjectOid match {
@@ -316,7 +317,7 @@ object SlackApi extends DateTimeUtils {
     BWLogger.log(getClass.getName, "pushView", s"EXIT-OK ($contentString)")
   }
 
-  def viewPublish(optViewText: Option[String] = None, userId: String, optHash: Option[String] = None): Unit = {
+  def viewPublish(optViewText: Option[String] = None, slackUserId: String, optHash: Option[String] = None): Unit = {
     BWLogger.log(getClass.getName, "viewPublish", "ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.publish")
@@ -325,14 +326,14 @@ object SlackApi extends DateTimeUtils {
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val viewText = optViewText match {
       case Some(txt) => txt
-      case None => homePage()
+      case None => homePage(userBySlackId(slackUserId))
     }
     val hash = optHash match {
       case Some(h) => h
       case None => System.nanoTime().toString
     }
     //val bodyText = s"""{"view": $viewText, "user_id": "$userId", "hash": "$hash"}"""
-    val bodyText = s"""{"view": $viewText, "user_id": "$userId"}"""
+    val bodyText = s"""{"view": $viewText, "user_id": "$slackUserId"}"""
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
     val responseContent = new ByteArrayOutputStream()
@@ -351,8 +352,8 @@ object SlackApi extends DateTimeUtils {
     print(homePage())
   }
 
-  private def homePage(): String = {
-    val items = Seq(
+  private def homePage(optUser: Option[DynDoc] = None): String = {
+    val itemsBasic: Seq[(String, String)] = Seq(
       ("Work Context", "(Project: *not selected*, Phase: *not selected*"),
       ("Tasks", "(click button to see list of tasks)"),
       ("Issues", "(click button to see list of tasks)"),
@@ -360,6 +361,11 @@ object SlackApi extends DateTimeUtils {
       ("Organizations", "(click button to see list of tasks)"),
       ("Profile", "(contact info, skills, password, etc)")
     )
+    val items: Seq[(String, String)] = optUser match {
+      case Some(userRecord) if PersonApi.isBuildWhizAdmin(Right(userRecord)) =>
+        itemsBasic ++ Seq(("Active Users", "(click button to see list of tasks)"))
+      case _ => itemsBasic
+    }
     val blocks = items.map(item => {
       val button = createButton(item._1, s"go-${item._1}", s"action-id-${item._1}")
       createSectionWithAccessory(s"*${item._1}* ${item._2}", button, Seq(("block_id", s"block-id-${item._1}")))

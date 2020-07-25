@@ -30,7 +30,7 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
         project430ForestOid
       val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
       BWLogger.log(getClass.getName, "doGet", s"amazonS3Key: $amazonS3Key", request)
-      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
+      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)
       var len = inputStream.read(buffer)

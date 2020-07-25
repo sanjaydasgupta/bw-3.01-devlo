@@ -1,6 +1,6 @@
 package com.buildwhiz.infra
 
-import java.io.File
+import java.io.{File, InputStream}
 
 import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider}
 import com.buildwhiz.infra.DynDoc._
@@ -38,7 +38,7 @@ object AmazonS3 {
 
   def putObject(key: String, file: File): PutObjectResult = s3Client.putObject(bucketName, key, file)
 
-  def getObject(key: String): S3Object = s3Client.getObject(bucketName, key)
+  def getObject(key: String): InputStream = s3Client.getObject(bucketName, key).getObjectContent
 
   case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
 

@@ -12,6 +12,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
 
@@ -21,10 +22,10 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     val documentOid = rfiDoc.document_id[ObjectId]
     val timestamp = rfiDoc.timestamp[Long]
     val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
-    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
+    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
     val byteBuffer = mutable.Buffer.empty[Byte]
     val blockBuffer = new Array[Byte](1024)
-    def copyBuffer(): Unit = {
+    @tailrec def copyBuffer(): Unit = {
       val len = inputStream.read(blockBuffer)
       if (len > 0) {
         byteBuffer.append(blockBuffer.take(len): _*)

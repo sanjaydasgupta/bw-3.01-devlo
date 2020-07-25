@@ -21,7 +21,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     val fileName = if (version.has("file_name")) version.file_name[String] else documentRecord.name[String]
     val timestamp = version.timestamp[Long]
     val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
-    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
+    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
     (fileName, timestamp, inputStream)
   }
 

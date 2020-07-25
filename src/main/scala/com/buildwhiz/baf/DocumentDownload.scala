@@ -23,7 +23,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
       val documentHistory: Seq[DynDoc] = project.documents[Many[Document]].filter(_.document_id[ObjectId] == documentOid)
       val latestVersion: DynDoc = documentHistory.sortWith(_.timestamp[Long] < _.timestamp[Long]).last
       val amazonS3Key = f"$projectOid-$documentOid-${latestVersion.timestamp[Long]}%x"
-      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key).getObjectContent
+      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)
       var len = inputStream.read(buffer)

@@ -32,8 +32,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
     val tomcatDirectory = serverDirectory.listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
     val logDirectory = new File(tomcatDirectory, "logs")
     val logFile = new File(logDirectory, "catalina.out")
-    val res = AmazonS3.putObject("catalina.out", logFile)
-    res.getMetadata.getContentLength
+    AmazonS3.putObject("catalina.out", logFile)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

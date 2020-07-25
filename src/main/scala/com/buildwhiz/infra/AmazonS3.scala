@@ -36,7 +36,7 @@ object AmazonS3 {
 
   def deleteObject(key: String): Unit = {} //s3Client.deleteObject(bucketName, key)
 
-  def putObject(key: String, file: File): PutObjectResult = s3Client.putObject(bucketName, key, file)
+  def putObject(key: String, file: File): Long = s3Client.putObject(bucketName, key, file).getMetadata.getContentLength
 
   def getObject(key: String): InputStream = s3Client.getObject(bucketName, key).getObjectContent
 

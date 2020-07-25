@@ -3,12 +3,10 @@ package com.buildwhiz.tools.scripts
 import java.io.{InputStream, InputStreamReader, PrintWriter}
 
 import com.buildwhiz.baf2.PersonApi
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.HttpUtils
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.bson.types.ObjectId
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -19,11 +17,11 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.drive.Drive
+import com.google.api.services.drive.model.File
 import com.google.api.services.drive.DriveScopes
 import java.util.Collections
 
 import scala.collection.JavaConverters._
-import com.google.api.services.drive.model.File
 import java.io.{File => javaFile}
 
 

@@ -2,15 +2,12 @@ package com.buildwhiz.baf
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.amazonaws.services.s3.model.S3ObjectSummary
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{DynDoc, FileMetadata}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.types.ObjectId
-
-import scala.collection.JavaConverters._
 
 class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
 
@@ -31,8 +28,8 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val parameters = getParameterMap(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).head
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects.getObjectSummaries.asScala
-      val namesAndSizes: Seq[(String, Long)] = objectSummaries.map(obj => (obj.getKey, obj.getSize))
+      val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects
+      val namesAndSizes: Seq[(String, Long)] = objectSummaries.map(obj => (obj.key, obj.size))
       val projectDocumentTimestampSize: Seq[(String, String, String, Long)] =
         namesAndSizes.map(t => {val f = t._1.split("-"); (f(0), f(1), f(2), t._2)})
       val byProject: Seq[String] = projectDocumentTimestampSize.groupBy(_._1).
@@ -57,9 +54,9 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val parameters = getParameterMap(request)
       val projectId = parameters("project_id")
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectId).getObjectSummaries.asScala
+      val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectId)
       for (summary <- objectSummaries) {
-        AmazonS3.deleteObject(summary.getKey)
+        AmazonS3.deleteObject(summary.key)
       }
       response.getWriter.println(s"""{"count": ${objectSummaries.length}}""")
       response.setContentType("application/json")

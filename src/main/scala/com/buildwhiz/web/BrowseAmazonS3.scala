@@ -2,18 +2,12 @@ package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.infra.{AmazonS3 => AS3}
-
-import scala.collection.JavaConverters._
+import com.buildwhiz.infra.FileMetadata
 
 class BrowseAmazonS3 extends HttpServlet {
 
-  private def amazonS3Detail(request: HttpServletRequest, response: HttpServletResponse, collectionName: String) = {
-    response.setStatus(HttpServletResponse.SC_OK)
-  }
-
-  private def amazonS3List(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String) = {
+  private def amazonS3List(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String): Unit = {
     val writer = response.getWriter
     writer.println("<html><head><title>BuildWhiz Amazon S3</title></head>")
     writer.println("<body><h2 align=\"center\">BuildWhiz Amazon S3</h2>")
@@ -21,10 +15,9 @@ class BrowseAmazonS3 extends HttpServlet {
     sb.append("<table border=\"1\" align=\"center\">")
     sb.append(List("Date", "Size", "Key").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
-    val objectListing = AS3.listObjects
-    val objectSummaries: Seq[S3ObjectSummary] = objectListing.getObjectSummaries.asScala
+    val objectSummaries: Seq[FileMetadata] = AS3.listObjects
     val s3ObjectRows = objectSummaries.map(p =>
-      s"""<tr><td>${p.getLastModified}</td><td align="center">${p.getSize}</td><td>${p.getKey}</td></tr>""").mkString
+      s"""<tr><td>${p.lastModified}</td><td align="center">${p.size}</td><td>${p.key}</td></tr>""").mkString
     sb.append(s"$s3ObjectRows</table></html>")
     writer.println(sb.toString())
     response.setStatus(HttpServletResponse.SC_OK)
@@ -36,7 +29,8 @@ class BrowseAmazonS3 extends HttpServlet {
     try {
       request.getRequestURI.split("/").toSeq.reverse match {
         case `className` +: _ => amazonS3List(request, response, className)
-        case objectName +: `className` +: _ => amazonS3Detail(request, response, objectName)
+        case objectName +: `className` +: _ =>
+          response.setStatus(HttpServletResponse.SC_OK)
       }
     } catch {
       case t: Throwable =>

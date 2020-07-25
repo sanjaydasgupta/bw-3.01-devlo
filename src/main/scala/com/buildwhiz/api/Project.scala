@@ -3,19 +3,16 @@ package com.buildwhiz.api
 import java.net.URI
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.buildwhiz.baf.OwnedProjects
 import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.AmazonS3
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{DynDoc, FileMetadata}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 import org.bson.types.ObjectId
-
-import scala.collection.JavaConverters._
 
 class Project extends HttpServlet with RestUtils {
 
@@ -84,9 +81,9 @@ class Project extends HttpServlet with RestUtils {
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
       // Delete project's documents
-      val objectSummaries: Seq[S3ObjectSummary] = AmazonS3.listObjects(projectOid.toString).getObjectSummaries.asScala
+      val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectOid.toString)
       for (summary <- objectSummaries) {
-        AmazonS3.deleteObject(summary.getKey)
+        AmazonS3.deleteObject(summary.key)
       }
       val projectNameAndId = s"""${theProject.name[String]} (${theProject._id[ObjectId]})"""
       BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Project '$projectNameAndId'""", request)

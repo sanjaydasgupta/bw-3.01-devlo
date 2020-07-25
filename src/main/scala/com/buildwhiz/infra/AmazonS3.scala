@@ -31,8 +31,10 @@ object AmazonS3 {
 
   private val bucketName = "buildwhiz"
 
-  def listObjects: ListObjectsV2Result = s3Client.listObjectsV2(bucketName)
-  def listObjects(prefix: String): ListObjectsV2Result = s3Client.listObjectsV2(bucketName, prefix)
+  def listObjects: Seq[FileMetadata] = s3Client.listObjectsV2(bucketName).getObjectSummaries.
+      map(file => FileMetadata(file.getKey, file.getSize, 0, file.getLastModified.getTime))
+  def listObjects(prefix: String): Seq[FileMetadata] = s3Client.listObjectsV2(bucketName, prefix).getObjectSummaries.
+    map(file => FileMetadata(file.getKey, file.getSize, 0, file.getLastModified.getTime))
 
   def deleteObject(key: String): Unit = {} //s3Client.deleteObject(bucketName, key)
 

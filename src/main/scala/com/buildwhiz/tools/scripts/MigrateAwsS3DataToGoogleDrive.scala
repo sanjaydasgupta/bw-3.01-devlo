@@ -59,8 +59,8 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
     val service = new Drive.Builder(httpTransport, jsonFactory, getCredentials(httpTransport, credentials, respWriter)).
         setApplicationName("Google Drive API Java Quickstart").build()
     respWriter.println("Got service")
-    val result = service.files().list().setPageSize(10).
-        setFields("nextPageToken, files(id, name, size, mimeType)").execute()
+    val result = service.files().list().setQ("\'12vpPmRRS750v1chrr3z7E0jyd8jcCZvi\' in parents").
+        setPageSize(10).setFields("nextPageToken, files(id, name, size, mimeType)").execute()
     respWriter.println("Got result")
     val files: Iterator[File] = result.getFiles.iterator().asScala
     respWriter.println("Got files")

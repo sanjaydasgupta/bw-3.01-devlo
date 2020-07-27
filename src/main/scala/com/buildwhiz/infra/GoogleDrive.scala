@@ -24,7 +24,7 @@ import com.google.api.services.drive.DriveScopes
 import java.util.Collections
 
 import scala.collection.JavaConverters._
-import java.io.{File => javaFile}
+import java.io.{File => javaFile, FileInputStream}
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -35,14 +35,24 @@ object GoogleDrive {
 
   private def getCredentials(httpTransport: NetHttpTransport): Credential = {
     BWLogger.log(getClass.getName, "getCredentials()", s"ENTRY")
-    val credentialStream = getClass.getResourceAsStream("/do-not-touch/drive-storage-demo.json")
+    val tomcatDir = new javaFile("server").listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
+    val doNotTouchFolder = new javaFile(tomcatDir, "webapps/bw-dot-2.01/WEB-INF/classes/do-not-touch")
+    if (!doNotTouchFolder.exists()) {
+      throw new IllegalArgumentException(s"No such file: '${doNotTouchFolder.getAbsolutePath}'")
+    }
+    val credentialsFile = new javaFile(doNotTouchFolder, "drive-storage-demo.json")
+    if (!credentialsFile.exists()) {
+      throw new IllegalArgumentException(s"No such file: '${credentialsFile.getAbsolutePath}'")
+    }
+    val tokensFile = new javaFile(doNotTouchFolder, "tokens")
+    if (!tokensFile.exists() || !tokensFile.isDirectory) {
+      throw new IllegalArgumentException(s"No such directory: '${tokensFile.getAbsolutePath}'")
+    }
+    val credentialStream = new FileInputStream(credentialsFile)
     val clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(credentialStream))
     //respWriter.println("Got Client-Secrets")
     val builder = new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory, clientSecrets, SCOPES)
     //respWriter.println("Got Builder")
-    val tomcatDir = new javaFile("server").listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
-    val tokensFile = new javaFile(tomcatDir, "webapps/bw-dot-2.01/WEB-INF/classes/do-not-touch/tokens")
-    val tokensFileExists = tokensFile.exists()
     //respWriter.println(s"Tokens file exists: $tokensFileExists")
     val flow = builder.setDataStoreFactory(new FileDataStoreFactory(tokensFile)).setAccessType("offline").build()
     //respWriter.println("Got Flow")
@@ -53,7 +63,7 @@ object GoogleDrive {
     credential
   }
 
-  def driveService(): Drive = {
+  private def driveService(): Drive = {
     BWLogger.log(getClass.getName, "driveService()", s"ENTRY")
     val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     val drive = new Drive.Builder(httpTransport, jsonFactory, getCredentials(httpTransport)).
@@ -62,21 +72,41 @@ object GoogleDrive {
     drive
   }
 
-  private val cachedDriveService = driveService()
+  BWLogger.log(getClass.getName, "Evaluating 'cachedDriveService'", s"ENTRY")
+  private val cachedDriveService: Drive = driveService()
+  BWLogger.log(getClass.getName, "Evaluating 'cachedDriveService'", s"EXIT")
+
+  // https://developers.google.com/drive/api/v3/reference/files/list
+  // https://developers.google.com/drive/api/v3/ref-search-terms
+  // https://developers.google.com/drive/api/v3/reference/files
 
   def listObjects: Seq[FileMetadata] = {
-    val result = cachedDriveService.files().list().setQ("\'12vpPmRRS750v1chrr3z7E0jyd8jcCZvi\' in parents").
-      setPageSize(10).setFields("nextPageToken, files(id, name, size, mimeType)").execute()
+    BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
+    val result = cachedDriveService.files().list().setPageSize(10).
+        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
+        setQ("\'12vpPmRRS750v1chrr3z7E0jyd8jcCZvi\' in parents").execute()
     val files: Seq[File] = result.getFiles.iterator().asScala.toSeq
-    files.map(file => new FileMetadata(key = file.getName, size = file.getSize, created = 0, lastModified = 0))
+    val objects = files.map(file => FileMetadata(file.getName, file.getSize, file.getMimeType,
+        file.getCreatedTime.getValue, file.getModifiedTime.getValue))
+    BWLogger.log(getClass.getName, "listObjects()", s"EXIT")
+    objects
   }
+
   def listObjects(prefix: String): Seq[FileMetadata] = listObjects
 //
 //  def deleteObject(key: String): Unit = {} //s3Client.deleteObject(bucketName, key)
 //
-  def putObject(key: String, file: File): Unit = ???
+  def putObject(key: String, file: File): Unit = {
+  BWLogger.log(getClass.getName, "putObject()", s"ENTRY")
+  BWLogger.log(getClass.getName, "putObject()", s"EXIT")
+  }
 //
-  def getObject(key: String): InputStream = ???
+  def getObject(key: String): InputStream = {
+    BWLogger.log(getClass.getName, "putObject()", s"ENTRY")
+    val in: InputStream = ???
+    BWLogger.log(getClass.getName, "putObject()", s"EXIT")
+    in
+  }
 //
 //  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
 //

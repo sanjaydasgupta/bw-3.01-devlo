@@ -11,12 +11,12 @@ class BrowseAmazonS3 extends HttpServlet {
     writer.println("<body><h2 align=\"center\">BuildWhiz Amazon S3</h2>")
     val sb = new StringBuilder
     sb.append("<table border=\"1\" align=\"center\">")
-    sb.append(List("Date", "Size", "Key").
+    sb.append(List("Created", "Modified", "MIME-Type", "Size", "Key").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     //val objectSummaries: Seq[FileMetadata] = AS3.listObjects
     val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects
     val s3ObjectRows = objectSummaries.map(p =>
-      s"""<tr><td>${p.lastModified}</td><td align="center">${p.size}</td><td>${p.key}</td></tr>""").mkString
+      s"""<tr><td>${p.createdTime}</td><td>${p.modifiedTime}</td><td>${p.mimeType}</td><td align="center">${p.size}</td><td>${p.key}</td></tr>""").mkString
     sb.append(s"$s3ObjectRows</table></html>")
     writer.println(sb.toString())
     response.setStatus(HttpServletResponse.SC_OK)

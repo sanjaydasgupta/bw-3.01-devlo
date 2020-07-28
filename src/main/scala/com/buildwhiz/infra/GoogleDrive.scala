@@ -5,10 +5,8 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import java.io.{InputStream, InputStreamReader}
 
-import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.utils.BWLogger
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
@@ -23,15 +21,18 @@ import com.google.api.services.drive.model.File
 import com.google.api.services.drive.DriveScopes
 import java.util.Collections
 
-import scala.collection.JavaConverters._
-import java.io.{File => javaFile, FileInputStream}
+import java.io.{FileInputStream, File => javaFile}
 
-import scala.annotation.tailrec
+import com.google.api.client.http.FileContent
+
 import scala.collection.JavaConverters._
 
 object GoogleDrive {
+  private val storageFolderId = "12vpPmRRS750v1chrr3z7E0jyd8jcCZvi"
+
   private val jsonFactory = JacksonFactory.getDefaultInstance
-  private val SCOPES = Collections.singletonList(DriveScopes.DRIVE_READONLY)
+  private val SCOPES = Seq(DriveScopes.DRIVE_FILE, DriveScopes.DRIVE, DriveScopes.DRIVE_METADATA).asJava
+  //private val SCOPES = Collections.singletonList(DriveScopes.DRIVE)
 
   private def getCredentials(httpTransport: NetHttpTransport): Credential = {
     BWLogger.log(getClass.getName, "getCredentials()", s"ENTRY")
@@ -67,24 +68,25 @@ object GoogleDrive {
     BWLogger.log(getClass.getName, "driveService()", s"ENTRY")
     val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     val drive = new Drive.Builder(httpTransport, jsonFactory, getCredentials(httpTransport)).
-      setApplicationName("BuildWhiz-Connector").build()
+        setApplicationName("GoogleDrive-Connector").build()
     BWLogger.log(getClass.getName, "driveService()", s"EXIT")
     drive
   }
 
-  BWLogger.log(getClass.getName, "Evaluating 'cachedDriveService'", s"ENTRY")
+  BWLogger.log(getClass.getName, "Storing 'cachedDriveService'", s"ENTRY")
   private val cachedDriveService: Drive = driveService()
-  BWLogger.log(getClass.getName, "Evaluating 'cachedDriveService'", s"EXIT")
+  BWLogger.log(getClass.getName, "Storing 'cachedDriveService'", s"EXIT")
 
   // https://developers.google.com/drive/api/v3/reference/files/list
   // https://developers.google.com/drive/api/v3/ref-search-terms
   // https://developers.google.com/drive/api/v3/reference/files
+  // https://developers.google.com/drive/api/v3/folder#create
 
   def listObjects: Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
     val result = cachedDriveService.files().list().setPageSize(10).
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
-        setQ("\'12vpPmRRS750v1chrr3z7E0jyd8jcCZvi\' in parents").execute()
+        setQ(s"\'$storageFolderId\' in parents").execute()
     val files: Seq[File] = result.getFiles.iterator().asScala.toSeq
     val objects = files.map(file => FileMetadata(file.getName, file.getSize, file.getMimeType,
         file.getCreatedTime.getValue, file.getModifiedTime.getValue))
@@ -92,20 +94,38 @@ object GoogleDrive {
     objects
   }
 
-  def listObjects(prefix: String): Seq[FileMetadata] = listObjects
-//
-//  def deleteObject(key: String): Unit = {} //s3Client.deleteObject(bucketName, key)
-//
-  def putObject(key: String, file: File): Unit = {
-  BWLogger.log(getClass.getName, "putObject()", s"ENTRY")
-  BWLogger.log(getClass.getName, "putObject()", s"EXIT")
+  def listObjects(prefix: String): Seq[FileMetadata] = listObjects.filter(_.key.startsWith(prefix))
+
+  def deleteObject(key: String): Unit = {
+    BWLogger.log(getClass.getName, "deleteObject()", s"ENTRY (key: '$key')")
+    BWLogger.log(getClass.getName, "deleteObject()", s"EXIT")
   }
-//
-  def getObject(key: String): InputStream = {
+
+  def putObject(key: String, file: javaFile): Unit = {
     BWLogger.log(getClass.getName, "putObject()", s"ENTRY")
-    val in: InputStream = ???
-    BWLogger.log(getClass.getName, "putObject()", s"EXIT")
-    in
+    val namedFiles = cachedDriveService.files().list.setQ(s"\'$storageFolderId\' in parents and name = '$key'").
+        execute().getFiles
+    if (namedFiles.nonEmpty) {
+      throw new IllegalArgumentException(s"File named '$key' already exists")
+    }
+    val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava)
+    val fileContent = new FileContent("application/octet-stream", file)
+    val metadata2 = cachedDriveService.files().create(metadata, fileContent).execute()
+    BWLogger.log(getClass.getName, "putObject()", s"EXIT (created file ID '${metadata2.getId}')")
+  }
+
+  def getObject(key: String): InputStream = {
+    BWLogger.log(getClass.getName, "getObject()", s"ENTRY")
+    val namedFiles = cachedDriveService.files().list.
+        setQ(s"\'$storageFolderId\' in parents and name = '$key'").execute().getFiles
+    val theFile = if (namedFiles.length == 1) {
+      namedFiles.head
+    } else {
+      throw new IllegalArgumentException(s"No file named '$key'")
+    }
+    val inputStream: InputStream = cachedDriveService.files().get(theFile.getId).executeMediaAsInputStream()
+    BWLogger.log(getClass.getName, "getObject()", s"EXIT")
+    inputStream
   }
 //
 //  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)

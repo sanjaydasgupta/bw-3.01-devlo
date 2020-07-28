@@ -1,9 +1,10 @@
 package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.{FileMetadata, GoogleDrive, AmazonS3 => AS3}
+import com.buildwhiz.infra.{FileMetadata, GoogleDrive}
+import com.buildwhiz.utils.DateTimeUtils
 
-class BrowseAmazonS3 extends HttpServlet {
+class BrowseDocumentStorage extends HttpServlet with DateTimeUtils {
 
   private def storageList(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String): Unit = {
     val writer = response.getWriter
@@ -15,8 +16,12 @@ class BrowseAmazonS3 extends HttpServlet {
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     //val objectSummaries: Seq[FileMetadata] = AS3.listObjects
     val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects
-    val s3ObjectRows = objectSummaries.map(p =>
-      s"""<tr><td>${p.createdTime}</td><td>${p.modifiedTime}</td><td>${p.mimeType}</td><td align="center">${p.size}</td><td>${p.key}</td></tr>""").mkString
+    val s3ObjectRows = objectSummaries.map(p => {
+      val created = dateTimeString(p.createdTime)
+      val modified = dateTimeString(p.modifiedTime)
+      s"""<tr><td>$created</td><td>$modified</td><td align="center">${p.mimeType}</td>""" +
+      s"""<td align="center">${p.size}</td><td align="center">${p.key}</td></tr>"""
+    }).mkString
     sb.append(s"$s3ObjectRows</table></html>")
     writer.println(sb.toString())
     response.setStatus(HttpServletResponse.SC_OK)
@@ -28,7 +33,7 @@ class BrowseAmazonS3 extends HttpServlet {
     try {
       request.getRequestURI.split("/").toSeq.reverse match {
         case `className` +: _ => storageList(request, response, className)
-        case objectName +: `className` +: _ =>
+        case _ +: `className` +: _ =>
           response.setStatus(HttpServletResponse.SC_OK)
       }
     } catch {

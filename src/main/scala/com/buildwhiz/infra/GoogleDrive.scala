@@ -88,8 +88,7 @@ object GoogleDrive {
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
         setQ(s"\'$storageFolderId\' in parents").execute()
     val files: Seq[File] = result.getFiles.iterator().asScala.toSeq
-    val objects = files.map(file => FileMetadata(file.getName, file.getSize, file.getMimeType,
-        file.getCreatedTime.getValue, file.getModifiedTime.getValue))
+    val objects = files.map(FileMetadata.fromFile)
     BWLogger.log(getClass.getName, "listObjects()", s"EXIT-OK (${objects.length} objects)")
     objects
   }
@@ -101,8 +100,8 @@ object GoogleDrive {
     BWLogger.log(getClass.getName, "deleteObject()", s"EXIT-OK (NoOp - Nothing deleted)")
   }
 
-  def putObject(key: String, file: javaFile): Unit = {
-    BWLogger.log(getClass.getName, "putObject()", s"ENTRY")
+  def putObject(key: String, file: javaFile): FileMetadata = {
+    BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.setQ(s"\'$storageFolderId\' in parents and name = '$key'").
         execute().getFiles
     if (namedFiles.nonEmpty) {
@@ -110,9 +109,10 @@ object GoogleDrive {
     }
     val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava)
     val fileContent = new FileContent("application/octet-stream", file)
-    val metadata2 = cachedDriveService.files().create(metadata, fileContent).execute()
+    val newFile = cachedDriveService.files().create(metadata, fileContent).execute()
     BWLogger.log(getClass.getName, "putObject()",
-        s"EXIT (created fileId: '${metadata2.getId}', type: '${metadata2.getMimeType}', size: ${metadata2.getSize})")
+        s"EXIT (created fileId: '${newFile.getId}', type: '${newFile.getMimeType}', size: ${newFile.getSize})")
+    FileMetadata.fromFile(newFile)
   }
 
   def getObject(key: String): InputStream = {

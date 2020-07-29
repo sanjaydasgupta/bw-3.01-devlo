@@ -2,11 +2,14 @@ package com.buildwhiz.tools.scripts
 
 import java.io.{File, FileOutputStream, PrintWriter}
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, ProjectApi}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive, AmazonS3}
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{DynDoc, GoogleDrive}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.HttpUtils
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.bson.types.ObjectId
+import org.bson.Document
 
 object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
 
@@ -54,6 +57,36 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
     respWriter.flush()
   }
 
+  private def migrateDate(projectId: String, respWriter: PrintWriter): Unit = {
+    val projectOid = new ObjectId(projectId)
+    if (!ProjectApi.exists(projectOid))
+      throw new IllegalArgumentException(s"Bad projectId: '$projectOid'")
+    respWriter.println(s"Migrating data for project '$projectId'")
+    val projectDocuments: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("project_id" -> projectOid))
+    val buffer = new Array[Byte](1048576)
+    for (document <- projectDocuments if document.has("versions") && document.has("name")) {
+      val versions: Seq[DynDoc] = document.versions[Many[Document]]
+      respWriter.println(s"\tMigrating document '${document.name[String]}' (${versions.length} versions)")
+      val documentOid = document._id[ObjectId]
+      for (version <- versions) {
+        val timestamp = version.timestamp[Long]
+        val key = f"$projectId-$documentOid-$timestamp%x"
+        respWriter.println(s"\t\tKey: $key")
+        val tempFile = File.createTempFile(s"$key-", "bin")
+        val outputStream = new FileOutputStream(tempFile)
+        val inputStream = AmazonS3.getObject(key)
+        var len = inputStream.read(buffer)
+        while (len > 0) {
+          outputStream.write(buffer, 0, len)
+          len = inputStream.read(buffer)
+        }
+        outputStream.close()
+        GoogleDrive.putObject(key, tempFile)
+        tempFile.delete()
+      }
+    }
+  }
+
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     val respWriter = response.getWriter
     respWriter.println("Starting Data Migration")
@@ -67,7 +100,8 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
     try {
       args.length match {
         case 0 => selfTest(respWriter)
-        case 1 =>
+        case 1 => migrateDate(args(0), respWriter)
+        case _ => respWriter.println("Program 'args' not understood!")
       }
     } catch {
       case t: Throwable =>

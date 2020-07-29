@@ -1,6 +1,6 @@
 package com.buildwhiz.tools.scripts
 
-import java.io.{File, PrintWriter}
+import java.io.{File, FileOutputStream, PrintWriter}
 
 import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc._
@@ -29,10 +29,29 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
         respWriter.println("\tOK: %s (%s): %d".format(googleFile.key, googleFile.mimeType, googleFile.size))
       } catch {
         case t: Throwable => respWriter.println("\t%s: %s: %d".format(t.toString, javaFile.getName, javaFile.length))
-          t.printStackTrace(respWriter)
+          //t.printStackTrace(respWriter)
       }
       respWriter.flush()
     }
+    respWriter.println("\nDownloading files from GoogleDrive storage folder")
+    for (googleFile <- GoogleDrive.listObjects().filter(_.key.startsWith("download-"))) {
+      try {
+        val outputStream = new FileOutputStream(googleFile.key)
+        val inputStream = GoogleDrive.getObject(googleFile.key)
+        val buffer = new Array[Byte](4096)
+        var len = inputStream.read(buffer)
+        while (len > 0) {
+          outputStream.write(buffer, 0, len)
+          len = inputStream.read(buffer)
+        }
+        outputStream.close()
+        respWriter.println("\tOK: %s (%s): %d".format(googleFile.key, googleFile.mimeType, googleFile.size))
+      } catch {
+        case t: Throwable => respWriter.println("\t%s: %s: %d".format(t.toString, googleFile.key, googleFile.size))
+        t.printStackTrace(respWriter)
+      }
+    }
+    respWriter.flush()
   }
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {

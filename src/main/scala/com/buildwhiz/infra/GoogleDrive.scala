@@ -155,7 +155,7 @@ object GoogleDrive {
     val newFile = cachedDriveService.files().create(metadata, fileContent).execute()
     BWLogger.log(getClass.getName, "putObject()",
         s"EXIT-OK (created fileId: '${newFile.getId}', type: '${newFile.getMimeType}', size: ${newFile.getSize})")
-    FileMetadata.fromFile(newFile)
+    FileMetadata.fromFile(newFile).copy(size = file.length())
   }
 
   def getObject(key: String): InputStream = {

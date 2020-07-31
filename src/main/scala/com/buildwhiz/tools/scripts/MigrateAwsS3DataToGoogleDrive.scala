@@ -105,7 +105,8 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
       }
     } catch {
       case t: Throwable =>
-        respWriter.println(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        t.printStackTrace(respWriter)
+        //respWriter.println(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
         //BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t

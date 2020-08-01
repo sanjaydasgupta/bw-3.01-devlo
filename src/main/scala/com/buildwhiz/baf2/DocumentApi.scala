@@ -2,7 +2,7 @@ package com.buildwhiz.baf2
 
 import java.io.{File, FileOutputStream, InputStream}
 
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, GoogleDrive}
 import BWMongoDB3._
 import DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -211,7 +211,8 @@ object DocumentApi extends HttpUtils {
         }
       }
       fileLength = handleBlock()
-      AmazonS3.putObject(s3key, file)
+      //AmazonS3.putObject(s3key, file)
+      GoogleDrive.putObject(s3key, file)
       val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
         "file_name" -> fileName, "size" -> fileLength)
       val updateResult = BWMongoDB3.document_master.

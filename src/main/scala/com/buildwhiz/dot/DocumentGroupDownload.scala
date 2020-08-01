@@ -6,7 +6,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{/*AmazonS3, */BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
@@ -21,7 +21,8 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     val fileName = version.file_name[String]
     val timestamp = version.timestamp[Long]
     val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
-    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+    //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+    val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
     (fileName, timestamp, inputStream)
   }
 

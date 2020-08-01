@@ -1,12 +1,11 @@
 package com.buildwhiz.baf
 
 import java.io.{File, FileOutputStream}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.DynDoc
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -45,7 +44,8 @@ class RfiSubmit extends HttpServlet with HttpUtils with MailUtils {
     try {
       val outFile = new FileOutputStream(file)
       outFile.write(text.getBytes)
-      AmazonS3.putObject(fileName, file)
+      //AmazonS3.putObject(fileName, file)
+      GoogleDrive.putObject(fileName, file)
       BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "EXIT-OK")
     } catch {
       case t: Throwable =>

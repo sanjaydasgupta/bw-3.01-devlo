@@ -1,12 +1,11 @@
 package com.buildwhiz.baf
 
 import java.io.InputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.DynDoc
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.infra.{/*AmazonS3, */BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 
@@ -30,7 +29,8 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
         project430ForestOid
       val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
       BWLogger.log(getClass.getName, "doGet", s"amazonS3Key: $amazonS3Key", request)
-      val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+      //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+      val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)
       var len = inputStream.read(buffer)

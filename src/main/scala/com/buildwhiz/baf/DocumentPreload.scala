@@ -1,11 +1,11 @@
 package com.buildwhiz.baf
 
 import java.io.{File, FileOutputStream, InputStream}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, GoogleDrive}
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -107,7 +107,8 @@ object DocumentPreload {
         }
       }
       fileLength = handleBlock()
-      AmazonS3.putObject(s3key, file)
+      //AmazonS3.putObject(s3key, file)
+      GoogleDrive.putObject(s3key, file)
       val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
         "file_name" -> fileName)
       val updateResult = BWMongoDB3.document_master.

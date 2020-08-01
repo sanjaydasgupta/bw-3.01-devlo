@@ -1,9 +1,8 @@
 package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{/*AmazonS3, */BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 import org.bson.Document
@@ -32,7 +31,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
     val tomcatDirectory = serverDirectory.listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
     val logDirectory = new File(tomcatDirectory, "logs")
     val logFile = new File(logDirectory, "catalina.out")
-    AmazonS3.putObject("catalina.out", logFile)
+    //AmazonS3.putObject("catalina.out", logFile)
+    GoogleDrive.putObject("catalina.out", logFile).size
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

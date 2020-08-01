@@ -1,11 +1,10 @@
 package com.buildwhiz.baf
 
 import java.io.{File, FileOutputStream, InputStream}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.DynDoc
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.Document
@@ -35,7 +34,8 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils {
         }
       }
       fileLength = handleBlock()
-      AmazonS3.putObject(fileName, file)
+      //AmazonS3.putObject(fileName, file)
+      GoogleDrive.putObject(fileName, file)
       BWLogger.log(getClass.getName, "storeDocumentAmazonS3", "EXIT-OK")
       try {file.delete()} catch {case t: Throwable => /* No recovery */}
       (fileName, fileLength)

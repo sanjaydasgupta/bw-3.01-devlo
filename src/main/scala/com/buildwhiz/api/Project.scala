@@ -5,11 +5,9 @@ import java.net.URI
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import com.buildwhiz.baf.OwnedProjects
 import com.buildwhiz.baf2.PersonApi
-import com.buildwhiz.infra.AmazonS3
-import com.buildwhiz.infra.{DynDoc, FileMetadata}
+import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, FileMetadata, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -81,9 +79,11 @@ class Project extends HttpServlet with RestUtils {
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
       // Delete project's documents
-      val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectOid.toString)
+      //val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectOid.toString)
+      val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects(projectOid.toString)
       for (summary <- objectSummaries) {
-        AmazonS3.deleteObject(summary.key)
+        //AmazonS3.deleteObject(summary.key)
+        GoogleDrive.deleteObject(summary.key)
       }
       val projectNameAndId = s"""${theProject.name[String]} (${theProject._id[ObjectId]})"""
       BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Project '$projectNameAndId'""", request)

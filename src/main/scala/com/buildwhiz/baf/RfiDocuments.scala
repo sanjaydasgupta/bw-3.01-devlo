@@ -1,12 +1,11 @@
 package com.buildwhiz.baf
 
 import java.io.InputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.DynDoc
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import com.buildwhiz.infra.{/*AmazonS3, */BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -22,7 +21,8 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     val documentOid = rfiDoc.document_id[ObjectId]
     val timestamp = rfiDoc.timestamp[Long]
     val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
-    val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+    //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
+    val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
     val byteBuffer = mutable.Buffer.empty[Byte]
     val blockBuffer = new Array[Byte](1024)
     @tailrec def copyBuffer(): Unit = {

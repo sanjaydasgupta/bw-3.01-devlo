@@ -6,7 +6,8 @@ import java.net.InetAddress
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import scala.sys.process._
-import com.buildwhiz.infra.{AmazonS3 => AS3}
+//import com.buildwhiz.infra.{AmazonS3 => AS3}
+import com.buildwhiz.infra.GoogleDrive
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 
 class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
@@ -14,7 +15,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
   private def amazonS3(option: String, response: HttpServletResponse, tz: String): Unit = {
     option match {
       case "summary" =>
-        val summary = AS3.getSummary
+        val summary = GoogleDrive.getSummary
         val (count, orphans, size, smallest, biggest, earliest, latest) =
           (summary.total, summary.orphans, summary.totalSize, summary.smallest, summary.biggest, summary.earliest, summary.latest)
         val lines = Seq(Seq("Count", "Orphans", "Total Size (Bytes)", "Smallest (Bytes)", "Biggest (Bytes)", "Earliest Time", "Latest Time"),

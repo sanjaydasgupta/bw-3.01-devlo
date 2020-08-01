@@ -174,9 +174,9 @@ object GoogleDrive {
         s"EXIT-OK (fileId: '${theFile.getId}', type: '${theFile.getMimeType}', size: ${theFile.getSize})")
     inputStream
   }
-//
-//  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
-//
+
+  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
+
   def isOrphan(key: String): Boolean = {
     try {
       val parts = key.split("-")
@@ -208,36 +208,28 @@ object GoogleDrive {
 //    once()
 //  }
 //
-//  def getSummary: Summary = {
-//    val lor = new ListObjectsV2Request()
-//    lor.setRequestCredentialsProvider(credentialsProvider)
-//    lor.setBucketName(bucketName)
-//    def getStats(acc: Summary = Summary(0, 0, 0, Long.MaxValue, 0, Long.MaxValue, 0)): Summary = {
-//      def combine(sum: Summary, s3: S3ObjectSummary): Summary = {
-//        val key = s3.getKey
-//        val newOrphanCount = sum.orphans + (if (isOrphan(key)) 1 else 0)
-//        val size = s3.getSize
-//        val newTotalSize = size + sum.totalSize
-//        val total = sum.total + 1
-//        val millis = s3.getLastModified.getTime
-//        val earliest = math.min(millis, sum.earliest)
-//        val latest = math.max(millis, sum.latest)
-//        val smallest = math.min(size, sum.smallest)
-//        val biggest = math.max(size, sum.biggest)
-//        Summary(total, newOrphanCount, newTotalSize, smallest, biggest, earliest, latest)
-//      }
-//      val listing = s3Client.listObjectsV2(lor)
-//      val summaries = listing.getObjectSummaries
-//      val newMap: Summary = summaries.asScala.foldLeft(acc)(combine)
-//      if (listing.isTruncated) {
-//        lor.setContinuationToken(listing.getContinuationToken)
-//        getStats(newMap)
-//      }
-//      newMap
-//    }
-//    getStats()
-//  }
-//
+  def getSummary: Summary = {
+    def getStats(acc: Summary = Summary(0, 0, 0, Long.MaxValue, 0, Long.MaxValue, 0)): Summary = {
+      def combine(sum: Summary, file: FileMetadata): Summary = {
+        val key = file.key
+        val newOrphanCount = sum.orphans + (if (isOrphan(key)) 1 else 0)
+        val size = file.size
+        val newTotalSize = size + sum.totalSize
+        val total = sum.total + 1
+        val millis = file.modifiedTime
+        val earliest = math.min(millis, sum.earliest)
+        val latest = math.max(millis, sum.latest)
+        val smallest = math.min(size, sum.smallest)
+        val biggest = math.max(size, sum.biggest)
+        Summary(total, newOrphanCount, newTotalSize, smallest, biggest, earliest, latest)
+      }
+      val listing = listObjects()
+      val newMap: Summary = listing.foldLeft(acc)(combine)
+      newMap
+    }
+    getStats()
+  }
+
 //  def main(args: Array[String]): Unit = {
 //    val orphans = listOrphans
 //    println(orphans.length)

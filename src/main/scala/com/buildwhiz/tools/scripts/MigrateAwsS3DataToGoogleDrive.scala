@@ -3,7 +3,7 @@ package com.buildwhiz.tools.scripts
 import java.io.{File, FileOutputStream, PrintWriter}
 
 import com.buildwhiz.baf2.{PersonApi, ProjectApi}
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive/*, AmazonS3*/}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive, AmazonS3}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.HttpUtils
@@ -75,7 +75,7 @@ object MigrateAwsS3DataToGoogleDrive extends HttpUtils {
         val tempFile = File.createTempFile(s"$key-", "bin")
         val outputStream = new FileOutputStream(tempFile)
         //val inputStream = AmazonS3.getObject(key)
-        val inputStream = GoogleDrive.getObject(key)
+        val inputStream = AmazonS3.getObject(key)
         var len = inputStream.read(buffer)
         while (len > 0) {
           outputStream.write(buffer, 0, len)

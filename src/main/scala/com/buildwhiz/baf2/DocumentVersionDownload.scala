@@ -60,10 +60,12 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
           }
         }
       }
-      val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
-      BWLogger.log(getClass.getName, request.getMethod, s"amazonS3Key: $amazonS3Key", request)
+      //val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
+      val storageKey = f"$projectOid-$documentOid-$timestamp%x"
+      //BWLogger.log(getClass.getName, request.getMethod, s"amazonS3Key: $amazonS3Key", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"storage-key: $storageKey", request)
       //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
-      val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
+      val inputStream: InputStream = GoogleDrive.getObject(storageKey)
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)
       var len = inputStream.read(buffer)

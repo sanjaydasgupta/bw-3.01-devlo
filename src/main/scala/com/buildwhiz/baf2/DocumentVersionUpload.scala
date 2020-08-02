@@ -29,7 +29,7 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
       if (request.getParts.size != 1)
         throw new IllegalArgumentException(s"parts.length != 1")
       val part = request.getParts.iterator.next()
-      val uploadSize = part.getSize
+      //val uploadSize = part.getSize
       //if (uploadSize > 1e7)
       //  throw new IllegalArgumentException(s"attachment size > 10Mb")
       val submittedFilename = part.getSubmittedFileName
@@ -54,7 +54,9 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
 
       val versionComments = if (parameters.contains("comments")) parameters("comments") else "-"
 
-      val storageResults = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+      //val storageResults = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+      //  documentOid, timestamp, versionComments, authorOid, request)
+      val storageResults = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
         documentOid, timestamp, versionComments, authorOid, request)
 
       response.setStatus(HttpServletResponse.SC_OK)

@@ -2,7 +2,8 @@ package com.buildwhiz.baf2
 
 import java.io.{File, FileOutputStream, InputStream}
 
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, GoogleDrive}
+//import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import BWMongoDB3._
 import DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -150,7 +151,7 @@ object DocumentApi extends HttpUtils {
 
   def getSystemTags(doc: DynDoc): Seq[String] = {
 
-    def fix(str: String) = str.replaceAll("\\s+", "-")
+//    def fix(str: String) = str.replaceAll("\\s+", "-")
 
 //    val legacyLabels = if (doc.has("category") && doc.has("subcategory")) {
 //      Seq(fix(doc.category[String]), fix(doc.subcategory[String]))
@@ -167,7 +168,8 @@ object DocumentApi extends HttpUtils {
 //    }
     val documentLabels: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
 
-    (/*phaseLabel ++*/ documentLabels/* ++ legacyLabels*/).distinct
+    //(/*phaseLabel ++*/ documentLabels/* ++ legacyLabels*/).distinct
+    documentLabels.distinct
   }
 
   def docOid2UserTags(user: DynDoc): Map[ObjectId, Seq[String]] = {
@@ -190,12 +192,15 @@ object DocumentApi extends HttpUtils {
     logicalLabels.map(_.name[String])
   }
 
-  def storeAmazonS3(fileName: String, is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long,
+  def storeDocument(fileName: String, is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long,
       comments: String, authorOid: ObjectId, request: HttpServletRequest): (String, Long) = {
-    BWLogger.log(getClass.getName, "storeAmazonS3", "ENTRY", request)
-    val s3key = f"$projectId-$documentOid-$timestamp%x"
-    BWLogger.log(getClass.getName, "storeAmazonS3", s"amazonS3Key: $s3key", request)
-    val file = new File(s3key)
+    BWLogger.log(getClass.getName, "storeDocument", "ENTRY", request)
+    //val s3key = f"$projectId-$documentOid-$timestamp%x"
+    val storageKey = f"$projectId-$documentOid-$timestamp%x"
+    //BWLogger.log(getClass.getName, "storeDocument", s"amazonS3Key: $s3key", request)
+    BWLogger.log(getClass.getName, "storeDocument", s"storage-key: $storageKey", request)
+    //val file = new File(s3key)
+    val file = new File(storageKey)
     var fileLength = 0L
     try {
       val outFile = new FileOutputStream(file)
@@ -212,22 +217,23 @@ object DocumentApi extends HttpUtils {
       }
       fileLength = handleBlock()
       //AmazonS3.putObject(s3key, file)
-      GoogleDrive.putObject(s3key, file)
+      GoogleDrive.putObject(storageKey, file)
       val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
         "file_name" -> fileName, "size" -> fileLength)
       val updateResult = BWMongoDB3.document_master.
         updateOne(Map("_id" -> documentOid), Map("$push" -> Map("versions" -> versionRecord)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      BWLogger.log(getClass.getName, s"storeAmazonS3 ($fileLength)", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, "storeDocument", s"EXIT-OK ($fileLength)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "storeAmazonS3", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, "storeDocument", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
     try {file.delete()} catch {case _: Throwable => /* No recovery */}
-    (s3key, fileLength)
+    //(s3key, fileLength)
+    (storageKey, fileLength)
   }
 
 }

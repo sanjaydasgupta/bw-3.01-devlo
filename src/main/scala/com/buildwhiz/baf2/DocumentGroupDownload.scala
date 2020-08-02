@@ -20,9 +20,10 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
     val version: DynDoc = documentRecord.versions[Many[Document]].last
     val fileName = if (version.has("file_name")) version.file_name[String] else documentRecord.name[String]
     val timestamp = version.timestamp[Long]
-    val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
+    //val amazonS3Key = f"$projectId-$documentOid-$timestamp%x"
+    val storageKey = f"$projectId-$documentOid-$timestamp%x"
     //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
-    val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
+    val inputStream: InputStream = GoogleDrive.getObject(storageKey)
     (fileName, timestamp, inputStream)
   }
 

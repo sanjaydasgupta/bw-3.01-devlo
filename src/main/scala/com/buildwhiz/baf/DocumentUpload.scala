@@ -3,7 +3,8 @@ package com.buildwhiz.baf
 import java.io.{File, FileOutputStream, InputStream}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc, GoogleDrive}
+//import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import BWMongoDB3._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}

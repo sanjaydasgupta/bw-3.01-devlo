@@ -125,8 +125,8 @@ object GoogleDrive {
 
   def listObjects(): Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
-    val result = cachedDriveService.files().list().setPageSize(10).
-        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
+    val result = cachedDriveService.files().list().setPageSize(1000).
+        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime, properties)").
         setQ(s"\'$storageFolderId\' in parents and trashed = false").execute()
     val files: Seq[File] = result.getFiles.iterator().asScala.toSeq
     val objects = files.map(FileMetadata.fromFile)

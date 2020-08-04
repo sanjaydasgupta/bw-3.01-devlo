@@ -30,7 +30,7 @@ object GoogleDrive {
   private val storageFolderContainerId = "12b05HM6OzkAXNnnxIu3jMV3XBjq6Pey_"
 
   private val jsonFactory = JacksonFactory.getDefaultInstance
-  private val SCOPES = Seq(DriveScopes.DRIVE_FILE, DriveScopes.DRIVE_METADATA).asJava
+  private val SCOPES = Seq(DriveScopes.DRIVE, DriveScopes.DRIVE_FILE, DriveScopes.DRIVE_METADATA).asJava
   //private val SCOPES = Seq(DriveScopes.DRIVE_FILE, DriveScopes.DRIVE, DriveScopes.DRIVE_METADATA).asJava
   //private val SCOPES = Collections.singletonList(DriveScopes.DRIVE)
 
@@ -121,6 +121,7 @@ object GoogleDrive {
   // https://developers.google.com/drive/api/v3/ref-search-terms
   // https://developers.google.com/drive/api/v3/reference/files
   // https://developers.google.com/drive/api/v3/folder#create
+  // https://developers.google.com/drive/api/v3/reference/files/update
 
   def listObjects(): Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
@@ -175,7 +176,30 @@ object GoogleDrive {
     inputStream
   }
 
-  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long, earliest: Long, latest: Long)
+  def updateObject(key: String, properties: Map[String, String]): Unit = {
+    BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)", s"ENTRY")
+    val namedFiles = cachedDriveService.files().list.
+        setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").
+        execute().getFiles
+    val theFile = if (namedFiles.length == 1) {
+      namedFiles.head
+    } else {
+      val message = s"Found ${namedFiles.length} files named '$key'"
+      BWLogger.log(getClass.getName, "updateObject()", s"ERROR ($message)")
+      throw new IllegalArgumentException(message)
+    }
+    val propertyMetadata = new File().setProperties(properties.asJava)
+    val updatedFile = cachedDriveService.files().update(theFile.getId, propertyMetadata).execute()
+    if (theFile.getId != updatedFile.getId)
+      BWLogger.log(getClass.getName, "updateObject()",
+        s"EXIT-ERROR (DIFFERENT fileIds: [${theFile.getId}, ${updatedFile.getId}], key: '${updatedFile.getName}')")
+    else
+      BWLogger.log(getClass.getName, "updateObject()",
+        s"EXIT-OK (fileId: '${theFile.getId}', key: '${updatedFile.getName}')")
+  }
+
+  case class Summary(total: Int, orphans: Int, totalSize: Long, smallest: Long, biggest: Long,
+      earliest: Long, latest: Long)
 
   def isOrphan(key: String): Boolean = {
     try {

@@ -1,12 +1,14 @@
 package com.buildwhiz
 
 import com.google.api.services.drive.model.File
+import scala.collection.JavaConverters._
 
 package object infra {
   case class FileMetadata(key: String, size: Long, mimeType: String = null,
-      createdTime: Long = 0, modifiedTime: Long = 0)
+      createdTime: Long = 0, modifiedTime: Long = 0, id: String = null, properties: Map[String, String] = null)
   object FileMetadata {
     def fromFile(file: File): FileMetadata = {
+      val properties = file.getProperties
       val name = file.getName
       val size = file.getSize
       val mimeType = file.getMimeType
@@ -14,7 +16,8 @@ package object infra {
       val createdTime = file.getCreatedTime
       FileMetadata(name, if (size == null) -1 else size, mimeType,
           if (createdTime == null) 0 else createdTime.getValue,
-          if (modifiedTime == null) 0 else modifiedTime.getValue)
+          if (modifiedTime == null) 0 else modifiedTime.getValue, id = file.getId,
+          properties = if (properties == null) Map.empty else file.getProperties.asScala.toMap)
     }
   }
 }

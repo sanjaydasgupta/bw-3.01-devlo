@@ -8,21 +8,23 @@ class BrowseDocumentStorage extends HttpServlet with DateTimeUtils {
 
   private def storageList(request: HttpServletRequest, response: HttpServletResponse, uriRoot: String): Unit = {
     val writer = response.getWriter
-    writer.println("<html><head><title>BuildWhiz Amazon S3</title></head>")
-    writer.println("<body><h2 align=\"center\">BuildWhiz Amazon S3</h2>")
+    writer.println("<html><head><title>Document Storage</title></head>")
+    writer.println("<body><h2 align=\"center\">Document Storage</h2>")
     val sb = new StringBuilder
     sb.append("<table border=\"1\" align=\"center\">")
-    sb.append(List("Created", "Modified", "MIME-Type", "Size", "Key").
+    sb.append(List("Created", "Modified", "MIME-Type", "Size", "Key", "Id", "Properties").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     //val objectSummaries: Seq[FileMetadata] = AS3.listObjects
-    val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects
-    val s3ObjectRows = objectSummaries.map(p => {
-      val created = dateTimeString(p.createdTime)
-      val modified = dateTimeString(p.modifiedTime)
-      s"""<tr><td>$created</td><td>$modified</td><td align="center">${p.mimeType}</td>""" +
-      s"""<td align="center">${p.size}</td><td align="center">${p.key}</td></tr>"""
+    val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects()
+    val objectRows = objectSummaries.map(objSummary => {
+      val created = dateTimeString(objSummary.createdTime)
+      val modified = dateTimeString(objSummary.modifiedTime)
+      val properties = objSummary.properties.toSeq.map(pair => s"${pair._1}: ${pair._2}").mkString(", ")
+      s"""<tr><td>$created</td><td>$modified</td><td align="center">${objSummary.mimeType}</td>""" +
+      s"""<td align="center">${objSummary.size}</td><td align="center">${objSummary.key}</td>""" +
+      s"""<td align="center">${objSummary.id}</td><td align="center">$properties</td></tr>"""
     }).mkString
-    sb.append(s"$s3ObjectRows</table></html>")
+    sb.append(s"$objectRows</table></html>")
     writer.println(sb.toString())
     response.setStatus(HttpServletResponse.SC_OK)
   }

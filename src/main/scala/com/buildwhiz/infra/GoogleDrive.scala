@@ -25,6 +25,7 @@ import java.io.{FileInputStream, File => javaFile}
 import com.google.api.client.http.FileContent
 
 import scala.collection.JavaConverters._
+import scala.annotation.tailrec
 
 object GoogleDrive {
   private val storageFolderContainerId = "12b05HM6OzkAXNnnxIu3jMV3XBjq6Pey_"
@@ -93,7 +94,7 @@ object GoogleDrive {
       BWLogger.log(getClass.getName, "fetchStorageFolderId()", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    val storageFolderSearchResult = cachedDriveService.files().list().setPageSize(10).
+    val storageFolderSearchResult = cachedDriveService.files().list().
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
         setQ(s"\'$storageFolderContainerId\' in parents and name = '$storageFolderName' and trashed = false").execute()
     val storageFolderCandidates: Seq[File] = storageFolderSearchResult.getFiles.iterator().asScala.toSeq
@@ -123,13 +124,26 @@ object GoogleDrive {
   // https://developers.google.com/drive/api/v3/folder#create
   // https://developers.google.com/drive/api/v3/reference/files/update
 
+  private val pageSize = 100
+
   def listObjects(): Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
-    val result = cachedDriveService.files().list().setPageSize(1000).
+    val listFileQuery: Drive#Files#List = cachedDriveService.files().list().setPageSize(pageSize).
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime, properties)").
-        setQ(s"\'$storageFolderId\' in parents and trashed = false").execute()
-    val files: Seq[File] = result.getFiles.iterator().asScala.toSeq
-    val objects = files.map(FileMetadata.fromFile)
+        setQ(s"\'$storageFolderId\' in parents and trashed = false")
+
+    @tailrec def iteratePageQuery(query: Drive#Files#List, acc: Seq[File] = Seq.empty): Seq[File] = {
+      val queryResult = query.execute()
+      val files: Seq[File] = queryResult.getFiles.iterator().asScala.toSeq
+      val nextPageToken = queryResult.getNextPageToken
+      if (nextPageToken == null) {
+        acc ++ files
+      } else {
+        iteratePageQuery(listFileQuery.setPageToken(nextPageToken), acc ++ files)
+      }
+    }
+
+    val objects: Seq[FileMetadata] = iteratePageQuery(listFileQuery).map(FileMetadata.fromFile)
     BWLogger.log(getClass.getName, "listObjects()", s"EXIT-OK (${objects.length} objects)")
     objects
   }

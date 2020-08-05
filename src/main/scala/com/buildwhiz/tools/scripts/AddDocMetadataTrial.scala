@@ -22,7 +22,8 @@ object AddDocMetadataTrial extends HttpUtils {
 
   private def addMetadata(respWriter: PrintWriter): Unit = {
     respWriter.println("\nListing files in GoogleDrive storage folder")
-    val files: Seq[FileMetadata] = GoogleDrive.listObjects()
+    val files: Seq[FileMetadata] = GoogleDrive.listObjects().
+        filter(f => projectIdNameMap.contains(new ObjectId(f.key.split("-").head)))
     for (file <- files) {
       val key = file.key
       val Array(projectId, documentId, _) = key.split("-")

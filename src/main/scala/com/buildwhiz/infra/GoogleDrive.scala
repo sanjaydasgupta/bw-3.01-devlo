@@ -38,7 +38,7 @@ object GoogleDrive {
   private def getCredentials(httpTransport: NetHttpTransport): Credential = {
     BWLogger.log(getClass.getName, "getCredentials()", s"ENTRY")
     val tomcatDir = new javaFile("server").listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
-    val doNotTouchFolder = new javaFile(tomcatDir, "webapps/bw-dot-2.01/WEB-INF/classes/do-not-touch")
+    val doNotTouchFolder = new javaFile(tomcatDir, "webapps/bw-3.01/WEB-INF/classes/do-not-touch")
     if (!doNotTouchFolder.exists()) {
       val message = s"No such file: '${doNotTouchFolder.getAbsolutePath}'"
       BWLogger.log(getClass.getName, "getCredentials()", s"ERROR ($message)")

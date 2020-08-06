@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.buildwhiz.wfe.camunda</groupId>
-	<artifactId>bw-dot</artifactId>
-	<version>2.01</version>
+	<artifactId>bw</artifactId>
+	<version>3.01</version>
 	<packaging>war</packaging>
 
 	<properties>

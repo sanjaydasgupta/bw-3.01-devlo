@@ -8,12 +8,14 @@ import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.sys.process._
 
 @MultipartConfig()
 class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
 
+  @tailrec
   private def copyStream(in: InputStream, out: FileOutputStream, length: Int = 0,
         buffer: Array[Byte] = new Array[Byte](1024)): Int = {
     in.read(buffer) match {
@@ -100,7 +102,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
-        val status = s"""cp -fr ${files.mkString(" ")} server/$tomcatDirName/webapps/bw-dot-1.01""".!
+        val status = s"""cp -fr ${files.mkString(" ")} server/$tomcatDirName/webapps/bw-3.01""".!
         val statusMsg = if (status == 0) {
           BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
           "OK"

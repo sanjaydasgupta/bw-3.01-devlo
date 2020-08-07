@@ -8,7 +8,7 @@
   self.commandName = '?';
 
   self.monitor = function(command, name) {
-    var dfhQuery = '/bw-dot-2.01/etc/SystemMonitor?command=' + command;
+    var dfhQuery = '/bw-3.01/etc/SystemMonitor?command=' + command;
     $log.log('Calling GET ' + dfhQuery)
     $http.get(dfhQuery).then(
       function(resp) {

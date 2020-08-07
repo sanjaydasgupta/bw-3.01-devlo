@@ -63,7 +63,7 @@
   }
 
   self.enableDisableLogin = function() {
-    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=enabled&value=' +
+    var query = '/bw-3.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=enabled&value=' +
         self.selectedUser.enabled;
     $log.log('POST ' + query);
     $http.post(query).then(
@@ -77,7 +77,7 @@
   }
 
   self.enableDisableEmail = function() {
-    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=email_enabled&value=' +
+    var query = '/bw-3.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=email_enabled&value=' +
         self.selectedUser.email_enabled;
     $log.log('POST ' + query);
     $http.post(query).then(
@@ -137,7 +137,7 @@
       role.edit = false;
       self.roleEditToggle(role);
     }
-    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=view:' + role.key +
+    var query = '/bw-3.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=view:' + role.key +
         '&value=' + role.ok;
     $log.log('POST ' + query);
     $http.post(query).then(
@@ -156,7 +156,7 @@
   }
 
   self.roleEditToggle = function(role) {
-    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=edit:' + role.key +
+    var query = '/bw-3.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=edit:' + role.key +
         '&value=' + role.edit;
     $log.log('POST ' + query);
     $http.post(query).then(
@@ -193,7 +193,7 @@
     if (self.newUserPhoneMobile.trim() != '') {
       newUser.phones.push({type: 'mobile', phone: self.newUserPhoneMobile});
     }
-    $http.post('/bw-dot-2.01/api/Person', newUser).then(
+    $http.post('/bw-3.01/api/Person', newUser).then(
       function() {
         $log.log('User ' + self.newUserFirstName + ' added');
         self.newUserFirstName = '';
@@ -239,7 +239,7 @@
     }
     var parameterString = parameters.join('|');
     var valueString = values.join('|');
-    var query = '/bw-dot-2.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=' + parameterString +
+    var query = '/bw-3.01/baf/UserPropertySet?person_id=' + self.selectedUser._id + '&property=' + parameterString +
         '&value=' + valueString;
     $log.log('POST ' + query);
     $http.post(query).then(

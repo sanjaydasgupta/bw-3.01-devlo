@@ -51,7 +51,7 @@
       $log.log('formData.append(name: ' + file.name + ', stringified: ' + JSON.stringify(file) + ')');
     });
     formData.append('end-marker', 'end-marker-content');
-    var query = '/bw-dot-2.01/baf/ProgressReportSubmit?person_id=' + AuthService.data._id +
+    var query = '/bw-3.01/baf/ProgressReportSubmit?person_id=' + AuthService.data._id +
     '&activity_id=' + self.selectedTask.activity_id + '&action_name=' + self.selectedTask.name +
     '&submission_title=' + self.submissionTitle + '&submission_type=' + self.submissionType +
     '&submission_message=' + self.submissionMessage;
@@ -111,7 +111,7 @@
 
   self.actionComplete = function() {
     $log.log('TasksCtrl: taskComplete() Called');
-    var query = '/bw-dot-2.01/baf2/ActionComplete?activity_id=' + self.selectedTask.activity_id +
+    var query = '/bw-3.01/baf2/ActionComplete?activity_id=' + self.selectedTask.activity_id +
         '&action_name=' + self.selectedTask.name +
         '&completion_message=' + self.selectedTask.completion_message +
         '&review_ok=' + (self.selectedTask.reviewOk ? 'OK' : 'Not-Ok');

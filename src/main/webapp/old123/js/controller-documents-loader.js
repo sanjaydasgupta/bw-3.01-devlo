@@ -164,7 +164,7 @@
         formData.append(file.name, file, file.name);
         $log.log('formData.append(' + file.name + ')');
       });
-      var query = '/bw-dot-2.01/baf/DocumentPreload?person_id=' + AuthService.data._id +
+      var query = '/bw-3.01/baf/DocumentPreload?person_id=' + AuthService.data._id +
           '&timestamp=' + timestamp + '&comments=' + escape(self.versionComments) +
           '&author_person_id=' + self.currentAuthor._id + '&category=' + escape(self.currentCategoryKey) +
           '&subcategory=' + escape(self.currentSubcategoryKey == 'Other' ? self.subcategoryText : self.currentSubcategoryKey) +
@@ -268,7 +268,7 @@
         name: self.documentName, description: self.documentDescription,
         author_person_id: self.currentAuthor._id, comments: self.versionComments};});
 
-    var q = '/bw-dot-2.01/baf/DocumentMetadataUpdate';
+    var q = '/bw-3.01/baf/DocumentMetadataUpdate';
     $log.log('POST ' + q + ') ' + JSON.stringify(docIds));
     self.busy = true;
     $http.post(q, docIds).then(
@@ -285,7 +285,7 @@
   }
 
   self.update2 = function() {
-    var q = '/bw-dot-2.01/baf/DocumentMetadataUpdate?document_master_id=' + self.selectedDocument._id;
+    var q = '/bw-3.01/baf/DocumentMetadataUpdate?document_master_id=' + self.selectedDocument._id;
     if (self.currentCategoryKey != self.selectedDocument.category) {
       q += '&category=' + escape(self.currentCategoryKey);
     }
@@ -371,7 +371,7 @@
   }
 
   self.setRfiDestination = function() {
-    var q = '/bw-dot-2.01/api/RFIDestination'
+    var q = '/bw-3.01/api/RFIDestination'
     var data = {category: self.currentCategoryKey, subcategory: self.currentSubcategoryKey,
         person_id: self.currentAuthor._id};
     $log.log('Calling setRfiDestination(POST ' + q);

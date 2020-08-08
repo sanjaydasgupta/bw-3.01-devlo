@@ -151,8 +151,8 @@ object GoogleDrive {
   def listObjects(prefix: String): Seq[FileMetadata] = listObjects().filter(_.key.startsWith(prefix))
 
   def deleteObject(key: String): Unit = {
-    BWLogger.log(getClass.getName, "deleteObject()", s"ENTRY (key: '$key')")
-    BWLogger.log(getClass.getName, "deleteObject()", s"EXIT-OK (NoOp - Nothing deleted)")
+    BWLogger.log(getClass.getName, s"deleteObject($key)", s"ENTRY (key: '$key')")
+    BWLogger.log(getClass.getName, s"deleteObject($key)", s"EXIT-OK (NoOp - Nothing deleted)")
   }
 
   def putObject(key: String, file: javaFile): FileMetadata = {
@@ -162,31 +162,31 @@ object GoogleDrive {
         execute().getFiles
     if (namedFiles.nonEmpty) {
       val message = s"File named '$key' already exists"
-      BWLogger.log(getClass.getName, "putObject()", s"ERROR ($message)")
+      BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
     val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava)
     val fileContent = new FileContent("application/octet-stream", file)
     val newFile = cachedDriveService.files().create(metadata, fileContent).execute()
-    BWLogger.log(getClass.getName, "putObject()",
+    BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})",
         s"EXIT-OK (created fileId: '${newFile.getId}', type: '${newFile.getMimeType}', size: ${newFile.getSize})")
     FileMetadata.fromFile(newFile).copy(size = file.length())
   }
 
   def getObject(key: String): InputStream = {
-    BWLogger.log(getClass.getName, "getObject()", s"ENTRY")
+    BWLogger.log(getClass.getName, s"getObject($key)", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
         setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").execute().getFiles
     val theFile = if (namedFiles.length == 1) {
       namedFiles.head
     } else {
       val message = s"Found ${namedFiles.length} files named '$key'"
-      BWLogger.log(getClass.getName, "getObject()", s"ERROR ($message)")
+      BWLogger.log(getClass.getName, s"getObject($key)", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
     val inputStream: InputStream = cachedDriveService.files().get(theFile.getId).executeMediaAsInputStream()
-    BWLogger.log(getClass.getName, "getObject()",
-        s"EXIT-OK (fileId: '${theFile.getId}', type: '${theFile.getMimeType}', size: ${theFile.getSize})")
+    BWLogger.log(getClass.getName, s"getObject($key)",
+        s"EXIT-OK (fileId: '${theFile.getId}', mime-type: '${theFile.getMimeType}', size: ${theFile.getSize})")
     inputStream
   }
 
@@ -199,16 +199,16 @@ object GoogleDrive {
       namedFiles.head
     } else {
       val message = s"Found ${namedFiles.length} files named '$key'"
-      BWLogger.log(getClass.getName, "updateObject()", s"ERROR ($message)")
+      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
     val propertyMetadata = new File().setProperties(properties.asJava)
     val updatedFile = cachedDriveService.files().update(theFile.getId, propertyMetadata).execute()
     if (theFile.getId != updatedFile.getId)
-      BWLogger.log(getClass.getName, "updateObject()",
+      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)",
         s"EXIT-ERROR (DIFFERENT fileIds: [${theFile.getId}, ${updatedFile.getId}], key: '${updatedFile.getName}')")
     else
-      BWLogger.log(getClass.getName, "updateObject()",
+      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)",
         s"EXIT-OK (fileId: '${theFile.getId}', key: '${updatedFile.getName}')")
   }
 

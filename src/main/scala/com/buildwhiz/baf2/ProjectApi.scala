@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -151,6 +151,25 @@ object ProjectApi extends HttpUtils {
     // Remove tag from documents?
   }
 
+  def updateGoogleDriveTags(projectId: String, documentId: String, tagNames: Seq[String], operation: String): Unit = {
+    BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"ENTRY ($projectId, $documentId, $tagNames, $operation)")
+    val files = GoogleDrive.listObjects(s"$projectId-$documentId")
+    for (file <- files) {
+      val existingProperties = file.properties
+      val (tags, others) = existingProperties.partition(_._1 == "tags")
+      val existingTagSet: Set[String] = tags("tags").split(",").filterNot(t => t.trim.isEmpty).toSet
+      val newTagSet: Set[String] = operation match {
+        case "add" => existingTagSet ++ tagNames
+        case "remove" => existingTagSet -- tagNames
+        case _ => throw new IllegalArgumentException(s"bad tags operation: '$operation'")
+      }
+      val newProperties = Map("tags" -> newTagSet.mkString(",")) ++ others
+      BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"properties: ($existingProperties, $newProperties)")
+      GoogleDrive.updateObjectById(file.id, newProperties)
+      BWLogger.log(getClass.getName, "updateGoogleDriveTags", "EXIT-OK")
+    }
+  }
+
   def documentGroupManageLabels(project: DynDoc, documentOids: Seq[ObjectId], tagNames: Seq[String],
        operation: String): Unit = {
     val allSystemTags = documentTags(project)
@@ -168,6 +187,7 @@ object ProjectApi extends HttpUtils {
           Map("$addToSet" -> Map("labels" -> Map("$each" -> tagNames))))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        updateGoogleDriveTags(project._id[ObjectId].toString, docOid.toString, tagNames, "add")
       }
     } else if (operation == "remove") {
       for (docOid <- documentOids) {
@@ -175,6 +195,7 @@ object ProjectApi extends HttpUtils {
           Map("$pullAll" -> Map("labels" -> tagNames)))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        updateGoogleDriveTags(project._id[ObjectId].toString, docOid.toString, tagNames, "remove")
       }
     } else
       throw new IllegalArgumentException(s"Bad operation: '$operation'")

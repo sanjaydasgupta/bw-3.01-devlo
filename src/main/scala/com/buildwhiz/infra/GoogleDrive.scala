@@ -190,8 +190,21 @@ object GoogleDrive {
     inputStream
   }
 
+  def updateObjectById(id: String, properties: Map[String, String]): Unit = {
+    BWLogger.log(getClass.getName, s"updateObjectById(id: $id, properties: $properties)", s"ENTRY")
+    val propertyMetadata = new File().setProperties(properties.asJava)
+    val updatedFile = cachedDriveService.files().update(id, propertyMetadata).execute()
+    if (id != updatedFile.getId) {
+      BWLogger.log(getClass.getName, s"updateObjectById(id: $id, properties: $properties)",
+        s"EXIT-ERROR (DIFFERENT fileIds: [$id, ${updatedFile.getId}], key: '${updatedFile.getName}')")
+    } else {
+      BWLogger.log(getClass.getName, s"updateObjectById(id: $id, properties: $properties)",
+        s"EXIT-OK (id: '$id', key: '${updatedFile.getName}')")
+    }
+  }
+
   def updateObject(key: String, properties: Map[String, String]): Unit = {
-    BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)", s"ENTRY")
+    BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
         setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").
         execute().getFiles
@@ -199,16 +212,16 @@ object GoogleDrive {
       namedFiles.head
     } else {
       val message = s"Found ${namedFiles.length} files named '$key'"
-      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)", s"ERROR ($message)")
+      BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
     val propertyMetadata = new File().setProperties(properties.asJava)
     val updatedFile = cachedDriveService.files().update(theFile.getId, propertyMetadata).execute()
     if (theFile.getId != updatedFile.getId)
-      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)",
+      BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)",
         s"EXIT-ERROR (DIFFERENT fileIds: [${theFile.getId}, ${updatedFile.getId}], key: '${updatedFile.getName}')")
     else
-      BWLogger.log(getClass.getName, s"updateObject(key: $key, properties: $properties)",
+      BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)",
         s"EXIT-OK (fileId: '${theFile.getId}', key: '${updatedFile.getName}')")
   }
 

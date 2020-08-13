@@ -93,8 +93,11 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         }
 
         //val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+        val project = ProjectApi.projectById(projectOid)
+        val projectName = project.name[String]
+        val properties = Map("project" -> projectName, "name" -> name, "tags" -> systemTags.mkString(","))
         val storageResult = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
-          docOid, timestamp, comment, authorOid, request)
+          docOid, timestamp, comment, authorOid, properties, request)
 
         (action, category) match {
           case (Some((activityOid, _)), Some(theCategory)) =>

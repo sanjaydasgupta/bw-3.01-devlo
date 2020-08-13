@@ -193,7 +193,8 @@ object DocumentApi extends HttpUtils {
   }
 
   def storeDocument(fileName: String, is: InputStream, projectId: String, documentOid: ObjectId, timestamp: Long,
-      comments: String, authorOid: ObjectId, request: HttpServletRequest): (String, Long) = {
+      comments: String, authorOid: ObjectId, properties: Map[String, String],
+      request: HttpServletRequest): (String, Long) = {
     BWLogger.log(getClass.getName, "storeDocument", "ENTRY", request)
     //val s3key = f"$projectId-$documentOid-$timestamp%x"
     val storageKey = f"$projectId-$documentOid-$timestamp%x"
@@ -217,13 +218,14 @@ object DocumentApi extends HttpUtils {
       }
       fileLength = handleBlock()
       //AmazonS3.putObject(s3key, file)
-      GoogleDrive.putObject(storageKey, file)
+      val newFileMetadata = GoogleDrive.putObject(storageKey, file)
       val versionRecord = Map("comments" -> comments, "timestamp" -> timestamp, "author_person_id" -> authorOid,
         "file_name" -> fileName, "size" -> fileLength)
       val updateResult = BWMongoDB3.document_master.
         updateOne(Map("_id" -> documentOid), Map("$push" -> Map("versions" -> versionRecord)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      GoogleDrive.updateObjectById(newFileMetadata.id, properties)
       BWLogger.log(getClass.getName, "storeDocument", s"EXIT-OK ($fileLength)", request)
     } catch {
       case t: Throwable =>

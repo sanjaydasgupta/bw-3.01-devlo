@@ -32,8 +32,11 @@ class RfiStart extends HttpServlet with HttpUtils with MailUtils {
           "", fileType, Seq.empty[String], projectOid, None, None, Some("SYSTEM"))
         val inputStream = part._1.getInputStream
         ///*val storageResult = */DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+        val project = ProjectApi.projectById(projectOid)
+        val projectName = project.name[String]
+        val properties = Map("project" -> projectName)
         DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
-          docOid, millisNow, "-", user._id[ObjectId], request)
+          docOid, millisNow, "-", user._id[ObjectId], properties, request)
         new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", millisNow)
       })
 

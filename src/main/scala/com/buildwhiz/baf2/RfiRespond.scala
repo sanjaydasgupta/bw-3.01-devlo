@@ -32,8 +32,11 @@ class RfiRespond extends HttpServlet with HttpUtils with DateTimeUtils {
           "", fileType, Seq.empty[String], projectOid, None, None, Some("SYSTEM"))
         val inputStream = part._1.getInputStream
         //val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
+        val project = ProjectApi.projectById(projectOid)
+        val projectName = project.name[String]
+        val properties = Map("project" -> projectName)
         DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
-          docOid, timestamp, "-", senderOid, request)
+          docOid, timestamp, "-", senderOid, properties, request)
         new Document("file_name", fullFileName).append("document_id", docOid).append("timestamp", timestamp)
       })
 

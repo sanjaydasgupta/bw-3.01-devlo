@@ -56,8 +56,13 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
 
       //val storageResults = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
       //  documentOid, timestamp, versionComments, authorOid, request)
+      val project = ProjectApi.projectById(projectOid)
+      val projectName = project.name[String]
+      val documentName = documentRecord.name[String]
+      val systemTags = documentRecord.labels[Many[String]].mkString(",")
+      val properties = Map("project" -> projectName, "name" -> documentName, "tags" -> systemTags)
       val storageResults = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
-        documentOid, timestamp, versionComments, authorOid, request)
+        documentOid, timestamp, versionComments, authorOid, properties, request)
 
       response.setStatus(HttpServletResponse.SC_OK)
       val message = s"Added version (${storageResults._2} bytes) to file ${documentRecord.name[String]}"

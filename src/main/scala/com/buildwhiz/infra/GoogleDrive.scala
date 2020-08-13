@@ -203,7 +203,7 @@ object GoogleDrive {
     }
   }
 
-  def updateObject(key: String, properties: Map[String, String]): Unit = {
+  def updateObjectByKey(key: String, properties: Map[String, String]): Unit = {
     BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
         setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").

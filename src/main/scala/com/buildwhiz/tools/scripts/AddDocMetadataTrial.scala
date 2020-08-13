@@ -33,7 +33,7 @@ object AddDocMetadataTrial extends HttpUtils {
       val metadata = Map("project" -> projectName, "tags" -> labels.mkString(","))
       val documentName = if (document.has("name")) document.name[String] else "none"
       respWriter.println(s"Assigning document '$documentName' ($documentId) metadata = $metadata")
-      GoogleDrive.updateObject(key, metadata)
+      GoogleDrive.updateObjectByKey(key, metadata)
     }
   }
 

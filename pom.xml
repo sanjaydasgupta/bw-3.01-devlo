@@ -10,10 +10,8 @@
 	<packaging>war</packaging>
 
 	<properties>
-		<camunda.version>7.13.0</camunda.version>
-		<spring.version>4.3.24.RELEASE</spring.version>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<camunda.version>7.8.0</camunda.version>
+		<spring.version>3.1.2.RELEASE</spring.version>
 		<scala.version>2.12.8</scala.version>
 	</properties>
 
@@ -24,13 +22,6 @@
 				<groupId>org.camunda.bpm</groupId>
 				<artifactId>camunda-bom</artifactId>
 				<version>${camunda.version}</version>
-				<scope>import</scope>
-				<type>pom</type>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-framework-bom</artifactId>
-				<version>${spring.version}</version>
 				<scope>import</scope>
 				<type>pom</type>
 			</dependency>
@@ -50,10 +41,6 @@
 
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
@@ -61,20 +48,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.190</version>
 		</dependency>
 
         <dependency>
@@ -96,7 +69,7 @@
 		<dependency>
   			<groupId>org.slf4j</groupId>
   			<artifactId>slf4j-jdk14</artifactId>
-  			<version>1.7.26</version>
+  			<version>1.7.13</version>
 		</dependency>
 		
 		<dependency>

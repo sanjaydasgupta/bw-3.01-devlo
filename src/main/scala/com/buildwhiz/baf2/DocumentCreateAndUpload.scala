@@ -2,13 +2,13 @@ package com.buildwhiz.baf2
 
 import java.util.{Calendar, TimeZone}
 
-import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.DynDoc
-import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils {
+class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
@@ -77,9 +77,11 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
           submittedFilename
         val inputStream = part.getInputStream
         val comment: String = parameters.getOrElse("version_comment", "NA")
-        val authorOid = parameters.get("author_id") match {
-          case Some(id) => new ObjectId(id)
-          case None => user._id[ObjectId]
+        val (authorOid, authorName) = parameters.get("author_id") match {
+          case Some(id) =>
+            val authorOid = new ObjectId(id)
+            (authorOid, PersonApi.fullName(PersonApi.personById(authorOid)))
+          case None => (user._id[ObjectId], "unknown")
         }
         if (!PersonApi.exists(authorOid))
           throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
@@ -95,9 +97,14 @@ class DocumentCreateAndUpload extends HttpServlet with HttpUtils with MailUtils 
         //val storageResult = DocumentApi.storeAmazonS3(fullFileName, inputStream, projectOid.toString,
         val project = ProjectApi.projectById(projectOid)
         val projectName = project.name[String]
-        val properties = Map("project" -> projectName, "name" -> name, "tags" -> systemTags.mkString(","))
+        val phaseName = optPhaseOid match {
+          case None => null
+          case Some(phaseOid) => PhaseApi.phaseById(phaseOid).name[String]
+        }
+        val properties = Map("project" -> projectName, "phase" -> phaseName, "name" -> name,
+            "tags" -> systemTags.mkString(","), "author" -> authorName, "timestamp" -> dateTimeString(timestamp))
         val storageResult = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
-          docOid, timestamp, comment, authorOid, properties, request)
+            docOid, timestamp, comment, authorOid, properties, request)
 
         (action, category) match {
           case (Some((activityOid, _)), Some(theCategory)) =>

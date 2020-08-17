@@ -4,11 +4,11 @@ import java.util.{Calendar, TimeZone}
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils, DateTimeUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
+class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
@@ -19,9 +19,11 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
         throw new IllegalArgumentException(s"unknown document-id: ${documentOid.toString}")
 
       val user: DynDoc = getUser(request)
-      val authorOid = parameters.get("author_id") match {
-        case Some(aId) => new ObjectId(aId)
-        case None => user._id[ObjectId]
+      val (authorOid, authorName) = parameters.get("author_id") match {
+        case Some(aId) => val authorOid = new ObjectId(aId)
+          (authorOid, PersonApi.fullName(PersonApi.personById(authorOid)))
+        case None => val authorOid = user._id[ObjectId]
+          (authorOid, PersonApi.fullName(user))
       }
       if (!PersonApi.exists(authorOid))
         throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
@@ -58,9 +60,14 @@ class DocumentVersionUpload extends HttpServlet with HttpUtils with MailUtils {
       //  documentOid, timestamp, versionComments, authorOid, request)
       val project = ProjectApi.projectById(projectOid)
       val projectName = project.name[String]
+      val phaseName = documentRecord.get[ObjectId]("phase_id") match {
+        case None => null
+        case Some(phaseOid) => PhaseApi.phaseById(phaseOid).name[String]
+      }
       val documentName = documentRecord.name[String]
       val systemTags = documentRecord.labels[Many[String]].mkString(",")
-      val properties = Map("project" -> projectName, "name" -> documentName, "tags" -> systemTags)
+      val properties = Map("project" -> projectName, "phase" -> phaseName, "name" -> documentName, "tags" -> systemTags,
+          "author" -> authorName, "timestamp" -> dateTimeString(timestamp))
       val storageResults = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,
         documentOid, timestamp, versionComments, authorOid, properties, request)
 

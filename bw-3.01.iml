@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
@@ -87,5 +87,6 @@
     <orderEntry type="library" name="Maven: com.google.oauth-client:google-oauth-client-jetty:1.31.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.oauth-client:google-oauth-client-java6:1.31.0" level="project" />
     <orderEntry type="library" name="Maven: com.google.apis:google-api-services-drive:v3-rev197-1.25.0" level="project" />
+    <orderEntry type="library" name="Maven: javax.mail:javax.mail-api:1.6.2" level="project" />
   </component>
 </module>

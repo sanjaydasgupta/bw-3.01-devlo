@@ -55,7 +55,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
       val parameters = getParameterMap(request)
       val projectId = parameters("project_id")
       //val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectId)
-      val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects(projectId)
+      val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects(Some(projectId))
       for (summary <- objectSummaries) {
         //AmazonS3.deleteObject(summary.key)
         GoogleDrive.deleteObject(summary.key)

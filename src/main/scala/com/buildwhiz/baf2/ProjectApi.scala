@@ -153,7 +153,7 @@ object ProjectApi extends HttpUtils {
 
   def updateGoogleDriveTags(projectId: String, documentId: String, tagNames: Seq[String], operation: String): Unit = {
     BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"ENTRY ($projectId, $documentId, $tagNames, $operation)")
-    val files = GoogleDrive.listObjects(s"$projectId-$documentId")
+    val files = GoogleDrive.listObjects(Some(s"$projectId-$documentId"))
     for (file <- files) {
       val existingProperties = file.properties
       val (tags, others) = existingProperties.partition(_._1 == "tags")

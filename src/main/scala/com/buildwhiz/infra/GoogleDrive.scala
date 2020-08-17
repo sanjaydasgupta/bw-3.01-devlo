@@ -126,11 +126,14 @@ object GoogleDrive {
 
   private val pageSize = 100
 
-  def listObjects(): Seq[FileMetadata] = {
+  def listObjects(optPrefix: Option[String] = None): Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
-    val listFileQuery: Drive#Files#List = cachedDriveService.files().list().setPageSize(pageSize).
-        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime, properties)").
-        setQ(s"\'$storageFolderId\' in parents and trashed = false")
+    val query = optPrefix match {
+      case None => s"\'$storageFolderId\' in parents and trashed = false"
+      case Some(prefix) => s"\'$storageFolderId\' in parents and trashed = false and name contains '$prefix'"
+    }
+    val listFileQuery: Drive#Files#List = cachedDriveService.files().list().setPageSize(pageSize).setQ(query).
+        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime, properties)")
 
     @tailrec def iteratePageQuery(query: Drive#Files#List, acc: Seq[File] = Seq.empty): Seq[File] = {
       val queryResult = query.execute()
@@ -148,14 +151,12 @@ object GoogleDrive {
     objects
   }
 
-  def listObjects(prefix: String): Seq[FileMetadata] = listObjects().filter(_.key.startsWith(prefix))
-
   def deleteObject(key: String): Unit = {
     BWLogger.log(getClass.getName, s"deleteObject($key)", s"ENTRY (key: '$key')")
     BWLogger.log(getClass.getName, s"deleteObject($key)", s"EXIT-OK (NoOp - Nothing deleted)")
   }
 
-  def putObject(key: String, file: javaFile): FileMetadata = {
+  def putObject(key: String, file: javaFile, properties: Map[String, String] = Map.empty): FileMetadata = {
     BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
         setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").
@@ -165,7 +166,7 @@ object GoogleDrive {
       BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava)
+    val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava).setProperties(properties.asJava)
     val fileContent = new FileContent("application/octet-stream", file)
     val newFile = cachedDriveService.files().create(metadata, fileContent).execute()
     BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})",

@@ -81,7 +81,7 @@ class Project extends HttpServlet with RestUtils {
       BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
       // Delete project's documents
       //val objectSummaries: Seq[FileMetadata] = AmazonS3.listObjects(projectOid.toString)
-      val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects(projectOid.toString)
+      val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects(Some(projectOid.toString))
       for (summary <- objectSummaries) {
         //AmazonS3.deleteObject(summary.key)
         GoogleDrive.deleteObject(summary.key)

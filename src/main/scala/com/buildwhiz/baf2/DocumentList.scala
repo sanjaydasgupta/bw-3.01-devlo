@@ -92,7 +92,8 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val canDelete = freshUserRecord.first_name[String] == "Prabhas"
       val allDocuments = getDocuments(freshUserRecord, request).asJava
       val result = new Document("document_list", allDocuments).append("can_rename", canRename).
-          append("can_delete", canDelete).append("can_add", true)
+          append("can_delete", canDelete).append("can_add", true).
+          append("g_drive_url", "https://drive.google.com/drive/my-drive")
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

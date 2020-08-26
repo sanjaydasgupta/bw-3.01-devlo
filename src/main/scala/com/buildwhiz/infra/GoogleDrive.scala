@@ -94,9 +94,11 @@ object GoogleDrive {
       BWLogger.log(getClass.getName, "fetchStorageFolderId()", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
+    val query = Seq(s"\'$storageFolderContainerId\' in parents", s"name = '$storageFolderName'", "trashed = false",
+      "mimeType = \'application/vnd.google-apps.folder\'").mkString(" and ")
     val storageFolderSearchResult = cachedDriveService.files().list().
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
-        setQ(s"\'$storageFolderContainerId\' in parents and name = '$storageFolderName' and trashed = false").execute()
+        setQ(query).execute()
     val storageFolderCandidates: Seq[File] = storageFolderSearchResult.getFiles.iterator().asScala.toSeq
     if (storageFolderCandidates.length != 1) {
       val message = s"Found ${storageFolderCandidates.length} folders named '$storageFolderName'"
@@ -104,11 +106,6 @@ object GoogleDrive {
       throw new IllegalArgumentException(message)
     }
     val storageFolder = storageFolderCandidates.head
-    if (storageFolder.getMimeType != "application/vnd.google-apps.folder") {
-      val message = s"Entry named '$storageFolderName' is not a folder"
-      BWLogger.log(getClass.getName, "fetchStorageFolderId()", s"ERROR ($message)")
-      throw new IllegalArgumentException(message)
-    }
     val theStorageFolderId = storageFolder.getId
     BWLogger.log(getClass.getName, "fetchStorageFolderId()", s"EXIT-OK ('$storageFolderName' -> '$theStorageFolderId')")
     theStorageFolderId
@@ -117,6 +114,33 @@ object GoogleDrive {
   BWLogger.log(getClass.getName, "Storing 'storageFolderId'", s"ENTRY")
   private lazy val storageFolderId: String = fetchStorageFolderId()
   BWLogger.log(getClass.getName, "Storing 'storageFolderId'", s"EXIT")
+
+  private def fetchChildFolderId(folderName: String): String = {
+    BWLogger.log(getClass.getName, "fetchChildFolderId()", s"ENTRY")
+    val query = Seq(s"\'$storageFolderId\' in parents", s"name = '$folderName'", "trashed = false",
+      "mimeType = \'application/vnd.google-apps.folder\'").mkString(" and ")
+    val fileFolderSearchResult = cachedDriveService.files().list().
+        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
+        setQ(query).execute()
+    val fileFolderCandidates: Seq[File] = fileFolderSearchResult.getFiles.iterator().asScala.toSeq
+    if (fileFolderCandidates.length != 1) {
+      val message = s"Found ${fileFolderCandidates.length} folders named 'files'"
+      BWLogger.log(getClass.getName, "fetchChildFolderId()", s"ERROR ($message)")
+      throw new IllegalArgumentException(message)
+    }
+    val filesFolder = fileFolderCandidates.head
+    val theFilesFolderId = filesFolder.getId
+    BWLogger.log(getClass.getName, "fetchChildFolderId()", s"EXIT-OK ('files' -> '$theFilesFolderId')")
+    theFilesFolderId
+  }
+
+  BWLogger.log(getClass.getName, "Storing 'filesFolderId'", s"ENTRY")
+  private lazy val filesFolderId: String = fetchChildFolderId("files")
+  BWLogger.log(getClass.getName, "Storing 'filesFolderId'", s"EXIT")
+
+  BWLogger.log(getClass.getName, "Storing 'usersFolderId'", s"ENTRY")
+  private lazy val usersFolderId: String = fetchChildFolderId("users")
+  BWLogger.log(getClass.getName, "Storing 'usersFolderId'", s"EXIT")
 
   // https://developers.google.com/drive/api/v3/reference/files/list
   // https://developers.google.com/drive/api/v3/ref-search-terms
@@ -129,8 +153,8 @@ object GoogleDrive {
   def listObjects(optPrefix: Option[String] = None): Seq[FileMetadata] = {
     BWLogger.log(getClass.getName, "listObjects()", s"ENTRY")
     val query = optPrefix match {
-      case None => s"\'$storageFolderId\' in parents and trashed = false"
-      case Some(prefix) => s"\'$storageFolderId\' in parents and trashed = false and name contains '$prefix'"
+      case None => s"\'$filesFolderId\' in parents and trashed = false"
+      case Some(prefix) => s"\'$filesFolderId\' in parents and trashed = false and name contains '$prefix'"
     }
     val listFileQuery: Drive#Files#List = cachedDriveService.files().list().setPageSize(pageSize).setQ(query).
         setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime, properties)")
@@ -159,14 +183,14 @@ object GoogleDrive {
   def putObject(key: String, file: javaFile, properties: Map[String, String] = Map.empty): FileMetadata = {
     BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
-        setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").
+        setQ(s"\'$filesFolderId\' in parents and name = '$key' and trashed = false").
         execute().getFiles
     if (namedFiles.nonEmpty) {
       val message = s"File named '$key' already exists"
       BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    val metadata = new File().setName(key).setParents(Seq(storageFolderId).asJava).setProperties(properties.asJava)
+    val metadata = new File().setName(key).setParents(Seq(filesFolderId).asJava).setProperties(properties.asJava)
     val fileContent = new FileContent("application/octet-stream", file)
     val newFile = cachedDriveService.files().create(metadata, fileContent).execute()
     BWLogger.log(getClass.getName, s"putObject(key: $key, size: ${file.length})",
@@ -177,7 +201,7 @@ object GoogleDrive {
   def getObject(key: String): InputStream = {
     BWLogger.log(getClass.getName, s"getObject($key)", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
-        setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").execute().getFiles
+        setQ(s"\'$filesFolderId\' in parents and name = '$key' and trashed = false").execute().getFiles
     val theFile = if (namedFiles.length == 1) {
       namedFiles.head
     } else {
@@ -207,7 +231,7 @@ object GoogleDrive {
   def updateObjectByKey(key: String, properties: Map[String, String]): Unit = {
     BWLogger.log(getClass.getName, s"updateObjectByKey(key: $key, properties: $properties)", s"ENTRY")
     val namedFiles = cachedDriveService.files().list.
-        setQ(s"\'$storageFolderId\' in parents and name = '$key' and trashed = false").
+        setQ(s"\'$filesFolderId\' in parents and name = '$key' and trashed = false").
         execute().getFiles
     val theFile = if (namedFiles.length == 1) {
       namedFiles.head

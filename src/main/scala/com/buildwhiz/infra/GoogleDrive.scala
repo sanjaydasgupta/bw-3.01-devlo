@@ -19,8 +19,9 @@ import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.DriveScopes
-
+import com.google.api.services.drive.model.Permission
 import java.io.{FileInputStream, File => javaFile}
+import java.util.Collections
 
 import com.google.api.client.http.FileContent
 
@@ -138,15 +139,44 @@ object GoogleDrive {
   private lazy val filesFolderId: String = fetchChildFolderId("files")
   BWLogger.log(getClass.getName, "Storing 'filesFolderId'", s"EXIT")
 
-  BWLogger.log(getClass.getName, "Storing 'usersFolderId'", s"ENTRY")
-  private lazy val usersFolderId: String = fetchChildFolderId("users")
-  BWLogger.log(getClass.getName, "Storing 'usersFolderId'", s"EXIT")
+  BWLogger.log(getClass.getName, "Storing 'usersFolderContainerId'", s"ENTRY")
+  private lazy val usersFolderContainerId: String = fetchChildFolderId("users")
+  BWLogger.log(getClass.getName, "Storing 'usersFolderContainerId'", s"EXIT")
+
+  private lazy val freeForAnyone = new Permission().setType("anyone").setRole("reader").setDisplayName("anyone")
+
+  def createUserFolder(gDrivefolderName: String): String = {
+    BWLogger.log(getClass.getName, "createUserFolder()", s"ENTRY")
+    val query = Seq(s"\'$usersFolderContainerId\' in parents", s"name = '$gDrivefolderName'", "trashed = false",
+      "mimeType = \'application/vnd.google-apps.folder\'").mkString(" and ")
+    val userFolderSearchResult = cachedDriveService.files().list().
+        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
+        setQ(query).execute()
+    val fileFolderCandidates: Seq[File] = userFolderSearchResult.getFiles.iterator().asScala.toSeq
+    if (fileFolderCandidates.nonEmpty) {
+      val message = s"User folder '$gDrivefolderName' already exists'"
+      BWLogger.log(getClass.getName, "createUserFolder()", s"ERROR ($message)")
+      throw new IllegalArgumentException(message)
+    }
+    //val permission = new Permission()
+    //permission.setType("anyone").setRole("reader").setDisplayName(gDrivefolderName)
+    //BWLogger.log(getClass.getName, "createUserFolder()", s"Created permission: $permission")
+    //cachedDriveService.permissions().create(gDrivefolderName, permission).execute()
+    val usersFolderMetadata = new File()
+    usersFolderMetadata.setName(gDrivefolderName).setParents(Collections.singletonList(usersFolderContainerId)).
+        setMimeType("application/vnd.google-apps.folder")//.setPermissions(Collections.singletonList(freeForAnyone))
+    BWLogger.log(getClass.getName, "createUserFolder()", s"Created folder metadata: $usersFolderMetadata")
+    val newUserFolder = cachedDriveService.files().create(usersFolderMetadata).setFields("id, parents").execute()
+    BWLogger.log(getClass.getName, "createUserFolder()", s"EXIT-OK ($newUserFolder)")
+    newUserFolder.getId
+  }
 
   // https://developers.google.com/drive/api/v3/reference/files/list
   // https://developers.google.com/drive/api/v3/ref-search-terms
   // https://developers.google.com/drive/api/v3/reference/files
   // https://developers.google.com/drive/api/v3/folder#create
   // https://developers.google.com/drive/api/v3/reference/files/update
+  // https://developers.google.com/drive/api/v3/reference/permissions
 
   private val pageSize = 100
 

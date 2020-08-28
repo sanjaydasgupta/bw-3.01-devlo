@@ -1,8 +1,7 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -33,7 +32,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val logicalLabels = DocumentApi.getLogicalTags(systemLabels ++ userLabels, user)
       val allUserLabels = userLabels ++ logicalLabels
       val allLabelsCsv = (systemLabels ++ allUserLabels).mkString(",")
-      val project: DynDoc = BWMongoDB3.projects.find(Map("_id" -> d.project_id[ObjectId])).head
+      val project = ProjectApi.projectById(d.project_id[ObjectId])
       val phaseName = if (d.has("phase_id")) {
         val thePhase = PhaseApi.phaseById(d.phase_id[ObjectId])
         thePhase.name[String]
@@ -60,9 +59,10 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
           "NA"
         val date = dateTimeString(lastVersion.timestamp[Long], Some(user.tz[String]))
         val authorOid = lastVersion.author_person_id[ObjectId]
-        val authorName: String = BWMongoDB3.persons.find(Map("_id" -> authorOid)).headOption match {
-          case None => "Unknown Unknown"
-          case Some(author) => PersonApi.fullName(author)
+        val authorName: String = if (PersonApi.exists(authorOid)) {
+          PersonApi.fullName(PersonApi.personById(authorOid))
+        } else {
+          "Unknown Unknown"
         }
         Map("name" -> d.name[String], "_id" -> d._id[ObjectId].toString, "phase" -> phaseName,
           "labels" -> Map("system" -> systemLabels, "user" -> allUserLabels, "all_csv" -> allLabelsCsv),
@@ -87,13 +87,19 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val user: DynDoc = getUser(request)
-      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
-      val canRename = ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid))
+      val userOid = user._id[ObjectId]
+      val freshUserRecord: DynDoc = PersonApi.personById(userOid)
+      val canRename = ProjectApi.canManage(userOid, ProjectApi.projectById(projectOid))
       val canDelete = freshUserRecord.first_name[String] == "Prabhas"
       val allDocuments = getDocuments(freshUserRecord, request).asJava
+      val gDriveUrl = if (freshUserRecord.has("g_drive_url")) {
+        freshUserRecord.g_drive_url[String]
+      } else {
+        PersonApi.createGDriveUrl(freshUserRecord)
+      }
       val result = new Document("document_list", allDocuments).append("can_rename", canRename).
           append("can_delete", canDelete).append("can_add", true).
-          append("g_drive_url", "https://drive.google.com/drive/my-drive")
+          append("g_drive_url", gDriveUrl)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

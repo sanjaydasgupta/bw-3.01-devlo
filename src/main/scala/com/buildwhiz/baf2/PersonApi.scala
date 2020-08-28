@@ -5,6 +5,7 @@ import BWMongoDB3._
 import DynDoc._
 import org.bson.types.ObjectId
 import org.bson.Document
+import com.buildwhiz.infra.GoogleDrive
 
 import scala.collection.JavaConverters._
 
@@ -202,5 +203,14 @@ object PersonApi {
   }
 
   def allRoles(person: DynDoc): Seq[String] = person.roles[Many[String]]
+
+  def createGDriveUrl(user: DynDoc): String = {
+    val userOid = user._id[ObjectId]
+    val folderName = s"${fullName(user)} ($userOid)"
+    val userFolderId = GoogleDrive.createUserFolder(folderName)
+    val gDriveUrl = s"https://drive.google.com/drive/folders/$userFolderId"
+    BWMongoDB3.persons.updateOne(Map("_id" -> userOid), Map($set -> Map("g_drive_url" -> gDriveUrl)))
+    gDriveUrl
+  }
 
 }

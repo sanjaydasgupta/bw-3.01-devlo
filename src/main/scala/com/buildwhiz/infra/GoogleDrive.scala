@@ -143,7 +143,7 @@ object GoogleDrive {
   private lazy val usersFolderContainerId: String = fetchChildFolderId("users")
   BWLogger.log(getClass.getName, "Storing 'usersFolderContainerId'", s"EXIT")
 
-  private lazy val freeForAnyone = new Permission().setType("anyone").setRole("reader").setDisplayName("anyone")
+  private val permissionAnyoneReader = new Permission().setId("AnyoneReader").setType("anyone").setRole("reader")
 
   def createUserFolder(gDrivefolderName: String): String = {
     BWLogger.log(getClass.getName, "createUserFolder()", s"ENTRY")
@@ -158,15 +158,12 @@ object GoogleDrive {
       BWLogger.log(getClass.getName, "createUserFolder()", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    //val permission = new Permission()
-    //permission.setType("anyone").setRole("reader").setDisplayName(gDrivefolderName)
-    //BWLogger.log(getClass.getName, "createUserFolder()", s"Created permission: $permission")
-    //cachedDriveService.permissions().create(gDrivefolderName, permission).execute()
-    val usersFolderMetadata = new File()
-    usersFolderMetadata.setName(gDrivefolderName).setParents(Collections.singletonList(usersFolderContainerId)).
-        setMimeType("application/vnd.google-apps.folder")//.setPermissions(Collections.singletonList(freeForAnyone))
-    BWLogger.log(getClass.getName, "createUserFolder()", s"Created folder metadata: $usersFolderMetadata")
-    val newUserFolder = cachedDriveService.files().create(usersFolderMetadata).setFields("id, parents").execute()
+    val usersFolderMetadata = new File().setParents(Collections.singletonList(usersFolderContainerId)).
+        setMimeType("application/vnd.google-apps.folder").setName(gDrivefolderName)
+    val newUserFolder = cachedDriveService.files().create(usersFolderMetadata).setFields("id, parents").
+        execute()
+    val permissionRequest = new Permission().setType("anyone").setRole("reader").setAllowFileDiscovery(false)
+    val permissionGrant = cachedDriveService.permissions().create(newUserFolder.getId, permissionRequest).execute()
     BWLogger.log(getClass.getName, "createUserFolder()", s"EXIT-OK ($newUserFolder)")
     newUserFolder.getId
   }

@@ -92,11 +92,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val canRename = ProjectApi.canManage(userOid, ProjectApi.projectById(projectOid))
       val canDelete = freshUserRecord.first_name[String] == "Prabhas"
       val allDocuments = getDocuments(freshUserRecord, request).asJava
-      val gDriveUrl = if (freshUserRecord.has("g_drive_url")) {
-        freshUserRecord.g_drive_url[String]
-      } else {
-        PersonApi.createGDriveUrl(freshUserRecord)
-      }
+      val gDriveUrl = PersonApi.userGDriveFolderUrl(freshUserRecord)
       val result = new Document("document_list", allDocuments).append("can_rename", canRename).
           append("can_delete", canDelete).append("can_add", true).
           append("g_drive_url", gDriveUrl)

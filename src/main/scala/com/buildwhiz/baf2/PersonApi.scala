@@ -204,13 +204,23 @@ object PersonApi {
 
   def allRoles(person: DynDoc): Seq[String] = person.roles[Many[String]]
 
-  def createGDriveUrl(user: DynDoc): String = {
-    val userOid = user._id[ObjectId]
-    val folderName = s"${fullName(user)} ($userOid)"
-    val userFolderId = GoogleDrive.createUserFolder(folderName)
-    val gDriveUrl = s"https://drive.google.com/drive/folders/$userFolderId"
-    BWMongoDB3.persons.updateOne(Map("_id" -> userOid), Map($set -> Map("g_drive_url" -> gDriveUrl)))
-    gDriveUrl
+  def userGDriveFolderName(user: DynDoc) = s"${fullName(user)} (${user._id[ObjectId]})"
+
+  def userGDriveFolderId(user: DynDoc): String = {
+    if (user.has("g_drive_folder_id")) {
+      user.g_drive_folder_id[String]
+    } else {
+      val folderName = userGDriveFolderName(user)
+      val userFolderId = GoogleDrive.getUserFolderId(folderName)
+      val userOid = user._id[ObjectId]
+      BWMongoDB3.persons.updateOne(Map("_id" -> userOid), Map($set -> Map("g_drive_folder_id" -> userFolderId)))
+      userFolderId
+    }
+  }
+
+  def userGDriveFolderUrl(user: DynDoc): String = {
+    val userFolderId = userGDriveFolderId(user)
+    s"https://drive.google.com/drive/folders/$userFolderId"
   }
 
 }

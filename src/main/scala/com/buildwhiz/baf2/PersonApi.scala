@@ -225,25 +225,28 @@ object PersonApi {
 
   def populateGDriveFolder(user: DynDoc, usersGFolderId: String): Unit = {
     val userOid = user._id[ObjectId]
-    BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)", s"ENTRY")
+    val fullName = s"${PersonApi.fullName(user)} ($userOid)"
+    BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)", s"ENTRY")
     try {
       val usersAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("person_id" -> userOid))
       val projects2phases: Map[ObjectId, Seq[ObjectId]] = usersAssignments.groupBy(_.project_id[ObjectId]).
           map(p => (p._1, p._2.map(_.phase_id[ObjectId]).distinct))
-      BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)",
+      BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
           s"Projects: ${projects2phases.size}")
       for ((projectOid, phaseOids) <- projects2phases) {
         val project = ProjectApi.projectById(projectOid)
         val projectName = project.name[String]
         lazy val gDriveProjectFolderId = GoogleDrive.getOrCreateFolder(usersGFolderId, projectName)
         lazy val projectFiles = GoogleDrive.listObjects(Some(s"$projectOid-"))
-        BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)",
+        BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
             s"Project '$projectName' has ${projectFiles.length} files")
         val nonPhaseFiles = projectFiles.filterNot(_.properties.contains("phase"))
-        BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)",
+        BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
           s"Project '$projectName' has ${nonPhaseFiles.length} non-phase files")
         for (nonPhaseFile <- nonPhaseFiles) {
-          GoogleDrive.createShortcut(gDriveProjectFolderId, nonPhaseFile.id, nonPhaseFile.properties("name"))
+          val timestamp = nonPhaseFile.key.split("-").last
+          val nonPhaseFileName = s"${nonPhaseFile.properties("name")} ($timestamp)"
+          GoogleDrive.createShortcut(gDriveProjectFolderId, nonPhaseFile.id, nonPhaseFileName)
         }
         for (phaseOid <- phaseOids) {
           val phase = PhaseApi.phaseById(phaseOid)
@@ -251,18 +254,21 @@ object PersonApi {
           lazy val gDrivePhaseFolderId = GoogleDrive.getOrCreateFolder(gDriveProjectFolderId, phaseName)
           val phaseFiles = projectFiles.
               filter(file => file.properties.contains("phase") && file.properties("phase") == phaseName)
-          BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)",
+          BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
               s"Phase '$phaseName' has ${phaseFiles.length} files")
           for (phaseFile <- phaseFiles) {
-            GoogleDrive.createShortcut(gDrivePhaseFolderId, phaseFile.id, phaseFile.properties("name"))
+            val timestamp = phaseFile.key.split("-").last
+            val phaseFileName = s"${phaseFile.properties("name")} ($timestamp)"
+            GoogleDrive.createShortcut(gDrivePhaseFolderId, phaseFile.id, phaseFileName)
           }
         }
-        BWLogger.log(getClass.getName, s"populateGDriveFolder($userOid, $usersGFolderId)", s"EXIT-OK")
+        BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)", s"EXIT-OK")
       }
     } catch {
       case throwable: Throwable =>
         val stackTrace = throwable.getStackTrace.mkString("", EOL, EOL)
-        BWLogger.log(getClass.getName, s"populateGDriveFolder()", s"ERROR-Asynchronous ($stackTrace)")
+        BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
+            s"ERROR-Asynchronous ($stackTrace)")
     }
   }
 

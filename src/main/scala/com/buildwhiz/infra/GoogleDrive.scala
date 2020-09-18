@@ -24,6 +24,7 @@ import java.io.{FileInputStream, File => javaFile}
 import java.util.Collections
 
 import com.google.api.client.http.FileContent
+import com.google.api.services.drive.model.File.ShortcutDetails
 
 import scala.collection.JavaConverters._
 import scala.annotation.tailrec
@@ -177,6 +178,16 @@ object GoogleDrive {
       BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"EXIT-OK (new: $newFolder)")
       newFolder.getId
     }
+  }
+
+  def createShortcut(parentFolderId: String, fileId: String, fileName: String): String = {
+    BWLogger.log(getClass.getName, s"createShortcut($parentFolderId, $fileId, $fileName)", s"ENTRY")
+    val shortcutDetails = new ShortcutDetails().setTargetId(fileId)
+    val shortcutMetadata = new File().setParents(Collections.singletonList(parentFolderId)).setName(fileName).
+        setMimeType("application/vnd.google-apps.shortcut").setShortcutDetails(shortcutDetails)
+    val shortcut = cachedDriveService.files().create(shortcutMetadata).setFields("id").execute()
+    BWLogger.log(getClass.getName, s"createShortcut($parentFolderId, $fileId, $fileName)", s"EXIT-OK")
+    shortcut.getId
   }
 
   // https://developers.google.com/drive/api/v3/reference/files/list

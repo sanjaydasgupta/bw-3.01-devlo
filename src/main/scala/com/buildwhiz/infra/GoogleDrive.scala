@@ -144,14 +144,14 @@ object GoogleDrive {
   private lazy val usersFolderContainerId: String = fetchChildFolderId("users")
   BWLogger.log(getClass.getName, "Storing 'usersFolderContainerId'", s"EXIT")
 
-  private val permissionAnyoneReader = new Permission().setId("AnyoneReader").setType("anyone").setRole("reader")
+  //private val permissionAnyoneReader = new Permission().setId("AnyoneReader").setType("anyone").setRole("reader")
 
-  def getUserFolderId(gDrivefolderName: String): String = {
-    BWLogger.log(getClass.getName, s"getUserFolderId($gDrivefolderName)", s"ENTRY")
-    val userFolderId = getOrCreateFolder(usersFolderContainerId, gDrivefolderName)
+  def getUserFolderId(gDriveFolderName: String): String = {
+    BWLogger.log(getClass.getName, s"getUserFolderId($gDriveFolderName)", s"ENTRY")
+    val userFolderId = getOrCreateFolder(usersFolderContainerId, gDriveFolderName)
     val permissionRequest = new Permission().setType("anyone").setRole("reader").setAllowFileDiscovery(false)
-    val permissionGrant = cachedDriveService.permissions().create(userFolderId, permissionRequest).execute()
-    BWLogger.log(getClass.getName, s"getUserFolderId($gDrivefolderName)", s"EXIT-OK ($userFolderId)")
+    /*val permissionGrant = */cachedDriveService.permissions().create(userFolderId, permissionRequest).execute()
+    BWLogger.log(getClass.getName, s"getUserFolderId($gDriveFolderName)", s"EXIT-OK ($userFolderId)")
     userFolderId
   }
 
@@ -159,9 +159,11 @@ object GoogleDrive {
     BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"ENTRY")
     val query = Seq(s"\'$parentFolderId\' in parents", s"name = '$folderName'", "trashed = false",
       "mimeType = \'application/vnd.google-apps.folder\'").mkString(" and ")
+    Thread.sleep(500)
+    BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"query-string: $query")
+    Thread.sleep(500)
     val searchResult = cachedDriveService.files().list().
-        setFields("nextPageToken, files(id, name, size, mimeType, createdTime, modifiedTime)").
-        setQ(query).execute()
+        setFields("nextPageToken, files(id)").setQ(query).execute()
     val fileFolderCandidates: Seq[File] = searchResult.getFiles.iterator().asScala.toSeq
     if (fileFolderCandidates.nonEmpty) {
       val folderId = fileFolderCandidates.head.getId
@@ -174,9 +176,10 @@ object GoogleDrive {
       val newFolder = cachedDriveService.files().create(newFolderMetadata).setFields("id, parents").
           execute()
       val permissionRequest = new Permission().setType("anyone").setRole("reader").setAllowFileDiscovery(false)
-      val permissionGrant = cachedDriveService.permissions().create(newFolder.getId, permissionRequest).execute()
-      BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"EXIT-OK (new: $newFolder)")
-      newFolder.getId
+      /*val permissionGrant = */cachedDriveService.permissions().create(newFolder.getId, permissionRequest).execute()
+      val newFolderId = newFolder.getId
+      BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"EXIT-OK (new: $newFolderId)")
+      newFolderId
     }
   }
 

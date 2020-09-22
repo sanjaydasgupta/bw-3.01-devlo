@@ -157,11 +157,9 @@ object GoogleDrive {
 
   def getOrCreateFolder(parentFolderId: String, folderName: String): String = {
     BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"ENTRY")
-    val query = Seq(s"\'$parentFolderId\' in parents", s"name = '$folderName'", "trashed = false",
+    val escapedFolderName = folderName.replaceAll("\'", "\\\'")
+    val query = Seq(s"\'$parentFolderId\' in parents", s"""name = "$escapedFolderName"""", "trashed = false",
       "mimeType = \'application/vnd.google-apps.folder\'").mkString(" and ")
-    Thread.sleep(500)
-    BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"query-string: $query")
-    Thread.sleep(500)
     val searchResult = cachedDriveService.files().list().
         setFields("nextPageToken, files(id)").setQ(query).execute()
     val fileFolderCandidates: Seq[File] = searchResult.getFiles.iterator().asScala.toSeq

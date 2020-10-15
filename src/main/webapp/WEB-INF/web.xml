@@ -16,6 +16,15 @@
   </listener>
 
   <servlet>
+    <servlet-name>GraphQLHttpService</servlet-name>
+    <servlet-class>com.buildwhiz.graphql.GraphQLHttpService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GraphQLHttpService</servlet-name>
+    <url-pattern>/graphql/graphql</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>Entry</servlet-name>
     <servlet-class>com.buildwhiz.Entry</servlet-class>
   </servlet>

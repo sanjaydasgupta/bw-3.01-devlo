@@ -83,7 +83,7 @@ object Sample {
                            |    }
                            |  }
                            |}""".stripMargin)
-    print(new Document(result.toSpecification).toJson)
+    println(new Document(result.toSpecification).toJson)
   }
-
+// %7bbookById%28id%3a%22book-2%22%29%7bid%20name%20pageCount%20author%7bfirstName%20lastName%7d%7d%7d
 }

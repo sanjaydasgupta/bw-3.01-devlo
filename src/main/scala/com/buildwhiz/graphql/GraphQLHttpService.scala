@@ -12,7 +12,7 @@ class GraphQLHttpService extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val query = parameters("query")
-      val result = Sample.execute(query)
+      val result = Sample.execute(query, request, response)
       val json = new Document(result.toSpecification).toJson
       response.getWriter.println(json)
       response.setContentType("application/json")

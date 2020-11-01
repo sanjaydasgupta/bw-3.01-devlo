@@ -110,7 +110,8 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       //val deliverableTypes = Seq(("Document", 5d, 10d), ("Work", 30d, 0d))
       val constraintInfo = Seq(
         ("Spec/ID", "Labor", 20d, 5d), ("Spec/ID", "Material", 5d, 0d),
-        ("Spec/ID", "Equipment", 5d, 2d), ("Task:Deliverable", "Work/Document", 3d, 0d)
+        ("Spec/ID", "Equipment", 5d, 2d), ("Task:Deliverable", "Work", 3d, 0d),
+        ("Task:Deliverable", "Document", 3d, 0d)
       )
       val deliverableDurations = Map("Work" -> 10d, "Document" -> 20d)
       val constraints = constraintInfo.map(tuple => new Document("constraint", tuple._1).append("offset", tuple._3).

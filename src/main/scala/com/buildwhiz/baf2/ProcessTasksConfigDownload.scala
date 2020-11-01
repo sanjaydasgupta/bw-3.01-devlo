@@ -116,7 +116,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       val deliverableDurations = Map("Work" -> 10d, "Document" -> 20d)
       val constraints = constraintInfo.map(tuple => new Document("constraint", tuple._1).append("offset", tuple._3).
           append("duration", tuple._4).append("type", tuple._2))
-      new Document("name", s"$taskName:sample-deliverable").append("type", taskType).
+      new Document("name", s"$taskName:sample-$taskType").append("type", taskType).
           append("duration", deliverableDurations.getOrElse(taskType, 0d)).append("constraints", constraints.asJava)
     }
 

@@ -82,21 +82,21 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     }
     val cellValues: Seq[Option[String]] = configRow.asScala.toSeq.map(getCellValue).
       map(s => if (s.replaceAll("[\\s-]+", "").isEmpty) None else Some(s))
-    if (cellValues.length != 7) {
-      //throw new IllegalArgumentException(s"Bad row - expected 7 cells, found ${cellValues.length} in row $rowNumber")
-      errorList.append(s"ERROR: Bad row - expected 7 cells, found ${cellValues.length} in row $rowNumber")
+    if (cellValues.length != 8) {
+      //throw new IllegalArgumentException(s"Bad row - expected 8 cells, found ${cellValues.length} in row $rowNumber")
+      errorList.append(s"ERROR: Bad row - expected 8 cells, found ${cellValues.length} in row $rowNumber")
       (configTasks, errorList)
     } else {
       cellValues match {
         // Task row
-        case Seq(Some(taskName), None, None, None, None, None, None) =>
+        case Seq(Some(taskName), None, None, None, None, None, None, None) =>
           val newTask: DynDoc = new Document("name", taskName).append("deliverables", Seq.empty[DynDoc]).
               append("row", rowNumber)
           (newTask +: configTasks, errorList)
         // Deliverable row
-        case Seq(None, Some(deliverableName), Some(deliverableType), Some(duration), None, None, None) =>
+        case Seq(None, Some(deliverableName), Some(deliverableType), Some(duration), None, None, None, None) =>
           val oldErrorCount = errorList.length
-          if (!deliverableType.matches("(?i)equipment|labor|material|work")) {
+          if (!deliverableType.matches("(?i)document|work")) {
             //throw new IllegalArgumentException(s"Bad deliverable type, found '$deliverableType' in row $rowNumber")
             errorList.append(s"ERROR: Bad deliverable type, found '$deliverableType' in row $rowNumber")
           }
@@ -123,7 +123,7 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
             (configTasks, errorList)
           }
         // Constraint row
-        case Seq(None, None, None, None, Some(constraintSpec), Some(offset), Some(duration)) =>
+        case Seq(None, None, None, None, Some(constraintSpec), Some(constraintType), Some(offset), Some(duration)) =>
           val oldErrorCount = errorList.length
           if (!offset.matches("[0-9.]+")) {
             //throw new IllegalArgumentException(s"Bad offset value, found '$offset' in row $rowNumber")
@@ -133,22 +133,34 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
             //throw new IllegalArgumentException(s"Bad duration value, found '$duration' in row $rowNumber")
             errorList.append(s"ERROR: Bad duration value, found '$duration' in row $rowNumber")
           }
+          if (!constraintType.matches("(?i)labor|material|equipment|work|document")) {
+            //throw new IllegalArgumentException(s"Bad deliverable type, found '$deliverableType' in row $rowNumber")
+            errorList.append(s"ERROR: Bad deliverable type, found '$constraintType' in row $rowNumber")
+          }
           if (errorList.length == oldErrorCount) {
             val oldErrorCount = errorList.length
-            val newConstraint: DynDoc = constraintSpec.split(":").toSeq.map(_.trim) match {
-              case Seq(bpmn, task, deliverable) => new Document("bpmn", bpmn).append("task", task).
-                append("deliverable", deliverable).append("offset", offset.toDouble).append("duration", duration.toDouble).
-                  append("row", rowNumber)
-              case Seq(task, deliverable) => new Document("task", task).append("deliverable", deliverable).
-                append("offset", offset.toDouble).append("duration", duration.toDouble).append("row", rowNumber)
-              case Seq(deliverable) => new Document("deliverable", deliverable).append("offset", offset.toDouble).
-                append("duration", duration.toDouble).append("row", rowNumber)
-              case _ => //throw new IllegalArgumentException(s"Bad constraint, found '$constraintSpec' in row $rowNumber")
-                errorList.append(s"ERROR: Bad constraint, found '$constraintSpec' in row $rowNumber")
-                new Document("deliverable", "ERROR!!!").append("offset", offset.toDouble).
-                  append("duration", duration.toDouble).append("row", rowNumber)
-            }
-            if (errorList.length == oldErrorCount) {
+//            val newConstraint: DynDoc = constraintSpec.split(":").toSeq.map(_.trim) match {
+//              case Seq(bpmn, task, deliverable) => new Document("bpmn", bpmn).append("task", task).
+//                append("deliverable", deliverable).append("offset", offset.toDouble).append("duration", duration.toDouble).
+//                append("row", rowNumber).append("type", constraintType.toLowerCase)
+//              case Seq(task, deliverable) => new Document("task", task).append("deliverable", deliverable).
+//                append("offset", offset.toDouble).append("duration", duration.toDouble).append("row", rowNumber).
+//                append("type", constraintType.toLowerCase)
+//              case Seq(deliverable) if constraintType.matches("(?i)work|document") =>
+//                new Document("deliverable", deliverable).append("duration", duration.toDouble).
+//                append("offset", offset.toDouble).append("row", rowNumber).append("type", constraintType.toLowerCase)
+//              case Seq(constraintSpecification) =>
+//                new Document("constraint", constraintSpecification).append("duration", duration.toDouble).
+//                append("offset", offset.toDouble).append("row", rowNumber).append("type", constraintType.toLowerCase)
+//              case _ => //throw new IllegalArgumentException(s"Bad constraint, found '$constraintSpec' in row $rowNumber")
+//                errorList.append(s"ERROR: Bad constraint, found '$constraintSpec' in row $rowNumber")
+//                new Document("deliverable", "ERROR!!!").append("offset", offset.toDouble).
+//                  append("duration", duration.toDouble).append("row", rowNumber)
+//            }
+              val newConstraint: DynDoc = new Document("constraint", constraintSpec).
+                  append("duration", duration.toDouble).append("offset", offset.toDouble).append("row", rowNumber).
+                  append("type", constraintType.toLowerCase)
+              if (errorList.length == oldErrorCount) {
               val currentTask = configTasks.head
               val currentTaskDeliverables = currentTask.deliverables[Seq[DynDoc]]
               if (currentTaskDeliverables.nonEmpty) {
@@ -178,9 +190,9 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     val configInfoIterator: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = configInfoIterator.take(1).next()
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
-    if (taskHeaderCellCount != 7) {
+    if (taskHeaderCellCount != 8) {
       //throw new IllegalArgumentException(s"Bad header - expected 7 cells, found $taskHeaderCellCount")
-      errorList.append(s"ERROR: Bad header - expected 7 cells, found $taskHeaderCellCount")
+      errorList.append(s"ERROR: Bad header - expected 8 cells, found $taskHeaderCellCount")
     }
     if (errorList.length == oldErrorCount) {
       val reversedTaskConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.

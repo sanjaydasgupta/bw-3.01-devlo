@@ -53,10 +53,11 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
       row.createCell(2).setCellValue("--") // description
       row.createCell(3).setCellValue("--") // type
       row.createCell(4).setCellValue("--") // duration
-      row.createCell(5).setCellValue("--") // constraint
-      row.createCell(6).setCellValue("--") // type
-      row.createCell(7).setCellValue("--") // offset
-      row.createCell(8).setCellValue("--") // duration
+      row.createCell(5).setCellValue("--") // team
+      row.createCell(6).setCellValue("--") // constraint
+      row.createCell(7).setCellValue("--") // type
+      row.createCell(8).setCellValue("--") // offset
+      row.createCell(9).setCellValue("--") // duration
       val cellStyle = getCellStyle(workbook, IndexedColors.GREY_40_PERCENT.index)
       cellStyle.setLocked(true)
       row.cellIterator().forEachRemaining(_.setCellStyle(cellStyle))
@@ -71,16 +72,17 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
         row.createCell(2).setCellValue("--") // description
         row.createCell(3).setCellValue("--") // type
         row.createCell(4).setCellValue("--") // duration
+        row.createCell(5).setCellValue("--") // team
         //val constraintString = (optBpmn, optTask, deliverable) match {
         //  case(Some(bpmn), Some(task), deliverable) => s"$bpmn:$task:$deliverable"
         //  case(None, Some(task), deliverable) => s"$task:$deliverable"
         //  case(None, None, deliverable) => deliverable
         //  case _ => throw new IllegalArgumentException(s"Internal consistency erroe")
         //}
-        row.createCell(5).setCellValue(constraint) // constraint
-        row.createCell(6).setCellValue(constraintType) // type
-        row.createCell(7).setCellValue(offset) // offset
-        row.createCell(8).setCellValue(duration) // duration
+        row.createCell(6).setCellValue(constraint) // constraint
+        row.createCell(7).setCellValue(constraintType) // type
+        row.createCell(8).setCellValue(offset) // offset
+        row.createCell(9).setCellValue(duration) // duration
         //val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_CORNFLOWER_BLUE.index)
         val constraintCellStyle = getCellStyle(taskSheet.getWorkbook, IndexedColors.LIGHT_BLUE.index)
         row.cellIterator().forEachRemaining(_.setCellStyle(constraintCellStyle))
@@ -98,10 +100,14 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
           row.createCell(2).setCellValue("No description provided")
         row.createCell(3).setCellValue(deliverable.`type`[String])
         row.createCell(4).setCellValue(deliverable.duration[Double])
-        row.createCell(5).setCellValue("--") // constraint
-        row.createCell(6).setCellValue("--") // type
-        row.createCell(7).setCellValue("--") // offset
-        row.createCell(8).setCellValue("--") // duration
+        if (deliverable.has("team"))
+          row.createCell(5).setCellValue(deliverable.team[String]) // team
+        else
+          row.createCell(5).setCellValue("None") // team
+        row.createCell(6).setCellValue("--") // constraint
+        row.createCell(7).setCellValue("--") // type
+        row.createCell(8).setCellValue("--") // offset
+        row.createCell(9).setCellValue("--") // duration
         row.cellIterator().forEachRemaining(_.setCellStyle(deliverableCellStyle))
         val constraints: Seq[DynDoc] = deliverable.constraints[Many[Document]]
         for (constraint <- constraints) {
@@ -123,13 +129,14 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
           append("duration", tuple._4).append("type", tuple._2))
       new Document("name", s"$taskName:sample-$taskType").append("description", "No description provided").
           append("type", taskType).append("duration", deliverableDurations.getOrElse(taskType, 0d)).
-          append("constraints", constraints.asJava)
+          append("constraints", constraints.asJava).append("team", "None")
     }
 
     val activities: Seq[DynDoc] = ProcessApi.allActivities(process._id[ObjectId])
     val taskSheet = workbook.createSheet(process._id[ObjectId].toString)
-    val headerInfo = Seq(("Task", 60), ("Deliverable", 60), ("Description", 100), ("Type", 20), ("Duration\n(days)", 20),
-      ("Constraint", 60), ("Type", 20), ("Offset\n(days)", 20), ("Duration\n(days)", 20))
+    val headerInfo = Seq(("Task", 40), ("Deliverable", 60), ("Description", 100), ("Type", 20),
+        ("Duration\n(days)", 20), ("Team", 40), ("Constraint", 60), ("Type", 20), ("Offset\n(days)", 20),
+        ("Duration\n(days)", 20))
     addHeaderRow(taskSheet, headerInfo)
     for (activity <- activities) {
       val taskName = activity.name[String]

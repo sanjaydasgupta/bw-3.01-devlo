@@ -82,19 +82,19 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     }
     val cellValues: Seq[Option[String]] = configRow.asScala.toSeq.map(getCellValue).
       map(s => if (s.replaceAll("[\\s-]+", "").isEmpty) None else Some(s))
-    if (cellValues.length != 9) {
-      //throw new IllegalArgumentException(s"Bad row - expected 8 cells, found ${cellValues.length} in row $rowNumber")
-      errorList.append(s"ERROR: Bad row - expected 9 cells, found ${cellValues.length} in row $rowNumber")
+    if (cellValues.length != 10) {
+      errorList.append(s"ERROR: Bad row - expected 10 cells, found ${cellValues.length} in row $rowNumber")
       (configTasks, errorList)
     } else {
       cellValues match {
         // Task row
-        case Seq(Some(taskName), None, None, None, None, None, None, None, None) =>
+        case Seq(Some(taskName), None, None, None, None, None, None, None, None, None) =>
           val newTask: DynDoc = new Document("name", taskName).append("deliverables", Seq.empty[DynDoc]).
               append("row", rowNumber)
           (newTask +: configTasks, errorList)
         // Deliverable row
-        case Seq(None, Some(deliverableName), Some(description), Some(deliverableType), Some(duration), None, None, None, None) =>
+        case Seq(None, Some(deliverableName), Some(description), Some(deliverableType), Some(duration), Some(team),
+            None, None, None, None) =>
           val oldErrorCount = errorList.length
           if (!deliverableType.matches("(?i)document|work")) {
             //throw new IllegalArgumentException(s"Bad deliverable type, found '$deliverableType' in row $rowNumber")
@@ -107,8 +107,8 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
           if (errorList.length == oldErrorCount) {
             val oldErrorCount = errorList.length
             val newDeliverable: DynDoc = new Document("name", deliverableName).append("description", description).
-              append("type", deliverableType.toLowerCase).append("duration", duration.toDouble).
-              append("constraints", Seq.empty[DynDoc]).append("row", rowNumber)
+                append("type", deliverableType.toLowerCase).append("duration", duration.toDouble).
+                append("team", team).append("constraints", Seq.empty[DynDoc]).append("row", rowNumber)
             val currentTask = configTasks.head
             val currentDeliverables = currentTask.deliverables[Seq[DynDoc]]
             val existingDeliverableNames = currentDeliverables.map(_.name[String])
@@ -124,7 +124,8 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
             (configTasks, errorList)
           }
         // Constraint row
-        case Seq(None, None, None, None, None, Some(constraintSpec), Some(constraintType), Some(offset), Some(duration)) =>
+        case Seq(None, None, None, None, None, None,
+            Some(constraintSpec), Some(constraintType), Some(offset), Some(duration)) =>
           val oldErrorCount = errorList.length
           if (!offset.matches("[0-9.]+")) {
             //throw new IllegalArgumentException(s"Bad offset value, found '$offset' in row $rowNumber")
@@ -191,9 +192,8 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     val configInfoIterator: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = configInfoIterator.take(1).next()
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
-    if (taskHeaderCellCount != 9) {
-      //throw new IllegalArgumentException(s"Bad header - expected 7 cells, found $taskHeaderCellCount")
-      errorList.append(s"ERROR: Bad header - expected 9 cells, found $taskHeaderCellCount")
+    if (taskHeaderCellCount != 10) {
+      errorList.append(s"ERROR: Bad header - expected 10 cells, found $taskHeaderCellCount")
     }
     if (errorList.length == oldErrorCount) {
       val reversedTaskConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.

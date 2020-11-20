@@ -11,7 +11,10 @@ object OrganizationApi {
     BWMongoDB3.organizations.find(Map("_id" -> Map($in -> organizationOids)))
 
   def organizationById(organizationOid: ObjectId): DynDoc =
-      BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).head
+    BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).head
+
+  def organizationByName(orgName: String): Option[DynDoc] =
+    BWMongoDB3.organizations.find(Map("name" -> orgName)).headOption
 
   def exists(organizationOid: ObjectId): Boolean = BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).nonEmpty
 

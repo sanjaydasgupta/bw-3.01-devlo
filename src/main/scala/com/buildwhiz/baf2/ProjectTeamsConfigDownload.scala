@@ -82,7 +82,7 @@ class ProjectTeamsConfigDownload extends HttpServlet with HttpUtils {
     for (team <- teams) {
       addTeamRow(teamsSheet, team)
     }
-    teamsSheet.getLastRowNum + 1
+    teamsSheet.getLastRowNum
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -96,8 +96,7 @@ class ProjectTeamsConfigDownload extends HttpServlet with HttpUtils {
       workbook.write(response.getOutputStream)
       response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod,
-        s"EXIT-OK ($teamsCount tasks)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($teamsCount tasks)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

@@ -19,6 +19,8 @@ class Entry extends HttpServlet {
       case ("Environment", "etc") => true
       case ("Login", "baf2") => true
       case ("Logout", "baf2") => true
+      case ("GLogin", "baf3") => true
+      case ("Logout", "baf3") => true
       case ("SlackSlashCommand", "slack") => true
       case ("SlackEventCallback", "slack") => true
       case ("SlackInteractiveCallback", "slack") => true
@@ -29,7 +31,7 @@ class Entry extends HttpServlet {
 
   private def log(event: String, request: HttpServletRequest): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
-    urlParts.zipWithIndex.find(_._1.matches("api|baf2?|dot|etc|graphql|slack|tools|web")) match {
+    urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")) match {
       case Some((_, pkgIdx)) =>
         val apiPath = s"${urlParts(pkgIdx)}/${urlParts(pkgIdx + 1)}"
         BWLogger.log(apiPath, request.getMethod, event, request)
@@ -42,7 +44,7 @@ class Entry extends HttpServlet {
         delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
-      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf2?|dot|etc|graphql|slack|tools|web")).head._2
+      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
       val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
       Entry.cache.get(className) match {
         case Some(httpServlet) => delegateTo(httpServlet)

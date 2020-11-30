@@ -42,6 +42,7 @@
     <url-pattern>/old/etc/*</url-pattern>
 
     <url-pattern>/baf2/*</url-pattern>
+    <url-pattern>/baf3/*</url-pattern>
     <url-pattern>/slack/*</url-pattern>
 
     <url-pattern>/old123/dot/*</url-pattern>

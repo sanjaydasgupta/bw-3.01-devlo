@@ -1,15 +1,14 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import com.buildwhiz.baf2.{PersonApi, ProjectApi, PhaseApi}
-
-import scala.collection.JavaConverters._
 
 class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 
@@ -74,12 +73,14 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
     try {
-      val postData = getStreamData(request)
-      val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
-      if (loginParameters.has("idtoken")) {
-        val idToken = loginParameters.idtoken[String]
-        val person: Option[Document] = Some(PersonApi.personById(???).asDoc)
-        val email = person.get.y.emails[Many[DynDoc]].find(_.`type`[String] == "work").map(_.email[String]).head
+      //val postData = getStreamData(request)
+      //BWLogger.log(getClass.getName, "doPost", s"POST-data: '$postData'", request, isLogin = true)
+      //val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
+      if (parameters.contains("idtoken") && parameters.contains("email")) {
+        //val idToken = loginParameters.idtoken[String]
+        val email = parameters("email")
+        val person: Option[Document] =
+            BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work", "email" -> email))).headOption.map(_.asDoc)
         val result = person match {
           case None =>
             BWLogger.log(getClass.getName, "doPost", s"Login ERROR: $email", request)
@@ -111,13 +112,13 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-      } else if (request.getSession.getAttribute("bw-user") != null) {
-        val user: DynDoc = getUser(request)
-        val emails: Seq[DynDoc] = user.emails[Many[Document]]
-        val workEmail: String = emails.find(_.`type`[String] == "work").head.email[String]
-        request.getSession.removeAttribute("bw-user")
-        request.getSession.invalidate()
-        BWLogger.log(getClass.getName, "doPost", s"Logout ($workEmail)", request)
+//      } else if (request.getSession.getAttribute("bw-user") != null) {
+//        val user: DynDoc = getUser(request)
+//        val emails: Seq[DynDoc] = user.emails[Many[Document]]
+//        val workEmail: String = emails.find(_.`type`[String] == "work").head.email[String]
+//        request.getSession.removeAttribute("bw-user")
+//        request.getSession.invalidate()
+//        BWLogger.log(getClass.getName, "doPost", s"Logout ($workEmail)", request)
       } else {
         val result = """{"_id": "", "first_name": "", "last_name": ""}"""
         response.getWriter.print(result)

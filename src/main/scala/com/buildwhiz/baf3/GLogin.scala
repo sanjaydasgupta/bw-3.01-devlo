@@ -1,5 +1,7 @@
 package com.buildwhiz.baf3
 
+import java.util.Collections
+
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -7,8 +9,10 @@ import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
-
-import com.buildwhiz.baf2.{PersonApi, ProjectApi, PhaseApi}
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
 
 class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 
@@ -69,6 +73,23 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     }
   }
 
+  private def validateIdToken(idTokenString: String, emailParameter: String): Boolean = {
+    val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+    val jsonFactory = JacksonFactory.getDefaultInstance
+    val clientId = "318594985671-gfojh2kiendld330k65eajmjdifudpct.apps.googleusercontent.com"
+    val verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory).
+        setAudience(Collections.singletonList(clientId)).build()
+    val idToken = verifier.verify(idTokenString)
+    if (idToken != null) {
+      val payload = idToken.getPayload
+      val email = payload.getEmail
+      val emailVerified: Boolean = payload.getEmailVerified
+      emailVerified && (email == emailParameter)
+    } else {
+      false
+    }
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
@@ -77,39 +98,45 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
       //BWLogger.log(getClass.getName, "doPost", s"POST-data: '$postData'", request, isLogin = true)
       //val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
       if (parameters.contains("idtoken") && parameters.contains("email")) {
-        //val idToken = loginParameters.idtoken[String]
+        val idToken = parameters("idtoken")
         val email = parameters("email")
-        val person: Option[Document] =
+        val idTokenOk = validateIdToken(idToken, email)
+        if (idTokenOk) {
+          val person: Option[Document] =
             BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work", "email" -> email))).headOption.map(_.asDoc)
-        val result = person match {
-          case None =>
-            BWLogger.log(getClass.getName, "doPost", s"Login ERROR: $email", request)
-            """{"_id": "", "first_name": "", "last_name": ""}"""
-          case Some(personRecord) =>
-            cookieSessionSet(email, personRecord, request, response)
-            addMenuItems(personRecord)
-            if (!personRecord.containsKey("document_filter_labels"))
-              personRecord.put("document_filter_labels", Seq.empty[String])
-            if (!personRecord.containsKey("selected_project_id")) {
-              personRecord.put("selected_project_id", "")
-              personRecord.put("selected_phase_id", "")
-            } else if (!personRecord.containsKey("selected_phase_id")) {
-              defaultPhase(personRecord.getObjectId("selected_project_id"), personRecord) match {
-                case None => personRecord.put("selected_phase_id", "")
-                case Some(phase) => personRecord.put("selected_phase_id", phase._id[ObjectId])
+          val result = person match {
+            case None =>
+              BWLogger.log(getClass.getName, "doPost", s"EXIT-ERROR Google-OK but no work-email: $email", request)
+              """{"_id": "", "first_name": "", "last_name": ""}"""
+            case Some(personRecord) =>
+              cookieSessionSet(email, personRecord, request, response)
+              addMenuItems(personRecord)
+              if (!personRecord.containsKey("document_filter_labels"))
+                personRecord.put("document_filter_labels", Seq.empty[String])
+              if (!personRecord.containsKey("selected_project_id")) {
+                personRecord.put("selected_project_id", "")
+                personRecord.put("selected_phase_id", "")
+              } else if (!personRecord.containsKey("selected_phase_id")) {
+                defaultPhase(personRecord.getObjectId("selected_project_id"), personRecord) match {
+                  case None => personRecord.put("selected_phase_id", "")
+                  case Some(phase) => personRecord.put("selected_phase_id", phase._id[ObjectId])
+                }
               }
-            }
-            val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
+              val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
-            val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
-            val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
-                Map("roles" -> roles))
-            recordLoginTime(personRecord)
-            BWLogger.audit(getClass.getName, "doPost", "Login OK", request)
-            bson2json(resultPerson)
+              val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
+              val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
+                  Map("roles" -> roles))
+              recordLoginTime(personRecord)
+              BWLogger.audit(getClass.getName, "doPost", "Login GoogleIdTokenVerifier OK", request)
+              bson2json(resultPerson)
+          }
+          response.getWriter.print(result)
+        } else {
+          BWLogger.log(getClass.getName, "doPost", "EXIT-ERROR GoogleIdTokenVerifier failure", request)
+          response.getWriter.print("""{"_id": "", "first_name": "", "last_name": ""}""")
         }
-        response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
 //      } else if (request.getSession.getAttribute("bw-user") != null) {
@@ -124,7 +151,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Login without parameters ($result)", request)
+        BWLogger.log(getClass.getName, "doPost", s"EXIT-ERROR Login without parameters ($result)", request)
       }
     } catch {
       case t: Throwable =>

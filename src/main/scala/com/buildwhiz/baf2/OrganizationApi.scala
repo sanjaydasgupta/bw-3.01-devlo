@@ -18,11 +18,16 @@ object OrganizationApi {
 
   def exists(organizationOid: ObjectId): Boolean = BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).nonEmpty
 
-  def fetch(oid: Option[ObjectId] = None, name: Option[String] = None, skill: Option[String] = None): Seq[DynDoc] =
-      (oid, name, skill) match {
-    case (Some(theOid), _, _) => BWMongoDB3.organizations.find(Map("_id" -> theOid))
-    case (None, Some(theName), _) => BWMongoDB3.organizations.find(Map("name" -> theName))
-    case (None, None, Some(theSkill)) => BWMongoDB3.organizations.find(Map("skills" -> theSkill))
+  def fetch(optOid: Option[ObjectId] = None, optName: Option[String] = None, optSkill: Option[String] = None,
+            optOrgType: Option[String] = None): Seq[DynDoc] = (optOid, optName, optSkill, optOrgType) match {
+    case (Some(theOid), _, _, None) => BWMongoDB3.organizations.find(Map("_id" -> theOid))
+    case (Some(theOid), _, _, Some(orgType)) => BWMongoDB3.organizations.find(Map("_id" -> theOid, "type" -> orgType))
+    case (None, Some(theName), _, None) => BWMongoDB3.organizations.find(Map("name" -> theName))
+    case (None, Some(theName), _, Some(orgType)) => BWMongoDB3.organizations.
+        find(Map("name" -> theName, "type" -> orgType))
+    case (None, None, Some(theSkill), None) => BWMongoDB3.organizations.find(Map("skills" -> theSkill))
+    case (None, None, Some(theSkill), Some(orgType)) => BWMongoDB3.organizations.
+        find(Map("skills" -> theSkill, "type" -> orgType))
     case _ => BWMongoDB3.organizations.find()
   }
 
@@ -32,7 +37,7 @@ object OrganizationApi {
       throw new IllegalArgumentException(s"Bad organization name (has blank padding): '$newOrgName'")
     if (orgNameLength > 150 || orgNameLength < 5)
       throw new IllegalArgumentException(s"Bad organization name length: $orgNameLength")
-    if (OrganizationApi.fetch(name=Some(newOrgName)).nonEmpty)
+    if (OrganizationApi.fetch(optName=Some(newOrgName)).nonEmpty)
       throw new IllegalArgumentException(s"Organization named '$newOrgName' already exists")
     true
   }

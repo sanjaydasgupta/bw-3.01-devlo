@@ -28,6 +28,7 @@ object OrganizationApi {
     case (None, None, Some(theSkill), None) => BWMongoDB3.organizations.find(Map("skills" -> theSkill))
     case (None, None, Some(theSkill), Some(orgType)) => BWMongoDB3.organizations.
         find(Map("skills" -> theSkill, "type" -> orgType))
+    case (None, None, None, Some(orgType)) => BWMongoDB3.organizations.find(Map("type" -> orgType))
     case _ => BWMongoDB3.organizations.find()
   }
 

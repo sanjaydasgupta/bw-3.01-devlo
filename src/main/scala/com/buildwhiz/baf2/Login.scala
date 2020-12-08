@@ -16,7 +16,7 @@ class Login extends HttpServlet with HttpUtils with CryptoUtils {
     request.getSession.setAttribute("bw-user", person)
     request.getSession.setMaxInactiveInterval(0)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
-    cookie.setHttpOnly(true)
+    cookie.setHttpOnly(false)
     cookie.setMaxAge(30 * 24 * 60 * 60)
     response.addCookie(cookie)
   }

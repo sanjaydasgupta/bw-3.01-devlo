@@ -21,7 +21,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     request.getSession.setAttribute("bw-user", person)
     request.getSession.setMaxInactiveInterval(0)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
-    cookie.setHttpOnly(true)
+    cookie.setHttpOnly(false)
     cookie.setMaxAge(30 * 24 * 60 * 60)
     response.addCookie(cookie)
   }
@@ -94,6 +94,14 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
     try {
+//      val sessionId = request.getSession.getId
+//      val cookies: String = if (request.getCookies == null) {
+//        ""
+//      } else {
+//        request.getCookies.map(c => s"[name:'${c.getName}' domain:'${c.getDomain}' path:'${c.getPath}' value:'${c.getValue}']").
+//            mkString("; ")
+//      }
+//      BWLogger.log(getClass.getName, "doPost", s"SESSIONID: $sessionId, COOKIES: $cookies", request, isLogin = true)
       //val postData = getStreamData(request)
       //BWLogger.log(getClass.getName, "doPost", s"POST-data: '$postData'", request, isLogin = true)
       //val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
@@ -127,7 +135,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
               val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
-                  Map("roles" -> roles))
+                  Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId))
               recordLoginTime(personRecord)
               BWLogger.audit(getClass.getName, "doPost", "Login GoogleIdTokenVerifier OK", request)
               bson2json(resultPerson)

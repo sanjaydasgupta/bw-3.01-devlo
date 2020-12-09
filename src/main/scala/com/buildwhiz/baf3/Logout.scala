@@ -11,9 +11,9 @@ class Logout extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request, isLogin = true)
     try {
-      if (request.getSession.getAttribute("bw-user") != null) {
+      if (getSessionAlternatives(request).getAttribute("bw-user") != null) {
         val user: DynDoc = getUser(request)
-        request.getSession.removeAttribute("bw-user")
+        getSessionAlternatives(request).removeAttribute("bw-user")
         val userNameAndId = f"${user.first_name[String]}%s ${user.last_name[String]}%s (${user._id[ObjectId]}%s)"
         BWLogger.log(getClass.getName, request.getMethod, s"EXIT (Logout $userNameAndId)", request)
       } else {

@@ -1,6 +1,8 @@
 package com.buildwhiz.utils
 
-import javax.servlet.http.{HttpServletRequest, Part}
+import com.buildwhiz.Entry
+
+import javax.servlet.http.{HttpServletRequest, HttpSession, Part}
 import com.buildwhiz.infra.DynDoc._
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -11,8 +13,15 @@ import scala.io.Source
 
 trait HttpUtils {
 
+  def getSessionAlternatives(request: HttpServletRequest): HttpSession = {
+    getParameterMap(request).get("JSESSIONID") match {
+      case Some(sessionId) => Entry.sessionCache.getOrElse(sessionId, request.getSession)
+      case None => request.getSession
+    }
+  }
+
   def getUser(request: HttpServletRequest): Document =
-    request.getSession.getAttribute("bw-user").asInstanceOf[Document]
+    getSessionAlternatives(request).getAttribute("bw-user").asInstanceOf[Document]
 
   def getParameterMap(request: HttpServletRequest): mutable.Map[String, String] =
     request.getParameterMap.asScala.map(p => (p._1, p._2.mkString))

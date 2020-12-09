@@ -1,18 +1,18 @@
 package com.buildwhiz
 
 import javax.servlet.annotation.MultipartConfig
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.utils.BWLogger
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
 
 @MultipartConfig()
-class Entry extends HttpServlet {
+class Entry extends HttpServlet with HttpUtils {
 
   private def permitted(request: HttpServletRequest): Boolean = {
-    val session = request.getSession(true)
+    val session: HttpSession = getSessionAlternatives(request)
     val uriParts = request.getRequestURI.split("/")
     val loggingIn = (uriParts.last, uriParts.init.last) match {
       case ("LoginPost", "etc") => true
@@ -136,4 +136,5 @@ object Entry {
     def doDelete(req: HttpServletRequest, res: HttpServletResponse)}
 
   val cache: mutable.Map[String, BWServlet] = mutable.Map.empty[String, BWServlet]
+  val sessionCache: mutable.Map[String, HttpSession] = mutable.Map.empty[String, HttpSession]
 }

@@ -1,11 +1,13 @@
 package com.buildwhiz.baf3
 
-import java.util.Collections
+import com.buildwhiz.Entry
 
+import java.util.Collections
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
+
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -18,8 +20,10 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 
   private def cookieSessionSet(userNameEmail: String, person: Document, request: HttpServletRequest,
         response: HttpServletResponse): Unit = {
-    request.getSession.setAttribute("bw-user", person)
-    request.getSession.setMaxInactiveInterval(0)
+    val session = request.getSession
+    Entry.sessionCache.put(session.getId, session)
+    session.setAttribute("bw-user", person)
+    session.setMaxInactiveInterval(0)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
     cookie.setHttpOnly(false)
     cookie.setMaxAge(30 * 24 * 60 * 60)

@@ -51,22 +51,30 @@ class ProjectList extends HttpServlet with HttpUtils {
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
-        "phases" -> phases.map(_.asDoc).asJava)
+        "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String])
   }
 }
 
 object ProjectList extends HttpUtils {
   def getList(userOid: ObjectId, scope: String, request: HttpServletRequest, doLog: Boolean = false): Seq[DynDoc] = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    // scope: mut be one of past/current/future/all
+    if (doLog)
+      BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    // scope: must be one of past/current/future/all
     val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
     val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
-    val projects: Seq[DynDoc] = if (isAdmin) {
-      BWMongoDB3.projects.find()
-    } else {
-      ProjectApi.projectsByUser(userOid)
+    val scopeQuery = scope match {
+      case "past" => Map("status" -> "ended")
+      case "current" => Map("status" -> "running")
+      case "future" => Map("status" -> "defined")
+      case _ => Map.empty[String, Any]
     }
-    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)
+    val projects: Seq[DynDoc] = if (isAdmin) {
+      BWMongoDB3.projects.find(scopeQuery)
+    } else {
+      ProjectApi.projectsByQuery(scopeQuery, Some(userOid))
+    }
+    if (doLog)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)
     projects
   }
 }

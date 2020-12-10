@@ -108,6 +108,14 @@ object ProjectApi extends HttpUtils {
     projects.filter(project => hasRole(personOid, project))
   }
 
+  def projectsByQuery(query: Map[String, Any], optPersonOid: Option[ObjectId] = None): Seq[DynDoc] = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(query)
+    optPersonOid match {
+      case Some(personOid) => projects.filter(project => hasRole(personOid, project))
+      case None => projects
+    }
+  }
+
   def documentTags(project: DynDoc): Seq[DynDoc] = {
     if (project.has("document_tags")) {
       project.document_tags[Many[Document]]

@@ -51,7 +51,8 @@ class ProjectList extends HttpServlet with HttpUtils {
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
-        "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String])
+        "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
+        "image_url" -> "https://wp.technologyreview.com/wp-content/uploads/2020/04/cropped-MJ20_MIT_building.jpg")
   }
 }
 

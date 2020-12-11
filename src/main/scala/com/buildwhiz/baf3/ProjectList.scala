@@ -20,7 +20,9 @@ class ProjectList extends HttpServlet with HttpUtils {
     try {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
-      val projects = ProjectList.getList(userOid, parameters.getOrElse("scope", "all"), request)
+      val scope = parameters.getOrElse("scope", "all")
+      val optCustomerOid = parameters.get("customer_id").map(new ObjectId(_))
+      val projects = ProjectList.getList(userOid, scope = scope, optCustomerOid = optCustomerOid, request = request)
       val projectsInfo: Many[Document] = projects.map(projectInfo).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo)
@@ -57,16 +59,20 @@ class ProjectList extends HttpServlet with HttpUtils {
 }
 
 object ProjectList extends HttpUtils {
-  def getList(userOid: ObjectId, scope: String, request: HttpServletRequest, doLog: Boolean = false): Seq[DynDoc] = {
+  def getList(userOid: ObjectId, scope: String = "all", optCustomerOid: Option[ObjectId] = None,
+      request: HttpServletRequest, doLog: Boolean = false): Seq[DynDoc] = {
     if (doLog)
       BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     // scope: must be one of past/current/future/all
     val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
     val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
-    val scopeQuery = scope match {
-      case "past" => Map("status" -> "ended")
-      case "current" => Map("status" -> "running")
-      case "future" => Map("status" -> "defined")
+    val scopeQuery = (scope, optCustomerOid) match {
+      case ("past", None) => Map("status" -> "ended")
+      case ("past", Some(customerOid)) => Map("status" -> "ended", "customer_organization_id" -> customerOid)
+      case ("current", None) => Map("status" -> "running")
+      case ("current", Some(customerOid)) => Map("status" -> "running", "customer_organization_id" -> customerOid)
+      case ("future", None) => Map("status" -> "defined")
+      case ("future", Some(customerOid)) => Map("status" -> "defined", "customer_organization_id" -> customerOid)
       case _ => Map.empty[String, Any]
     }
     val projects: Seq[DynDoc] = if (isAdmin) {

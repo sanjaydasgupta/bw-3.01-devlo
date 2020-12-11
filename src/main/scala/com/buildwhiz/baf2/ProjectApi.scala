@@ -213,7 +213,7 @@ object ProjectApi extends HttpUtils {
 
   def displayStatus2(project: DynDoc): String = {
     (project.status[String], isActive(project), hasZombies(project)) match {
-      case ("defined", _, _) => "Not Started"
+      case ("defined", _, _) => "Not started"
       case ("ended", _, _) => "Completed"
       case (_, true, false) => "Active"
       case (_, true, true) => "Active+Alarm"

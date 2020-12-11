@@ -38,7 +38,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val skillParameter: Option[String] = None //parameters.get("skill")
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val displayAllOrganizations: Boolean = isAdmin || optProjectOid.
-          map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).exists(t => t)
+          map(pOid => ProjectApi.hasRole(user._id[ObjectId], ProjectApi.projectById(pOid))).exists(t => t)
 
       val allOrganizations: Seq[DynDoc] = if (displayAllOrganizations) {
         organizationList(optOrganizationType = optOrganizationType)

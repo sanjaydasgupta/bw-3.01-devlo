@@ -47,7 +47,7 @@ class ProjectList extends HttpServlet with HttpUtils {
     })
     val address: DynDoc = project.address[Document]
     Map("name" -> project.name[String], "_id" -> project._id[ObjectId].toString,
-        "display_status" -> ProjectApi.displayStatus(project), "address_line1" -> address.line1[String],
+        "display_status" -> ProjectApi.displayStatus2(project), "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],

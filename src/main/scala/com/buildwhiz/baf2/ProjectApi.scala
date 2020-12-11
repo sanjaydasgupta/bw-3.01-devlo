@@ -211,6 +211,17 @@ object ProjectApi extends HttpUtils {
 
   def hasZombies(project: DynDoc): Boolean = allPhases(project).exists(PhaseApi.hasZombies)
 
+  def displayStatus2(project: DynDoc): String = {
+    (project.status[String], isActive(project), hasZombies(project)) match {
+      case ("defined", _, _) => "Not Started"
+      case ("ended", _, _) => "Completed"
+      case (_, true, false) => "Active"
+      case (_, true, true) => "Active+Alarm"
+      case (_, false, false) => "Dormant"
+      case (_, false, true) => "Alarm"
+    }
+  }
+
   def displayStatus(project: DynDoc): String = {
     (isActive(project), hasZombies(project)) match {
       case (false, false) => "dormant"

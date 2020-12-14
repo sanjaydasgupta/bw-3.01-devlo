@@ -95,7 +95,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val parameters = getParameterMap(request)
+    //val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
     try {
 //      val sessionId = request.getSession.getId
@@ -106,12 +106,12 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 //            mkString("; ")
 //      }
 //      BWLogger.log(getClass.getName, "doPost", s"SESSIONID: $sessionId, COOKIES: $cookies", request, isLogin = true)
-      //val postData = getStreamData(request)
+      val postData = getStreamData(request)
       //BWLogger.log(getClass.getName, "doPost", s"POST-data: '$postData'", request, isLogin = true)
-      //val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
-      if (parameters.contains("idtoken") && parameters.contains("email")) {
-        val idToken = parameters("idtoken")
-        val email = parameters("email")
+      val parameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
+      if (parameters.has("idtoken") && parameters.has("email")) {
+        val idToken = parameters.idtoken[String]
+        val email = parameters.email[String]
         val idTokenOk = validateIdToken(idToken, email)
         if (idTokenOk) {
           val person: Option[Document] =
@@ -167,7 +167,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
+        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

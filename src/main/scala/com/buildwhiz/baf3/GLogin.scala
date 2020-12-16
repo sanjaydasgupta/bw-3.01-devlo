@@ -94,6 +94,22 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     }
   }
 
+  private val masterData = Map(
+    "ProjectInfoSet__building_use" -> Seq(
+      "Assembly Facility", "Education Facility", "Public Service Facility", "Cultural Facility",
+      "Recreation Facility", "Housing Facility", "Retail Facility", "Health Care Facility",
+      "Hospitality Facility", "Lodging Facility", "Office Facility", "Research Facility",
+      "Production Facility", "Storage Facility", "Water Infrastructure Facility",
+      "Energy Infrastructure Facility", "Waste Infrastructure Facility",
+      "Information Infrastructure Facility", "Transportation Facility", "Mixed-Use Facility", "Land",
+    ),
+    "ProjectInfoSet__construction_type" -> Seq("Steel Frame", "Wood Frame", "Concrete"),
+    "ProjectInfoSet__project_type" -> Seq("Building", "Structure", "Mobile Structure",
+      "Linear Form", "Construction Entity Grouping"),
+    "ProjectList__scope" -> Seq("all", "current", "future", "past"),
+    "PhaseList__scope" -> Seq("all", "current", "future", "past")
+  )
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
@@ -138,13 +154,6 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
               val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
-              val masterData = Map(
-                "ProjectInfoSet__project_type" -> Seq("Housing Facility", "Healthcare Facility", "Parking Facility"),
-                "ProjectInfoSet__construction_type" -> Seq("Steel-Frame", "RCC", "Wood"),
-                "ProjectInfoSet__building_use" -> Seq("Mixed-Use Facility", "Secondary School", "City Office"),
-                "ProjectList__scope" -> Seq("all", "current", "future", "past"),
-                "PhaseList__scope" -> Seq("all", "current", "future", "past")
-              )
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData))
               recordLoginTime(personRecord)

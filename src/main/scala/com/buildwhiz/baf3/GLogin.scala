@@ -139,6 +139,9 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
               val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
               val masterData = Map(
+                "ProjectInfoSet__project_type" -> Seq("Housing Facility", "Healthcare Facility", "Parking Facility"),
+                "ProjectInfoSet__construction_type" -> Seq("Steel-Frame", "RCC", "Wood"),
+                "ProjectInfoSet__building_use" -> Seq("Mixed-Use Facility", "Secondary School", "City Office"),
                 "ProjectList__scope" -> Seq("all", "current", "future", "past"),
                 "PhaseList__scope" -> Seq("all", "current", "future", "past")
               )

@@ -6,8 +6,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-
-import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
+import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
@@ -80,10 +79,21 @@ object ProjectInfo extends HttpUtils {
     val status = new Document("editable", false).append("value", rawStatus)
     val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus(project))
     val name = new Document("editable", editable).append("value", project.name[String])
-    val summary = project.get[String]("summary") match {
-      case None => name
+    val rawSummary = project.get[String]("summary") match {
+      case None => s"Summary for '$name'"
       case Some(theSummary) => new Document("editable", editable).append("value", theSummary)
     }
+    val summary = new Document("editable", editable).append("value", rawSummary)
+    val rawGoals = project.get[String]("goals") match {
+      case None => s"Goals for '$name'"
+      case Some(theGoals) => new Document("editable", editable).append("value", theGoals)
+    }
+    val goals = new Document("editable", editable).append("value", rawGoals)
+    val rawCustomer = project.get[String]("customer_organization_id") match {
+      case None => "NA"
+      case Some(custOrgId) => OrganizationApi.organizationById(new ObjectId(custOrgId)).name[String]
+    }
+    val customer = new Document("editable", false).append("value", rawCustomer)
     val postalCode = fieldSpecification(project, "address/postal_code", editable)
     val line1 = fieldSpecification(project, "address/line1", editable)
     val line2 = fieldSpecification(project, "address/line2", editable)
@@ -109,11 +119,11 @@ object ProjectInfo extends HttpUtils {
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
     val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
-        append("status", status).append("display_status", displayStatus).
+        append("status", status).append("display_status", displayStatus).append("goals", goals).
         append("document_tags", documentTags).append("project_managers", projectManagers).
         append("type", projectType).append("project_type", projectType).append("building_use", buildingUse).
         append("construction_type", constructionType).append("image_url", ProjectApi.imageUrl(Right(project))).
-        append("budget_mm_usd", budgetMmUsd).append("budget", budgetMmUsd).
+        append("budget_mm_usd", budgetMmUsd).append("budget", budgetMmUsd).append("customer", customer).
         append("construction_area_sqft", constAreaSqFt).append("building_footprint", constAreaSqFt).
         append("land_area_acres", landAreaAcres).append("site_area", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("building_height", maxBldgHeightFt).

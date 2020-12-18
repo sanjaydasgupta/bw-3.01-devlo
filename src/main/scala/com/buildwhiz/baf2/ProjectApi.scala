@@ -258,4 +258,17 @@ object ProjectApi extends HttpUtils {
         map(_.person_id[ObjectId])
   }
 
+  def imageUrl(projectIn: Either[ObjectId, DynDoc]): String = {
+    val projectOid: ObjectId = projectIn match {
+      case Right(projObj) => projObj._id[ObjectId]
+      case Left(projOid) => projOid
+    }
+    projectOid.toString.replaceAll("[a-fA-F]", "").toLong % 4 match {
+      case 0 => "https://wp.technologyreview.com/wp-content/uploads/2020/04/cropped-MJ20_MIT_building.jpg"
+      case 1 => "https://www.richardmeier.com/wp-content/uploads/2015/09/RH2660-0042.jpg"
+      case 2 => "https://www.richardmeier.com/wp-content/uploads/2019/06/SRD0765_FirstAve_S010_EXT_Superman_Final2000.jpg"
+      case 3 => "https://www.richardmeier.com/wp-content/uploads/2016/05/SRD0765_FirstAve_S030_EXT_EntryApproachParking_Final2000-1024x728.jpg"
+    }
+  }
+
 }

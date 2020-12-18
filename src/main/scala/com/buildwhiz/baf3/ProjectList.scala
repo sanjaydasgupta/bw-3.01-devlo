@@ -42,7 +42,6 @@ class ProjectList extends HttpServlet with HttpUtils {
 
   private def projectInfo(project: DynDoc): Document = {
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
-      random()
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
       "display_status" -> PhaseApi.displayStatus(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
       "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
@@ -54,7 +53,7 @@ class ProjectList extends HttpServlet with HttpUtils {
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
-        "image_url" -> "https://wp.technologyreview.com/wp-content/uploads/2020/04/cropped-MJ20_MIT_building.jpg")
+        "image_url" -> ProjectApi.imageUrl(Right(project)))
   }
 }
 

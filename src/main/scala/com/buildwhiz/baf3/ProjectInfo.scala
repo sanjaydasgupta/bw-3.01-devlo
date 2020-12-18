@@ -112,7 +112,7 @@ object ProjectInfo extends HttpUtils {
         append("status", status).append("display_status", displayStatus).
         append("document_tags", documentTags).append("project_managers", projectManagers).
         append("type", projectType).append("project_type", projectType).append("building_use", buildingUse).
-        append("construction_type", constructionType).
+        append("construction_type", constructionType).append("image_url", ProjectApi.imageUrl(Right(project))).
         append("budget_mm_usd", budgetMmUsd).append("budget", budgetMmUsd).
         append("construction_area_sqft", constAreaSqFt).append("building_footprint", constAreaSqFt).
         append("land_area_acres", landAreaAcres).append("site_area", landAreaAcres).

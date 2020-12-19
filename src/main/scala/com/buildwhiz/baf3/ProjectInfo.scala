@@ -129,7 +129,7 @@ object ProjectInfo extends HttpUtils {
         append("max_building_height_ft", maxBldgHeightFt).append("building_height", maxBldgHeightFt).
         append("phase_info", phaseInfo).append("total_floor_area", totalFloorArea).
         append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
-        append("gps_latitude", latitude).append("gps_longitude", longitude).
+        append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)

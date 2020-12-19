@@ -89,11 +89,11 @@ object ProjectInfo extends HttpUtils {
       case Some(theGoals) => new Document("editable", editable).append("value", theGoals)
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
-    val rawCustomer = project.get[String]("customer_organization_id") match {
+    val rawCustomerName = project.get[ObjectId]("customer_organization_id") match {
       case None => "NA"
-      case Some(custOrgId) => OrganizationApi.organizationById(new ObjectId(custOrgId)).name[String]
+      case Some(custOrgId) => OrganizationApi.organizationById(custOrgId).name[String]
     }
-    val customer = new Document("editable", false).append("value", rawCustomer)
+    val customerName = new Document("editable", false).append("value", rawCustomerName)
     val postalCode = fieldSpecification(project, "address/postal_code", editable)
     val line1 = fieldSpecification(project, "address/line1", editable)
     val line2 = fieldSpecification(project, "address/line2", editable)
@@ -123,7 +123,7 @@ object ProjectInfo extends HttpUtils {
         append("document_tags", documentTags).append("project_managers", projectManagers).
         append("type", projectType).append("project_type", projectType).append("building_use", buildingUse).
         append("construction_type", constructionType).append("image_url", ProjectApi.imageUrl(Right(project))).
-        append("budget_mm_usd", budgetMmUsd).append("budget", budgetMmUsd).append("customer", customer).
+        append("budget_mm_usd", budgetMmUsd).append("budget", budgetMmUsd).append("customer", customerName).
         append("construction_area_sqft", constAreaSqFt).append("building_footprint", constAreaSqFt).
         append("land_area_acres", landAreaAcres).append("site_area", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("building_height", maxBldgHeightFt).

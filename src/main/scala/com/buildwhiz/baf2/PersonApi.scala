@@ -44,8 +44,10 @@ object PersonApi {
   def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None,
       optSkill: Option[String] = None, optProjectOid: Option[ObjectId] = None, optPhaseOid: Option[ObjectId] = None,
       optProcessOid: Option[ObjectId] = None, optActivityOid: Option[ObjectId] = None): Seq[DynDoc] = {
-    def assigneeOid(assignment: DynDoc): Option[ObjectId] =
+    def assigneeOid(assignment: DynDoc): Option[ObjectId] = {
         if (assignment.has("person_id")) Some(assignment.person_id[ObjectId]) else None
+    }
+
     val assigneeOids: (Boolean, Seq[ObjectId]) = (optProjectOid, optPhaseOid, optProcessOid, optActivityOid) match {
       case (_, _, _, Some(activityOid)) =>
         (true, BWMongoDB3.activity_assignments.find(Map("activity_id" -> activityOid)).flatMap(assigneeOid))
@@ -61,10 +63,10 @@ object PersonApi {
       case (Some(workEmail), _, _) =>
         Map("emails" -> Map($elemMatch -> Map("$eq" -> Map("type" -> "work", "email" -> workEmail))))
       case (None, Some(organizationOid), Some(skill)) =>
-        Map("organization_id" -> organizationOid, "skills" -> skill)
+        Map("organization_id" -> organizationOid, "skills" -> Map($regex -> s"(?i)^$skill$$"))
       case (None, Some(organizationOid), None) =>
         Map("organization_id" -> organizationOid)
-      case (None, None, Some(skill)) => Map("skills" -> skill)
+      case (None, None, Some(skill)) => Map("skills" -> Map($regex -> s"(?i)^$skill$$"))
       case _ => Map.empty
     }
     val query2: Map[String, Any] = if (assigneeOids._1)

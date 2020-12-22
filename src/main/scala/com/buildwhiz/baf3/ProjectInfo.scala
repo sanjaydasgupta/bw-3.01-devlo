@@ -38,7 +38,7 @@ object ProjectInfo extends HttpUtils {
 
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
-    ProjectApi.canManage(userOid, project)
+    ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
   }
 
   private def phaseInformation(project: DynDoc): Many[Document] = {
@@ -81,12 +81,12 @@ object ProjectInfo extends HttpUtils {
     val name = new Document("editable", editable).append("value", project.name[String])
     val rawSummary = project.get[String]("summary") match {
       case None => s"Summary for '$name'"
-      case Some(theSummary) => new Document("editable", editable).append("value", theSummary)
+      case Some(theSummary) => theSummary
     }
     val summary = new Document("editable", editable).append("value", rawSummary)
     val rawGoals = project.get[String]("goals") match {
       case None => s"Goals for '$name'"
-      case Some(theGoals) => new Document("editable", editable).append("value", theGoals)
+      case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
     val rawCustomerName = project.get[ObjectId]("customer_organization_id") match {

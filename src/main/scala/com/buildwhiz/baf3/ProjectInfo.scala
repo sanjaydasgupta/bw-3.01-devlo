@@ -79,14 +79,15 @@ object ProjectInfo extends HttpUtils {
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)
     val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus(project))
-    val name = new Document("editable", editable).append("value", project.name[String])
+    val rawName = project.name[String]
+    val name = new Document("editable", editable).append("value", rawName)
     val rawSummary = project.get[String]("summary") match {
-      case None => s"Summary for '$name'"
+      case None => s"Summary for '$rawName'"
       case Some(theSummary) => theSummary
     }
     val summary = new Document("editable", editable).append("value", rawSummary)
     val rawGoals = project.get[String]("goals") match {
-      case None => s"Goals for '$name'"
+      case None => s"Goals for '$rawName'"
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)

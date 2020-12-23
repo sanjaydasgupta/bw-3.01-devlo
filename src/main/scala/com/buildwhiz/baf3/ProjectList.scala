@@ -4,12 +4,14 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
-import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
+import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
+
 import math.random
 
 class ProjectList extends HttpServlet with HttpUtils {
@@ -47,13 +49,17 @@ class ProjectList extends HttpServlet with HttpUtils {
       "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
     })
     val address: DynDoc = project.address[Document]
+    val customerName = project.get[ObjectId]("customer_organization_id") match {
+      case None => "Not available"
+      case Some(custOrgId) => OrganizationApi.organizationById(custOrgId).name[String]
+    }
     Map("name" -> project.name[String], "_id" -> project._id[ObjectId].toString,
         "display_status" -> ProjectApi.displayStatus2(project), "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
-        "image_url" -> ProjectApi.imageUrl(Right(project)))
+        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName)
   }
 }
 

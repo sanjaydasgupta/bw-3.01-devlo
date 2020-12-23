@@ -53,7 +53,7 @@ object ProjectInfoSet {
     ("state_name", "address.state.name"), ("country_name", "address.country.name"),
     ("gps_latitude", "address.gps_location.latitude"), ("gps_longitude", "address.gps_location.longitude"),
     ("address_line1", "address.line1"), ("address_line2", "address.line2"), ("address_line3", "address.line3"),
-    ("postal_code", "address.postal_code"),
+    ("postal_code", "address.postal_code"), ("customer", "customer_organization_id"),
     ("construction_type", "construction_type"), ("type", "type"),
     ("budget_mm_usd", "budget_mm_usd"), ("budget", "budget_mm_usd"),
     ("construction_area_sqft", "construction_area_sqft"), ("building_footprint", "construction_area_sqft"),
@@ -63,7 +63,9 @@ object ProjectInfoSet {
     ("project_id", "project_id"), ("project_managers", "assigned_roles")
   )
 
-  private val converters: Map[String, (ObjectId, String) => Any] = Map("project_managers" -> managers2roles)
+  private val converters: Map[String, (ObjectId, String) => Any] = Map(
+    "project_managers" -> managers2roles, "customer" -> ((_, id) => new ObjectId(id))
+  )
 
   def setProjectFields(projectId: String, nameValuePairs: Seq[(String, String)], request: HttpServletRequest,
       doLog: Boolean = false): String = {

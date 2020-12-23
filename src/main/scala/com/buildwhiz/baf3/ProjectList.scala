@@ -25,7 +25,7 @@ class ProjectList extends HttpServlet with HttpUtils {
       val scope = parameters.getOrElse("scope", "all")
       val optCustomerOid = parameters.get("customer_id").map(new ObjectId(_))
       val projects = ProjectList.getList(userOid, scope = scope, optCustomerOid = optCustomerOid, request = request)
-      val projectsInfo: Many[Document] = projects.map(projectInfo).asJava
+      val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user)).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo)
       response.getWriter.print(result.toJson)
@@ -42,7 +42,7 @@ class ProjectList extends HttpServlet with HttpUtils {
 
   private def rint(): String = (random() * 15).toInt.toString
 
-  private def projectInfo(project: DynDoc): Document = {
+  private def projectInfo(project: DynDoc, user: DynDoc): Document = {
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
       "display_status" -> PhaseApi.displayStatus(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
@@ -53,12 +53,14 @@ class ProjectList extends HttpServlet with HttpUtils {
       case None => "Not available"
       case Some(custOrgId) => OrganizationApi.organizationById(custOrgId).name[String]
     }
+    val phasesTripled = phases ++ phases ++ phases
     Map("name" -> project.name[String], "_id" -> project._id[ObjectId].toString,
-        "display_status" -> ProjectApi.displayStatus2(project), "address_line1" -> address.line1[String],
+        "display_status" -> ProjectApi.displayStatus2(project, PersonApi.isBuildWhizAdmin(Right(user))),
+        "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
-        "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
+        "phases" -> phasesTripled.map(_.asDoc).asJava, "description" -> project.description[String],
         "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName)
   }
 }

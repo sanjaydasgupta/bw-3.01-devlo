@@ -78,7 +78,8 @@ object ProjectInfo extends HttpUtils {
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)
-    val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus(project))
+    val displayStatus = new Document("editable", false).
+        append("value", ProjectApi.displayStatus2(project, PersonApi.isBuildWhizAdmin(Right(user))))
     val rawName = project.name[String]
     val name = new Document("editable", editable).append("value", rawName)
     val rawSummary = project.get[String]("summary") match {

@@ -55,9 +55,10 @@ object ProjectInfo extends HttpUtils {
   private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean, defaultValue: Any = ""):
       Document = {
     val names = structuredName.split("/").map(_.trim)
-    val value = names.init.foldLeft(project.asDoc)((dd, s) =>
+    val storedValue = names.init.foldLeft(project.asDoc)((dd, s) =>
       dd.getOrDefault(s, new Document()).asInstanceOf[Document]).
       getOrDefault(names.last, defaultValue.toString).toString
+    val value = if (storedValue == "" && defaultValue != "") defaultValue else storedValue
     new Document("editable", editable).append("value", value)
   }
 
@@ -90,7 +91,7 @@ object ProjectInfo extends HttpUtils {
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
     val rawCustomerName = project.get[ObjectId]("customer_organization_id") match {
-      case None => "NA"
+      case None => "Not available"
       case Some(custOrgId) => OrganizationApi.organizationById(custOrgId).name[String]
     }
     val customerName = new Document("editable", false).append("value", rawCustomerName)
@@ -98,8 +99,8 @@ object ProjectInfo extends HttpUtils {
     val line1 = fieldSpecification(project, "address/line1", editable)
     val line2 = fieldSpecification(project, "address/line2", editable)
     val line3 = fieldSpecification(project, "address/line3", editable)
-    val latitude = fieldSpecification(project, "address/gps_location/latitude", editable)
-    val longitude = fieldSpecification(project, "address/gps_location/longitude", editable)
+    val latitude = fieldSpecification(project, "address/gps_location/latitude", editable, defaultValue = 51.4934)
+    val longitude = fieldSpecification(project, "address/gps_location/longitude", editable, defaultValue = 0.0098)
     val stateName = fieldSpecification(project, "address/state/name", editable)
     val countryName = fieldSpecification(project, "address/country/name", editable, "United States")
     val constructionType = fieldSpecification(project, "construction_type", editable, "concrete")
@@ -110,8 +111,8 @@ object ProjectInfo extends HttpUtils {
     val totalFloorArea = fieldSpecification(project, "total_floor_area", editable, 0.0)
     val landAreaAcres = fieldSpecification(project, "land_area_acres", editable, 0.0)
     val maxBldgHeightFt = fieldSpecification(project, "max_building_height_ft", editable, 0.0)
-    val rawProjectManagers = project.assigned_roles[Many[Document]].filter(_.role_name[String] == "Project-Manager").
-        map(role => {
+    val rawProjectManagers = project.assigned_roles[Many[Document]].
+        filter(_.role_name[String].matches("(?i)Project-Manager")).map(role => {
           val thePerson = PersonApi.personById(role.person_id[ObjectId])
           val personName = PersonApi.fullName(thePerson)
           new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)

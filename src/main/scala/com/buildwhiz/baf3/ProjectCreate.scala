@@ -51,8 +51,9 @@ class ProjectCreate extends HttpServlet with HttpUtils {
 
       val assignedRoles = Seq(Map("role_name" -> "Project-Manager", "person_id" -> adminPersonOid))
       val projectDocument: Document = Map("name" -> projectName, "summary" -> projectName, "description" -> description,
-        "admin_person_id" -> adminPersonOid, "type" -> "Housing Facility", "construction_type" -> "steel-frame",
-        "budget_mm_usd" -> 0.0, "construction_area_sqft" -> 0.0, "land_area_acres" -> 0.0, "building_use" -> "NA",
+        "admin_person_id" -> adminPersonOid, "type" -> "Building", "construction_type" -> "Concrete",
+        "budget_mm_usd" -> 0.0, "construction_area_sqft" -> 0.0, "land_area_acres" -> 0.0,
+        "building_use" -> "Mixed-Use Facility",
         "max_building_height_ft" -> 0.0, "address" -> address, "process_ids" -> Seq.empty[ObjectId],
         "phase_ids" -> Seq.empty[ObjectId], "assigned_roles" -> assignedRoles, "document_tags"-> systemTags,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "total_floor_area" -> 0.0,

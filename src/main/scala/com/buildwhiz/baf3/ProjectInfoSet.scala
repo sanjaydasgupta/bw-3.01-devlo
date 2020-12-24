@@ -54,7 +54,7 @@ object ProjectInfoSet {
     ("gps_latitude", "address.gps_location.latitude"), ("gps_longitude", "address.gps_location.longitude"),
     ("address_line1", "address.line1"), ("address_line2", "address.line2"), ("address_line3", "address.line3"),
     ("postal_code", "address.postal_code"), ("customer", "customer_organization_id"),
-    ("construction_type", "construction_type"), ("type", "type"),
+    ("construction_type", "construction_type"), ("type", "type"), ("project_type", "type"),
     ("budget_mm_usd", "budget_mm_usd"), ("budget", "budget_mm_usd"),
     ("construction_area_sqft", "construction_area_sqft"), ("building_footprint", "construction_area_sqft"),
     ("land_area_acres", "land_area_acres"), ("site_area", "land_area_acres"),

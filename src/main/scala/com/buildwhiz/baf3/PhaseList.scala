@@ -43,9 +43,9 @@ class PhaseList extends HttpServlet with HttpUtils {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
     val projectDocument = new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
-      append("managers", managerNames).append("status", phase.status[String]).
-      append("display_status", PhaseApi.displayStatus(phase)).append("date_start", "NA").append("date_end", "NA").
-      append("budget", "NA").append("expenditure", "NA")
+      append("managers", managerNames).append("display_status", PhaseApi.displayStatus(phase)).
+      append("date_start", "Not available").append("date_end", "Not available").
+      append("budget", "0.00").append("expenditure", "0.00")
     bson2json(projectDocument)
   }
 

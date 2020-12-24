@@ -44,6 +44,15 @@ object ActivityApi extends DateTimeUtils {
         exists(assignment => assignment.has("person_id") && assignment.person_id[ObjectId] == personOid)
   }
 
+  def displayStatus2(activity: DynDoc): String = {
+    activity.status[String] match {
+      case "defined" => "Not started"
+      case "running" => "Active"
+      case "ended" => "Completed"
+      case _ => "Alarm"
+    }
+  }
+
   def scheduledStart(activity: DynDoc): Option[Long] = {
     if (activity.has("bpmn_scheduled_start_date")) {
       val date = activity.bpmn_scheduled_start_date[Long]

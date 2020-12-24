@@ -103,6 +103,15 @@ object PhaseApi {
     }
   }
 
+  def displayStatus2(phase: DynDoc): String = {
+    (isActive(phase), hasZombies(phase)) match {
+      case (false, false) => "Dormant"
+      case (false, true) => "Alarm"
+      case (true, false) => "Active"
+      case (true, true) => "Active+Alarm"
+    }
+  }
+
   def validateNewName(newPhaseName: String, projectOid: ObjectId): Boolean = {
     val phaseNameLength = newPhaseName.length
     if (newPhaseName.trim.length != phaseNameLength)

@@ -60,6 +60,10 @@ trait HttpUtils {
     }
   }
 
+  def successJson(message: String = "Update(s) successful"): String = {
+    new Document("ok", 1).append("message", message).toJson
+  }
+
   def getParts(request: HttpServletRequest): Seq[Part] = request.getContentType match {
     case null => Seq.empty[Part]
     case s if s.startsWith("multipart/form-data") => request.getParts.asScala.toSeq

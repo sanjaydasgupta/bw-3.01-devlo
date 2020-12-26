@@ -21,6 +21,8 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("project_id not provided")
       val projectId = postData.remove("project_id").asInstanceOf[String]
       val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue.asInstanceOf[String])).toSeq
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
       val message = ProjectInfoSet.setProjectFields(projectId, nameValuePairs, request)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {

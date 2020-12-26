@@ -60,12 +60,8 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         "status" -> "defined", "customer_organization_id" -> customerOid)
       BWMongoDB3.projects.insertOne(projectDocument)
 
-      BWMongoDB3.persons.updateOne(Map("_id" -> adminPersonOid),
-        Map("$addToSet" -> Map("project_ids" -> projectDocument.y._id[ObjectId])))
-
-      response.getWriter.print(bson2json(projectDocument))
+      response.getWriter.print(successJson())
       response.setContentType("application/json")
-      response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, "doPost", s"Created Project '$projectName'", request)
     } catch {
       case t: Throwable =>

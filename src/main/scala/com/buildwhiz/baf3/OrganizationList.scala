@@ -35,18 +35,38 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))
       val optActivityOids = parameters.get("activity_id").map(_.split(",").map(id => new ObjectId(id.trim)))
-      val skillParameter: Option[String] = None //parameters.get("skill")
+      val skillParameter: Option[String] = parameters.get("skill")
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+      val myProjects = ProjectApi.projectsByUser(user._id[ObjectId])
+      def matchSkill(organization: DynDoc): Boolean = {
+        skillParameter match {
+          case None => true
+          case Some(aSkill) =>
+            organization.get[Many[String]]("skills") match {
+              case None => false
+              case Some(skills) => skills.contains(aSkill)
+            }
+        }
+      }
+      def matchOrganizationType(organization: DynDoc): Boolean = {
+        optOrganizationType match {
+          case None => true
+          case Some(aType) =>
+            organization.get[String]("organization_type") match {
+              case None => false
+              case Some(orgType) => orgType == aType
+            }
+        }
+      }
+      val myProjectsOrganizations: Seq[DynDoc] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id").
+          map(cOid => OrganizationApi.organizationById(cOid))).distinct.filter(matchSkill).filter(matchOrganizationType)
       val displayAllOrganizations: Boolean = isAdmin || optProjectOid.
-          map(pOid => ProjectApi.hasRole(user._id[ObjectId], ProjectApi.projectById(pOid))).exists(t => t)
+          map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).isDefined
 
       val allOrganizations: Seq[DynDoc] = if (displayAllOrganizations) {
-        organizationList(optOrganizationType = optOrganizationType)
+        (OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations).distinct
       } else {
-        user.get[ObjectId]("organization_id") match {
-          case Some(orgOid) => OrganizationApi.fetch(optOrgType = optOrganizationType, optOid = Some(orgOid)).map(orgDynDocToDocument)
-          case None => throw new IllegalArgumentException("User record does not contain 'organization_id'")
-        }
+        myProjectsOrganizations
       }
 
       val organizations: Seq[DynDoc] =

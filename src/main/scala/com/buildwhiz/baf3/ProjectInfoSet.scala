@@ -57,7 +57,7 @@ object ProjectInfoSet {
     ("address_line1", "address.line1"), ("address_line2", "address.line2"), ("address_line3", "address.line3"),
     ("postal_code", "address.postal_code"), ("customer", "customer_organization_id"),
     ("construction_type", "construction_type"), ("type", "type"), ("project_type", "type"),
-    ("budget_mm_usd", "budget_mm_usd"), ("budget", "budget_mm_usd"),
+    ("budget_mm_usd", "budget_mm_usd"), ("budget", "budget_mm_usd"), ("building_use", "building_use"),
     ("construction_area_sqft", "construction_area_sqft"), ("building_footprint", "construction_area_sqft"),
     ("land_area_acres", "land_area_acres"), ("site_area", "land_area_acres"),
     ("max_building_height_ft", "max_building_height_ft"), ("building_height", "max_building_height_ft"),

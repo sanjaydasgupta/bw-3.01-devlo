@@ -38,7 +38,7 @@ object PhaseInfo extends DateTimeUtils {
 
   private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
-    phase.admin_person_id[ObjectId] == userOid || PhaseApi.canManage(userOid, phase)
+    PhaseApi.canManage(userOid, phase)
   }
 
   private def deliverables(task: DynDoc, user: DynDoc): Many[Document] = {
@@ -81,7 +81,7 @@ object PhaseInfo extends DateTimeUtils {
         case "defined" => "Future"
         case "running" => "Current"
         case "ended" => "Past"
-        case _ => "?"
+        case _ => "Current"
       }
       Map("_id" -> task._id[ObjectId].toString, "name" -> task.name[String], "bpmn_name" -> task.bpmn_name[String],
           "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
@@ -90,23 +90,40 @@ object PhaseInfo extends DateTimeUtils {
     taskRecords.asJava
   }
 
-  def phase2json(phase: DynDoc, user: DynDoc): String = {
+  private def phaseDates(phase: DynDoc): Seq[(String, Any)] = {
+    Seq(("estimated_start_date", "2020-12-31"), ("estimated_finish_date", "2020-12-31"),
+        ("actual_start_date", "2020-12-31"), ("actual_end_date", "2020-12-31"))
+  }
+
+  private def phaseKpis(phase: DynDoc): Seq[(String, Any)] = {
+    Seq(("original_budget", "1.5 MM USD"), ("current_budget", "1.65 MM USD"),
+        ("committed_expense", "1.5 MM USD"), ("accrued_expense", "1.65 MM USD"),
+        ("paid_expense", "1.5 MM USD"), ("change_orders", "1.65 MM USD"))
+  }
+
+  private def phase2json(phase: DynDoc, user: DynDoc): String = {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
     val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
     val name = new Document("editable", editable).append("value", phase.name[String])
-    val rawPhaseManagers = phase.assigned_roles[Many[Document]].filter(_.role_name[String] == "Project-Manager").
-      map(role => {
+    val rawPhaseManagers = phase.assigned_roles[Many[Document]].
+        filter(_.role_name[String].matches("(?i)(Phase|Project)-Manager")).map(role => {
         val thePerson = PersonApi.personById(role.person_id[ObjectId])
         val personName = PersonApi.fullName(thePerson)
         new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
       }).asJava
     val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
-    //val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
+    val rawGoals = phase.get[String]("goals") match {
+      case None => s"Goals for '$phase'"
+      case Some(theGoals) => theGoals
+    }
+    val goals = new Document("editable", editable).append("value", rawGoals)
     val projectDoc = new Document("name", name).append("description", description).append("status", status).
-      append("display_status", displayStatus).append("managers", phaseManagers).
+      append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
       append("task_info", taskInformation(phase, user))
+    phaseDates(phase).foreach(pair => projectDoc.append(pair._1, pair._2))
+    phaseKpis(phase).foreach(pair => projectDoc.append(pair._1, pair._2))
     projectDoc.toJson
   }
 

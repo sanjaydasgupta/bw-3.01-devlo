@@ -82,7 +82,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
         case (_, _, _, _, Some(_)) => allOrganizations
         case _ => allOrganizations
       }
-      val organizationDetails: java.util.List[Document] = organizations.sortBy(d => d.name[String]).map(_.asDoc).asJava
+      val organizationDetails: Many[Document] = organizations.distinct.sortBy(d => d.name[String]).map(_.asDoc).asJava
       val result = new Document("organization_list", organizationDetails).append("can_add_organization", isAdmin)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")

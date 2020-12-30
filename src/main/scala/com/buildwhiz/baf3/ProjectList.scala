@@ -53,14 +53,18 @@ class ProjectList extends HttpServlet with HttpUtils {
       case None => "Not available"
       case Some(custOrgId) => OrganizationApi.organizationById(custOrgId).name[String]
     }
-    val phasesTripled = phases ++ phases ++ phases
-    Map("name" -> project.name[String], "_id" -> project._id[ObjectId].toString,
+    val name = project.name[String]
+    val summary = project.get[String]("summary") match {
+      case None => s"Summary for '$name'"
+      case Some(theSummary) => theSummary
+    }
+    Map("name" -> name, "_id" -> project._id[ObjectId].toString, "summary" -> summary,
         "display_status" -> ProjectApi.displayStatus2(project, PersonApi.isBuildWhizAdmin(Right(user))),
         "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
-        "phases" -> phasesTripled.map(_.asDoc).asJava, "description" -> project.description[String],
+        "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
         "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName)
   }
 }

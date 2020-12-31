@@ -16,7 +16,9 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      val postData = Document.parse(getStreamData(request))
+      val parameterString = getStreamData(request)
+      BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)
+      val postData = Document.parse(parameterString)
       if (!postData.containsKey("project_id"))
         throw new IllegalArgumentException("project_id not provided")
       val projectId = postData.remove("project_id").asInstanceOf[String]

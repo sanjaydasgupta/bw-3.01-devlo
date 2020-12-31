@@ -19,8 +19,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       val projectOid = new ObjectId(parameters("project_id"))
       val user: DynDoc = getUser(request)
       val personOid = user._id[ObjectId]
-      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val parentProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
       val phases: Seq[DynDoc] = if (isAdmin) {
         ProjectApi.allPhases(parentProject)
@@ -42,10 +41,14 @@ class PhaseList extends HttpServlet with HttpUtils {
   def phase2json(phase: DynDoc): String = {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
+    val theProcess: DynDoc = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+      case Some(p) => p
+      case None => throw new IllegalArgumentException(s"Phase '${phase.name[String]}' has no processes")
+    }
     val projectDocument = new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
       append("managers", managerNames).append("display_status", PhaseApi.displayStatus(phase)).
       append("date_start", "Not available").append("date_end", "Not available").
-      append("budget", "0.00").append("expenditure", "0.00")
+      append("budget", "0.00").append("expenditure", "0.00").append("bpmn_name", theProcess.bpmn_name[String])
     bson2json(projectDocument)
   }
 

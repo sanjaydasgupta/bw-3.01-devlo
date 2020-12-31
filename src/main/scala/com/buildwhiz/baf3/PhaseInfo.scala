@@ -91,8 +91,12 @@ object PhaseInfo extends DateTimeUtils {
   }
 
   private def phaseDates(phase: DynDoc): Seq[(String, Any)] = {
-    Seq(("estimated_start_date", "2020-12-31"), ("estimated_finish_date", "2020-12-31"),
-        ("actual_start_date", "2020-12-31"), ("actual_end_date", "2020-12-31"))
+    Seq(
+      ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
+      ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
+      ("actual_start_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31"))
+    )
   }
 
   private def phaseKpis(phase: DynDoc): Many[Document] = {

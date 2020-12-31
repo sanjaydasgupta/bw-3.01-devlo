@@ -95,10 +95,16 @@ object PhaseInfo extends DateTimeUtils {
         ("actual_start_date", "2020-12-31"), ("actual_end_date", "2020-12-31"))
   }
 
-  private def phaseKpis(phase: DynDoc): Seq[(String, Any)] = {
-    Seq(("original_budget", "1.5 MM USD"), ("current_budget", "1.65 MM USD"),
-        ("committed_expense", "1.5 MM USD"), ("accrued_expense", "1.65 MM USD"),
-        ("paid_expense", "1.5 MM USD"), ("change_orders", "1.65 MM USD"))
+  private def phaseKpis(phase: DynDoc): Many[Document] = {
+    val ofOriginalBudget = "comment" -> "of original budget"
+    val kpis: Seq[DynDoc] =
+    Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
+      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3", ofOriginalBudget),
+        Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3", ofOriginalBudget),
+      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9", ofOriginalBudget),
+        Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7", ofOriginalBudget),
+      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5", ofOriginalBudget))
+      kpis.map(_.asDoc).asJava
   }
 
   private def phase2json(phase: DynDoc, user: DynDoc): String = {
@@ -127,7 +133,7 @@ object PhaseInfo extends DateTimeUtils {
       append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
       append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName)
     phaseDates(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
-    phaseKpis(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }
 

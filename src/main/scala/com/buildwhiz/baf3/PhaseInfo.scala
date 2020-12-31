@@ -119,12 +119,16 @@ object PhaseInfo extends DateTimeUtils {
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
-    val projectDoc = new Document("name", name).append("description", description).append("status", status).
+    val bpmnName: String = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+      case Some(theProcess) => theProcess.bpmn_name[String]
+      case None => "not-available"
+    }
+    val phaseDoc = new Document("name", name).append("description", description).append("status", status).
       append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
-      append("task_info", taskInformation(phase, user))
-    phaseDates(phase).foreach(pair => projectDoc.append(pair._1, pair._2))
-    phaseKpis(phase).foreach(pair => projectDoc.append(pair._1, pair._2))
-    projectDoc.toJson
+      append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName)
+    phaseDates(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseKpis(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDoc.toJson
   }
 
 }

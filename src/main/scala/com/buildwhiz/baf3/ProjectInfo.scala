@@ -46,8 +46,11 @@ object ProjectInfo extends HttpUtils {
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
       val displayStatus = PhaseApi.displayStatus(phase)
+      val budget = (math.random() * 1000).toInt / 100.0
+      val expenditure = budget * 0.5
       Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus,
-        "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString)
+        "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString,
+        "budget" -> f"$budget%5.2f", "expenditure" -> f"$expenditure%5.2f")
     })
     returnValue.asJava
   }

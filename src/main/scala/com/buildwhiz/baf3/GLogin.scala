@@ -112,7 +112,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request, isLogin = true)
     try {
 //      val sessionId = request.getSession.getId
 //      val cookies: String = if (request.getCookies == null) {
@@ -134,7 +134,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
             BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work", "email" -> email))).headOption.map(_.asDoc)
           val result = person match {
             case None =>
-              BWLogger.log(getClass.getName, "doPost", s"EXIT-ERROR Google-OK but no work-email: $email", request)
+              BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Google-OK but no work-email: $email", request)
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
               cookieSessionSet(email, personRecord, request, response)
@@ -157,12 +157,12 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData))
               recordLoginTime(personRecord)
-              BWLogger.audit(getClass.getName, "doPost", "Login GoogleIdTokenVerifier OK", request)
+              BWLogger.audit(getClass.getName, request.getMethod, "Login GoogleIdTokenVerifier OK", request)
               bson2json(resultPerson)
           }
           response.getWriter.print(result)
         } else {
-          BWLogger.log(getClass.getName, "doPost", "EXIT-ERROR GoogleIdTokenVerifier failure", request)
+          BWLogger.log(getClass.getName, request.getMethod, "EXIT-ERROR GoogleIdTokenVerifier failure", request)
           response.getWriter.print("""{"_id": "", "first_name": "", "last_name": ""}""")
         }
         response.setContentType("application/json")
@@ -179,11 +179,11 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-ERROR Login without parameters ($result)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Login without parameters ($result)", request)
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

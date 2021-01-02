@@ -62,7 +62,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
 
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      BWLogger.audit(getClass.getName, "doPost", s"Created Project '$projectName'", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Created Project '$projectName'", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

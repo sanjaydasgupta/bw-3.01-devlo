@@ -76,7 +76,6 @@ object ProjectList extends HttpUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     // scope: must be one of past/current/future/all
     val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
-    val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
     val scopeQuery = (scope, optCustomerOid) match {
       case ("past", None) => Map("status" -> "ended")
       case ("past", Some(customerOid)) => Map("status" -> "ended", "customer_organization_id" -> customerOid)
@@ -84,8 +83,11 @@ object ProjectList extends HttpUtils {
       case ("current", Some(customerOid)) => Map("status" -> "running", "customer_organization_id" -> customerOid)
       case ("future", None) => Map("status" -> "defined")
       case ("future", Some(customerOid)) => Map("status" -> "defined", "customer_organization_id" -> customerOid)
+      case ("all", None) => Map.empty[String, Any]
+      case ("all", Some(customerOid)) => Map("customer_organization_id" -> customerOid)
       case _ => Map.empty[String, Any]
     }
+    val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
     val projects: Seq[DynDoc] = if (isAdmin) {
       BWMongoDB3.projects.find(scopeQuery)
     } else {

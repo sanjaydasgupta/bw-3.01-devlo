@@ -64,12 +64,15 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       val parametersChanged = mongoDbNameValuePairs.map(_._1).mkString("[", ", ", "]")
-      val message = s"""Updated parameters $parametersChanged of phase $phaseOid"""
+      val logMessage = s"""Updated parameters $parametersChanged of phase $phaseOid"""
       val managers = PhaseApi.managers(Left(phaseOid))
       for (manager <- managers) {
-        SlackApi.sendNotification(message, Right(manager), Some(parentProjectOid), Some(request))
+        SlackApi.sendNotification(logMessage, Right(manager), Some(parentProjectOid), Some(request))
       }
-      BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      val statusMessage = s"""Updates (${mongoDbNameValuePairs.map(_._1).mkString(", ")}) successful"""
+      response.getWriter.print(successJson(statusMessage))
+      response.setContentType("application/json")
+      BWLogger.audit(getClass.getName, request.getMethod, logMessage, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

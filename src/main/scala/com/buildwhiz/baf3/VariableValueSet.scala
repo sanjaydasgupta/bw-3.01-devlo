@@ -8,8 +8,7 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
-import com.buildwhiz.baf2.{PhaseApi, ProcessApi}
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
 
 class VariableValueSet extends HttpServlet with HttpUtils {
 
@@ -24,10 +23,13 @@ class VariableValueSet extends HttpServlet with HttpUtils {
         case None => throw new IllegalArgumentException("Phase has no processes")
       }
       val user: DynDoc = getUser(request)
-      if (!ProcessApi.canManage(user._id[ObjectId], theProcess))
+      val thePhase = PhaseApi.phaseById(phaseOid)
+      if (!PhaseApi.canManage(user._id[ObjectId], thePhase) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
 
       VariableValueSet.set(request, response, theProcess, label, bpmnName, value)
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -72,8 +74,6 @@ object VariableValueSet extends HttpUtils {
         Map("$set" -> Map(s"variables.$variableIdx.value" -> typedValue)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-//      response.getWriter.print(value)
-//      response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val message = s"Set value of variable '${variables(variableIdx).label[String]}' to '$value'"
       BWLogger.audit(getClass.getName, request.getMethod, message, request)

@@ -6,8 +6,7 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
-
-import com.buildwhiz.baf2.PhaseApi
+import com.buildwhiz.baf2.{PersonApi, PhaseApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -20,7 +19,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase = PhaseApi.phaseById(phaseOid)
       val user: DynDoc = getUser(request)
-      if (!PhaseApi.canManage(user._id[ObjectId], thePhase))
+      if (!PhaseApi.canManage(user._id[ObjectId], thePhase) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))
       val (timerId, timerName) = (parameters.get("timer_id"), parameters.get("timer_name"))
@@ -29,6 +28,8 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => throw new IllegalArgumentException("Phase has no processes")
       }
       TimerDurationSet.set(request, theProcess, timerId, timerName, bpmnName, duration)
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -56,8 +57,8 @@ object TimerDurationSet extends DateTimeUtils {
     val timerIdx: Int = (timerId, timerName) match {
       case (Some(tid), _) => timers.indexWhere(t => t.bpmn_id[String] == tid &&
         t.bpmn_name[String] == bpmnName)
-      case (_, Some(tname)) =>
-        timers.indexWhere(t => t.name[String].replace("\\s+", "") == tname.replace("\\s+", "") &&
+      case (_, Some(tName)) =>
+        timers.indexWhere(t => t.name[String].replace("\\s+", "") == tName.replace("\\s+", "") &&
           t.bpmn_name[String] == bpmnName)
       case _ => throw new IllegalArgumentException("Timer id or name not provided")
     }
@@ -79,7 +80,7 @@ object TimerDurationSet extends DateTimeUtils {
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       else {
-        val topLevelBpmn = theProcess.bpmn_name[String]
+        //val topLevelBpmn = theProcess.bpmn_name[String]
         //   TO BE COMPLETED
         //ProcessBpmnTraverse.scheduleBpmnElements(topLevelBpmn, processOid, request)
       }

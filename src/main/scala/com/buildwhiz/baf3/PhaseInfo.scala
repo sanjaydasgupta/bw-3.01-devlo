@@ -100,14 +100,14 @@ object PhaseInfo extends DateTimeUtils {
   }
 
   private def phaseKpis(phase: DynDoc): Many[Document] = {
-    val ofOriginalBudget = "comment" -> "of original budget"
+    val ofOriginalBudget = "comment" -> "original budget"
     val kpis: Seq[DynDoc] =
     Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
-      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3", ofOriginalBudget),
-        Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3", ofOriginalBudget),
-      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9", ofOriginalBudget),
-        Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7", ofOriginalBudget),
-      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5", ofOriginalBudget))
+      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
+        Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3 %", ofOriginalBudget),
+      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
+        Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7 %", ofOriginalBudget),
+      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
       kpis.map(_.asDoc).asJava
   }
 

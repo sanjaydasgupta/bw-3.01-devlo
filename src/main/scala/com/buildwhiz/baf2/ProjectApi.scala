@@ -260,7 +260,7 @@ object ProjectApi extends HttpUtils {
       case Left(projOid) => projectById(projOid)
     }
     project.assigned_roles[Many[Document]].filter(_.role_name[String].matches(".*(?i)manager")).
-        map(_.person_id[ObjectId])
+        map(_.person_id[ObjectId]).distinct
   }
 
   def imageUrl(projectIn: Either[ObjectId, DynDoc]): String = {

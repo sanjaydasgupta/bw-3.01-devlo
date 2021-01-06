@@ -62,7 +62,7 @@ object ActivityInfo extends DateTimeUtils {
     val description = new Document("editable", editable).append("value", activity.description[String])
     val status = new Document("editable", false).append("value", activity.status[String])
     val displayStatus = new Document("editable", false).append("value", ActivityApi.displayStatus2(activity))
-    val name = new Document("editable", editable).append("value", activity.name[String])
+    val name = new Document("editable", false).append("value", activity.name[String])
 //    val bpmnName: String = PhaseApi.allProcesses(activity._id[ObjectId]).headOption match {
 //      case Some(theProcess) => theProcess.bpmn_name[String]
 //      case None => "not-available"

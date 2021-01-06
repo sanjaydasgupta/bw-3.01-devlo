@@ -90,12 +90,15 @@ object PhaseInfo extends DateTimeUtils {
     taskRecords.asJava
   }
 
-  private def phaseDates(phase: DynDoc): Seq[(String, Any)] = {
+  private def phaseDatesAndDurations(phase: DynDoc): Seq[(String, Any)] = {
     Seq(
       ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
       ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
       ("actual_start_date", new Document("editable", false).append("value", "2020-12-31")),
-      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31"))
+      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("duration_optimistic", new Document("editable", false).append("value", "NA")),
+      ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
+      ("duration_likely", new Document("editable", false).append("value", "NA"))
     )
   }
 
@@ -136,7 +139,7 @@ object PhaseInfo extends DateTimeUtils {
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
       append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
       append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName)
-    phaseDates(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }

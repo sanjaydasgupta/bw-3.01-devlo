@@ -262,9 +262,13 @@ object ActivityApi extends DateTimeUtils {
 
   def managers(activity: DynDoc): Seq[ObjectId] = {
     val process = parentProcess(activity._id[ObjectId])
+    ProcessApi.managers(process)
+  }
+
+  def canManage(personOid: ObjectId, activity: DynDoc): Boolean = {
+    val process = parentProcess(activity._id[ObjectId])
     val phase = ProcessApi.parentPhase(process._id[ObjectId])
-    val project = PhaseApi.parentProject(phase._id[ObjectId])
-    ProcessApi.managers(process) ++ PhaseApi.managers(Right(phase)) ++ ProjectApi.managers(Right(project))
+    PhaseApi.canManage(personOid, phase)
   }
 
   object teamAssignment {

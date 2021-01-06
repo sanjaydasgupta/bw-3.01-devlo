@@ -107,7 +107,8 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     "ProjectInfoSet__project_type" -> Seq("Building", "Structure", "Mobile Structure",
       "Linear Form", "Construction Entity Grouping"),
     "ProjectList__scope" -> Seq("all", "current", "future", "past"),
-    "PhaseList__scope" -> Seq("all", "current", "future", "past")
+    "PhaseList__scope" -> Seq("all", "current", "future", "past"),
+    "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past")
   )
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -45,9 +45,15 @@ class PhaseList extends HttpServlet with HttpUtils {
       case Some(theProcess) => theProcess.bpmn_name[String]
       case None => "not-available"
     }
-    val projectDocument = new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
+    val phaseOid = phase._id[ObjectId]
+    val (dateStart, dateEnd) = if (phaseOid.hashCode() % 2 == 0) {
+      ("2020-06-01", "2020-07-31")
+    } else {
+      ("2020-06-01", "2021-05-31")
+    }
+    val projectDocument = new Document("name", phase.name[String]).append("_id", phaseOid.toString).
       append("managers", managerNames).append("display_status", PhaseApi.displayStatus(phase)).
-      append("date_start", "Not available").append("date_end", "Not available").
+      append("date_start", dateStart).append("date_end", dateEnd).
       append("budget", "0.00").append("expenditure", "0.00").append("bpmn_name", bpmnName)
     bson2json(projectDocument)
   }

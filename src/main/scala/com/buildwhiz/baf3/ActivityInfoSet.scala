@@ -12,7 +12,7 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      val parameterMap = getParameterMap(request)
+      val parameterMap = getParameterMap(request).filterNot(_._1 == "JSESSIONID")
       def nop(input: String): Any = input
       def string2int(input: String): Any = input.toInt
       val parameterConverters: Map[String, (String => Any, String)] = Map(

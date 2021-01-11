@@ -16,9 +16,10 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
       def nop(input: String): Any = input
       def string2int(input: String): Any = input.toInt
       val parameterConverters: Map[String, (String => Any, String)] = Map(
-        ("estimated_duration", (string2int, "estimated_duration")),
-        ("estimated_start_date", (nop, "estimated_start_date")), ("actual_start_date", (nop, "actual_start_date")),
-        ("estimated_finish_date", (nop, "estimated_finish_date")), ("actual_end_date", (nop, "actual_end_date"))
+        ("duration_optimistic", (string2int, "durations.optimistic")),
+        ("duration_pessimistic", (string2int, "durations.pessimistic")),
+        ("duration_likely", (string2int, "durations.likely")),
+        ("date_start", (nop, "date_start")), ("date_end", (nop, "date_end")), ("latest_start", (nop, "latest_start"))
       )
       val knownParameterNames = parameterConverters.keys.toSeq
       val unknownParameters = parameterMap.keys.filterNot(knownParameterNames.contains)

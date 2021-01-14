@@ -81,8 +81,8 @@ object ProjectInfo extends HttpUtils {
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)
-    val displayStatus = new Document("editable", false).
-        append("value", ProjectApi.displayStatus2(project, PersonApi.isBuildWhizAdmin(Right(user))))
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+    val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus2(project, userIsAdmin))
     val rawName = project.name[String]
     val name = new Document("editable", editable).append("value", rawName)
     val rawSummary = project.get[String]("summary") match {
@@ -136,7 +136,8 @@ object ProjectInfo extends HttpUtils {
         append("phase_info", phaseInfo).append("total_floor_area", totalFloorArea).
         append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
-        append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode)
+        append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).
+        append("menu_items", displayedMenuItems(userIsAdmin, ProjectApi.canManage(user._id[ObjectId], project)))
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)
     projectDoc.toJson

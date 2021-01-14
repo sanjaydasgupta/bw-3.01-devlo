@@ -1,7 +1,5 @@
 package com.buildwhiz
 
-import com.buildwhiz.baf2.PersonApi
-import com.buildwhiz.infra.DynDoc
 import org.bson.Document
 import com.buildwhiz.infra.DynDoc._
 
@@ -68,12 +66,14 @@ package object baf3 {
       "navLabel" -> "Applications", "routeUrl" -> "/private/phases/applications", "toolTipLabel" -> "All Applications")
   )
 
-  def initialMenuItems(person: DynDoc): Many[Document] = {
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(person))
-    if (userIsAdmin)
+  def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false): Many[Document] = {
+    if (userIsAdmin) {
       menuItemsList.asJava
-    else
-      menuItemsList.filterNot(_.getString("access") == "A").asJava
+    } else if (userIsManager) {
+      menuItemsList.filter(_.getString("access").matches("[*M]")).asJava
+    } else {
+      menuItemsList.filter(_.getString("access") == "*").asJava
+    }
   }
 
 }

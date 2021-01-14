@@ -107,7 +107,8 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
               cookieSessionSet(email, personRecord, request, response)
-              personRecord.put("menu_items", initialMenuItems(personRecord))
+              val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
+              personRecord.put("menu_items", displayedMenuItems(personIsAdmin))
               if (!personRecord.containsKey("document_filter_labels"))
                 personRecord.put("document_filter_labels", Seq.empty[String])
               if (!personRecord.containsKey("selected_project_id")) {
@@ -122,7 +123,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
               val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
-              val roles = if (PersonApi.isBuildWhizAdmin(Right(personRecord))) Seq("BW-Admin") else Seq("NA")
+              val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData))
               recordLoginTime(personRecord)

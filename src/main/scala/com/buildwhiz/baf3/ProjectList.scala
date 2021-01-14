@@ -58,15 +58,16 @@ class ProjectList extends HttpServlet with HttpUtils {
       case None => s"Summary for '$name'"
       case Some(theSummary) => theSummary
     }
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     Map("name" -> name, "_id" -> project._id[ObjectId].toString, "summary" -> summary,
-        "display_status" -> ProjectApi.displayStatus2(project, PersonApi.isBuildWhizAdmin(Right(user))),
+        "display_status" -> ProjectApi.displayStatus2(project, userIsAdmin),
         "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
         "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName,
-        "menu_items" -> initialMenuItems(user)
+        "menu_items" -> displayedMenuItems(userIsAdmin)
     )
   }
 }

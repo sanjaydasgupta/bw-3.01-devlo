@@ -65,7 +65,9 @@ class ProjectList extends HttpServlet with HttpUtils {
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
-        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName)
+        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName,
+        "menu_items" -> initialMenuItems(user)
+    )
   }
 }
 

@@ -1,7 +1,11 @@
 package com.buildwhiz
 
+import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.infra.DynDoc
 import org.bson.Document
 import com.buildwhiz.infra.DynDoc._
+
+import scala.collection.JavaConverters._
 
 package object baf3 {
 
@@ -63,5 +67,13 @@ package object baf3 {
       "navIconActive" -> "assets/images/teenyions/solid-white/wand.svg",
       "navLabel" -> "Applications", "routeUrl" -> "/private/phases/applications", "toolTipLabel" -> "All Applications")
   )
+
+  def initialMenuItems(person: DynDoc): Many[Document] = {
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(person))
+    if (userIsAdmin)
+      menuItemsList.asJava
+    else
+      menuItemsList.filterNot(_.getString("access") == "A").asJava
+  }
 
 }

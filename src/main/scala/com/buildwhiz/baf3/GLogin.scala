@@ -54,15 +54,6 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
 
   */
 
-  private def addMenuItems(person: DynDoc): Unit = {
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(person))
-    val menuItems = if (userIsAdmin)
-      menuItemsList
-    else
-      menuItemsList.filterNot(_.getString("access") == "A")
-    person.asDoc.put("menu_items", /*documentMenu ++ */menuItems)
-  }
-
   private def defaultPhase(projectOid: ObjectId, personRecord: DynDoc): Option[DynDoc] = {
     val candidatePhases = ProjectApi.allPhases(projectOid).filter(PhaseApi.hasRole(personRecord._id[ObjectId], _))
     candidatePhases.find(PhaseApi.isActive) match {
@@ -116,7 +107,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
               cookieSessionSet(email, personRecord, request, response)
-              addMenuItems(personRecord)
+              personRecord.put("menu_items", initialMenuItems(personRecord))
               if (!personRecord.containsKey("document_filter_labels"))
                 personRecord.put("document_filter_labels", Seq.empty[String])
               if (!personRecord.containsKey("selected_project_id")) {

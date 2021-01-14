@@ -55,17 +55,11 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
   */
 
   private def addMenuItems(person: DynDoc): Unit = {
-    val menuItems: Seq[Document] = Seq(
-      Map("name" -> "Documents", "urls" -> "/documents", "icon" -> "documents"),
-      Map("name" -> "Conversations", "url" -> "/rfis", "icon" -> "rfis"),
-      //Map("name" -> "Projects", "url" -> "/projects", "icon" -> "projects"),
-      Map("name" -> "Organizations", "url" -> "/contacts", "icon" -> "contact"),
-      Map("name" -> "Team", "url" -> "/team", "icon" -> "project_team"),
-      Map("name" -> "Zone", "url" -> "/zone-list", "icon" -> "zone"),
-      Map("name" -> "Tasks", "url" -> "/task-list", "icon" -> "tasks"),
-      Map("name" -> "Profile", "url" -> "/profile", "icon" -> "profile"),
-      Map("name" -> "Help", "url" -> "/help", "icon" -> "help")
-    )
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(person))
+    val menuItems = if (userIsAdmin)
+      menuItemsList
+    else
+      menuItemsList.filterNot(_.getString("access") == "A")
     person.asDoc.put("menu_items", /*documentMenu ++ */menuItems)
   }
 

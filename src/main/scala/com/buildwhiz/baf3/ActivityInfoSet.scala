@@ -22,7 +22,7 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
         ("date_start", (nop, "date_start")), ("date_end", (nop, "date_end")), ("latest_start", (nop, "latest_start"))
       )
       val knownParameterNames = parameterConverters.keys.toSeq
-      val unknownParameters = parameterMap.keys.filterNot(knownParameterNames.contains)
+      val unknownParameters = parameterMap.keys.filterNot(knownParameterNames.contains).filterNot(_ == "activity_id")
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
       if (!parameterMap.contains("activity_id"))

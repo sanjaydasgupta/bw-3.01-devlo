@@ -136,9 +136,11 @@ object PhaseInfo extends DateTimeUtils {
       case Some(theProcess) => theProcess.bpmn_name[String]
       case None => "not-available"
     }
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
-      append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
-      append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName)
+        append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
+        append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName).
+        append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson

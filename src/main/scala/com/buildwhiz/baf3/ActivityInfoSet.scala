@@ -5,6 +5,8 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class ActivityInfoSet extends HttpServlet with HttpUtils {
@@ -14,12 +16,17 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
     try {
       val parameterMap = getParameterMap(request).filterNot(_._1 == "JSESSIONID")
       def nop(input: String): Any = input
+      def dateValidation(date: String): Any = {
+        LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
+        date
+      }
       def string2int(input: String): Any = input.toInt
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("duration_optimistic", (string2int, "durations.optimistic")),
         ("duration_pessimistic", (string2int, "durations.pessimistic")),
         ("duration_likely", (string2int, "durations.likely")),
-        ("date_start", (nop, "date_start")), ("date_end", (nop, "date_end")), ("latest_start", (nop, "latest_start"))
+        ("date_start", (dateValidation, "date_start")), ("date_end", (dateValidation, "date_end")),
+        ("latest_start", (dateValidation, "latest_start"))
       )
       val knownParameterNames = parameterConverters.keys.toSeq
       val unknownParameters = parameterMap.keys.filterNot(knownParameterNames.contains).filterNot(_ == "activity_id")

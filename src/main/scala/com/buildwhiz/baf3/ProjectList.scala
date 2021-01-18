@@ -27,7 +27,8 @@ class ProjectList extends HttpServlet with HttpUtils {
       val projects = ProjectList.getList(userOid, scope = scope, optCustomerOid = optCustomerOid, request = request)
       val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user)).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
-      val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo)
+      val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
+          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user))))
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
@@ -66,8 +67,7 @@ class ProjectList extends HttpServlet with HttpUtils {
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
-        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName,
-        "menu_items" -> displayedMenuItems(userIsAdmin)
+        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName
     )
   }
 }

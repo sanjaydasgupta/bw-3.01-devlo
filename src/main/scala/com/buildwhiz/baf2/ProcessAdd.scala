@@ -153,7 +153,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
-          n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${\\}]", "")).head
+          n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${}]", "")).head
         val duration = extensionProperties(timerNode, "bw-duration") match {
           case dur +: _ => valueAttribute(dur)
           case Nil => "00:00:00"
@@ -394,9 +394,10 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "assignee_person_id" -> adminPersonOid, "duration" -> activityDuration,
           "start" -> "00:00:00", "end" -> "00:00:00", "on_critical_path" -> false)
         val timeZone = PhaseApi.timeZone(thePhase)
+        val durations: Document = Map("optimistic" -> -1, "pessimistic" -> -1, "likely" -> -1, "actual" -> -1)
         val activity: Document = Map("bpmn_name" -> bpmn, "name" -> activityName, "actions" -> Seq(action),
           "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,
-          "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration,
+          "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> activityDuration, "durations" -> durations,
           "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
           "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
           "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone),

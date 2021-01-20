@@ -45,8 +45,8 @@ object ActivityInfo extends DateTimeUtils {
     val (dur_opti_raw, dur_pessi_raw, dur_likely_raw, dur_actual_raw) = activity.get[Document]("durations") match {
       case None => ("NA", "NA", "NA", "NA")
       case Some(durations) => (
-          durations.getOrDefault("optimistic", "NA"), durations.getOrDefault("pessimistic", "NA"),
-          durations.getOrDefault("likely", "NA"), durations.getOrDefault("actual", "NA"))
+          durations.getOrDefault("optimistic", "NA").toString, durations.getOrDefault("pessimistic", "NA").toString,
+          durations.getOrDefault("likely", "NA").toString, durations.getOrDefault("actual", "NA").toString)
     }
     def resolve(opts: Option[String]): String = opts match {case None => "NA"; case Some(s) => s}
     val durationOptimistic = new Document("editable", editable).append("value", dur_opti_raw)

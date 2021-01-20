@@ -15,7 +15,6 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val parameterMap = getParameterMap(request).filterNot(_._1 == "JSESSIONID")
-      def nop(input: String): Any = input
       def dateValidation(date: String): Any = {
         LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE)
         date

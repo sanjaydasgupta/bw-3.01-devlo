@@ -40,29 +40,32 @@ object ActivityInfo extends DateTimeUtils {
     PersonApi.isBuildWhizAdmin(Right(user)) || ActivityApi.canManage(userOid, activity)
   }
 
-  private def activity2json(activity: DynDoc, user: DynDoc): String = {
-    val editable = isEditable(activity, user)
-    val (dur_opti_raw, dur_pessi_raw, dur_likely_raw, dur_actual_raw) = activity.get[Document]("durations") match {
+  private def wrap(value: String, canEdit: Boolean) = new Document("editable", canEdit).append("value", value)
+
+  private def durations(activity: DynDoc, user: DynDoc): (Document, Document, Document, Document) = {
+    val editable = isEditable(activity, user) && activity.status[String] != "ended"
+    val durations = activity.get[Document]("durations") match {
       case None => ("NA", "NA", "NA", "NA")
       case Some(durations) => (
-          durations.getOrDefault("optimistic", "NA").toString, durations.getOrDefault("pessimistic", "NA").toString,
-          durations.getOrDefault("likely", "NA").toString, durations.getOrDefault("actual", "NA").toString)
+          durations.getInteger("optimistic").toString, durations.getInteger("pessimistic").toString,
+          durations.getInteger("likely").toString, durations.getInteger("actual").toString
+      )
     }
+    (wrap(durations._1, editable), wrap(durations._2, editable), wrap(durations._3, editable),
+        wrap(durations._4, canEdit = false))
+  }
+
+  private def activity2json(activity: DynDoc, user: DynDoc): String = {
+    val editable = isEditable(activity, user)
     def resolve(opts: Option[String]): String = opts match {case None => "NA"; case Some(s) => s}
-    val durationOptimistic = new Document("editable", editable).append("value", dur_opti_raw)
-    val durationPessimistic = new Document("editable", editable).append("value", dur_pessi_raw)
-    val durationLikely = new Document("editable", editable).append("value", dur_likely_raw)
-    val durationActual = new Document("editable", false).append("value", dur_actual_raw)
-    val latestStart = new Document("editable", editable).
-        append("value", resolve(activity.get[String]("latest_start")))
-    val dateStart = new Document("editable", editable).
-        append("value", resolve(activity.get[String]("date_start")))
-    val dateEnd = new Document("editable", editable).
-        append("value", resolve(activity.get[String]("date_end")))
-    val description = new Document("editable", editable).append("value", activity.description[String])
-    val status = new Document("editable", false).append("value", activity.status[String])
-    val displayStatus = new Document("editable", false).append("value", ActivityApi.displayStatus2(activity))
-    val name = new Document("editable", false).append("value", activity.name[String])
+    val (durationOptimistic, durationPessimistic, durationLikely, durationActual) = durations(activity, user)
+    val latestStart = wrap(resolve(activity.get[String]("latest_start")), editable)
+    val dateStart = wrap(resolve(activity.get[String]("date_start")), editable)
+    val dateEnd = wrap(resolve(activity.get[String]("date_end")), editable)
+    val description = wrap(activity.description[String], editable)
+    val status = wrap(activity.status[String], canEdit = false)
+    val displayStatus = wrap(ActivityApi.displayStatus2(activity), canEdit = false)
+    val name = wrap(activity.name[String], canEdit = false)
 //    val bpmnName: String = PhaseApi.allProcesses(activity._id[ObjectId]).headOption match {
 //      case Some(theProcess) => theProcess.bpmn_name[String]
 //      case None => "not-available"

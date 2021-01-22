@@ -23,9 +23,9 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("duration_optimistic", (string2int, "durations.optimistic")),
         ("duration_pessimistic", (string2int, "durations.pessimistic")),
-        ("duration_likely", (string2int, "durations.likely")),
+        ("duration_likely", (string2int, "durations.likely"))/*,
         ("date_start", (dateValidation, "date_start")), ("date_end", (dateValidation, "date_end")),
-        ("latest_start", (dateValidation, "latest_start"))
+        ("latest_start", (dateValidation, "latest_start"))*/
       )
       val knownParameterNames = parameterConverters.keys.toSeq
       val unknownParameters = parameterMap.keys.filterNot(knownParameterNames.contains).filterNot(_ == "activity_id")

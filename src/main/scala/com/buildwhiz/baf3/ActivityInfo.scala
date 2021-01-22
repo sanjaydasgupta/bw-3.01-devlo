@@ -59,9 +59,9 @@ object ActivityInfo extends DateTimeUtils {
     val editable = isEditable(activity, user)
     def resolve(opts: Option[String]): String = opts match {case None => "NA"; case Some(s) => s}
     val (durationOptimistic, durationPessimistic, durationLikely, durationActual) = durations(activity, user)
-    val latestStart = wrap(resolve(activity.get[String]("latest_start")), editable)
-    val dateStart = wrap(resolve(activity.get[String]("date_start")), editable)
-    val dateEnd = wrap(resolve(activity.get[String]("date_end")), editable)
+    val latestStart = wrap(resolve(activity.get[String]("latest_start")), canEdit = false)
+    val dateStart = wrap(resolve(activity.get[String]("date_start")), canEdit = false)
+    val dateEnd = wrap(resolve(activity.get[String]("date_end")), canEdit = false)
     val description = wrap(activity.description[String], editable)
     val status = wrap(activity.status[String], canEdit = false)
     val displayStatus = wrap(ActivityApi.displayStatus2(activity), canEdit = false)

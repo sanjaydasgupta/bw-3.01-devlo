@@ -47,8 +47,8 @@ object ActivityInfo extends DateTimeUtils {
     val durations = activity.get[Document]("durations") match {
       case None => ("NA", "NA", "NA", "NA")
       case Some(durations) => (
-          durations.getInteger("optimistic").toString, durations.getInteger("pessimistic").toString,
-          durations.getInteger("likely").toString, durations.getInteger("actual").toString
+          durations.getOrDefault("optimistic", "NA").toString, durations.getOrDefault("pessimistic", "NA").toString,
+          durations.getOrDefault("likely", "NA").toString, durations.getOrDefault("actual", "NA").toString
       )
     }
     (wrap(durations._1, editable), wrap(durations._2, editable), wrap(durations._3, editable),

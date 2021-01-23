@@ -19,30 +19,30 @@ trait BpmnUtils {
   }
 
   def getProcessDefinition(bpmnName: String): ProcessDefinition = {
-    BWLogger.log(getClass.getName, s"getProcessDefinition($bpmnName)", "ENTRY")
+    //BWLogger.log(getClass.getName, s"getProcessDefinition($bpmnName)", "ENTRY")
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
+    //BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
     val allProcessDefinitions: Seq[ProcessDefinition] =
       repositoryService.createProcessDefinitionQuery().list().asScala
-    BWLogger.log(getClass.getName, "getProcessDefinition", "Got allProcessDefinitions")
+    //BWLogger.log(getClass.getName, "getProcessDefinition", "Got allProcessDefinitions")
     val processDefinition = allProcessDefinitions.find(_.getKey == bpmnName) match {
       case Some(pd) => pd
       case None =>
         val message = s"process '$bpmnName' not found among ${allProcessDefinitions.map(_.getKey).mkString(", ")}"
         throw new IllegalArgumentException(message)
     }
-    BWLogger.log(getClass.getName, "getProcessDefinition", "EXIT")
+    //BWLogger.log(getClass.getName, "getProcessDefinition", "EXIT")
     processDefinition
   }
 
   def getBpmnName(de: DelegateExecution): String = getProcessDefinition(de).getKey
 
   def getProcessModel(bpmnName: String): InputStream = {
-    BWLogger.log(getClass.getName, s"getProcessModel($bpmnName)", "ENTRY")
+    //BWLogger.log(getClass.getName, s"getProcessModel($bpmnName)", "ENTRY")
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    BWLogger.log(getClass.getName, "getProcessModel", "Got RepositoryService")
+    //BWLogger.log(getClass.getName, "getProcessModel", "Got RepositoryService")
     val inputStream = repositoryService.getProcessModel(getProcessDefinition(bpmnName).getId)
-    BWLogger.log(getClass.getName, "getProcessModel", "EXIT")
+    //BWLogger.log(getClass.getName, "getProcessModel", "EXIT")
     inputStream
   }
 

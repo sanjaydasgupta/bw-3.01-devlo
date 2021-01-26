@@ -67,13 +67,13 @@ package object baf3 {
   )
 
   def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false): Many[Document] = {
-    if (userIsAdmin) {
-      menuItemsList.asJava
+    (if (userIsAdmin) {
+      menuItemsList
     } else if (userIsManager) {
-      menuItemsList.filter(_.getString("access").matches("[*M]")).asJava
+      menuItemsList.filter(_.getString("access").matches("[*M]"))
     } else {
-      menuItemsList.filter(_.getString("access") == "*").asJava
-    }
+      menuItemsList.filter(_.getString("access") == "*")
+    }).map(doc => {doc.remove("access"); doc}).asJava
   }
 
 }

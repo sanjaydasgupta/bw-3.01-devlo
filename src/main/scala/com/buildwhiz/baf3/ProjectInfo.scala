@@ -124,6 +124,7 @@ object ProjectInfo extends HttpUtils {
         }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
     val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
+    val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
         append("status", status).append("display_status", displayStatus).append("goals", goals).
         append("document_tags", documentTags).append("project_managers", projectManagers).
@@ -137,7 +138,8 @@ object ProjectInfo extends HttpUtils {
         append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).
-        append("menu_items", displayedMenuItems(userIsAdmin, ProjectApi.canManage(user._id[ObjectId], project)))
+        append("menu_items", displayedMenuItems(userIsAdmin, userCanManageProject)).
+        append("canUploadImage", userCanManageProject)
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)
     projectDoc.toJson

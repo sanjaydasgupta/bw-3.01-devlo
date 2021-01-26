@@ -101,7 +101,7 @@ object ProjectApi extends HttpUtils {
       ar.role_name[String].matches("(?i)(?:project-)?manager"))
 
   def canManage(personOid: ObjectId, project: DynDoc): Boolean =
-      isManager(personOid, project) || isAdmin(personOid, project)
+      isManager(personOid, project) || PersonApi.isBuildWhizAdmin(Left(personOid)) || isAdmin(personOid, project)
 
   def projectsByUser(personOid: ObjectId): Seq[DynDoc] = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()

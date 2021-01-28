@@ -67,13 +67,17 @@ package object baf3 {
   )
 
   def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false): Many[Document] = {
-    (if (userIsAdmin) {
+    val filteredMenuItems = if (userIsAdmin) {
       menuItemsList
     } else if (userIsManager) {
       menuItemsList.filter(_.getString("access").matches("[*M]"))
     } else {
       menuItemsList.filter(_.getString("access") == "*")
-    }).map(doc => {doc.remove("access"); doc}).asJava
+    }
+    filteredMenuItems.map(doc => {
+      val withoutAccess = doc.entrySet().asScala.map(es => (es.getKey, es.getValue)).filterNot(_._1 == "access").toMap
+      new Document(withoutAccess)
+    }).asJava
   }
 
 }

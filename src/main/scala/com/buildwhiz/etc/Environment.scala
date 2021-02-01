@@ -2,18 +2,16 @@ package com.buildwhiz.etc
 
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.api.RestUtils
-import com.buildwhiz.infra.BWMongoDB3
 import BWMongoDB3._
+import DynDoc._
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 
 class Environment extends HttpServlet with RestUtils {
 
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
-
+  private def doCookies(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val cookies = {val cookies = request.getCookies; if (cookies == null) Array.empty[Cookie] else cookies}
     val email = cookies.find(_.getName == "UserNameEmail") match {
       case Some(c) => c.getValue
@@ -34,8 +32,31 @@ class Environment extends HttpServlet with RestUtils {
     }
     response.getWriter.println(bson2json(environment))
     response.setContentType("application/json")
-    response.setStatus(HttpServletResponse.SC_OK)
+  }
 
+  private def reportErrors(errorMinutes: String, response: HttpServletResponse): Unit = {
+    try {
+      val since = System.currentTimeMillis - (errorMinutes.toLong * 60 * 1000)
+      val logInfo: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map("$gte" -> since)))
+      val totalCount = logInfo.length
+      val errorCount = logInfo.count(_.event_name[String].contains("ERROR"))
+      response.getWriter.println(s"""{"total": $totalCount, "errors": $errorCount, "error_minutes": $errorMinutes}""")
+    } catch {
+      case _: Throwable =>
+        response.getWriter.println(s"""{"total": -1, "errors": -1, "error_minutes": $errorMinutes}""")
+    }
+    response.setContentType("application/json")
+  }
+
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
+
+    val parameterMap = getParameterMap(request)
+    if (parameterMap.contains("error_minutes")) {
+      reportErrors(parameterMap("error_minutes"), response)
+    } else {
+      doCookies(request, response)
+    }
     BWLogger.log(getClass.getName, "handleGet", s"EXIT-OK", request)
   }
 

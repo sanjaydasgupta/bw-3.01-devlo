@@ -27,8 +27,8 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
         if (part.getSize > 512000)
           throw new IllegalArgumentException("Image must be < 500 Kb")
         val imageFileName = part.getSubmittedFileName
-        if (!imageFileName.matches(".+[.](gif|jpeg|jpg|png)"))
-          throw new IllegalArgumentException("File must be gif/jpeg/jpg/png")
+        if (!imageFileName.matches("(?i).+[.](gif|jpeg|jpg|png)"))
+          throw new IllegalArgumentException("File type must be gif/jpeg/jpg/png")
         val imageType = imageFileName.split("[.]").last
         val inputStream = part.getInputStream
         val imageBuffer = new Array[Byte](part.getSize.toInt)
@@ -40,7 +40,7 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
       } else {
         throw new IllegalArgumentException(f"Has ${request.getParts.size} parts, expected 1")
       }
-      val message = s"""Updated image of project $projectOid"""
+      val message = s"""Updated image of project '${theProject.name[String]}'"""
       val managers = ProjectApi.managers(Left(projectOid))
       for (manager <- managers) {
         SlackApi.sendNotification(message, Right(manager), Some(projectOid), Some(request))

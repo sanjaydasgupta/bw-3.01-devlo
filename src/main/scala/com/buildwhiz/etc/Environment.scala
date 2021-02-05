@@ -52,8 +52,8 @@ class Environment extends HttpServlet with RestUtils {
     BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
 
     val parameterMap = getParameterMap(request)
-    if (parameterMap.contains("error_minutes")) {
-      reportErrors(parameterMap("error_minutes"), response)
+    if (parameterMap.contains("minutes")) {
+      reportErrors(parameterMap("minutes"), response)
     } else {
       doCookies(request, response)
     }

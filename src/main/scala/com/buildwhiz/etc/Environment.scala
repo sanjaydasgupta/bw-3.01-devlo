@@ -40,7 +40,7 @@ class Environment extends HttpServlet with RestUtils {
       val logInfo: Seq[DynDoc] = BWMongoDB3.trace_log.find(Map("milliseconds" -> Map("$gte" -> since)))
       val totalCount = logInfo.length
       val errorCount = logInfo.count(_.event_name[String].contains("ERROR"))
-      response.getWriter.println(s"""{"total": $totalCount, "errors": $errorCount, "error_minutes": $errorMinutes}""")
+      response.getWriter.println(s"""{"total": $totalCount, "bad": $errorCount, "minutes": $errorMinutes}""")
     } catch {
       case _: Throwable =>
         response.getWriter.println(s"""{"total": -1, "errors": -1, "error_minutes": $errorMinutes}""")

@@ -3,8 +3,8 @@ package com.buildwhiz.infra
 import com.buildwhiz.infra.BWMongoDB3._
 import org.bson.Document
 import org.bson.types.ObjectId
-import java.io.{InputStream, InputStreamReader}
 
+import java.io.{InputStream, InputStreamReader}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 import com.google.api.client.auth.oauth2.Credential
@@ -20,9 +20,9 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.Permission
+
 import java.io.{FileInputStream, File => javaFile}
 import java.util.Collections
-
 import com.google.api.client.http.FileContent
 import com.google.api.services.drive.model.File.ShortcutDetails
 
@@ -146,16 +146,16 @@ object GoogleDrive {
 
   //private val permissionAnyoneReader = new Permission().setId("AnyoneReader").setType("anyone").setRole("reader")
 
-  def getUserFolderId(gDriveFolderName: String): String = {
+  def getUserFolderId(gDriveFolderName: String, userEmail: String): String = {
     BWLogger.log(getClass.getName, s"getUserFolderId($gDriveFolderName)", s"ENTRY")
-    val userFolderId = getOrCreateFolder(usersFolderContainerId, gDriveFolderName)
+    val userFolderId = getOrCreateFolder(usersFolderContainerId, gDriveFolderName, userEmail)
     val permissionRequest = new Permission().setType("anyone").setRole("reader").setAllowFileDiscovery(false)
     /*val permissionGrant = */cachedDriveService.permissions().create(userFolderId, permissionRequest).execute()
     BWLogger.log(getClass.getName, s"getUserFolderId($gDriveFolderName)", s"EXIT-OK ($userFolderId)")
     userFolderId
   }
 
-  def getOrCreateFolder(parentFolderId: String, folderName: String): String = {
+  def getOrCreateFolder(parentFolderId: String, folderName: String, ownerEmail: String): String = {
     BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"ENTRY")
     val escapedFolderName = folderName.replaceAll("\'", "\\\'")
     val query = Seq(s"\'$parentFolderId\' in parents", s"""name = "$escapedFolderName"""", "trashed = false",
@@ -173,8 +173,8 @@ object GoogleDrive {
           setMimeType("application/vnd.google-apps.folder").setName(folderName)
       val newFolder = cachedDriveService.files().create(newFolderMetadata).setFields("id, parents").
           execute()
-      val permissionRequest = new Permission().setType("anyone").setRole("reader").setAllowFileDiscovery(false)
-      /*val permissionGrant = */cachedDriveService.permissions().create(newFolder.getId, permissionRequest).execute()
+      val permissionRequest = new Permission().setType("user").setRole("reader").setEmailAddress(ownerEmail)
+      cachedDriveService.permissions().create(newFolder.getId, permissionRequest).execute()
       val newFolderId = newFolder.getId
       BWLogger.log(getClass.getName, s"getOrCreateFolder($parentFolderId, $folderName)", s"EXIT-OK (new: $newFolderId)")
       newFolderId

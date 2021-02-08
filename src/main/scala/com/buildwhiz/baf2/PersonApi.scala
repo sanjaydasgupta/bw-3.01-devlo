@@ -212,12 +212,20 @@ object PersonApi {
 
   def userGDriveFolderName(user: DynDoc) = s"${fullName(user)} (${user._id[ObjectId]})"
 
+  def userGoogleLoginEmail(user: DynDoc): String = {
+    if (user.emails[Many[Document]].exists(_.`type`[String] == "google")) {
+      user.emails[Many[Document]].find(_.`type`[String] == "google").map(_.email[String]).head
+    } else {
+      user.emails[Many[Document]].find(_.`type`[String] == "work").map(_.email[String]).head
+    }
+  }
+
   def userGDriveFolderId(user: DynDoc): String = {
     if (user.has("g_drive_folder_id")) {
       user.g_drive_folder_id[String]
     } else {
       val folderName = userGDriveFolderName(user)
-      val userFolderId = GoogleDrive.getUserFolderId(folderName)
+      val userFolderId = GoogleDrive.getUserFolderId(folderName, userGoogleLoginEmail(user))
       val userOid = user._id[ObjectId]
       BWMongoDB3.persons.updateOne(Map("_id" -> userOid), Map($set -> Map("g_drive_folder_id" -> userFolderId)))
       Future {populateGDriveFolder(user, userFolderId)}
@@ -238,7 +246,8 @@ object PersonApi {
       for ((projectOid, phaseOids) <- projects2phases) {
         val project = ProjectApi.projectById(projectOid)
         val projectName = project.name[String]
-        lazy val gDriveProjectFolderId = GoogleDrive.getOrCreateFolder(usersGFolderId, projectName)
+        lazy val gDriveProjectFolderId = GoogleDrive.
+            getOrCreateFolder(usersGFolderId, projectName, userGoogleLoginEmail(user))
         lazy val projectFiles = GoogleDrive.listObjects(Some(s"$projectOid-"))
         BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
             s"Project '$projectName' has ${projectFiles.length} files")
@@ -253,7 +262,8 @@ object PersonApi {
         for (phaseOid <- phaseOids) {
           val phase = PhaseApi.phaseById(phaseOid)
           val phaseName = phase.name[String]
-          lazy val gDrivePhaseFolderId = GoogleDrive.getOrCreateFolder(gDriveProjectFolderId, phaseName)
+          lazy val gDrivePhaseFolderId = GoogleDrive.
+              getOrCreateFolder(gDriveProjectFolderId, phaseName, userGoogleLoginEmail(user))
           val phaseFiles = projectFiles.
               filter(file => file.properties.contains("phase") && file.properties("phase") == phaseName)
           BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",

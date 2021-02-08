@@ -101,7 +101,7 @@ object DocumentApi extends HttpUtils {
       BWLogger.log(getClass.getName, "usersDocumentList", logMessage, request)
       val stringBuffer = new StringBuffer("Documents processed: ")
       val accessibleDocs = allProjectDocs.filter(doc => {
-        val docTags: Seq[String] = doc.labels[Many[String]]
+        val docTags: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
         val accessible = TagLogicProcessor.evaluateTagLogic(accessExpression, docTags.toSet)
         stringBuffer.append(s"""[${doc.name[String]}: ${docTags.mkString(", ")} => $accessible], """)
         accessible

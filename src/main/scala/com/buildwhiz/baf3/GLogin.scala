@@ -108,7 +108,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
             case Some(personRecord) =>
               cookieSessionSet(email, personRecord, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
-              personRecord.put("menu_items", displayedMenuItems(personIsAdmin))
+              personRecord.put("menu_items", displayedMenuItems(personIsAdmin, starting = true))
               if (!personRecord.containsKey("document_filter_labels"))
                 personRecord.put("document_filter_labels", Seq.empty[String])
               if (!personRecord.containsKey("selected_project_id")) {

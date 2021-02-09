@@ -28,7 +28,7 @@ class ProjectList extends HttpServlet with HttpUtils {
       val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user)).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
-          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user))))
+          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), starting = true))
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

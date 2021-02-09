@@ -69,8 +69,11 @@ package object baf3 {
       "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "All Applications")
   )
 
-  def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false): Many[Document] = {
-    val filteredMenuItems = if (userIsAdmin) {
+  def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false):
+      Many[Document] = {
+    val filteredMenuItems = if (starting) {
+      menuItemsList.filter(_.getString("toolTipLabel") == "All Projects")
+    } else if (userIsAdmin) {
       menuItemsList
     } else if (userIsManager) {
       menuItemsList.filter(_.getString("access").matches("[*M]"))

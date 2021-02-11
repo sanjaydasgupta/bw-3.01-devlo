@@ -37,7 +37,7 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
         val upsertEnable = new UpdateOptions().upsert(true)
         val updateResult = BWMongoDB3.images.updateOne(Map("project_id" -> projectOid),
           Map("$set" -> Map("project_image" -> imageBuffer, "image_type" -> imageType)), upsertEnable)
-        if (updateResult.getMatchedCount == 0)
+        if (updateResult.getMatchedCount == 0 && updateResult.getUpsertedId == null)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       } else {
         throw new IllegalArgumentException(f"Has ${request.getParts.size} parts, expected 1")

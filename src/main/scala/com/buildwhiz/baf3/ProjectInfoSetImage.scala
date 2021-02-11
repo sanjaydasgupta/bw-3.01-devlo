@@ -6,6 +6,7 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 import com.buildwhiz.slack.SlackApi
+import com.mongodb.client.model.UpdateOptions
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -33,8 +34,9 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
         val inputStream = part.getInputStream
         val imageBuffer = new Array[Byte](part.getSize.toInt)
         inputStream.read(imageBuffer)
+        val upsertEnable = new UpdateOptions().upsert(true)
         val updateResult = BWMongoDB3.images.updateOne(Map("project_id" -> projectOid),
-          Map("$set" -> Map("project_image" -> imageBuffer, "image_type" -> imageType)))
+          Map("$set" -> Map("project_image" -> imageBuffer, "image_type" -> imageType)), upsertEnable)
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       } else {

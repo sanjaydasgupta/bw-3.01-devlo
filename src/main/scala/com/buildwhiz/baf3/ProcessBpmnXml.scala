@@ -33,24 +33,24 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def activityStartAndEndDate(activity: DynDoc, timezone: String): (String, String) = {
-    val activityStart = ActivityApi.actualStart(activity) match {
-      case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (A)"
+  private def activityStartEndAndLabel(activity: DynDoc, timezone: String): ((String, String), (String, String)) = {
+    val startAndLabel = ActivityApi.actualStart(activity) match {
+      case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Actual Start Date")
       case None => ActivityApi.scheduledStart(activity) match {
-        case Some(start) => dateTimeString(start, Some(timezone)).split(" ").head + " (S)"
-        case None => "NA"
+        case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Scheduled Start Date")
+        case None => ("NA", "Scheduled Start Date")
       }
     }
 
-    val activityEnd = ActivityApi.actualEnd(activity) match {
-      case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (A)"
+    val endAndLabel = ActivityApi.actualEnd(activity) match {
+      case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Actual End Date")
       case None => ActivityApi.scheduledEnd(activity) match {
-        case Some(end) => dateTimeString(end, Some(timezone)).split(" ").head + " (S)"
-        case None => "NA"
+        case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Scheduled End Date")
+        case None => ("NA", "Scheduled End Date")
       }
     }
 
-    (activityStart, activityEnd)
+    (startAndLabel, endAndLabel)
   }
 
   private def getSubProcessCalls(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
@@ -60,10 +60,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
       val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
-      val startAndEndDates = bpmnActivities.map(a => activityStartAndEndDate(a, timezone))
-      val startDates = startAndEndDates.map(_._1).sorted
+      val startAndEndDates = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
+      val startDates = startAndEndDates.map(_._1._1).sorted
       val startDate = if (startDates.nonEmpty) startDates.head else "NA"
-      val endDates = startAndEndDates.map(_._2).sorted
+      val endDates = startAndEndDates.map(_._2._1).sorted
       val endDate = if (endDates.nonEmpty) endDates.last else "NA"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
@@ -95,7 +95,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       val timezone = user.tz[String]
 
-      val (activityStart, activityEnd) = activityStartAndEndDate(activity, timezone)
+      val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(activity, timezone)
 
       val assignments: Seq[DynDoc] = ActivityApi.teamAssignment.list(activity._id[ObjectId])
 
@@ -141,6 +141,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
+        append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
+        append("duration_likely", "NA").append("duration_actual", "NA").
+        append("date_start", activityStart).append("date_finish", activityEnd).
+        append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })
     returnActivities

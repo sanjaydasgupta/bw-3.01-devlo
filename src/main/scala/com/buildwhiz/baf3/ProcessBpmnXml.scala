@@ -143,7 +143,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
         append("duration_likely", "NA").append("duration_actual", "NA").
-        append("date_start", activityStart).append("date_finish", activityEnd).
+        append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })

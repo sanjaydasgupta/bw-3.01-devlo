@@ -27,7 +27,7 @@ package object baf3 {
   val menuItemsList: Seq[Document] = Seq(
     Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/briefcase-alt.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/briefcase-alt.svg",
-      "navLabel" -> "Project", "routeUrl" -> "/private/project/dashboard", "toolTipLabel" -> "All Projects"),
+      "navLabel" -> "All Projects", "routeUrl" -> "/private/project/dashboard", "toolTipLabel" -> "All Projects"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/layers.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/layers.svg",
       "navLabel" -> "Phases", "routeUrl" -> "/private/phases/dashboard", "toolTipLabel" -> "All Phases"),

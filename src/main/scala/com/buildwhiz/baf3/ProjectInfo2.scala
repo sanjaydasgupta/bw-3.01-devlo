@@ -41,15 +41,16 @@ object ProjectInfo2 extends HttpUtils with DateTimeUtils {
     ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
   }
 
-  private def phaseInformation(project: DynDoc): Many[Document] = {
+  private def phaseInformation(project: DynDoc, user: DynDoc): Many[Document] = {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
+      val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
       val displayStatus = PhaseApi.displayStatus(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
-      val startDateEditable = phase.status[String] == "defined"
-      val endDateEditable = phase.status[String] != "ended"
+      val startDateEditable = canManage && phase.status[String] == "defined"
+      val endDateEditable = canManage && phase.status[String] != "ended"
       val timestamps: DynDoc = phase.timestamps[Document]
       val startDate = if (timestamps.has("date_start_actual")) {
         dateTimeString(timestamps.date_start_actual[Long])
@@ -142,7 +143,7 @@ object ProjectInfo2 extends HttpUtils with DateTimeUtils {
           new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
         }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
-    val phaseInfo = phaseInformation(project)
+    val phaseInfo = phaseInformation(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
         append("status", status).append("display_status", displayStatus).append("goals", goals).

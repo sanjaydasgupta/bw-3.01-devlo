@@ -91,7 +91,7 @@ object ProjectInfoSet2 extends DateTimeUtils {
       val phaseInfoArray: Seq[DynDoc] = phaseInfo.head._2.asInstanceOf[Many[Document]]
       for (phaseInfo <- phaseInfoArray) {
         val phaseOid = new ObjectId(phaseInfo._id[String])
-        val mongoDbSetters = (phaseInfo.get[String]("start_date"), phaseInfo.get[String]("end_date")) match {
+        val mongoDbSetters: Document = (phaseInfo.get[String]("start_date"), phaseInfo.get[String]("end_date")) match {
           case (Some(startDate), None) => Map("timestamps.date_start_estimated" -> milliseconds(startDate))
           case (None, Some(endDate)) => Map("timestamps.date_end_estimated" -> milliseconds(endDate))
           case (Some(startDate), Some(endDate)) => Map("timestamps.date_start_estimated" -> milliseconds(startDate),
@@ -99,7 +99,7 @@ object ProjectInfoSet2 extends DateTimeUtils {
           case (None, None) =>
             throw new IllegalArgumentException(s"No dates for phase: $phaseOid")
         }
-        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> projectOid), Map("$set" -> mongoDbSetters))
+        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid), Map("$set" -> mongoDbSetters))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }

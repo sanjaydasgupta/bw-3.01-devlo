@@ -25,7 +25,8 @@ class PhaseList2 extends HttpServlet with HttpUtils {
       val phases: Seq[DynDoc] = if (isAdmin) {
         ProjectApi.allPhases(parentProject)
       } else {
-        ProjectApi.phasesByUser(personOid, parentProject)
+        val allPhases = ProjectApi.phasesByUser(personOid, parentProject)
+        allPhases.filter(p => PhaseApi.allProcesses(p).nonEmpty)
       }
       val phaseInfoList: Many[Document] = phases.map(phase2json).map(_.asDoc).asJava
       val menuItems = displayedMenuItems(isAdmin, ProjectApi.canManage(personOid, parentProject))
@@ -45,9 +46,9 @@ class PhaseList2 extends HttpServlet with HttpUtils {
   def phase2json(phase: DynDoc): DynDoc = {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
-    val bpmnName: String = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
-      case Some(theProcess) => theProcess.bpmn_name[String]
-      case None => "not-available"
+    val (bpmnName, displayStatus) = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+      case Some(theProcess) => (theProcess.bpmn_name[String], PhaseApi.displayStatus(phase))
+      case None => ("NA", "zombie")
     }
     val phaseOid = phase._id[ObjectId]
     val (dateStart, dateEnd) = if (phaseOid.hashCode() % 2 == 0) {
@@ -56,7 +57,7 @@ class PhaseList2 extends HttpServlet with HttpUtils {
       ("2020-06-01", "2021-05-31")
     }
     Map("name" -> phase.name[String], "_id"-> phaseOid.toString, "managers"-> managerNames,
-      "display_status"-> PhaseApi.displayStatus(phase), "date_start"-> dateStart, "date_end"-> dateEnd,
+      "display_status"-> displayStatus, "date_start"-> dateStart, "date_end"-> dateEnd,
       "budget"-> "0.00", "expenditure"-> "0.00", "bpmn_name"-> bpmnName)
   }
 

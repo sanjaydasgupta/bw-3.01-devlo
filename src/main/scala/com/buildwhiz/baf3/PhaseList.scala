@@ -41,9 +41,9 @@ class PhaseList extends HttpServlet with HttpUtils {
   def phase2json(phase: DynDoc): String = {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
-    val bpmnName: String = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
-      case Some(theProcess) => theProcess.bpmn_name[String]
-      case None => "not-available"
+    val (bpmnName, displayStatus) = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+      case Some(theProcess) => (theProcess.bpmn_name[String], PhaseApi.displayStatus(phase))
+      case None => ("NA", "zombie")
     }
     val phaseOid = phase._id[ObjectId]
     val (dateStart, dateEnd) = if (phaseOid.hashCode() % 2 == 0) {
@@ -52,7 +52,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       ("2020-06-01", "2021-05-31")
     }
     val projectDocument = new Document("name", phase.name[String]).append("_id", phaseOid.toString).
-      append("managers", managerNames).append("display_status", PhaseApi.displayStatus(phase)).
+      append("managers", managerNames).append("display_status", displayStatus).
       append("date_start", dateStart).append("date_end", dateEnd).
       append("budget", "0.00").append("expenditure", "0.00").append("bpmn_name", bpmnName)
     bson2json(projectDocument)

@@ -4,6 +4,7 @@ import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -30,7 +31,7 @@ class PhaseDurationRecalculate extends HttpServlet with HttpUtils {
             case Some(duration) => Some((fieldName, duration.toInt))
           }
         )
-        val activityOid = durationValue.activity_id[String].toInt
+        val activityOid = new ObjectId(durationValue.activity_id[String])
       }
       val returnedValue = new Document("ok", 1).append("phase_duration_optimistic", "NA").
           append("phase_duration_pessimistic", "NA").append("phase_duration_likely", "NA")

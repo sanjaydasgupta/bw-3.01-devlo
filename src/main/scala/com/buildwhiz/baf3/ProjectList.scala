@@ -44,9 +44,10 @@ class ProjectList extends HttpServlet with HttpUtils {
   private def rint(): String = (random() * 15).toInt.toString
 
   private def projectInfo(project: DynDoc, user: DynDoc): Document = {
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
-      "display_status" -> PhaseApi.displayStatus(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
+      "display_status" -> PhaseApi.displayStatus2(phase, userIsAdmin), "alert_count" -> rint(), "rfi_count" -> rint(),
       "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
     })
     val address: DynDoc = project.address[Document]
@@ -59,7 +60,6 @@ class ProjectList extends HttpServlet with HttpUtils {
       case None => s"Summary for '$name'"
       case Some(theSummary) => theSummary
     }
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     Map("name" -> name, "_id" -> project._id[ObjectId].toString, "summary" -> summary,
         "display_status" -> ProjectApi.displayStatus2(project, userIsAdmin),
         "address_line1" -> address.line1[String],

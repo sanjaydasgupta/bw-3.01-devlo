@@ -103,12 +103,13 @@ object PhaseApi {
     }
   }
 
-  def displayStatus2(phase: DynDoc): String = {
-    (isActive(phase), hasZombies(phase)) match {
+  def displayStatus2(phase: DynDoc, userIsAdmin: Boolean): String = {
+    val hasNoProcesses = phase.process_ids[Many[ObjectId]].isEmpty
+    (isActive(phase), hasNoProcesses || hasZombies(phase)) match {
       case (false, false) => "Dormant"
-      case (false, true) => "Alarm"
+      case (false, true) => if (userIsAdmin) "Zombie" else "Alarm"
       case (true, false) => "Active"
-      case (true, true) => "Active+Alarm"
+      case (true, true) => if (userIsAdmin) "Active+Zombie" else "Active+Alarm"
     }
   }
 

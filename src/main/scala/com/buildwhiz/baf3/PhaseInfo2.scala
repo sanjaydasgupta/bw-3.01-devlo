@@ -132,9 +132,10 @@ object PhaseInfo2 extends DateTimeUtils {
 
   private def phase2json(phase: DynDoc, user: DynDoc): String = {
     val editable = isEditable(phase, user)
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
-    val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
+    val displayStatus2 = new Document("editable", false).append("value", PhaseApi.displayStatus2(phase, userIsAdmin))
     val name = new Document("editable", editable).append("value", phase.name[String])
     val rawPhaseManagers = phase.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)(Phase|Project)-Manager")).map(role => {
@@ -152,9 +153,8 @@ object PhaseInfo2 extends DateTimeUtils {
       case Some(theProcess) => theProcess.bpmn_name[String]
       case None => "not-available"
     }
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
-        append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
+        append("display_status", displayStatus2).append("managers", phaseManagers).append("goals", goals).
         append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))

@@ -45,8 +45,10 @@ object ProjectInfo2 extends HttpUtils with DateTimeUtils {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
       val displayStatus = PhaseApi.displayStatus(phase)
+      val displayStatus2 = PhaseApi.displayStatus2(phase, userIsAdmin)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
       val startDateEditable = canManage && phase.status[String] == "defined"
@@ -66,7 +68,7 @@ object ProjectInfo2 extends HttpUtils with DateTimeUtils {
       } else {
         "NA"
       }
-      Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus,
+      Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus2,
         "start_date" -> new Document("editable", startDateEditable).append("value", startDate),
         "end_date" -> new Document("editable", endDateEditable).append("value", endDate),
         "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,

@@ -63,8 +63,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val startAndEndDates = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
       val startDates = startAndEndDates.map(_._1._1).sorted
       val startDate = if (startDates.nonEmpty) startDates.head else "NA"
+      val startLabel = "NA"
       val endDates = startAndEndDates.map(_._2._1).sorted
       val endDate = if (endDates.nonEmpty) endDates.last else "NA"
+      val endLabel = "NA"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
@@ -77,6 +79,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", startDate).append("end", endDate).append("status", stamp.status[String]).
         append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
+        append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
+        append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
     })
   }

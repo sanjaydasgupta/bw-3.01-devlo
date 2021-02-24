@@ -25,8 +25,8 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
         throw new IllegalArgumentException("Not permitted")
       if (request.getParts.size == 1) {
         val part = request.getParts.iterator.next()
-        if (part.getSize > 512000)
-          throw new IllegalArgumentException("Image must be < 500 Kb")
+        if (part.getSize > 1.024e6)
+          throw new IllegalArgumentException("Image must be < 1 Mb")
         val imageFileName = part.getSubmittedFileName
         if (!imageFileName.matches("(?i).+[.](gif|jpeg|jpg|png)"))
           throw new IllegalArgumentException("File type must be gif/jpeg/jpg/png")

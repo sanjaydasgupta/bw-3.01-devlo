@@ -5,6 +5,12 @@ import java.util.{Date, TimeZone, Calendar}
 
 trait DateTimeUtils {
 
+  def dateString(milliSeconds: Long, timeZoneCode: String = "GMT"): String = {
+    val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    simpleDateFormat.setTimeZone(TimeZone.getTimeZone(timeZoneCode))
+    simpleDateFormat.format(new Date(milliSeconds))
+  }
+
   def dateTimeString(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT")): String = {
     val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
     timeZoneCode.foreach(tzc => simpleDateFormat.setTimeZone(TimeZone.getTimeZone(tzc)))

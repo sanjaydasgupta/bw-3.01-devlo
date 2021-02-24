@@ -217,22 +217,22 @@ object ProjectApi extends HttpUtils {
       case ("ended", _, _, _) => "Completed"
       // non-admins ...
       case (_, _, false, false) => "Active"
-      case (_, _, true, false) => "Active+Alarm"
+      case (_, _, true, false) => "Active+Error"
       // admin, non-zombie ...
       case (_, true, false, true) => "Active"
       case (_, false, false, true) => "Dormant"
       // admin, zombie ...
-      case (_, true, true, true) => "Active+Alarm"
-      case (_, false, true, true) => "Alarm"
+      case (_, true, true, true) => "Active+Error"
+      case (_, false, true, true) => "Error"
     }
   }
 
   def displayStatus(project: DynDoc): String = {
     (isActive(project), hasZombies(project)) match {
       case (false, false) => "dormant"
-      case (false, true) => "has-zombie"
+      case (false, true) => "has-error"
       case (true, false) => "active"
-      case (true, true) => "active+zombie"
+      case (true, true) => "active+error"
     }
   }
 

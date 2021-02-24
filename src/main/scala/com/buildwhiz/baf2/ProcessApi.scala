@@ -116,7 +116,7 @@ object ProcessApi {
       if (timestamps.has("end"))
         "ended"
       else if (timestamps.has("start"))
-        "zombie"
+        "error"
       else
         "dormant"
     }

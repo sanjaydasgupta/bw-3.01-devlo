@@ -48,7 +48,7 @@ class PhaseList2 extends HttpServlet with HttpUtils {
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
     val (bpmnName, displayStatus) = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
       case Some(theProcess) => (theProcess.bpmn_name[String], PhaseApi.displayStatus(phase))
-      case None => ("NA", "zombie")
+      case None => ("NA", "error")
     }
     val phaseOid = phase._id[ObjectId]
     val (dateStart, dateEnd) = if (phaseOid.hashCode() % 2 == 0) {

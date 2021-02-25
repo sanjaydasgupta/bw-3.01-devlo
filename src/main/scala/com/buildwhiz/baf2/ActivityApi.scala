@@ -271,6 +271,29 @@ object ActivityApi extends DateTimeUtils {
     PhaseApi.canManage(personOid, phase)
   }
 
+  def durationOptimistic(activity: DynDoc): Option[Int] = activity.get[Int]("duration_optimistic")
+  def durationPessimistic(activity: DynDoc): Option[Int] = activity.get[Int]("duration_pessimistic")
+  def durationLikely(activity: DynDoc): Option[Int] = activity.get[Int]("duration_likely")
+
+  def durationOptimisticSet(activityOid: ObjectId, value: Int): Unit = {
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        Map($set -> Map("duration_optimistic" -> value)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+  }
+  def durationPessimisticSet(activityOid: ObjectId, value: Int): Unit = {
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        Map($set -> Map("duration_pessimistic" -> value)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+  }
+  def durationLikely(activityOid: ObjectId, value: Int): Unit = {
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        Map($set -> Map("duration_likely" -> value)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+  }
+
   object teamAssignment {
 
     private def assignmentToString(assignment: Either[DynDoc, ObjectId]): String = {

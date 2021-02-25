@@ -36,11 +36,6 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
 
 object PhaseInfo2 extends DateTimeUtils {
 
-  private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
-    val userOid = user._id[ObjectId]
-    PhaseApi.canManage(userOid, phase)
-  }
-
   private def deliverables(task: DynDoc, user: DynDoc): Many[Document] = {
     val deliverables: Seq[DynDoc] = if (task.has("deliverables")) task.deliverables[Many[Document]] else Nil
     val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
@@ -131,7 +126,7 @@ object PhaseInfo2 extends DateTimeUtils {
   }
 
   private def phase2json(phase: DynDoc, user: DynDoc): String = {
-    val editable = isEditable(phase, user)
+    val editable = PhaseApi.canManage(user._id[ObjectId], phase)
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
@@ -156,7 +151,8 @@ object PhaseInfo2 extends DateTimeUtils {
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus2).append("managers", phaseManagers).append("goals", goals).
         append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName).
-        append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
+        append("menu_items", displayedMenuItems(userIsAdmin, editable)).
+        append("display_edit_buttons", editable)
     phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson

@@ -49,7 +49,7 @@ object ActivityApi extends DateTimeUtils {
       case "defined" => "Not started"
       case "running" => "Active"
       case "ended" => "Completed"
-      case _ => "Alarm"
+      case _ => "Error"
     }
   }
 

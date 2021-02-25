@@ -140,13 +140,26 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
       }
 
+      val durationOptimistic = ActivityApi.durationOptimistic(activity) match {
+        case Some(value) => value.toString
+        case None => "NA"
+      }
+      val durationPessimistic = ActivityApi.durationPessimistic(activity) match {
+        case Some(value) => value.toString
+        case None => "NA"
+      }
+      val durationLikely = ActivityApi.durationLikely(activity) match {
+        case Some(value) => value.toString
+        case None => "NA"
+      }
+
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
-        append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
-        append("duration_likely", "NA").append("duration_actual", "NA").
+        append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
+        append("duration_likely", durationLikely).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)

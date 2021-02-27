@@ -105,6 +105,17 @@ object ActivityApi extends DateTimeUtils {
       timestampStart
   }
 
+  def actualStart3(activity: DynDoc): Option[Long] = {
+    if (activity.has("timestamps")) {
+      val timestamps: DynDoc = activity.timestamps[Document]
+      if (timestamps.has("start"))
+        Some(timestamps.start[Long])
+      else
+        None
+    } else
+      None
+  }
+
   def actualEnd(activity: DynDoc): Option[Long] = {
 
     def timestampEnd: Option[Long] = {
@@ -126,6 +137,17 @@ object ActivityApi extends DateTimeUtils {
         Some(date)
     } else
       timestampEnd
+  }
+
+  def actualEnd3(activity: DynDoc): Option[Long] = {
+    if (activity.has("timestamps")) {
+      val timestamps: DynDoc = activity.timestamps[Document]
+      if (timestamps.has("end"))
+        Some(timestamps.end[Long])
+      else
+        None
+    } else
+      None
   }
 
   def actualDuration(activity: DynDoc): Float = {

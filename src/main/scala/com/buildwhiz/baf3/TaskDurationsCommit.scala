@@ -4,6 +4,7 @@ import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
+import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -18,17 +19,18 @@ class TaskDurationsCommit extends HttpServlet with HttpUtils {
       if (!postData.has("duration_values"))
         throw new IllegalArgumentException("'duration_values' not provided")
       val durationValues: Seq[DynDoc] = postData.duration_values[Many[Document]]
-      for (durationValue <- durationValues) {
+      val mongodbSetter: Seq[(Map[String, ObjectId], Map[String, Int])] = durationValues.map(durationValue => {
         if (!durationValue.has("activity_id")) {
           throw new IllegalArgumentException("missing 'activity_id'")
         }
         val fieldNames = Seq("duration_optimistic", "duration_pessimistic", "duration_likely")
-        val nameValuePairs: Seq[(String, Int)] = fieldNames.map(df => (df, durationValue.get[String](df))).flatMap({
+        val durationsMap: Map[String, Int] = fieldNames.map(fn => (fn, durationValue.get[String](fn))).flatMap({
           case (_, None) => None
-          case (name, Some(duration)) => Some((name, duration.toInt))
-        })
-      }
-      val projectId = postData.remove("project_id").asInstanceOf[String]
+          case (fieldName, Some(duration)) => Some((fieldName, duration.toInt))
+        }).toMap
+        (Map("activity_id" -> new ObjectId(durationValue.activity_id[String])), durationsMap)
+      })
+      //val projectId = postData.remove("project_id").asInstanceOf[String]
       //val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue.asInstanceOf[String])).toSeq
       response.getWriter.print(successJson())
       response.setContentType("application/json")

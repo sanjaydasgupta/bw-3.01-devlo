@@ -140,15 +140,15 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
       }
 
-      val durationOptimistic = ActivityApi.durationOptimistic(activity) match {
+      val durationOptimistic = ActivityApi.durationOptimistic3(activity) match {
         case Some(value) => value.toString
         case None => "NA"
       }
-      val durationPessimistic = ActivityApi.durationPessimistic(activity) match {
+      val durationPessimistic = ActivityApi.durationPessimistic3(activity) match {
         case Some(value) => value.toString
         case None => "NA"
       }
-      val durationLikely = ActivityApi.durationLikely(activity) match {
+      val durationLikely = ActivityApi.durationLikely3(activity) match {
         case Some(value) => value.toString
         case None => "NA"
       }

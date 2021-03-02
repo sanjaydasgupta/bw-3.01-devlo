@@ -1,5 +1,6 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.ActivityApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -19,19 +20,15 @@ class TaskDurationsCommit extends HttpServlet with HttpUtils {
       if (!postData.has("duration_values"))
         throw new IllegalArgumentException("'duration_values' not provided")
       val durationValues: Seq[DynDoc] = postData.duration_values[Many[Document]]
-      val mongodbSetter: Seq[(Map[String, ObjectId], Map[String, Int])] = durationValues.map(durationValue => {
+      for (durationValue <- durationValues) {
         if (!durationValue.has("activity_id")) {
           throw new IllegalArgumentException("missing 'activity_id'")
         }
-        val fieldNames = Seq("duration_optimistic", "duration_pessimistic", "duration_likely")
-        val durationsMap: Map[String, Int] = fieldNames.map(fn => (fn, durationValue.get[String](fn))).flatMap({
-          case (_, None) => None
-          case (fieldName, Some(duration)) => Some((fieldName, duration.toInt))
-        }).toMap
-        (Map("activity_id" -> new ObjectId(durationValue.activity_id[String])), durationsMap)
-      })
-      //val projectId = postData.remove("project_id").asInstanceOf[String]
-      //val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue.asInstanceOf[String])).toSeq
+        ActivityApi.durationsSet3(new ObjectId(durationValue.activity_id[String]),
+            durationValue.get[String]("duration_optimistic").map(_.toInt),
+            durationValue.get[String]("duration_pessimistic").map(_.toInt),
+            durationValue.get[String]("duration_likely").map(_.toInt))
+      }
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       val message = s"changed durations of ${durationValues.length} tasks"

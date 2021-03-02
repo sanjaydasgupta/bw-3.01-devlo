@@ -297,6 +297,17 @@ object ActivityApi extends DateTimeUtils {
   def durationPessimistic3(activity: DynDoc): Option[Int] = activity.get[Int]("duration_pessimistic")
   def durationLikely3(activity: DynDoc): Option[Int] = activity.get[Int]("duration_likely")
 
+  def durationsSet3(activityOid: ObjectId, optDurationOptimistic: Option[Int] = None,
+      optDurationPessimistic: Option[Int] = None, optDurationLikely: Option[Int] = None): Unit = {
+    val setters: Seq[(String, Int)] = Seq(("duration_optimistic", optDurationOptimistic),
+        ("duration_pessimistic", optDurationPessimistic), ("duration_likely", optDurationLikely)).flatMap {
+      case (fieldName, Some(duration)) => Some((fieldName, duration))
+      case (_, None) => None
+    }
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), setters.toMap)
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+  }
   def durationOptimisticSet3(activityOid: ObjectId, value: Int): Unit = {
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
         Map($set -> Map("duration_optimistic" -> value)))

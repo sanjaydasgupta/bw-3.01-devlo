@@ -304,7 +304,7 @@ object ActivityApi extends DateTimeUtils {
       case (fieldName, Some(duration)) => Some((fieldName, duration))
       case (_, None) => None
     }
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), setters.toMap)
+    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> setters.toMap))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }

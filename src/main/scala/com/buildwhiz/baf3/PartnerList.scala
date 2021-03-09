@@ -28,7 +28,7 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
     new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).append("rating", org.rating[Int]).
         append("project_sponsor", projectSponsor).append("design_partner", designPartner).
         append("trade_partner", tradePartner).append("skills", org.skills[Seq[String]]).
-        append("active", org.active[Boolean]).append("serving_area", designPartner)
+        append("active", org.active[Boolean]).append("serving_area", org.areas_of_operation[String])
   }
 
   private def partnerList(optOrganizationType: Option[String] = None, optSkill: Option[String] = None):

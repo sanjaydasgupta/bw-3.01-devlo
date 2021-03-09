@@ -271,7 +271,7 @@ object ProjectApi extends HttpUtils {
     if (BWMongoDB3.images.countDocuments(Map("project_id" -> projectOid)) > 0) {
       s"../bw-3.01/baf3/ProjectInfoImage?project_id=$projectOid"
     } else {
-      projectOid.toString.replaceAll("[a-fA-F]", "").toLong % 4 match {
+      projectOid.toString.replaceAll("[a-fA-F]", "1").substring(12).toLong % 4 match {
         case 0 => "https://wp.technologyreview.com/wp-content/uploads/2020/04/cropped-MJ20_MIT_building.jpg"
         case 1 => "https://www.richardmeier.com/wp-content/uploads/2015/09/RH2660-0042.jpg"
         case 2 => "https://www.richardmeier.com/wp-content/uploads/2019/06/SRD0765_FirstAve_S010_EXT_Superman_Final2000.jpg"

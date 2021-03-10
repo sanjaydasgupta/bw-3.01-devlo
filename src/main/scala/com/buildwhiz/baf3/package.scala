@@ -25,7 +25,7 @@ package object baf3 {
   )
 
   val menuItemsList: Seq[Document] = Seq(
-    Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/briefcase-alt.svg",
+    Map("access" -> "*I", "navIcon" -> "assets/images/teenyions/outline-white/briefcase-alt.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/briefcase-alt.svg",
       "navLabel" -> "All Projects", "routeUrl" -> "/private/project/dashboard", "toolTipLabel" -> "All Projects"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/layers.svg",
@@ -61,10 +61,10 @@ package object baf3 {
     Map("access" -> "AM", "navIcon" -> "assets/images/teenyions/outline-white/sign.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/sign.svg",
       "navLabel" -> "Procurement", "routeUrl" -> "/private/procurement", "toolTipLabel" -> "All Procurement"),
-    Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/contact.svg",
+    Map("access" -> "*I", "navIcon" -> "assets/images/teenyions/outline-white/contact.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/contact.svg",
       "navLabel" -> "Partners", "routeUrl" -> "/private/partners", "toolTipLabel" -> "All Partners"),
-    Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/wand.svg",
+    Map("access" -> "*I", "navIcon" -> "assets/images/teenyions/outline-white/wand.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/wand.svg",
       "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "All Applications")
   )
@@ -72,13 +72,13 @@ package object baf3 {
   def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false):
       Many[Document] = {
     val filteredMenuItems = if (starting) {
-      menuItemsList.filter(_.getString("toolTipLabel") == "All Projects")
+      menuItemsList.filter(_.getString("access").contains("I"))
     } else if (userIsAdmin) {
       menuItemsList
     } else if (userIsManager) {
-      menuItemsList.filter(_.getString("access").matches("[*M]"))
+      menuItemsList.filter(_.getString("access").contains("M"))
     } else {
-      menuItemsList.filter(_.getString("access") == "*")
+      menuItemsList.filter(_.getString("access").contains("*"))
     }
     filteredMenuItems.map(doc => {
       val withoutAccess = doc.entrySet().asScala.map(es => (es.getKey, es.getValue)).filterNot(_._1 == "access").toMap

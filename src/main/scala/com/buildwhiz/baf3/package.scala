@@ -8,6 +8,8 @@ import scala.collection.JavaConverters._
 package object baf3 {
 
   val masterData = Map(
+    "Partners__skills" -> Seq("architect", "electrical-engineer", "landscape-architect", "mechanical-engineer",
+        "plumbing-engineer", "project-manager"),
     "ProjectInfoSet__building_use" -> Seq(
       "Assembly Facility", "Education Facility", "Public Service Facility", "Cultural Facility",
       "Recreation Facility", "Housing Facility", "Retail Facility", "Health Care Facility",
@@ -34,6 +36,9 @@ package object baf3 {
     Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/clipboard-tick.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/clipboard-tick.svg",
       "navLabel" -> "Tasks", "routeUrl" -> "/private/tasks", "toolTipLabel" -> "All Tasks"),
+    Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/bag.svg",
+      "navIconActive" -> "assets/images/teenyions/solid-white/bag.svg",
+      "navLabel" -> "Deliverables", "routeUrl" -> "/private/deliverables", "toolTipLabel" -> "All Deliverables"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyions/outline-white/calendar.svg",
       "navIconActive" -> "assets/images/teenyions/solid-white/calendar.svg",
       "navLabel" -> "Calendar", "routeUrl" -> "/private/calendar", "toolTipLabel" -> "Calendar"),

@@ -42,16 +42,18 @@ class PartnerInfoSet extends HttpServlet with HttpUtils {
 object PartnerInfoSet extends DateTimeUtils {
 
   private def string2Boolean(s: String) = s.toBoolean
-  private def csv2array(csv: String) = csv.split(",").map(_.trim)
+  private def csv2array(csv: String): Many[String] = csv.split(",").map(_.trim).toSeq.asJava
   private def string2Int(s: String) = s.toInt
   private def identity[T](a: T) = a
 
   private val parameterNames: Map[String, String => Any] = Map(
     ("project_sponsor", string2Boolean), ("design_partner", string2Boolean), ("trade_partner", string2Boolean),
-    ("areas_of_operation", identity), ("profile", identity), ("past_projects", identity),
+    ("serving_area", identity), ("profile", identity), ("past_projects", identity),
     ("reviews", identity), ("preferences", identity), ("name", identity), ("rating", string2Int),
     ("active", string2Boolean), ("skills", csv2array)
   )
+
+  private val dataFieldNames = Map("serving_area" -> "areas_of_operation")
 
   def setPartnerFields(organizationId: String, nameValuePairs: Seq[(String, AnyRef)]): String = {
     if (nameValuePairs.isEmpty)
@@ -64,7 +66,8 @@ object PartnerInfoSet extends DateTimeUtils {
         OrganizationApi.validateNewName(name.toString)
       case None =>
     }
-    val dbSetters: Map[String, Any] = nameValuePairs.map(pair => (pair._1, parameterNames(pair._1)(pair._2.toString))).toMap
+    val dbSetters: Map[String, Any] = nameValuePairs.map(
+        pair => (dataFieldNames.getOrElse(pair._1, pair._1), parameterNames(pair._1)(pair._2.toString))).toMap
     val organizationOid = new ObjectId(organizationId)
     val updateResult = BWMongoDB3.organizations.updateOne(Map("_id" -> organizationOid), Map("$set" -> dbSetters))
     if (updateResult.getMatchedCount == 0)

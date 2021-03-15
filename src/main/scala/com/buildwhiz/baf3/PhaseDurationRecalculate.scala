@@ -16,7 +16,6 @@ class PhaseDurationRecalculate extends HttpServlet with HttpUtils {
       val parameterString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)
       val postData: DynDoc = Document.parse(parameterString)
-      BWLogger.log(getClass.getName, request.getMethod, s"postData: $postData", request)
       if (!postData.has("duration_values"))
         throw new IllegalArgumentException("'duration_values' not provided")
       val durationValues: Seq[DynDoc] = postData.duration_values[Many[Document]]

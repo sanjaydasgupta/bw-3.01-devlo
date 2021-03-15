@@ -102,7 +102,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     if (endEvents.length > 1)
       BWLogger.log(getClass.getName, "processDurationRecalculate",
-         s"WARN: found ${endEvents.length} EndEvents", request)
+         s"WARN: found ${endEvents.length} EndEvent nodes in BPMN", request)
     val offset = getTimeOffset(endEvents.head, bpmnName, onCriticalPath = true, Set.empty[FlowNode])
     offset
   }

@@ -53,8 +53,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     (startAndLabel, endAndLabel)
   }
 
-  private def getSubProcessCalls(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
-      Seq[Document] = {
+  private def getSubProcessCalls(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc],
+      request: HttpServletRequest): Seq[Document] = {
     val timezone = user.tz[String]
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
@@ -63,10 +63,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val startAndEndDates = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
       val startDates = startAndEndDates.map(_._1._1).sorted
       val startDate = if (startDates.nonEmpty) startDates.head else "NA"
-      val startLabel = "NA"
+      val startLabel = "Scheduled Start Date"
       val endDates = startAndEndDates.map(_._2._1).sorted
       val endDate = if (endDates.nonEmpty) endDates.last else "NA"
-      val endLabel = "NA"
+      val endLabel = "Scheduled End Date"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
@@ -74,6 +74,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
+      val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(processName, process,
+          Map.empty[ObjectId, Int], request)
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
@@ -81,11 +83,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
+        append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
+        append("duration_likely", durationLikely).
         append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
     })
   }
 
-  private def getActivities(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
+  private def getActivities(processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
       Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val returnActivities = activities.map(activity => {
@@ -207,8 +211,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processVariables = getVariables(process, bpmnFileName)
       val processTimers = getTimers(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
-      val processActivities = getActivities(process, bpmnFileName, user, allActivities)
-      val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities)
+      val processActivities = getActivities(bpmnFileName, user, allActivities)
+      val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

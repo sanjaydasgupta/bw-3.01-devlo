@@ -43,6 +43,13 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
       case _ => throw new IllegalArgumentException("Bad phase: mis-configured processes")
     }
 
+    val duration = processDurationRecalculate(bpmnName, process, activityDurations, request)
+    duration
+  }
+
+  def processDurationRecalculate(bpmnName: String, process: DynDoc, activityDurations: Map[ObjectId, Int],
+      request: HttpServletRequest): Long = {
+
     def getTimeOffset(node: FlowNode, bpmnName: String, onCriticalPath: Boolean, seenNodes: Set[FlowNode]): Long = {
 
       def predecessors(flowNode: FlowNode): Seq[FlowNode] = {

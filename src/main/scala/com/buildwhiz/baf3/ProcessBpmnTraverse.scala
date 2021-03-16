@@ -94,8 +94,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
         case anyOtherNode: FlowNode =>
           maxPredecessorOffset(anyOtherNode)
       }
-      BWLogger.log(getClass.getName, "getTimeOffset",
-          s"INFO: node: ${node.getName}(${node.getElementType.getTypeName}), offset: $timeOffset", request)
+      //BWLogger.log(getClass.getName, "getTimeOffset",
+      //    s"INFO: node: ${node.getName}(${node.getElementType.getTypeName}), offset: $timeOffset", request)
       timeOffset
     }
 

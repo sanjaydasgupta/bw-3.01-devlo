@@ -25,8 +25,8 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
       case Some(tp) => tp
       case None => false
     }
-    val areasOfOperation: String = org.get[String]("areas_of_operation") match {
-      case Some(tp) => tp
+    val areasOfOperation: String = org.get[Many[String]]("areas_of_operation") match {
+      case Some(tp) => tp.mkString(",")
       case None => ""
     }
     new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).append("rating", org.rating[Int]).

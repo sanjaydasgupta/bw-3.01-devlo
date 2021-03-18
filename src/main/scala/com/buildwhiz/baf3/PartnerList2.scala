@@ -74,13 +74,14 @@ class PartnerList2 extends HttpServlet with HttpUtils with DateTimeUtils {
             }
         }
       }
-      val myProjectsOrganizations: Seq[DynDoc] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id").
-          map(cOid => OrganizationApi.organizationById(cOid))).distinct.filter(matchSkill).filter(matchOrganizationType)
+      val myProjectsOrganizations: Seq[DynDoc] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id")).
+          distinct.map(cOid => OrganizationApi.organizationById(cOid)).filter(matchSkill).filter(matchOrganizationType)
       val displayAllOrganizations: Boolean = isAdmin || optProjectOid.
           map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).isDefined
 
       val allOrganizations: Seq[DynDoc] = if (displayAllOrganizations) {
-        (OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations).distinct
+        (OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations).
+            distinct
       } else {
         myProjectsOrganizations
       }

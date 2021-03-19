@@ -2,9 +2,12 @@ package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.{PersonApi, OrganizationApi}
 import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
+
+import scala.collection.JavaConverters._
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -49,9 +52,9 @@ object PartnerInfo extends DateTimeUtils {
       case Some(tp) => tp
       case None => false
     }
-    val areasOfOperation: String = org.get[String]("areas_of_operation") match {
+    val areasOfOperation: Many[String] = org.get[Many[String]]("areas_of_operation") match {
       case Some(tp) => tp
-      case None => ""
+      case None => Seq.empty[String].asJava
     }
     val profile: String = org.get[String]("profile") match {
       case Some(tp) => tp

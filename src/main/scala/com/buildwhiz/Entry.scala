@@ -4,9 +4,16 @@ import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
+import org.bson.types.ObjectId
+import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.DynDoc._
+
+import scala.collection.JavaConverters._
 
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
+import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.impl.client.HttpClients
 
 @MultipartConfig()
 class Entry extends HttpServlet with HttpUtils {
@@ -40,12 +47,37 @@ class Entry extends HttpServlet with HttpUtils {
     }
   }
 
+  private def invokeNodeJs(serviceName: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    if (request.getParameter("uid") != null)
+      throw new IllegalArgumentException("Bad parameter name 'uid' found")
+    val user: DynDoc = getUser(request)
+    val userParam = s"uid=${user._id[ObjectId]}"
+    val serviceNameWithUserId = if (serviceName.contains('?'))
+      serviceName + "&" + userParam
+    else
+      serviceName + "?" + userParam
+    val nodeUri = s"http://localhost:3000/$serviceNameWithUserId"
+    BWLogger.log(getClass.getName, "invokeNodeJs", s"nodeUri: $nodeUri", request)
+    val nodeRequest = request.getMethod match {
+      case "GET" => new HttpGet(nodeUri)
+      case "POST" => new HttpPost(nodeUri)
+      case other => throw new IllegalArgumentException(s"Bad HTTP operation '$other' found")
+    }
+    request.getHeaderNames.asScala.foreach(hdrName => nodeRequest.setHeader(hdrName, request.getHeader(hdrName)))
+    val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
+    nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
+    val nodeEntity = nodeResponse.getEntity
+    nodeEntity.writeTo(response.getOutputStream)
+    response.setStatus(nodeResponse.getStatusLine.getStatusCode)
+  }
+
   private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
         delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
       val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
-      val className = s"com.buildwhiz.${urlParts(pkgIdx)}.${urlParts(pkgIdx + 1)}"
+      val simpleClassName = urlParts(pkgIdx + 1)
+      val className = s"com.buildwhiz.${urlParts(pkgIdx)}.$simpleClassName"
       Entry.cache.get(className) match {
         case Some(httpServlet) => delegateTo(httpServlet)
         case None => Try(Class.forName(className)) match {
@@ -57,7 +89,11 @@ class Entry extends HttpServlet with HttpUtils {
               case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
               case Failure(t) => throw t
             }
-          case Failure(t) => throw t
+          case Failure(t) =>
+            if (simpleClassName.endsWith("Node")) {
+              invokeNodeJs(simpleClassName, request, response)
+            } else
+              throw t
         }
       }
     } else {

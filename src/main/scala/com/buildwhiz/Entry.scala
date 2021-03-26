@@ -48,6 +48,7 @@ class Entry extends HttpServlet with HttpUtils {
   }
 
   private def invokeNodeJs(serviceName: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, "invokeNodeJs", "ENTRY", request)
     if (request.getParameter("uid") != null)
       throw new IllegalArgumentException("Bad parameter name 'uid' found")
     val user: DynDoc = getUser(request)
@@ -69,6 +70,7 @@ class Entry extends HttpServlet with HttpUtils {
     val nodeEntity = nodeResponse.getEntity
     nodeEntity.writeTo(response.getOutputStream)
     response.setStatus(nodeResponse.getStatusLine.getStatusCode)
+    BWLogger.log(getClass.getName, "invokeNodeJs", s"EXIT: (${nodeResponse.getStatusLine.getStatusCode})", request)
   }
 
   private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
@@ -89,11 +91,8 @@ class Entry extends HttpServlet with HttpUtils {
               case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
               case Failure(t) => throw t
             }
-          case Failure(t) =>
-            if (simpleClassName.endsWith("Node")) {
-              invokeNodeJs(simpleClassName, request, response)
-            } else
-              throw t
+          case Failure(_) =>
+            invokeNodeJs(simpleClassName, request, response)
         }
       }
     } else {

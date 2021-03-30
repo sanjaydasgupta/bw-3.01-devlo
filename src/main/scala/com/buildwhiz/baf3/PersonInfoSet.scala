@@ -27,7 +27,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
 
-      val parameterMap = getParameterMap(request)
+      val parameterMap = getParameterMap(request).filterNot(_._1 == "JSESSIONID")
 
       val personOid = new ObjectId(parameterMap("person_id"))
       val person = PersonApi.personById(personOid)
@@ -134,6 +134,8 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       response.setStatus(HttpServletResponse.SC_OK)
       val parametersChanged = paramNamesAndValues.map(_._1).mkString("[", ", ", "]")
       val message = s"""Updated parameters $parametersChanged of ${PersonApi.fullName(person)}"""
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

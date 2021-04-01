@@ -76,7 +76,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         case -1 => person.phones[Many[Document]].length
         case idx => idx
       }
-      if (mobilePhoneIndex == -1) {
+      if (mobilePhoneIndex == person.phones[Many[Document]].length) {
         val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
           Map($push -> Map("phones" -> Map("type" -> "mobile", "phone" -> ""))))
         if (updateResult.getMatchedCount == 0)

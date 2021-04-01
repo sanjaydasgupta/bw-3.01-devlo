@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 package object baf3 {
 
   val masterData = Map(
+    "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Equipment", "Material", "Work"),
     "Partners__skills" -> Seq("architect", "electrical-engineer", "landscape-architect", "mechanical-engineer",
         "plumbing-engineer", "project-manager"),
     "ProjectInfoSet__building_use" -> Seq(

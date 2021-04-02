@@ -39,7 +39,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
       request: HttpServletRequest): Long = {
 
     val process = PhaseApi.allProcesses(phaseOid) match {
-      case Seq(soloProcess) => soloProcess
+      case processes: Seq[DynDoc] if processes.nonEmpty => processes.head
       case _ => throw new IllegalArgumentException("Bad phase: mis-configured processes")
     }
 
@@ -65,11 +65,21 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
 //        unseenPredecessors
 //      }
 //
-      def maxPredecessorOffset(flowNode: FlowNode) = predecessors(flowNode).
-          map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).max
+      def maxPredecessorOffset(flowNode: FlowNode): Long = {
+        val thePredecessors = predecessors(flowNode)
+        if (thePredecessors.nonEmpty)
+          thePredecessors.map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).max
+        else
+          0
+      }
 
-      def minPredecessorOffset(flowNode: FlowNode) = predecessors(flowNode).
-          map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).min
+      def minPredecessorOffset(flowNode: FlowNode): Long = {
+        val thePredecessors = predecessors(flowNode)
+        if (thePredecessors.nonEmpty)
+          thePredecessors.map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).min
+        else
+          0
+      }
 
       val timeOffset = node match {
         case userTask: UserTask =>

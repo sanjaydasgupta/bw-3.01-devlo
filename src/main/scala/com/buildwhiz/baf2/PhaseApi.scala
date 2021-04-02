@@ -19,7 +19,8 @@ object PhaseApi {
 
   def exists(phaseOid: ObjectId): Boolean = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).nonEmpty
 
-  def allProcessOids(phase: DynDoc): Seq[ObjectId] = phase.process_ids[Many[ObjectId]]
+  def allProcessOids(phase: DynDoc): Seq[ObjectId] = phase.process_ids[Many[ObjectId]].
+      filter(pOid => ProcessApi.exists(pOid))
 
   def allProcesses(phase: DynDoc): Seq[DynDoc] = {
     val processOids = allProcessOids(phase)

@@ -1,10 +1,9 @@
 package com.buildwhiz.infra
 
-import java.net.InetAddress
-
 import com.buildwhiz.infra.DynDoc.document2DynDoc
 import com.buildwhiz.utils.BWLogger
-import com.mongodb.{MongoClient, MongoClientException, MongoClientURI, ReadConcern, ReadPreference, TransactionOptions, WriteConcern}
+import com.mongodb.{MongoClient, MongoClientException, MongoClientURI, ReadConcern, ReadPreference,
+    TransactionOptions, WriteConcern}
 import com.mongodb.client.{FindIterable, MongoCollection, TransactionBody}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -54,9 +53,14 @@ object BWMongoDB3 extends Dynamic {
 
   // Select cloud MongoDB (for AWS main instance) or local MongoDB (for all other instances) ...
   // AWS instance hostname = "ip-172-31-40-237" (internal private ip address, not public address)
-  private lazy val mongoClient = if (InetAddress.getLocalHost.getHostName == "ip-172-31-41-133")
-    new MongoClient(new MongoClientURI("""mongodb://buildwhiz-free:bw2#mongofree@cluster0-shard-00-00-cxymj.mongodb.net:27017,cluster0-shard-00-01-cxymj.mongodb.net:27017,cluster0-shard-00-02-cxymj.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin"""))
-  else new MongoClient()
+  //private lazy val mongoClient = if (InetAddress.getLocalHost.getHostName == "ip-172-31-41-133")
+  //  new MongoClient(new MongoClientURI("""mongodb://buildwhiz-free:bw2#mongofree@cluster0-shard-00-00-cxymj.mongodb.net:27017,cluster0-shard-00-01-cxymj.mongodb.net:27017,cluster0-shard-00-02-cxymj.mongodb.net:27017/test?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin"""))
+  //else new MongoClient()
+
+  private lazy val mongoClient = sys.env.get("MongodbConnectionString") match {
+    case Some(mcs) => new MongoClient(new MongoClientURI(mcs))
+    case None => new MongoClient()
+  }
 
   def databases: Seq[Document] = mongoClient.listDatabases.asScala.toSeq
 

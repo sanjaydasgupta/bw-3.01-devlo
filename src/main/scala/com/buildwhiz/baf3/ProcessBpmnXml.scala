@@ -26,7 +26,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val timers: Seq[DynDoc] = process.timers[Many[Document]].filter(_.bpmn_name[String] == processName)
     timers.map(timer => {
       val durationString = timer.duration[String]
-      val durationDays = durationString.substring(durationString.indexOf(':'))
+      val durationDays = durationString.substring(0, durationString.indexOf(':'))
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", durationString).append("duration_days", durationDays).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).

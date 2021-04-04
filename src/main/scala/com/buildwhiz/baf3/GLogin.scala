@@ -125,7 +125,8 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
-                  Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData))
+                  Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
+                  Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown"))
               recordLoginTime(personRecord)
               BWLogger.audit(getClass.getName, request.getMethod, "Login GoogleIdTokenVerifier OK", request)
               bson2json(resultPerson)

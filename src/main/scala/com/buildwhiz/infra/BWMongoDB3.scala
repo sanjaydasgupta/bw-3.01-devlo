@@ -2,9 +2,9 @@ package com.buildwhiz.infra
 
 import com.buildwhiz.infra.DynDoc.document2DynDoc
 import com.buildwhiz.utils.BWLogger
-import com.mongodb.{MongoClient, MongoClientException, MongoClientURI, ReadConcern, ReadPreference,
+import com.mongodb.{MongoClientException, ReadConcern, ReadPreference,
     TransactionOptions, WriteConcern}
-import com.mongodb.client.{FindIterable, MongoCollection, TransactionBody}
+import com.mongodb.client.{FindIterable, MongoClients, MongoCollection, TransactionBody}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -58,8 +58,8 @@ object BWMongoDB3 extends Dynamic {
   //else new MongoClient()
 
   private lazy val mongoClient = sys.env.get("MongodbConnectionString") match {
-    case Some(mcs) => new MongoClient(new MongoClientURI(mcs))
-    case None => new MongoClient()
+    case Some(mcs) => MongoClients.create(mcs)
+    case None => MongoClients.create()
   }
 
   def databases: Seq[Document] = mongoClient.listDatabases.asScala.toSeq

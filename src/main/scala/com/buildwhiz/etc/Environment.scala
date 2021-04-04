@@ -48,12 +48,24 @@ class Environment extends HttpServlet with RestUtils {
     response.setContentType("application/json")
   }
 
+  private def reportEnvironment(envVariable: String, response: HttpServletResponse): Unit = {
+    sys.env.get(envVariable) match {
+      case Some(envValue) =>
+        response.getWriter.println(s"""{"variable": "$envVariable", "value": "$envValue", "error": false""")
+      case None =>
+        response.getWriter.println(s"""{"variable": "$envVariable", "value": "", "error": true""")
+    }
+    response.setContentType("application/json")
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
 
     val parameterMap = getParameterMap(request)
     if (parameterMap.contains("minutes")) {
       reportErrors(parameterMap("minutes"), response)
+    } else if (parameterMap.contains("environment")) {
+        reportEnvironment(parameterMap("environment"), response)
     } else {
       doCookies(request, response)
     }

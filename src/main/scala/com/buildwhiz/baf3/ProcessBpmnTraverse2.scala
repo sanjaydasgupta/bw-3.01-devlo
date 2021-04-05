@@ -23,7 +23,7 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
       duration2ms(theTimer.duration[String])
     } else {
       theTimer.get[String]("duration") match {
-        case Some(duration) => duration.substring(duration.indexOf(':')).toInt
+        case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt
         case None => 0
       }
     }

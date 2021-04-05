@@ -14,9 +14,11 @@ object ActivityApi extends DateTimeUtils {
   def activitiesByIds(activityOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
 
-  def activityById(activityOid: ObjectId): DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
-    case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
-    case Some(activity) => activity
+  def activityById(activityOid: ObjectId): DynDoc = {
+    BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
+      case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
+      case Some(activity) => activity
+    }
   }
 
   def exists(activityOid: ObjectId): Boolean = BWMongoDB3.activities.find(Map("_id" -> activityOid)).nonEmpty
@@ -24,6 +26,9 @@ object ActivityApi extends DateTimeUtils {
   def allActions(activity: DynDoc): Seq[DynDoc] = activity.actions[Many[Document]]
 
   def allActions(activityOid: ObjectId): Seq[DynDoc] = allActions(activityById(activityOid))
+
+  def allDeliverables3(activityOid: ObjectId): Seq[DynDoc] =
+      BWMongoDB3.deliverables.find(Map("activity_id" -> activityOid))
 
   def actionsByUser(userOid: ObjectId): Seq[DynDoc] = {
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find()

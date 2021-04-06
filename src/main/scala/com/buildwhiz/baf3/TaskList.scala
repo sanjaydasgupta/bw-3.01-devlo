@@ -16,7 +16,7 @@ class TaskList extends HttpServlet with HttpUtils {
     val phaseOid = new ObjectId(parameters("phase_id"))
     try {
       val activities: Seq[Document] = PhaseApi.allActivities(phaseOid).
-          map(activity => Map("_id" -> activity._id[ObjectId], "name" -> activity.name[String]))
+          map(activity => Map("_id" -> activity._id[ObjectId].toString, "name" -> activity.name[String]))
 
       response.getWriter.print(activities.map(_.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")

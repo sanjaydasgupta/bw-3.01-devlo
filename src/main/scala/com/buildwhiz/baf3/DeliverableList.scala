@@ -16,7 +16,7 @@ class DeliverableList extends HttpServlet with HttpUtils {
     val activityOid = new ObjectId(parameters("activity_id"))
     try {
       val deliverables: Seq[Document] = ActivityApi.allDeliverables3(activityOid).
-          map(deliverable => Map("_id" -> deliverable._id[ObjectId], "name" -> deliverable.name[String]))
+          map(deliverable => Map("_id" -> deliverable._id[ObjectId].toString, "name" -> deliverable.name[String]))
 
       response.getWriter.print(deliverables.map(_.toJson).mkString("[", ", ", "]"))
       response.setContentType("application/json")

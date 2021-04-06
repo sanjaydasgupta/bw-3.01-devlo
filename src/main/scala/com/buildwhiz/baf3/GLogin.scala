@@ -6,7 +6,7 @@ import java.util.Collections
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -16,7 +16,9 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 
-class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
+import java.io.{File => javaFile}
+
+class GLogin extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def cookieSessionSet(userNameEmail: String, person: Document, request: HttpServletRequest,
         response: HttpServletResponse): Unit = {
@@ -79,6 +81,32 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
     }
   }
 
+  private def dates(request: HttpServletRequest): Map[String, String] = {
+    new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
+      case Some(tomcatDirectory) =>
+        tomcatDirectory.listFiles.find(_.getName.startsWith("webapps")) match {
+          case Some(webapps) =>
+            val user: DynDoc = getUser(request)
+            val tz = user.tz[String]
+            val bwWarDate = webapps.listFiles.find(f => f.getName == "bw-3.01" && f.isDirectory) match {
+              case Some(java) => dateString(java.lastModified(), tz)
+              case None => "Unknown"
+            }
+            val nodeDate = Seq(new javaFile("/home/ubuntu/node")).find(f => f.exists && f.isDirectory) match {
+              case Some(java) => dateString(java.lastModified(), tz)
+              case None => "Unknown"
+            }
+            val vvDate = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {
+              case Some(vv) => dateString(vv.lastModified(), tz)
+              case None => "Unknown"
+            }
+            Map("date_java" -> bwWarDate, "date_node" -> nodeDate, "date_ui" -> vvDate)
+          case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")
+        }
+      case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")
+    }
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request, isLogin = true)
@@ -126,7 +154,7 @@ class GLogin extends HttpServlet with HttpUtils with CryptoUtils {
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
-                  Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown"))
+                 dates(request))
               recordLoginTime(personRecord)
               BWLogger.audit(getClass.getName, request.getMethod, "Login GoogleIdTokenVerifier OK", request)
               bson2json(resultPerson)

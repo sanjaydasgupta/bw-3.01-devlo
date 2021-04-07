@@ -36,9 +36,9 @@ class PartnerList2 extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def partnerList(optOrganizationType: Option[String] = None, optSkill: Option[String] = None):
-      Seq[Document] = {
+      Seq[DynDoc] = {
     val organizations = OrganizationApi.fetch(optSkill = optSkill, optOrgType = optOrganizationType)
-    organizations.map(orgDynDocToDocument)
+    organizations
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -75,13 +75,12 @@ class PartnerList2 extends HttpServlet with HttpUtils with DateTimeUtils {
         }
       }
       val myProjectsOrganizations: Seq[DynDoc] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id")).
-          distinct.map(cOid => OrganizationApi.organizationById(cOid)).filter(matchSkill).filter(matchOrganizationType)
+          map(cOid => OrganizationApi.organizationById(cOid)).filter(matchSkill).filter(matchOrganizationType)
       val displayAllOrganizations: Boolean = isAdmin || optProjectOid.
           map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).isDefined
 
       val allOrganizations: Seq[DynDoc] = if (displayAllOrganizations) {
-        (OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations).
-            distinct
+        OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations
       } else {
         myProjectsOrganizations
       }
@@ -99,7 +98,7 @@ class PartnerList2 extends HttpServlet with HttpUtils with DateTimeUtils {
         case (_, _, _, _, Some(_)) => allOrganizations
         case _ => allOrganizations
       }
-      val partnerDetails: Many[Document] = partners.distinct.sortBy(_.name[String]).map(orgDynDocToDocument).asJava
+      val partnerDetails: Many[Document] = partners.sortBy(_.name[String]).map(orgDynDocToDocument).distinct.asJava
       val menuItems = displayedMenuItems(isAdmin, isAdmin)
       val result = new Document("partner_list", partnerDetails).append("can_add_partner", isAdmin).
           append("menu_items", menuItems)

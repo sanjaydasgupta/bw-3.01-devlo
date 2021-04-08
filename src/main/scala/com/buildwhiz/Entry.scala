@@ -53,11 +53,12 @@ class Entry extends HttpServlet with HttpUtils {
       throw new IllegalArgumentException("Bad parameter name 'uid' found")
     val user: DynDoc = getUser(request)
     val userParam = s"uid=${user._id[ObjectId]}"
-    val serviceNameWithUserId = if (serviceName.contains('?'))
-      serviceName + "&" + userParam
-    else
-      serviceName + "?" + userParam
-    val nodeUri = s"http://localhost:3000/$serviceNameWithUserId"
+    val serviceNameWithParameters = request.getParameterMap.asScala match {
+      case params if params.nonEmpty =>
+          serviceName + params.map(kv => s"${kv._1}=${kv._2.head}").mkString("?", "&", "&") + userParam
+      case _ => serviceName + "?" + userParam
+    }
+    val nodeUri = s"http://localhost:3000/$serviceNameWithParameters"
     BWLogger.log(getClass.getName, request.getMethod, s"nodeUri: $nodeUri", request)
     val nodeRequest = request.getMethod match {
       case "GET" => new HttpGet(nodeUri)
@@ -67,9 +68,13 @@ class Entry extends HttpServlet with HttpUtils {
     request.getHeaderNames.asScala.foreach(hdrName => nodeRequest.setHeader(hdrName, request.getHeader(hdrName)))
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
-    val nodeEntity = nodeResponse.getEntity
-    nodeEntity.writeTo(response.getOutputStream)
-    response.setStatus(nodeResponse.getStatusLine.getStatusCode)
+    val nodeStatusCode = nodeResponse.getStatusLine.getStatusCode
+    response.setStatus(nodeStatusCode)
+    if (nodeStatusCode == 200) {
+      val nodeEntity = nodeResponse.getEntity
+      nodeEntity.writeTo(response.getOutputStream)
+    }
+    nodeRequest.releaseConnection()
     BWLogger.log(getClass.getName, request.getMethod,
         s"EXIT: (invokeNodeJs=${nodeResponse.getStatusLine.getStatusCode})", request)
   }

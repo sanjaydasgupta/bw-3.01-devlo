@@ -20,7 +20,7 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
     val theTimer: DynDoc = process.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
       filter(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")).head
     if (timerDurations.contains(theTimer.bpmn_id[String])) {
-      duration2ms(theTimer.duration[String])
+      duration2ms(theTimer.duration[String]) / 86400000L
     } else {
       theTimer.get[String]("duration") match {
         case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt

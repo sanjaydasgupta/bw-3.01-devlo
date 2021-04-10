@@ -47,7 +47,12 @@ object BWMongoDB3 extends Dynamic {
 
   def selectDynamic(cn: String): MongoCollection[Document] = db.getCollection(cn)
 
-  def apply(collectionName: String): MongoCollection[Document] = db.getCollection(collectionName)
+  def apply(collectionName: String): MongoCollection[Document] = {
+    collectionName.split("/") match {
+      case Array(collName) => db.getCollection(collName)
+      case Array(dbName, collName) => mongoClient.getDatabase(dbName).getCollection(collName)
+    }
+  }
 
   def collectionNames: Seq[String] = db.listCollectionNames().asScala.toSeq
 
@@ -91,7 +96,7 @@ object BWMongoDB3 extends Dynamic {
         BWLogger.log(getClass.getName, "withTransaction", "Transaction Commit FAILURE")
         throw t
     } finally {
-      optionalClientSession.map(_.close())
+      optionalClientSession.foreach(_.close())
     }
   }
 

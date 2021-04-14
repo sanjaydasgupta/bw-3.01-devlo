@@ -73,6 +73,8 @@ class Entry extends HttpServlet with HttpUtils {
         val streamData = getStreamData(request)
         val stringEntity = new StringEntity(streamData)
         httpPost.setEntity(stringEntity)
+        httpPost.removeHeaders("Content-Length")
+        httpPost.addHeader("Content-Type", "application/json")
         val headers = headerNames.map(hdrName => s"$hdrName=${request.getHeader(hdrName)}").mkString(";")
         BWLogger.log(getClass.getName, request.getMethod,
             s"nodeUri: $nodeUri, headers: $headers, input-stream: $streamData", request)
@@ -83,10 +85,9 @@ class Entry extends HttpServlet with HttpUtils {
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
     val nodeStatusCode = nodeResponse.getStatusLine.getStatusCode
     response.setStatus(nodeStatusCode)
-    if (nodeStatusCode == 200) {
-      val nodeEntity = nodeResponse.getEntity
+    val nodeEntity = nodeResponse.getEntity
+    if (nodeEntity != null)
       nodeEntity.writeTo(response.getOutputStream)
-    }
     nodeRequest.releaseConnection()
     BWLogger.log(getClass.getName, request.getMethod,
         s"EXIT: (invokeNodeJs=${nodeResponse.getStatusLine.getStatusCode})", request)

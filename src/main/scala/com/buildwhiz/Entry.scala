@@ -8,11 +8,13 @@ import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 
+import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
 import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 
 @MultipartConfig()
@@ -59,13 +61,24 @@ class Entry extends HttpServlet with HttpUtils {
       case _ => serviceName + "?" + userParam
     }
     val nodeUri = s"http://localhost:3000/$serviceNameWithParameters"
-    BWLogger.log(getClass.getName, request.getMethod, s"nodeUri: $nodeUri", request)
     val nodeRequest = request.getMethod match {
-      case "GET" => new HttpGet(nodeUri)
-      case "POST" => new HttpPost(nodeUri)
+      case "GET" => val httpGet = new HttpGet(nodeUri)
+        request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
+        val headers = httpGet.getAllHeaders.map(header => s"${header.getName}=${header.getValue}").mkString(";")
+        BWLogger.log(getClass.getName, request.getMethod, s"nodeUri: $nodeUri, headers: $headers", request)
+        httpGet
+      case "POST" => val httpPost = new HttpPost(nodeUri)
+        val headerNames = request.getHeaderNames.asScala.filterNot(_ == "Content-Length")
+        headerNames.foreach(hdrName => httpPost.setHeader(hdrName, request.getHeader(hdrName)))
+        val streamData = getStreamData(request)
+        val stringEntity = new StringEntity(streamData)
+        httpPost.setEntity(stringEntity)
+        val headers = headerNames.map(hdrName => s"$hdrName=${request.getHeader(hdrName)}").mkString(";")
+        BWLogger.log(getClass.getName, request.getMethod,
+            s"nodeUri: $nodeUri, headers: $headers, input-stream: $streamData", request)
+        httpPost
       case other => throw new IllegalArgumentException(s"Bad HTTP operation '$other' found")
     }
-    request.getHeaderNames.asScala.foreach(hdrName => nodeRequest.setHeader(hdrName, request.getHeader(hdrName)))
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
     val nodeStatusCode = nodeResponse.getStatusLine.getStatusCode
@@ -169,7 +182,6 @@ class Entry extends HttpServlet with HttpUtils {
 }
 
 object Entry {
-  import scala.collection.mutable
 
   type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse)
     def doPost(req: HttpServletRequest, res: HttpServletResponse)

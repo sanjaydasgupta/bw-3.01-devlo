@@ -26,7 +26,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val timers: Seq[DynDoc] = process.timers[Many[Document]].filter(_.bpmn_name[String] == processName)
     timers.map(timer => {
       val durationString = timer.duration[String]
-      val durationDays = durationString.substring(0, durationString.indexOf(':'))
+      val durationDays = durationString.substring(0, durationString.indexOf(':')).toInt.toString
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", durationString).append("duration_days", durationDays).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).
@@ -62,13 +62,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
       val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
-      val startAndEndDates = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
-      val startDates = startAndEndDates.map(_._1._1).sorted
-      val startDate = if (startDates.nonEmpty) startDates.head else "NA"
-      val startLabel = "Scheduled Start Date"
-      val endDates = startAndEndDates.map(_._2._1).sorted
-      val endDate = if (endDates.nonEmpty) endDates.last else "NA"
-      val endLabel = "Scheduled End Date"
+      val startEndAndLabels = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
+      val startDatesAndLabels = startEndAndLabels.map(_._1).sortBy(_._1)
+      val startDate = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._1).head else "NA"
+      val startLabel = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._2).head else "Scheduled Start Date"
+      val endDatesAndLabels = startEndAndLabels.map(_._2).sortBy(_._1)
+      val endDate = if (endDatesAndLabels.nonEmpty) endDatesAndLabels.map(_._1).last else "NA"
+      val endLabel = if (endDatesAndLabels.nonEmpty) endDatesAndLabels.map(_._2).last else "Scheduled End Date"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(

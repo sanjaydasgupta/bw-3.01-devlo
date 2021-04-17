@@ -9,6 +9,11 @@ package object baf3 {
 
   val masterData = Map(
     "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Equipment", "Material", "Work"),
+    "Docs__category" -> Seq("Floor-Plans", "3D-Models", "Elevations", "Perspectives"),
+    "Docs__file_format" -> Seq("DOCX", "JPEG", "JPG", "PDF", "PNG", "XLSX", "XML"),
+    "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
+      "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",
+      "Soils-Report", "Survey", "Traffic-Study", "Wind-Study"),
     "Partners__skills" -> Seq("architect", "electrical-engineer", "landscape-architect", "mechanical-engineer",
         "plumbing-engineer", "project-manager"),
     "ProjectInfoSet__building_use" -> Seq(

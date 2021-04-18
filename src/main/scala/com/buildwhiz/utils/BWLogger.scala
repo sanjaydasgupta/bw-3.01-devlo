@@ -86,15 +86,11 @@ object BWLogger extends HttpUtils {
       case null => parameters
       case user => parameters ++ Map("u$nm" -> s"""${user.get("first_name")} ${user.get("last_name")}""")
     }
-    if (Seq("entry", "error").exists(eventName.toLowerCase.contains(_))) {
-      val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
-      val query = request.getQueryString
-      log(className, methodName,
-        s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp""",
-        paramsWithName.toSeq: _*)
-    } else {
-      log(className, methodName, s"""$eventName client=$clientIp""", paramsWithName.toSeq: _*)
-    }
+    val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
+    val query = request.getQueryString
+    log(className, methodName,
+      s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp""",
+      paramsWithName.toSeq: _*)
   }
 
 }

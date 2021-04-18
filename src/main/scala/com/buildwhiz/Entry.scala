@@ -1,21 +1,15 @@
 package com.buildwhiz
 
+import com.buildwhiz.baf3.NodeConnector
+
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
-import org.bson.types.ObjectId
-import com.buildwhiz.infra.DynDoc
-import com.buildwhiz.infra.DynDoc._
 
 import scala.collection.mutable
-import scala.collection.JavaConverters._
-
 import scala.util.{Failure, Success, Try}
 import scala.language.reflectiveCalls
-import org.apache.http.client.methods.{HttpGet, HttpPost}
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.HttpClients
 
 @MultipartConfig()
 class Entry extends HttpServlet with HttpUtils {
@@ -49,50 +43,6 @@ class Entry extends HttpServlet with HttpUtils {
     }
   }
 
-  private def invokeNodeJs(serviceName: String, request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, "ENTRY (invokeNodeJs)", request)
-    if (request.getParameter("uid") != null)
-      throw new IllegalArgumentException("Bad parameter name 'uid' found")
-    val user: DynDoc = getUser(request)
-    val userParam = s"uid=${user._id[ObjectId]}"
-    val serviceNameWithParameters = request.getParameterMap.asScala match {
-      case params if params.nonEmpty =>
-          serviceName + params.map(kv => s"${kv._1}=${kv._2.head}").mkString("?", "&", "&") + userParam
-      case _ => serviceName + "?" + userParam
-    }
-    val nodeUri = s"http://localhost:3000/$serviceNameWithParameters"
-    val nodeRequest = request.getMethod match {
-      case "GET" => val httpGet = new HttpGet(nodeUri)
-        request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
-        val headers = httpGet.getAllHeaders.map(header => s"${header.getName}=${header.getValue}").mkString(";")
-        BWLogger.log(getClass.getName, request.getMethod, s"nodeUri: $nodeUri, headers: $headers", request)
-        httpGet
-      case "POST" => val httpPost = new HttpPost(nodeUri)
-        val headerNames = request.getHeaderNames.asScala.filterNot(_ == "Content-Length")
-        headerNames.foreach(hdrName => httpPost.setHeader(hdrName, request.getHeader(hdrName)))
-        val streamData = getStreamData(request)
-        val stringEntity = new StringEntity(streamData)
-        httpPost.setEntity(stringEntity)
-        httpPost.removeHeaders("Content-Length")
-        httpPost.addHeader("Content-Type", "application/json")
-        val headers = headerNames.map(hdrName => s"$hdrName=${request.getHeader(hdrName)}").mkString(";")
-        BWLogger.log(getClass.getName, request.getMethod,
-            s"nodeUri: $nodeUri, headers: $headers, input-stream: $streamData", request)
-        httpPost
-      case other => throw new IllegalArgumentException(s"Bad HTTP operation '$other' found")
-    }
-    val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
-    nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
-    val nodeStatusCode = nodeResponse.getStatusLine.getStatusCode
-    response.setStatus(nodeStatusCode)
-    val nodeEntity = nodeResponse.getEntity
-    if (nodeEntity != null)
-      nodeEntity.writeTo(response.getOutputStream)
-    nodeRequest.releaseConnection()
-    BWLogger.log(getClass.getName, request.getMethod,
-        s"EXIT: (invokeNodeJs=${nodeResponse.getStatusLine.getStatusCode})", request)
-  }
-
   private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
         delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
@@ -112,7 +62,7 @@ class Entry extends HttpServlet with HttpUtils {
               case Failure(t) => throw t
             }
           case Failure(_) =>
-            invokeNodeJs(simpleClassName, request, response)
+            delegateTo(NodeConnector)
         }
       }
     } else {

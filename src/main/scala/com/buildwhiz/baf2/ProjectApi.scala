@@ -16,7 +16,10 @@ object ProjectApi extends HttpUtils {
     BWMongoDB3.projects.find()
   }
 
-  def projectById(projectOid: ObjectId): DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
+  def projectById(projectOid: ObjectId): DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).headOption match {
+    case Some(project) => project
+    case None => throw new IllegalArgumentException(s"Bad project _id: $projectOid")
+  }
 
   def exists(projectOid: ObjectId): Boolean = BWMongoDB3.projects.find(Map("_id" -> projectOid)).nonEmpty
 

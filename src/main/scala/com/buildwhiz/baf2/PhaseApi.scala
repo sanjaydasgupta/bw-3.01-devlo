@@ -15,7 +15,10 @@ object PhaseApi {
   def phasesByIds(phaseOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids)))
 
-  def phaseById(phaseOid: ObjectId): DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+  def phaseById(phaseOid: ObjectId): DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).headOption match {
+    case Some(phase) => phase
+    case None => throw new IllegalArgumentException(s"Bad phase _id: $phaseOid")
+  }
 
   def exists(phaseOid: ObjectId): Boolean = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).nonEmpty
 

@@ -114,6 +114,21 @@ object DocumentApi extends HttpUtils {
     }
   }
 
+  def documentList3(request: HttpServletRequest): Seq[DynDoc] = {
+    val user: DynDoc = getUser(request)
+    val parameters = getParameterMap(request)
+    val parameterValues: Array[Option[ObjectId]] = Array("deliverable_id", "activity_id", "phase_id", "project_id").
+        map(n => parameters.get(n).map(id => new ObjectId(id)))
+    val query: Map[String, Any] = parameterValues match {
+      case Array(Some(deliverableOid), _, _, _) => Map("deliverable_id" -> deliverableOid)
+      case Array(None, Some(activityOid), _, _) => Map("activity_id" -> activityOid)
+      case Array(None, None, Some(phaseOid), _) => Map("project_id" -> phaseOid)
+      case Array(None, None, None, Some(projectOid)) => Map("project_id" -> projectOid)
+      case _ => throw new IllegalArgumentException("No parameters found")
+    }
+    BWMongoDB3.document_master.find(query)
+  }
+
   def documentList(request: HttpServletRequest): Seq[DynDoc] = {
     val user: DynDoc = getUser(request)
     val isPrabhasAdmin = PersonApi.fullName(user) == "Prabhas Admin"

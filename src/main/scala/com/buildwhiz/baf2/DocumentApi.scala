@@ -122,7 +122,7 @@ object DocumentApi extends HttpUtils {
     val query: Map[String, Any] = parameterValues match {
       case Array(Some(deliverableOid), _, _, _) => Map("deliverable_id" -> deliverableOid)
       case Array(None, Some(activityOid), _, _) => Map("activity_id" -> activityOid)
-      case Array(None, None, Some(phaseOid), _) => Map("project_id" -> phaseOid)
+      case Array(None, None, Some(phaseOid), _) => Map("phase_id" -> phaseOid)
       case Array(None, None, None, Some(projectOid)) => Map("project_id" -> projectOid)
       case _ => throw new IllegalArgumentException("No parameters found")
     }

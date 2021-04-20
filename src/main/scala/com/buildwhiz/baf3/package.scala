@@ -31,7 +31,10 @@ package object baf3 {
     "PhaseList__scope" -> Seq("all", "current", "future", "past"),
     "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past"),
     "PartnerList__serving_area" -> Seq("USA", "Europe", "India", "California:USA"),
-    "Team__role" -> Seq("Contributor", "Team-Lead", "Team-Admin", "Finance-Contact")
+    "Team__role" -> Seq("Contributor", "Team-Lead", "Team-Admin", "Finance-Contact"),
+    "Team__omniclass33" -> Seq("Planning (33-11 00 00)", "Design (33-21 00 00)", "Investigation (33-23 00 00)",
+      "Project-Management (33-25 00 00)", "Construction (33-41 00 00)", "Facility-Use (33-55 00 00)",
+      "Support (33-81 00 00)")
   )
 
   val menuItemsList: Seq[Document] = Seq(

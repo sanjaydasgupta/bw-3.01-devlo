@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 package object baf3 {
 
   val masterData = Map(
-    "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Equipment", "Material", "Work"),
+    "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Work"),
     "Docs__category" -> Seq("Floor-Plans", "3D-Models", "Elevations", "Perspectives"),
     "Docs__file_format" -> Seq("DOCX", "JPEG", "JPG", "PDF", "PNG", "XLSX", "XML"),
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
@@ -31,7 +31,7 @@ package object baf3 {
     "PhaseList__scope" -> Seq("all", "current", "future", "past"),
     "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past"),
     "PartnerList__serving_area" -> Seq("USA", "Europe", "India", "California:USA"),
-    "Team__role" -> Seq("Contributor", "Team-Lead", "Team-Admin", "Finance-Contact", "Post-Approval", "Pre-Approval")
+    "Team__role" -> Seq("Contributor", "Team-Lead", "Team-Admin", "Finance-Contact")
   )
 
   val menuItemsList: Seq[Document] = Seq(

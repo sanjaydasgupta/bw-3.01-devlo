@@ -24,6 +24,10 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
           ("team_id", oid), ("name", identity), ("tags", toArray), ("category", identity)).
           flatMap(paramName => parameters.get(paramName._1).map(id => (paramName._1, paramName._2(id)))).toMap
 
+      val missingParams = Seq("project_id", "name", "category", "tags", "file_format").filterNot(nameValuePairs.contains)
+      if (missingParams.nonEmpty)
+        throw new IllegalArgumentException(s"""Missing parameters: ${missingParams.mkString(", ")}""")
+
       val projectOid = nameValuePairs.get("project_id") match {
         case Some(pOid) => pOid.asInstanceOf[ObjectId]
         case None =>

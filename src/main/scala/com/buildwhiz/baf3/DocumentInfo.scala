@@ -78,12 +78,11 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => "NA"
       }
       val versionInfo: Seq[Document] = versionInformation(docRecord, user)
-      val versionInfoString = versionInfo.map(document => bson2json(document)).mkString("[", ", ", "]")
       val returnDoc: Document = Map("deliverable_name" -> wrap(deliverableName, editable = false),
         "name" -> wrap(docRecord.name[String], editable = editable),
         "phase_name" -> wrap(phaseName, editable = false),
         "task_name" -> wrap(taskName, editable = false), "tags" -> wrap(tags, editable = false),
-        "versions" -> versionInfoString)
+        "versions" -> versionInfo)
       response.getWriter.print(returnDoc.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

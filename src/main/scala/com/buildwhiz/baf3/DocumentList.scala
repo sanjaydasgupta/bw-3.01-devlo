@@ -27,17 +27,27 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
     val docRecords: Seq[DynDoc] = DocumentApi.documentList3(request)
     val phaseOid2NameMap: Map[ObjectId, String] = docRecords.flatMap(_.get[ObjectId]("phase_id")).distinct.
         map(oid => (oid, PhaseApi.phaseById(oid).name[String])).toMap
+    val teamOid2NameMap: Map[ObjectId, String] = docRecords.flatMap(_.get[ObjectId]("team_id")).distinct.
+        map(oid => (oid, TeamApi.teamById(oid).team_name[String])).toMap
     val projectName = docRecords.headOption match {
       case Some(doc) => ProjectApi.projectById(doc.project_id[ObjectId]).name[String]
       case None => "-" // Never used
     }
     val docProperties: Seq[Document] = docRecords.map(doc => {
-      val fileExtension = doc.get[String]("file_extension") match {
+      val fileExtension = doc.get[String]("type") match {
         case Some(fileExt) => fileExt
+        case None => "NA"
+      }
+      val category = doc.get[String]("category") match {
+        case Some(cat) => cat
         case None => "NA"
       }
       val versions: Seq[DynDoc] = DocumentApi.versions(doc)
       val systemLabels = DocumentApi.getSystemTags(doc)
+      val teamName = doc.get[ObjectId]("team_id") match {
+        case Some(teamOid) => teamOid2NameMap(teamOid)
+        case None => "NA"
+      }
       val phaseName = doc.get[ObjectId]("phase_id") match {
         case Some(phaseOid) => phaseOid2NameMap(phaseOid)
         case None => "NA"
@@ -57,11 +67,11 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
           "Unknown Unknown"
         }
         Map("name" -> doc.name[String], "_id" -> doc._id[ObjectId].toString, "phase_name" -> phaseName,
-          "team" -> "NA", "category" -> "NA", "tags" -> systemLabels, "type" -> fileExtension,
+          "team" -> teamName, "category" -> category, "tags" -> systemLabels, "type" -> fileExtension,
           "uploaded_by" -> authorName, "date" -> date, "version_count" -> versionCount, "size" -> fileSize)
       } else {
         Map("name" -> doc.name[String], "_id" -> doc._id[ObjectId].toString, "phase_name" -> phaseName,
-          "team" -> "NA", "category" -> "NA", "tags" -> systemLabels, "type" -> fileExtension,
+          "team" -> teamName, "category" -> category, "tags" -> systemLabels, "type" -> fileExtension,
           "uploaded_by" -> "NA", "date" -> "NA", "version_count" -> versionCount, "size" -> "NA")
       }
       documentProperties

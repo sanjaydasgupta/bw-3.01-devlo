@@ -19,12 +19,14 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
       val identity: CONVERTER = _.trim
       val oid: CONVERTER = new ObjectId(_)
       val toArray: CONVERTER = _.split(",").map(_.trim).toSeq
-      val nameValuePairs: Map[String, Any] = Array(("deliverable_id", oid), ("activity_id", oid),
-          ("phase_id", oid), ("project_id", oid), ("description", identity), ("file_format", identity),
-          ("team_id", oid), ("name", identity), ("tags", toArray), ("category", identity)).
-          flatMap(paramName => parameters.get(paramName._1).map(id => (paramName._1, paramName._2(id)))).toMap
+      val nameValuePairs: Map[String, Any] = Array(
+          ("deliverable_id", oid, None), ("activity_id", oid, None), ("phase_id", oid, None),
+          ("project_id", oid, None), ("description", identity, None), ("file_format", identity, Some("type")),
+          ("team_id", oid, None), ("name", identity, None), ("tags", toArray, Some("labels")),
+          ("category", identity, None)).flatMap(triple => parameters.get(triple._1).
+          map(value => (triple._3 match {case None => triple._1; case Some(name) => name}, triple._2(value)))).toMap
 
-      val missingParams = Seq("project_id", "name", "category", "tags", "file_format").filterNot(nameValuePairs.contains)
+      val missingParams = Seq("project_id", "name", "category", "labels", "type").filterNot(nameValuePairs.contains)
       if (missingParams.nonEmpty)
         throw new IllegalArgumentException(s"""Missing parameters: ${missingParams.mkString(", ")}""")
 

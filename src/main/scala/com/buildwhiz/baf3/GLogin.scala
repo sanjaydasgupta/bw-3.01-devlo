@@ -148,13 +148,15 @@ class GLogin extends HttpServlet with HttpUtils with DateTimeUtils {
                   case Some(phase) => personRecord.put("selected_phase_id", phase._id[ObjectId])
                 }
               }
-              val resultFields = Seq("_id", "first_name", "last_name", "organization_id",
+              val resultFields = Seq("_id", "first_name", "last_name", "organization_id", "dummies",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
                 "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
                  dates(request))
+              if (!resultPerson.containsKey("dummies"))
+                resultPerson.append("dummies", false)
               recordLoginTime(personRecord)
               BWLogger.audit(getClass.getName, request.getMethod, "Login GoogleIdTokenVerifier OK", request)
               bson2json(resultPerson)

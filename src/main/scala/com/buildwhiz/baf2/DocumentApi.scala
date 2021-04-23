@@ -181,7 +181,11 @@ object DocumentApi extends HttpUtils {
 //        Seq(PhaseApi.phaseDocumentTagName(thePhase.name[String]))
 //      case None => Seq.empty[String]
 //    }
-    val documentLabels: Seq[String] = if (doc.has("labels")) doc.labels[Many[String]] else Seq.empty[String]
+    val documentLabels: Seq[String] = if (doc.has("labels")) {
+      doc.labels[Many[String]].map(_.trim).filter(_.nonEmpty)
+    } else {
+      Seq.empty[String]
+    }
 
     //(/*phaseLabel ++*/ documentLabels/* ++ legacyLabels*/).distinct
     documentLabels.distinct

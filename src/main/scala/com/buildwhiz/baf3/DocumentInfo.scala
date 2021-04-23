@@ -74,7 +74,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => "NA"
       }
       val tags = docRecord.get[Many[String]]("labels") match {
-        case Some(t) => t.toSeq.mkString(", ")
+        case Some(t) => t.map(_.trim).filter(_.nonEmpty).mkString(", ")
         case None => "NA"
       }
       val versionInfo: Seq[Document] = versionInformation(docRecord, user)

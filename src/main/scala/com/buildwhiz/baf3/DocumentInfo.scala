@@ -42,7 +42,8 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       else
         "NA"
       val prop: Document = Map("author" -> authorName, "comments" -> version.comments[String],
-        "datetime" -> dateTimeString(version.timestamp[Long], Some(user.tz[String])), "size" -> fileSize)
+        "datetime" -> dateTimeString(version.timestamp[Long], Some(user.tz[String])), "size" -> fileSize,
+        "timestamp" -> version.timestamp[Long])
       prop
     })
   }

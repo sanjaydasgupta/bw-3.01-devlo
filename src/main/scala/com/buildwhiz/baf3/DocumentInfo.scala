@@ -73,7 +73,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case Some(activityOid) => DeliverableApi.deliverableById(activityOid).name[String]
         case None => "NA"
       }
-      val tags = docRecord.get[Many[String]]("tags") match {
+      val tags = docRecord.get[Many[String]]("labels") match {
         case Some(t) => t.toSeq.mkString(", ")
         case None => "NA"
       }

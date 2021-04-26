@@ -45,7 +45,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
       val (timestamp: Long, version: Option[DynDoc]) = parameters.get("timestamp") match {
         case Some(ts) => (ts.toLong, documentRecord.versions[Many[Document]].find(_.timestamp == ts.toLong))
         case None =>
-          val optVersion = documentRecord.versions[Many[Document]].headOption
+          val optVersion = documentRecord.versions[Many[Document]].reverse.headOption
           val timestamp = optVersion.map(_.timestamp[Long]) match {
             case Some(ts) => ts
             case None => 0

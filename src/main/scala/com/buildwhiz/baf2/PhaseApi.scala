@@ -99,22 +99,17 @@ object PhaseApi {
   def hasZombies(phase: DynDoc): Boolean = allProcesses(phase).exists(ProcessApi.isZombie)
 
   def displayStatus(phase: DynDoc): String = {
-    (isActive(phase), hasZombies(phase)) match {
-      case (false, false) => "dormant"
-      case (false, true) => "has-error"
-      case (true, false) => "active"
-      case (true, true) => "active+error"
+    (phase.status[String], isActive(phase), hasZombies(phase)) match {
+      case ("defined", false, false) => "Not Started"
+      case (_, false, false) => "Complete"
+      case (_, false, true) => "Error"
+      case (_, true, false) => "Active"
+      case (_, true, true) => "Active+Error"
     }
   }
 
   def displayStatus2(phase: DynDoc, userIsAdmin: Boolean): String = {
-    val hasNoProcesses = phase.process_ids[Many[ObjectId]].isEmpty
-    (isActive(phase), hasNoProcesses || hasZombies(phase)) match {
-      case (false, false) => "Dormant"
-      case (false, true) => "Error"
-      case (true, false) => "Active"
-      case (true, true) => "Active+Error"
-    }
+    displayStatus(phase)
   }
 
   def validateNewName(newPhaseName: String, projectOid: ObjectId): Boolean = {

@@ -66,7 +66,7 @@ class PartnerCreate extends HttpServlet with HttpUtils {
 
       val profile = parameters.get("profile") match {
         case Some(prof) => prof
-        case None => false
+        case None => ""
       }
 
       val areasOfOperation: Many[String] = (parameters.get("serving_area") match {

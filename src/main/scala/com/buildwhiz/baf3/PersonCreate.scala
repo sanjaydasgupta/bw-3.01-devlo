@@ -118,10 +118,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
 
       newPersonRecord.remove("password")
       val personString = bson2json(newPersonRecord)
-      response.getWriter.print(personString)
-      response.setContentType("application/json")
       val message = s"Created person '$personString'"
-      response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
       response.getWriter.print(successJson())
       response.setContentType("application/json")

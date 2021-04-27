@@ -123,6 +123,8 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       val message = s"Created person '$personString'"
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

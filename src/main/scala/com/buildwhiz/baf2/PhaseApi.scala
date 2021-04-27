@@ -101,6 +101,8 @@ object PhaseApi {
   def displayStatus(phase: DynDoc): String = {
     (phase.status[String], isActive(phase), hasZombies(phase)) match {
       case ("defined", false, false) => "Not Started"
+      case ("ended", _, false) => "Complete"
+      case ("ended", _, true) => "Complete+Error"
       case (_, false, false) => "Complete"
       case (_, false, true) => "Error"
       case (_, true, false) => "Active"

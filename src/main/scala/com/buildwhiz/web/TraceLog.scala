@@ -1,7 +1,7 @@
 package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.{/*AmazonS3, */BWMongoDB3, DynDoc, GoogleDrive}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.DynDoc._
 import BWMongoDB3._
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
@@ -93,16 +93,16 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val traceLogCollection = BWMongoDB3.trace_log
         val traceLogDocs: Seq[DynDoc] = durationUnit match {
           case "hours" =>
-            val startMs = untilMs - 3600L * 1000L * duration.toInt
+            val startMs = untilMs - 3600L * 1000L * duration
             traceLogCollection.find(typeQuery ++
-              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).sort(Map("milliseconds" -> -1))
+              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).limit(999).sort(Map("milliseconds" -> -1))
           case "days" =>
-            val startMs = untilMs - 86400L * 1000L * duration.toInt
+            val startMs = untilMs - 86400L * 1000L * duration
             traceLogCollection.find(typeQuery ++
-              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).sort(Map("milliseconds" -> -1))
+              Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))).limit(999).sort(Map("milliseconds" -> -1))
           case _ =>
             traceLogCollection.find(typeQuery ++
-              Map("milliseconds" -> Map("$lte" -> untilMs))).limit(duration.toInt).sort(Map("milliseconds" -> -1))
+              Map("milliseconds" -> Map("$lte" -> untilMs))).limit(duration).sort(Map("milliseconds" -> -1))
         }
 
         for (doc <- traceLogDocs) {

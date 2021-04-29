@@ -18,12 +18,14 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
           Map("name" -> (n => n, "name"), "document_id" -> (id => new ObjectId(id), "document_id"),
           "tags" -> (t => t.split(",").map(_.trim).filter(_.nonEmpty), "labels"))
 
-      val unknownParameters = parameters.keySet.filterNot(paramName => parameterInfo.contains(paramName))
+      val unknownParameters = parameters.keySet.filterNot(_ == "JSESSIONID").
+          filterNot(paramName => parameterInfo.contains(paramName))
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""bad parameters found: ${unknownParameters.mkString(", ")}""")
 
-      val parameterValues: Map[String, Any] = parameterInfo.map(kv => (kv._2._2, kv._2._1(parameters(kv._1))))
-      val documentOid = parameterValues("ObjectId").asInstanceOf[ObjectId]
+      val parameterValues: Map[String, Any] = parameterInfo.filter(kv => parameters.contains(kv._1)).
+          map(kv => (kv._2._2, kv._2._1(parameters(kv._1))))
+      val documentOid = parameterValues("document_id").asInstanceOf[ObjectId]
       val setter: Map[String, Any] = parameterValues.filterNot(_._1 == "ObjectId")
 
       val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid), Map("$set" -> setter))

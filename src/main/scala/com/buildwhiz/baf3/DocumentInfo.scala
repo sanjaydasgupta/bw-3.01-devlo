@@ -82,7 +82,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val returnDoc: Document = Map("deliverable_name" -> wrap(deliverableName, editable = false),
         "name" -> wrap(docRecord.name[String], editable = editable),
         "phase_name" -> wrap(phaseName, editable = false),
-        "task_name" -> wrap(taskName, editable = false), "tags" -> wrap(tags, editable = false),
+        "task_name" -> wrap(taskName, editable = false), "tags" -> wrap(tags, editable = editable),
         "versions" -> versionInfo)
       response.getWriter.print(returnDoc.toJson)
       response.setContentType("application/json")

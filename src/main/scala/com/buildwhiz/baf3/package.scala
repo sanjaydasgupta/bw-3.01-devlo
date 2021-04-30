@@ -7,6 +7,62 @@ import scala.collection.JavaConverters._
 
 package object baf3 {
 
+  private val omniclass33 =
+    """33-11 00 00,Planning Disciplines
+      |33-11 21 00,Development Planning
+      |33-21 00 00,Design Disciplines
+      |33-21 11 00,Architecture
+      |33-21 21 00,Landscape Architecture
+      |33-21 23 00,Interior Design
+      |33-21 31 11,Civil Engineering
+      |33-21 31 11 11,Geotechnical Engineering
+      |33-21 31 14,Structural Engineering
+      |33-21 31 17,Mechanical Engineering
+      |33-21 31 17 11,Plumbing Engineering
+      |33-21 31 17 21,Fire Protection Engineering
+      |33-21 31 17 31,"Heating, Ventilation, and Air-Conditioning Engineering"
+      |33-21 31 17 34,Energy Monitoring and Controls Engineering
+      |33-21 31 21,Electrical Engineering
+      |33-21 31 21 31 ,Low Voltage Electrical Engineering
+      |33-21 31 24 21,Wind Engineering
+      |33-21 31 31,Environmental Engineering
+      |33-21 31 99 11,Acoustical/Emanations Shielding Engineering
+      |33-21 31 99 21 11,Computer Network Engineering
+      |33-21 31 99 21 31,Audiovisual Engineering
+      |33-21 51 11,Drafting
+      |33-21 51 19 11,Photographic Services
+      |33-21 99 10,Building Envelope Design
+      |33-21 99 28,Lighting Design
+      |33-21 99 31 13,Solar Design
+      |33-23 00 00,Investigation Disciplines
+      |33-23 11 00,Surveying
+      |33-25 00 00,Project Management Disciplines
+      |33-25 11 00,Cost Estimation
+      |33-25 16 00,Construction Management
+      |33-25 16 11,General Contracting
+      |33-25 21 00,Scheduling
+      |33-25 31 00,Contract Administration
+      |33-25 41 00,Procurement Administration
+      |33-25 51 11,Construction Inspection
+      |33-25 51 13,Building Inspection
+      |33-81 00 00,Support Disciplines
+      |33-81 11 00,Legal Services
+      |33-81 11 17,Permitting
+      |33-81 21 11,Public Relations
+      |33-81 21 21 13,Computer and Information Systems Management
+      |33-81 31 00,Finance
+      |33-81 31 11,Banking
+      |33-81 31 14,Accounting
+      |33-81 31 17,Insurance""".stripMargin.split("\n").map(_.split(",").map(_.trim))
+
+  private def omniclass33groups(): Seq[String] = {
+    def arrange(entry: Array[String]): String = {
+      val name = entry(1).split("\\s+").init.mkString(" ")
+      "%s (%s)".format(name, entry(0))
+    }
+    omniclass33.filter(_.head.matches(".+00 00")).map(arrange)
+  }
+
   val masterData = Map(
     "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Work"),
     "Docs__category" -> Seq("Contracts", "Details", "Invoices", "Mat-Specs", "Meeting-Notes", "Reports",
@@ -33,7 +89,7 @@ package object baf3 {
     "PhaseList__scope" -> Seq("all", "current", "future", "past"),
     "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past"),
     "PartnerList__serving_area" -> Seq("USA", "Europe", "India", "California:USA"),
-    "Team__group" -> Seq("Design", "Jurisdiction", "Sponsor", "Trade"),
+    "Team__group" -> omniclass33groups(),
     "Team__role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
     "Team__individual_role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
     "Team__team_role" -> Seq("Clean-Up", "Post-Approver", "Pre-Approver", "Responsible"),

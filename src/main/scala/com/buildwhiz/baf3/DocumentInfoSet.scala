@@ -5,6 +5,8 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
+import scala.collection.JavaConverters._
+
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
@@ -14,9 +16,9 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
     val parameters = getParameterMap(request)
     try {
 
-      val parameterInfo: Map[String, (String=>Any, String)] =
-          Map("name" -> (n => n, "name"), "document_id" -> (id => new ObjectId(id), "document_id"),
-          "tags" -> (t => t.split(",").map(_.trim).filter(_.nonEmpty), "labels"))
+      def csv2array(csv: String): Many[String] = csv.split(",").map(_.trim).filter(_.nonEmpty).toSeq.asJava
+      val parameterInfo: Map[String, (String=>Any, String)] = Map("name" -> (n => n, "name"),
+        "document_id" -> (id => new ObjectId(id), "document_id"), "tags" -> (csv2array, "labels"))
 
       val unknownParameters = parameters.keySet.filterNot(_ == "JSESSIONID").
           filterNot(paramName => parameterInfo.contains(paramName))

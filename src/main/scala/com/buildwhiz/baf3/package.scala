@@ -3,74 +3,89 @@ package com.buildwhiz
 import org.bson.Document
 import com.buildwhiz.infra.DynDoc._
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 
 package object baf3 {
 
-  private val omniClass33text =
-    """33-11 00 00,Planning Disciplines
-      |33-11 21 00,Development Planning
-      |33-21 00 00,Design Disciplines
-      |33-21 11 00,Architecture
-      |33-21 21 00,Landscape Architecture
-      |33-21 23 00,Interior Design
-      |33-21 31 11,Civil Engineering
-      |33-21 31 11 11,Geotechnical Engineering
-      |33-21 31 14,Structural Engineering
-      |33-21 31 17,Mechanical Engineering
-      |33-21 31 17 11,Plumbing Engineering
-      |33-21 31 17 21,Fire Protection Engineering
-      |33-21 31 17 31,"Heating, Ventilation, and Air-Conditioning Engineering"
-      |33-21 31 17 34,Energy Monitoring and Controls Engineering
-      |33-21 31 21,Electrical Engineering
-      |33-21 31 21 31 ,Low Voltage Electrical Engineering
-      |33-21 31 24 21,Wind Engineering
-      |33-21 31 31,Environmental Engineering
-      |33-21 31 99 11,Acoustical/Emanations Shielding Engineering
-      |33-21 31 99 21 11,Computer Network Engineering
-      |33-21 31 99 21 31,Audiovisual Engineering
-      |33-21 51 11,Drafting
-      |33-21 51 19 11,Photographic Services
-      |33-21 99 10,Building Envelope Design
-      |33-21 99 28,Lighting Design
-      |33-21 99 31 13,Solar Design
-      |33-23 00 00,Investigation Disciplines
-      |33-23 11 00,Surveying
-      |33-25 00 00,Project Management Disciplines
-      |33-25 11 00,Cost Estimation
-      |33-25 16 00,Construction Management
-      |33-25 16 11,General Contracting
-      |33-25 21 00,Scheduling
-      |33-25 31 00,Contract Administration
-      |33-25 41 00,Procurement Administration
-      |33-25 51 11,Construction Inspection
-      |33-25 51 13,Building Inspection
-      |33-81 00 00,Support Disciplines
-      |33-81 11 00,Legal Services
-      |33-81 11 17,Permitting
-      |33-81 21 11,Public Relations
-      |33-81 21 21 13,Computer and Information Systems Management
-      |33-81 31 00,Finance
-      |33-81 31 11,Banking
-      |33-81 31 14,Accounting
-      |33-81 31 17,Insurance""".stripMargin
+  private object OmniClass33 {
+    private val omniClass33text =
+      """33-11 00 00,Planning Disciplines
+        |33-11 21 00,Development Planning
+        |33-21 00 00,Design Disciplines
+        |33-21 11 00,Architecture
+        |33-21 21 00,Landscape Architecture
+        |33-21 23 00,Interior Design
+        |33-21 31 11,Civil Engineering
+        |33-21 31 11 11,Geotechnical Engineering
+        |33-21 31 14,Structural Engineering
+        |33-21 31 17,Mechanical Engineering
+        |33-21 31 17 11,Plumbing Engineering
+        |33-21 31 17 21,Fire Protection Engineering
+        |33-21 31 17 31,"Heating, Ventilation, and Air-Conditioning Engineering"
+        |33-21 31 17 34,Energy Monitoring and Controls Engineering
+        |33-21 31 21,Electrical Engineering
+        |33-21 31 21 31 ,Low Voltage Electrical Engineering
+        |33-21 31 24 21,Wind Engineering
+        |33-21 31 31,Environmental Engineering
+        |33-21 31 99 11,Acoustical/Emanations Shielding Engineering
+        |33-21 31 99 21 11,Computer Network Engineering
+        |33-21 31 99 21 31,Audiovisual Engineering
+        |33-21 51 11,Drafting
+        |33-21 51 19 11,Photographic Services
+        |33-21 99 10,Building Envelope Design
+        |33-21 99 28,Lighting Design
+        |33-21 99 31 13,Solar Design
+        |33-23 00 00,Investigation Disciplines
+        |33-23 11 00,Surveying
+        |33-25 00 00,Project Management Disciplines
+        |33-25 11 00,Cost Estimation
+        |33-25 16 00,Construction Management
+        |33-25 16 11,General Contracting
+        |33-25 21 00,Scheduling
+        |33-25 31 00,Contract Administration
+        |33-25 41 00,Procurement Administration
+        |33-25 51 11,Construction Inspection
+        |33-25 51 13,Building Inspection
+        |33-81 00 00,Support Disciplines
+        |33-81 11 00,Legal Services
+        |33-81 11 17,Permitting
+        |33-81 21 11,Public Relations
+        |33-81 21 21 13,Computer and Information Systems Management
+        |33-81 31 00,Finance
+        |33-81 31 11,Banking
+        |33-81 31 14,Accounting
+        |33-81 31 17,Insurance""".stripMargin
 
-  private val omniClass33Entries =
-      omniClass33text.split("\n").map(_.split(",").map(_.trim.replace("\"", "")))
-
-  private def omniclass33groups(): Seq[String] = {
-    def arrange(entry: Array[String]): String = {
-      val name = entry(1).split("\\s+").init.mkString(" ")
-      "%s (%s)".format(name, entry(0))
+    private case class OC33(code: String, name: String) {
+      def isGroup: Boolean = code.matches(".+00 00")
+      private def shortName: String = name.split("\\s+").init.mkString(" ")
+      override def toString: String = "%s (%s)".format(if (isGroup) shortName else name, code)
     }
-    omniClass33Entries.filter(_.head.matches(".+00 00")).map(arrange)
-  }
 
-  private def omniclass33skills(): Seq[String] = {
-    def arrange(entry: Array[String]): String = {
-      "%s (%s)".format(entry(1), entry(0))
+    private val oc33entries: Seq[OC33] = omniClass33text.split("\n").map(_.split(",").map(_.trim.replace("\"", ""))).
+        map(array => OC33(array(0), array(1)))
+
+    def omniClass33groups(): Seq[String] = oc33entries.filter(_.isGroup).map(_.toString)
+    def omniClass33skills(): Seq[String] = oc33entries.filterNot(_.isGroup).map(_.toString)
+
+    def omniClass33skillsByGroup(): Map[String, Seq[String]] = {
+      @tailrec
+      def makeGroupSkillPairs(group: OC33, entries: Seq[OC33], acc: Seq[(OC33, OC33)] = Nil): Seq[(OC33, OC33)] = {
+        entries match {
+          case sequence if sequence.isEmpty => acc
+          case sequence =>
+            val (head, tail) = (sequence.head, sequence.tail)
+            if (head.isGroup)
+              makeGroupSkillPairs(head, tail, acc)
+            else
+              makeGroupSkillPairs(group, tail, (group, head) +: acc)
+        }
+      }
+      val pairs: Seq[(OC33, OC33)] = makeGroupSkillPairs(oc33entries.head, oc33entries.tail)
+      pairs.groupBy(_._1).map(ks => (ks._1.toString, ks._2.map(_._2.toString)))
     }
-    omniClass33Entries.filterNot(_.head.matches(".+00 00")).map(arrange)
+
   }
 
   val masterData = Map(
@@ -82,7 +97,7 @@ package object baf3 {
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
       "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",
       "Soils-Report", "Survey", "Traffic-Study", "Wind-Study"),
-    "Partners__skills" -> omniclass33skills(),
+    "Partners__skills" -> OmniClass33.omniClass33skills(),
     "ProjectInfoSet__building_use" -> Seq(
       "Assembly Facility", "Education Facility", "Public Service Facility", "Cultural Facility",
       "Recreation Facility", "Housing Facility", "Retail Facility", "Health Care Facility",
@@ -98,13 +113,12 @@ package object baf3 {
     "PhaseList__scope" -> Seq("all", "current", "future", "past"),
     "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past"),
     "PartnerList__serving_area" -> Seq("USA", "Europe", "India", "California:USA"),
-    "Team__group" -> omniclass33groups(),
+    "Team__group" -> OmniClass33.omniClass33groups(),
+    "Team__group_skill_mapping" -> OmniClass33.omniClass33skillsByGroup(),
     "Team__role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
     "Team__individual_role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
     "Team__team_role" -> Seq("Clean-Up", "Post-Approver", "Pre-Approver", "Responsible"),
-    "Team__omniclass33" -> Seq("Planning (33-11 00 00)", "Design (33-21 00 00)", "Investigation (33-23 00 00)",
-      "Project-Management (33-25 00 00)", "Construction (33-41 00 00)", "Facility-Use (33-55 00 00)",
-      "Support (33-81 00 00)")
+    "Team__omniclass33" -> OmniClass33.omniClass33skills()
   )
 
   val menuItemsList: Seq[Document] = Seq(

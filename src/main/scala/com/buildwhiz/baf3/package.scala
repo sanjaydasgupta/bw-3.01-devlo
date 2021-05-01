@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 
 package object baf3 {
 
-  private val omniclass33 =
+  private val omniClass33text =
     """33-11 00 00,Planning Disciplines
       |33-11 21 00,Development Planning
       |33-21 00 00,Design Disciplines
@@ -53,14 +53,24 @@ package object baf3 {
       |33-81 31 00,Finance
       |33-81 31 11,Banking
       |33-81 31 14,Accounting
-      |33-81 31 17,Insurance""".stripMargin.split("\n").map(_.split(",").map(_.trim))
+      |33-81 31 17,Insurance""".stripMargin
+
+  private val omniClass33Entries =
+      omniClass33text.split("\n").map(_.split(",").map(_.trim.replace("\"", "")))
 
   private def omniclass33groups(): Seq[String] = {
     def arrange(entry: Array[String]): String = {
       val name = entry(1).split("\\s+").init.mkString(" ")
       "%s (%s)".format(name, entry(0))
     }
-    omniclass33.filter(_.head.matches(".+00 00")).map(arrange)
+    omniClass33Entries.filter(_.head.matches(".+00 00")).map(arrange)
+  }
+
+  private def omniclass33skills(): Seq[String] = {
+    def arrange(entry: Array[String]): String = {
+      "%s (%s)".format(entry(1), entry(0))
+    }
+    omniClass33Entries.filterNot(_.head.matches(".+00 00")).map(arrange)
   }
 
   val masterData = Map(
@@ -72,8 +82,7 @@ package object baf3 {
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
       "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",
       "Soils-Report", "Survey", "Traffic-Study", "Wind-Study"),
-    "Partners__skills" -> Seq("architect", "electrical-engineer", "landscape-architect", "mechanical-engineer",
-        "plumbing-engineer", "project-manager"),
+    "Partners__skills" -> omniclass33skills(),
     "ProjectInfoSet__building_use" -> Seq(
       "Assembly Facility", "Education Facility", "Public Service Facility", "Cultural Facility",
       "Recreation Facility", "Housing Facility", "Retail Facility", "Health Care Facility",

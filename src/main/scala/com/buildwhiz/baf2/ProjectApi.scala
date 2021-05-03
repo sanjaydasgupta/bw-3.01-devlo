@@ -93,7 +93,9 @@ object ProjectApi extends HttpUtils {
 
   def hasRole(personOid: ObjectId, project: DynDoc): Boolean = {
     isAdmin(personOid, project) || project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
-    allPhases(project).exists(phase => PhaseApi.hasRole(personOid, phase))
+        allPhases(project).exists(phase => PhaseApi.hasRole(personOid, phase)) ||
+        BWMongoDB3.teams.countDocuments(Map("project_id" -> project._id[Object],
+        "team_members" -> Map($elemMatch -> Map("person_id" -> personOid)))) > 0
   }
 
   def isAdmin(personOid: ObjectId, project: DynDoc): Boolean =

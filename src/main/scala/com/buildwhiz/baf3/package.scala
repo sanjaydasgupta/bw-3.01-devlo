@@ -185,7 +185,7 @@ package object baf3 {
     } else if (userIsAdmin) {
       menuItemsList
     } else if (userIsManager) {
-      menuItemsList.filter(_.getString("access").contains("M"))
+      menuItemsList.filter(items => items.getString("access").contains("*") || items.getString("access").contains("M"))
     } else {
       menuItemsList.filter(_.getString("access").contains("*"))
     }

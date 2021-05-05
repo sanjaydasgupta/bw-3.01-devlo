@@ -39,6 +39,7 @@ package object baf3 {
         |33-23 00 00,Investigation Disciplines
         |33-23 11 00,Surveying
         |33-25 00 00,Project Management Disciplines
+        |33-25 BW 11,Project-Manager
         |33-25 11 00,Cost Estimation
         |33-25 16 00,Construction Management
         |33-25 16 11,General Contracting

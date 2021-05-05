@@ -63,10 +63,11 @@ object PersonApi {
       case (Some(workEmail), _, _) =>
         Map("emails" -> Map($elemMatch -> Map("$eq" -> Map("type" -> "work", "email" -> workEmail))))
       case (None, Some(organizationOid), Some(skill)) =>
-        Map("organization_id" -> organizationOid, "skills" -> Map($regex -> s"(?i)^$skill$$"))
+        Map("organization_id" -> organizationOid, "skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
       case (None, Some(organizationOid), None) =>
         Map("organization_id" -> organizationOid)
-      case (None, None, Some(skill)) => Map("skills" -> Map($regex -> s"(?i)^$skill$$"))
+      case (None, None, Some(skill)) =>
+        Map("skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
       case _ => Map.empty
     }
     val query2: Map[String, Any] = if (assigneeOids._1)

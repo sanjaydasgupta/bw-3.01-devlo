@@ -12,6 +12,8 @@ package object baf3 {
     private val omniClass33text =
       """33-11 00 00,Planning Disciplines
         |33-11 21 00,Development Planning
+        |33-11 41 00,Urban Planning
+        |33-11 51 00,Environmental Planning
         |33-21 00 00,Design Disciplines
         |33-21 11 00,Architecture
         |33-21 21 00,Landscape Architecture
@@ -36,8 +38,17 @@ package object baf3 {
         |33-21 99 10,Building Envelope Design
         |33-21 99 28,Lighting Design
         |33-21 99 31 13,Solar Design
+        |33-21 BW 11,Waterproofing
+        |33-21 BW 12,Accessibility
         |33-23 00 00,Investigation Disciplines
         |33-23 11 00,Surveying
+        |33-23 21 00,Environmental Investigation
+        |33-23 21 11,Environmental Impact Investigation
+        |33-23 21 21,Air Quality Evaluation Investigation
+        |33-23 21 31,Hazardous Materials Investigation
+        |33-23 31 00,Hydrological Investigation
+        |33-23 41 00,Geotechnical Investigation
+        |33-23 51 00,Risk Assessment
         |33-25 00 00,Project Management Disciplines
         |33-25 BW 11,Project-Manager
         |33-25 11 00,Cost Estimation
@@ -84,7 +95,7 @@ package object baf3 {
         }
       }
       val pairs: Seq[(OC33, OC33)] = makeGroupSkillPairs(oc33entries.head, oc33entries.tail)
-      pairs.groupBy(_._1).map(ks => (ks._1.toString, ks._2.map(_._2.toString)))
+      pairs.groupBy(_._1).map(ks => (ks._1.toString, ks._2.map(_._2.toString).reverse))
     }
 
   }

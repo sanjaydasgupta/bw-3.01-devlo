@@ -16,17 +16,23 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
     val parameters = getParameterMap(request)
     try {
       type CONVERTER = String => Any
-      val identity: CONVERTER = _.trim
+      val checkCategory: CONVERTER =
+          cat => if (masterData("Docs__category").asInstanceOf[Seq[String]].contains(cat))
+            cat
+          else
+            throw new IllegalArgumentException(s"bad category '$cat'")
+      val noOp: CONVERTER = _.trim
       val oid: CONVERTER = new ObjectId(_)
       val toArray: CONVERTER = _.split(",").map(_.trim).toSeq
       val nameValuePairs: Map[String, Any] = Array(
           ("deliverable_id", oid, None), ("activity_id", oid, None), ("phase_id", oid, None),
-          ("project_id", oid, None), ("description", identity, None), ("file_format", identity, Some("type")),
-          ("team_id", oid, None), ("name", identity, None), ("tags", toArray, Some("labels")),
-          ("category", identity, None)).flatMap(triple => parameters.get(triple._1).
+          ("project_id", oid, None), ("description", noOp, None), ("file_format", noOp, Some("type")),
+          ("team_id", oid, None), ("name", noOp, None), ("tags", toArray, Some("labels")),
+          ("category", checkCategory, None)).flatMap(triple => parameters.get(triple._1).
           map(value => (triple._3 match {case None => triple._1; case Some(name) => name}, triple._2(value)))).toMap
 
-      val missingParams = Seq("project_id", "name", "category", "labels", "type").filterNot(nameValuePairs.contains)
+      val missingParams = Seq("project_id", "phase_id", "team_id", "category", "name", "type").
+          filterNot(nameValuePairs.contains)
       if (missingParams.nonEmpty)
         throw new IllegalArgumentException(s"""Missing parameters: ${missingParams.mkString(", ")}""")
 

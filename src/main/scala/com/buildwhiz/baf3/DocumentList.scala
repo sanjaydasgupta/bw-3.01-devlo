@@ -64,15 +64,17 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
         val authorName: String = if (PersonApi.exists(authorOid)) {
           PersonApi.fullName(PersonApi.personById(authorOid))
         } else {
-          "Unknown Unknown"
+          "NA"
         }
         Map("name" -> doc.name[String], "_id" -> doc._id[ObjectId].toString, "phase_name" -> phaseName,
           "team" -> teamName, "category" -> category, "tags" -> systemLabels, "type" -> fileExtension,
-          "uploaded_by" -> authorName, "date" -> date, "version_count" -> versionCount, "size" -> fileSize)
+          "uploaded_by" -> authorName, "date" -> date, "version_count" -> versionCount, "size" -> fileSize,
+          "can_upload" -> true)
       } else {
         Map("name" -> doc.name[String], "_id" -> doc._id[ObjectId].toString, "phase_name" -> phaseName,
           "team" -> teamName, "category" -> category, "tags" -> systemLabels, "type" -> fileExtension,
-          "uploaded_by" -> "NA", "date" -> "NA", "version_count" -> versionCount, "size" -> "NA")
+          "uploaded_by" -> "NA", "date" -> "NA", "version_count" -> versionCount, "size" -> "NA",
+          "can_upload" -> true)
       }
       documentProperties
     })
@@ -91,10 +93,11 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => ProjectApi.canManage(userOid, ProjectApi.projectById(projectOid))
       }
       val canDelete = canManage && user.first_name[String] == "Prabhas"
+      val canAdd = canManage || PersonApi.isBuildWhizAdmin(Right(user))
       val allDocuments = getDocuments(user, request).asJava
       //val gDriveUrl = PersonApi.userGDriveFolderUrl(user)
       val result = new Document("document_list", allDocuments).append("can_rename", canManage).
-          append("can_delete", canDelete).append("can_add", true)//.append("g_drive_url", gDriveUrl)
+          append("can_delete", canDelete).append("can_add", canAdd)//.append("g_drive_url", gDriveUrl)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

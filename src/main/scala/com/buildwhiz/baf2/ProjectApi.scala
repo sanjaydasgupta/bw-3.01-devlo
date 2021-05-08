@@ -91,6 +91,11 @@ object ProjectApi extends HttpUtils {
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 
+  def hasRole30(personOid: ObjectId, project: DynDoc): Boolean = {
+    project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
+        allPhases(project).exists(phase => PhaseApi.hasRole30(personOid, phase))
+  }
+
   def hasRole(personOid: ObjectId, project: DynDoc): Boolean = {
     isAdmin(personOid, project) || project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
         allPhases(project).exists(phase => PhaseApi.hasRole(personOid, phase)) ||
@@ -113,10 +118,23 @@ object ProjectApi extends HttpUtils {
     projects.filter(project => hasRole(personOid, project))
   }
 
+  def projectsByUser30(personOid: ObjectId): Seq[DynDoc] = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
+    projects.filter(project => hasRole30(personOid, project))
+  }
+
   def projectsByQuery(query: Map[String, Any], optPersonOid: Option[ObjectId] = None): Seq[DynDoc] = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find(query)
     optPersonOid match {
       case Some(personOid) => projects.filter(project => hasRole(personOid, project))
+      case None => projects
+    }
+  }
+
+  def projectsByQuery30(query: Map[String, Any], optPersonOid: Option[ObjectId] = None): Seq[DynDoc] = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(query)
+    optPersonOid match {
+      case Some(personOid) => projects.filter(project => hasRole30(personOid, project))
       case None => projects
     }
   }

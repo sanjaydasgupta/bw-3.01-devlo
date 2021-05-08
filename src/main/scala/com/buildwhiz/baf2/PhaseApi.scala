@@ -69,6 +69,23 @@ object PhaseApi {
     BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
   }
 
+  def allTeamOids30(phase: DynDoc): Seq[ObjectId] = {
+    phase.get[Many[Document]]("team_assignments") match {
+      case Some(ta) => ta.map(_.team_id[ObjectId])
+      case None => Seq.empty[ObjectId]
+    }
+  }
+
+  def hasRole30(personOid: ObjectId, phase: DynDoc): Boolean = {
+    def hasTeamRole: Boolean = {
+      val personsTeamOids: Set[ObjectId] = PersonApi.allTeams30(personOid).map(_._id[ObjectId]).toSet
+      val phasesTeamOids: Set[ObjectId] = allTeamOids30(phase).toSet
+      (personsTeamOids & phasesTeamOids).nonEmpty
+    }
+    val hasDirectRole = phase.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid)
+    hasDirectRole || hasTeamRole
+  }
+
   def hasRole(personOid: ObjectId, phase: DynDoc): Boolean = {
     isAdmin(personOid, phase) || phase.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
       allProcesses(phase).exists(process => ProcessApi.hasRole(personOid, process))

@@ -209,6 +209,10 @@ object PersonApi {
     true
   }
 
+  def allTeams30(personOid: ObjectId): Seq[DynDoc] = {
+    BWMongoDB3.teams.find(Map("team_members" -> Map($elemMatch -> Map("person_id" -> personOid))))
+  }
+
   def allRoles(person: DynDoc): Seq[String] = person.roles[Many[String]]
 
   def userGDriveFolderName(user: DynDoc) = s"${fullName(user)} (${user._id[ObjectId]})"

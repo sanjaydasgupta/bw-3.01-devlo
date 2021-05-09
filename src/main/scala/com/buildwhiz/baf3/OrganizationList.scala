@@ -37,7 +37,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
       val optActivityOids = parameters.get("activity_id").map(_.split(",").map(id => new ObjectId(id.trim)))
       val skillParameter: Option[String] = parameters.get("skill")
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-      val myProjects = ProjectApi.projectsByUser(user._id[ObjectId])
+      val myProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
       def matchSkill(organization: DynDoc): Boolean = {
         skillParameter match {
           case None => true

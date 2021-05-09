@@ -94,7 +94,7 @@ object ProjectList extends HttpUtils {
     val projects: Seq[DynDoc] = if (isAdmin) {
       BWMongoDB3.projects.find(scopeQuery)
     } else {
-      ProjectApi.projectsByQuery(scopeQuery, Some(userOid))
+      ProjectApi.projectsByQuery30(scopeQuery, Some(userOid))
     }
     if (doLog)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)

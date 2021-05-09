@@ -7,6 +7,9 @@ import org.bson.types.ObjectId
 
 object TeamApi {
 
+  def teamsByIds(teamOids: Seq[ObjectId]): Seq[DynDoc] =
+    BWMongoDB3.teams.find(Map("_id" -> Map($in -> teamOids)))
+
   def teamById(teamOid: ObjectId): DynDoc = BWMongoDB3.teams.find(Map("_id" -> teamOid)).head
 
 }

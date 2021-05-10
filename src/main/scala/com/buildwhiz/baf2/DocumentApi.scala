@@ -2,7 +2,6 @@ package com.buildwhiz.baf2
 
 import java.io.{File, FileOutputStream, InputStream}
 
-//import com.buildwhiz.infra.{AmazonS3, BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import BWMongoDB3._
 import DynDoc._
@@ -114,8 +113,27 @@ object DocumentApi extends HttpUtils {
     }
   }
 
-  def documentList3(request: HttpServletRequest): Seq[DynDoc] = {
+  def documentList30(request: HttpServletRequest): Seq[DynDoc] = {
     val user: DynDoc = getUser(request)
+    val myTeamOids: Seq[ObjectId] = PersonApi.allTeams30(user._id[ObjectId]).map(_._id[ObjectId])
+    if (myTeamOids.nonEmpty) {
+      val parameters = getParameterMap(request)
+      val parameterValues: Seq[Option[ObjectId]] = Seq("project_id", "phase_id").
+          map(n => parameters.get(n).map(id => new ObjectId(id)))
+      val query: Map[String, Any] = parameterValues match {
+        case Seq(_, Some(phaseOid)) =>
+          Map("phase_id" -> phaseOid, "team_id" -> Map($in -> myTeamOids))
+        case Seq(Some(projectOid), _) =>
+          Map("project_id" -> projectOid, "team_id" -> Map($in -> myTeamOids))
+        case _ => throw new IllegalArgumentException("No parameters found")
+      }
+      BWMongoDB3.document_master.find(query)
+    } else {
+      Seq.empty[DynDoc]
+    }
+  }
+
+  def documentList3(request: HttpServletRequest): Seq[DynDoc] = {
     val parameters = getParameterMap(request)
     val parameterValues: Array[Option[ObjectId]] = Array("deliverable_id", "activity_id", "phase_id", "project_id").
         map(n => parameters.get(n).map(id => new ObjectId(id)))

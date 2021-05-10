@@ -24,15 +24,11 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def getDocuments(user: DynDoc, request: HttpServletRequest): Seq[Document] = {
-    val docRecords: Seq[DynDoc] = DocumentApi.documentList3(request)
+    val docRecords: Seq[DynDoc] = DocumentApi.documentList30(request)
     val phaseOid2NameMap: Map[ObjectId, String] = docRecords.flatMap(_.get[ObjectId]("phase_id")).distinct.
         map(oid => (oid, PhaseApi.phaseById(oid).name[String])).toMap
     val teamOid2NameMap: Map[ObjectId, String] = docRecords.flatMap(_.get[ObjectId]("team_id")).distinct.
         map(oid => (oid, TeamApi.teamById(oid).team_name[String])).toMap
-    val projectName = docRecords.headOption match {
-      case Some(doc) => ProjectApi.projectById(doc.project_id[ObjectId]).name[String]
-      case None => "-" // Never used
-    }
     val docProperties: Seq[Document] = docRecords.map(doc => {
       val fileExtension = doc.get[String]("type") match {
         case Some(fileExt) => fileExt

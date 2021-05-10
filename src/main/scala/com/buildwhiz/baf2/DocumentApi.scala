@@ -114,22 +114,35 @@ object DocumentApi extends HttpUtils {
   }
 
   def documentList30(request: HttpServletRequest): Seq[DynDoc] = {
+    val parameters = getParameterMap(request)
+    val Seq(optProjectOid, optPhaseOid) = Seq("project_id", "phase_id").
+        map(n => parameters.get(n).map(id => new ObjectId(id)))
     val user: DynDoc = getUser(request)
-    val myTeamOids: Seq[ObjectId] = PersonApi.allTeams30(user._id[ObjectId]).map(_._id[ObjectId])
-    if (myTeamOids.nonEmpty) {
-      val parameters = getParameterMap(request)
-      val parameterValues: Seq[Option[ObjectId]] = Seq("project_id", "phase_id").
-          map(n => parameters.get(n).map(id => new ObjectId(id)))
-      val query: Map[String, Any] = parameterValues match {
-        case Seq(_, Some(phaseOid)) =>
-          Map("phase_id" -> phaseOid, "team_id" -> Map($in -> myTeamOids))
-        case Seq(Some(projectOid), _) =>
-          Map("project_id" -> projectOid, "team_id" -> Map($in -> myTeamOids))
+    val managed = optProjectOid.map(ProjectApi.projectById).map(ProjectApi.canManage(user._id[ObjectId], _)) match {
+      case Some(true) => true
+      case _ => false
+    }
+    if (PersonApi.isBuildWhizAdmin(Right(user)) || managed) {
+      val query: Map[String, Any] = (optProjectOid, optPhaseOid) match {
+        case (_, Some(phaseOid)) => Map("phase_id" -> phaseOid)
+        case (Some(projectOid), _) => Map("project_id" -> projectOid)
         case _ => throw new IllegalArgumentException("No parameters found")
       }
       BWMongoDB3.document_master.find(query)
     } else {
-      Seq.empty[DynDoc]
+      val myTeamOids: Seq[ObjectId] = PersonApi.allTeams30(user._id[ObjectId]).map(_._id[ObjectId])
+      if (myTeamOids.nonEmpty) {
+        val query: Map[String, Any] = (optProjectOid, optPhaseOid) match {
+          case (_, Some(phaseOid)) =>
+            Map("phase_id" -> phaseOid, "team_id" -> Map($in -> myTeamOids))
+          case (Some(projectOid), _) =>
+            Map("project_id" -> projectOid, "team_id" -> Map($in -> myTeamOids))
+          case _ => throw new IllegalArgumentException("No parameters found")
+        }
+        BWMongoDB3.document_master.find(query)
+      } else {
+        Seq.empty[DynDoc]
+      }
     }
   }
 

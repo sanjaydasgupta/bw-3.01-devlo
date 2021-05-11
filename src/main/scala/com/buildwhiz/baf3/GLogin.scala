@@ -88,19 +88,19 @@ class GLogin extends HttpServlet with HttpUtils with DateTimeUtils {
           case Some(webapps) =>
             val user: DynDoc = getUser(request)
             val tz = user.tz[String]
-            val bwWarDate = webapps.listFiles.find(f => f.getName == "bw-3.01" && f.isDirectory) match {
-              case Some(java) => dateString(java.lastModified(), tz)
+            val javaDate = webapps.listFiles.find(f => f.getName == "bw-3.01" && f.isDirectory) match {
+              case Some(javaWarDir) => dateString(javaWarDir.listFiles.map(_.lastModified).max, tz)
               case None => "Unknown"
             }
-            val nodeDate = Seq(new javaFile("/home/ubuntu/node")).find(f => f.exists && f.isDirectory) match {
-              case Some(java) => dateString(java.lastModified(), tz)
+            val nodeDate = Seq(new javaFile("/home/ubuntu/node/src")).find(f => f.exists && f.isDirectory) match {
+              case Some(nodeDir) => dateString(nodeDir.lastModified, tz)
               case None => "Unknown"
             }
-            val vvDate = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {
-              case Some(vv) => dateString(vv.lastModified(), tz)
+            val uiDate = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {
+              case Some(uiDir) => dateString(uiDir.listFiles.map(_.lastModified).max, tz)
               case None => "Unknown"
             }
-            Map("date_java" -> bwWarDate, "date_node" -> nodeDate, "date_ui" -> vvDate)
+            Map("date_java" -> javaDate, "date_node" -> nodeDate, "date_ui" -> uiDate)
           case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")
         }
       case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")

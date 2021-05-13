@@ -66,7 +66,10 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils with Date
         case Some(phaseOid) => PhaseApi.phaseById(phaseOid).name[String]
       }
       val documentName = documentRecord.name[String]
-      val systemTags = documentRecord.labels[Many[String]].mkString(",")
+      val systemTags = documentRecord.get[Many[String]]("labels") match {
+        case Some(labels) => labels.mkString(",")
+        case None => ""
+      }
       val properties = Map("project" -> projectName, "phase" -> phaseName, "name" -> documentName, "tags" -> systemTags,
           "author" -> authorName, "timestamp" -> dateTimeString(timestamp))
       val storageResults = DocumentApi.storeDocument(fullFileName, inputStream, projectOid.toString,

@@ -18,14 +18,18 @@ trait BpmnUtils {
     allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head
   }
 
-  def getProcessDefinition(bpmnName: String): ProcessDefinition = {
+  def getProcessDefinition(bpmnName: String, version: Int = -1): ProcessDefinition = {
     //BWLogger.log(getClass.getName, s"getProcessDefinition($bpmnName)", "ENTRY")
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().list().asScala
+      repositoryService.createProcessDefinitionQuery().list().asScala.filter(_.getKey == bpmnName)
+    val expectedVersion = if (version == -1)
+      allProcessDefinitions.map(_.getVersion).max
+    else
+      version
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got allProcessDefinitions")
-    val processDefinition = allProcessDefinitions.find(_.getKey == bpmnName) match {
+    val processDefinition = allProcessDefinitions.find(_.getVersion == expectedVersion) match {
       case Some(pd) => pd
       case None =>
         val message = s"process '$bpmnName' not found among ${allProcessDefinitions.map(_.getKey).mkString(", ")}"
@@ -37,23 +41,23 @@ trait BpmnUtils {
 
   def getBpmnName(de: DelegateExecution): String = getProcessDefinition(de).getKey
 
-  def getProcessModel(bpmnName: String): InputStream = {
+  def getProcessModel(bpmnName: String, version: Int = -1): InputStream = {
     //BWLogger.log(getClass.getName, s"getProcessModel($bpmnName)", "ENTRY")
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     //BWLogger.log(getClass.getName, "getProcessModel", "Got RepositoryService")
-    val inputStream = repositoryService.getProcessModel(getProcessDefinition(bpmnName).getId)
+    val inputStream = repositoryService.getProcessModel(getProcessDefinition(bpmnName, version).getId)
     //BWLogger.log(getClass.getName, "getProcessModel", "EXIT")
     inputStream
   }
 
-  def getProcessDiagram(bpmnName: String): InputStream = {
+  def getProcessDiagram(bpmnName: String, version: Int = -1): InputStream = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    repositoryService.getProcessDiagram(getProcessDefinition(bpmnName).getId)
+    repositoryService.getProcessDiagram(getProcessDefinition(bpmnName, version).getId)
   }
 
-  def bpmnModelInstance(bpmnName: String): BpmnModelInstance = {
+  def bpmnModelInstance(bpmnName: String, version: Int = -1): BpmnModelInstance = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
-    repositoryService.getBpmnModelInstance(getProcessDefinition(bpmnName).getId)
+    repositoryService.getBpmnModelInstance(getProcessDefinition(bpmnName, version).getId)
   }
 
   def getDeployedResources: Seq[Resource] = {

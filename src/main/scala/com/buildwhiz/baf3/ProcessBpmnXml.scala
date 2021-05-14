@@ -190,10 +190,19 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       //val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val processModelStream = if (bpmnFileName == "****")
+      val process: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
+        case Some(p) => p
+        case None => throw new IllegalArgumentException("Phase has no processes")
+      }
+      val processModelStream = if (bpmnFileName == "****") {
         new ByteArrayInputStream(placeholder.getBytes)
-      else
-        getProcessModel(bpmnFileName)
+      } else {
+        val version = process.get[Int]("process_version") match {
+          case Some(v) => v
+          case None => 1
+        }
+        getProcessModel(bpmnFileName, version)
+      }
       val blockBuffer = new Array[Byte](4096)
       val byteBuffer = mutable.Buffer.empty[Byte]
       @tailrec
@@ -206,10 +215,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
       copyModelToOutput()
       val xml = new String(byteBuffer.toArray)
-      val process: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
-        case Some(p) => p
-        case None => throw new IllegalArgumentException("Phase has no processes")
-      }
       val processVariables = getVariables(process, bpmnFileName)
       val processTimers = getTimers(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])

@@ -29,7 +29,8 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
           map(kv => (kv._2._2, kv._2._1(parameters(kv._1))))
       val documentOid = parameterValues("document_id").asInstanceOf[ObjectId]
       val setter: Map[String, Any] = parameterValues.filterNot(_._1 == "ObjectId")
-
+      if (setter.isEmpty)
+        throw new IllegalArgumentException("No parameter values found")
       val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid), Map("$set" -> setter))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

@@ -24,7 +24,7 @@ trait BpmnUtils {
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
     val allProcessDefinitions: Seq[ProcessDefinition] =
       repositoryService.createProcessDefinitionQuery().list().asScala.filter(_.getKey == bpmnName)
-    val expectedVersion = if (version == -1)
+    val expectedVersion = if (allProcessDefinitions.length == 1 || version == -1)
       allProcessDefinitions.map(_.getVersion).max
     else
       version

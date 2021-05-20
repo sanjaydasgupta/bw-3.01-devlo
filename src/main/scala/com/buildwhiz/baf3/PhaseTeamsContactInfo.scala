@@ -33,9 +33,11 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
               val roles = memberInfo.roles[Many[String]].mkString(", ")
               val personRecord = PersonApi.personById(memberInfo.person_id[ObjectId])
               val personName = PersonApi.fullName(personRecord)
-              val phone = personRecord.phones[Many[Document]].find(_.`type`[String] == "work").head.phone[String]
-              val email = personRecord.emails[Many[Document]].find(_.`type`[String] == "work").head.email[String]
-              Seq(team.team_name[String], partnerName, personName, roles, phone, email).mkString("[\"", "\", \"", "\"]")
+              val phones = personRecord.phones[Many[Document]].map(p => s"${p.`type`[String]}:${p.phone[String]}").
+                  mkString(";")
+              val emails = personRecord.emails[Many[Document]].map(p => s"${p.`type`[String]}:${p.email[String]}").
+                  mkString(";")
+              Seq(team.team_name[String], partnerName, personName, roles, phones, emails).mkString("[\"", "\", \"", "\"]")
             })
             case None => Seq.empty[String]
           }

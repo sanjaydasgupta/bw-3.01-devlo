@@ -25,18 +25,22 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
       }
       val teams = TeamApi.teamsByIds(teamOids)
       val contactInfo: Seq[String] = teams.flatMap(team => {
-        val partner = OrganizationApi.organizationById(team.organization_id[ObjectId])
-        val partnerName = partner.name[String]
-        team.get[Many[Document]]("team_members") match {
-          case Some(memberInfos) => memberInfos.map(memberInfo => {
-            val roles = memberInfo.roles[Many[String]].mkString(", ")
-            val personRecord = PersonApi.personById(memberInfo.person_id[ObjectId])
-            val personName = PersonApi.fullName(personRecord)
-            val phone = personRecord.phones[Many[Document]].find(_.`type`[String] == "work").head.phone[String]
-            val email = personRecord.emails[Many[Document]].find(_.`type`[String] == "work").head.email[String]
-            Seq(team.team_name[String], partnerName, personName, roles, phone, email).mkString("[\"", "\", \"", "\"]")
-          })
-          case None => Seq.empty[String]
+        if (team.has("organization_id")) {
+          val partner = OrganizationApi.organizationById(team.organization_id[ObjectId])
+          val partnerName = partner.name[String]
+          team.get[Many[Document]]("team_members") match {
+            case Some(memberInfos) => memberInfos.map(memberInfo => {
+              val roles = memberInfo.roles[Many[String]].mkString(", ")
+              val personRecord = PersonApi.personById(memberInfo.person_id[ObjectId])
+              val personName = PersonApi.fullName(personRecord)
+              val phone = personRecord.phones[Many[Document]].find(_.`type`[String] == "work").head.phone[String]
+              val email = personRecord.emails[Many[Document]].find(_.`type`[String] == "work").head.email[String]
+              Seq(team.team_name[String], partnerName, personName, roles, phone, email).mkString("[\"", "\", \"", "\"]")
+            })
+            case None => Seq.empty[String]
+          }
+        } else {
+          Seq.empty[String]
         }
       })
       response.getWriter.print(contactInfo.mkString("[", ",", "]"))

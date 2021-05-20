@@ -102,8 +102,14 @@ object PhaseInfo2 extends DateTimeUtils {
       ("NA", "Estimated Finish Date")
     }
     val bpmnName = PhaseApi.allProcesses(phase).head.bpmn_name[String]
-    val durationLikely =
-        ProcessBpmnTraverse.processDurationRecalculate(bpmnName, phase._id[ObjectId], Map.empty[ObjectId, Int], request)
+    val durationLikely = try {
+      ProcessBpmnTraverse.processDurationRecalculate(bpmnName, phase._id[ObjectId], Map.empty[ObjectId, Int], request).toString
+    } catch {
+      case t: Throwable =>
+        val message = "ProcessBpmnTraverse.processDurationRecalculate() throws: "
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: $message ${t.getClass.getName}(${t.getMessage})", request)
+        "NA"
+    }
     Seq(
       ("date_start", startDate),
       ("date_finish", finishDate),
@@ -112,7 +118,7 @@ object PhaseInfo2 extends DateTimeUtils {
       ("label_date_finish", finishDateLabel),
       ("duration_optimistic", "NA"),
       ("duration_pessimistic", "NA"),
-      ("duration_likely", durationLikely.toString)
+      ("duration_likely", durationLikely)
     )
   }
 

@@ -21,17 +21,23 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
-      activityDurations: Map[ObjectId, Int]): Long = {
+      activityDurations: Map[ObjectId, Int], request: HttpServletRequest): Long = {
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val theActivity: DynDoc = BWMongoDB3.activities.
-      find(Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)).head
-    if (activityDurations.contains(theActivity._id[ObjectId])) {
-      activityDurations(theActivity._id[ObjectId])
-    } else {
-      ActivityApi.durationLikely3(theActivity) match {
-        case Some(days) => days
-        case None => 0
-      }
+    val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)
+    BWMongoDB3.activities.find(query).headOption match {
+      case Some(theActivity) =>
+        if (activityDurations.contains(theActivity._id[ObjectId])) {
+          activityDurations(theActivity._id[ObjectId])
+        } else {
+          ActivityApi.durationLikely3(theActivity) match {
+            case Some(days) => days
+            case None =>
+              0
+          }
+        }
+      case None =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find activity", request)
+        0
     }
   }
 
@@ -83,7 +89,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
 
       val timeOffset = node match {
         case userTask: UserTask =>
-          maxPredecessorOffset(userTask) + getActivityDuration(userTask.getId, process, bpmnName, activityDurations)
+          maxPredecessorOffset(userTask) + getActivityDuration(userTask.getId, process, bpmnName, activityDurations, request)
         case serviceTask: ServiceTask =>
           maxPredecessorOffset(serviceTask)
         case _: StartEvent =>
@@ -97,7 +103,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
         case callActivity: CallActivity =>
           val calledElement = callActivity.getCalledElement
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
-            getActivityDuration(callActivity.getId, process, bpmnName, activityDurations)
+            getActivityDuration(callActivity.getId, process, bpmnName, activityDurations, request)
           } else {
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
@@ -121,8 +127,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
     if (endEvents.length > 1)
       BWLogger.log(getClass.getName, "processDurationRecalculate",
          s"WARN: found ${endEvents.length} EndEvent nodes in BPMN", request)
-    val offset = getTimeOffset(endEvents.head, bpmnName, onCriticalPath = true, Set.empty[FlowNode])
-    offset
+    val endOffsets = endEvents.map(getTimeOffset(_, bpmnName, onCriticalPath = true, Set.empty[FlowNode]))
+    endOffsets.max
   }
 
 }

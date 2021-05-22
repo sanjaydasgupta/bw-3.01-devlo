@@ -9,14 +9,16 @@
   </bpmn:collaboration>
   <bpmn:process id="Phase-Precon-Top" name="Phase Precon Top" isExecutable="true">
     <bpmn:laneSet id="LaneSet_06k3xgh" />
-    <bpmn:startEvent id="StartEvent_1">
+    <bpmn:startEvent id="Start-DD" name="Start-DD">
       <bpmn:outgoing>Flow_13lth3i</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:callActivity id="Activity_01tdux6" name="100% DD" calledElement="Precon-Design-100-DD">
-      <bpmn:incoming>Flow_0ujcg21</bpmn:incoming>
+      <bpmn:incoming>Flow_0j38ah4</bpmn:incoming>
       <bpmn:outgoing>Flow_1s4qx8b</bpmn:outgoing>
     </bpmn:callActivity>
     <bpmn:intermediateThrowEvent id="Event_0n46w1r" name="SD Complete">
+      <bpmn:incoming>Flow_1d3730b</bpmn:incoming>
+      <bpmn:outgoing>Flow_0j38ah4</bpmn:outgoing>
       <bpmn:signalEventDefinition id="SignalEventDefinition_0ofl94n" signalRef="Signal_1fg0m2z" />
     </bpmn:intermediateThrowEvent>
     <bpmn:intermediateThrowEvent id="Event_06kr0a6" name="100% DD">
@@ -42,13 +44,13 @@
       <bpmn:incoming>Flow_0obpc7e</bpmn:incoming>
       <bpmn:outgoing>Flow_0h1u072</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:endEvent id="Event_1i9erlj">
+    <bpmn:endEvent id="End-DD" name="End DD">
       <bpmn:incoming>Flow_02c6v5p</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:parallelGateway id="Gateway_0t4pibt">
       <bpmn:incoming>Flow_1rf3x4v</bpmn:incoming>
       <bpmn:incoming>Flow_1xcfhbx</bpmn:incoming>
-      <bpmn:outgoing>Flow_0ujcg21</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1d3730b</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:parallelGateway id="Gateway_1snxv8a">
       <bpmn:incoming>Flow_13lth3i</bpmn:incoming>
@@ -65,7 +67,7 @@
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1xuluz8" sourceRef="Gateway_1snxv8a" targetRef="Activity_1vy2unm" />
     <bpmn:sequenceFlow id="Flow_0kttqdd" sourceRef="Gateway_1snxv8a" targetRef="Activity_16rfvmy" />
-    <bpmn:sequenceFlow id="Flow_02c6v5p" sourceRef="Event_12fztmk" targetRef="Event_1i9erlj" />
+    <bpmn:sequenceFlow id="Flow_02c6v5p" sourceRef="Event_12fztmk" targetRef="End-DD" />
     <bpmn:sequenceFlow id="Flow_0h1u072" sourceRef="Activity_0vcax9q" targetRef="Event_12fztmk" />
     <bpmn:sequenceFlow id="Flow_0obpc7e" sourceRef="Event_0k7yuut" targetRef="Activity_0vcax9q" />
     <bpmn:sequenceFlow id="Flow_11n9byw" sourceRef="Activity_1ts9vyj" targetRef="Event_0k7yuut" />
@@ -73,8 +75,9 @@
     <bpmn:sequenceFlow id="Flow_1s4qx8b" sourceRef="Activity_01tdux6" targetRef="Event_06kr0a6" />
     <bpmn:sequenceFlow id="Flow_1xcfhbx" sourceRef="Activity_1vy2unm" targetRef="Gateway_0t4pibt" />
     <bpmn:sequenceFlow id="Flow_1rf3x4v" sourceRef="Activity_16rfvmy" targetRef="Gateway_0t4pibt" />
-    <bpmn:sequenceFlow id="Flow_13lth3i" sourceRef="StartEvent_1" targetRef="Gateway_1snxv8a" />
-    <bpmn:sequenceFlow id="Flow_0ujcg21" sourceRef="Gateway_0t4pibt" targetRef="Activity_01tdux6" />
+    <bpmn:sequenceFlow id="Flow_13lth3i" sourceRef="Start-DD" targetRef="Gateway_1snxv8a" />
+    <bpmn:sequenceFlow id="Flow_1d3730b" sourceRef="Gateway_0t4pibt" targetRef="Event_0n46w1r" />
+    <bpmn:sequenceFlow id="Flow_0j38ah4" sourceRef="Event_0n46w1r" targetRef="Activity_01tdux6" />
   </bpmn:process>
   <bpmn:category id="Category_1c33ej4">
     <bpmn:categoryValue id="CategoryValue_15kri2a" value="SD" />
@@ -88,10 +91,10 @@
   <bpmn:signal id="Signal_0em103h" name="Signal_2iu9i1a" />
   <bpmn:signal id="Signal_1dvp7y7" name="Signal_2j6vhl7" />
   <bpmn:process id="Precon-Finance" name="Precon Finance" isExecutable="false">
-    <bpmn:endEvent id="Event_0g7suni">
+    <bpmn:endEvent id="End-Finance" name="End&#10;Finance">
       <bpmn:incoming>Flow_0f3va2l</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:startEvent id="Event_0kykk1g">
+    <bpmn:startEvent id="Start-Finance" name="Start&#10;Finance">
       <bpmn:outgoing>Flow_1opm3z6</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:userTask id="Activity_0jaa4c8" name="Prepare Proforma">
@@ -111,14 +114,14 @@
       <bpmn:outgoing>Flow_0f3va2l</bpmn:outgoing>
       <bpmn:signalEventDefinition id="SignalEventDefinition_1322alc" signalRef="Signal_1dvp7y7" />
     </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="Flow_0f3va2l" sourceRef="Event_1opmkem" targetRef="Event_0g7suni" />
-    <bpmn:sequenceFlow id="Flow_1opm3z6" sourceRef="Event_0kykk1g" targetRef="Activity_0jaa4c8" />
+    <bpmn:sequenceFlow id="Flow_0f3va2l" sourceRef="Event_1opmkem" targetRef="End-Finance" />
+    <bpmn:sequenceFlow id="Flow_1opm3z6" sourceRef="Start-Finance" targetRef="Activity_0jaa4c8" />
     <bpmn:sequenceFlow id="Flow_1mcs4zn" sourceRef="Activity_0jaa4c8" targetRef="Activity_0xgcmuy" />
     <bpmn:sequenceFlow id="Flow_0gtshm9" sourceRef="Activity_0xgcmuy" targetRef="Activity_1wbs0mu" />
     <bpmn:sequenceFlow id="Flow_0fuaiyg" sourceRef="Activity_1wbs0mu" targetRef="Event_1opmkem" />
   </bpmn:process>
   <bpmn:process id="Precon-Target-Value" name="Precon Target Value" isExecutable="false">
-    <bpmn:startEvent id="Event_1rkklen">
+    <bpmn:startEvent id="Start-TV" name="Start&#10;TV">
       <bpmn:outgoing>Flow_0122ksb</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:userTask id="Activity_1qqkyku" name="Set Target">
@@ -137,17 +140,17 @@
       <bpmn:incoming>Flow_0wa46f0</bpmn:incoming>
       <bpmn:outgoing>Flow_1vvdn8x</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="Event_0q19vnv">
+    <bpmn:endEvent id="End-TV" name="End&#10;TV">
       <bpmn:incoming>Flow_1vvdn8x</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0122ksb" sourceRef="Event_1rkklen" targetRef="Activity_1qqkyku" />
+    <bpmn:sequenceFlow id="Flow_0122ksb" sourceRef="Start-TV" targetRef="Activity_1qqkyku" />
     <bpmn:sequenceFlow id="Flow_0iva1vz" sourceRef="Activity_1qqkyku" targetRef="Activity_0rsouoi" />
     <bpmn:sequenceFlow id="Flow_11goe48" sourceRef="Activity_0rsouoi" targetRef="Activity_0w1v2bs" />
     <bpmn:sequenceFlow id="Flow_0wa46f0" sourceRef="Activity_0w1v2bs" targetRef="Activity_079ykkc" />
-    <bpmn:sequenceFlow id="Flow_1vvdn8x" sourceRef="Activity_079ykkc" targetRef="Event_0q19vnv" />
+    <bpmn:sequenceFlow id="Flow_1vvdn8x" sourceRef="Activity_079ykkc" targetRef="End-TV" />
   </bpmn:process>
   <bpmn:process id="Precon-Permitting" name="Precon Precon Permitting" isExecutable="false">
-    <bpmn:startEvent id="Event_17p7uzl">
+    <bpmn:startEvent id="Start-Permitting" name="Start&#10;Permitting">
       <bpmn:outgoing>Flow_0nfttqf</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:intermediateThrowEvent id="Event_0xt282u" name="Apply for Site Permit">
@@ -176,7 +179,7 @@
       <bpmn:incoming>Flow_04emx6n</bpmn:incoming>
       <bpmn:outgoing>Flow_0oqx87h</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="Event_08q3aj0">
+    <bpmn:endEvent id="End-Permitting" name="End&#10;Permitting">
       <bpmn:incoming>Flow_01zj6wu</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:intermediateThrowEvent id="Event_08f4pdd" name="All Permits Approved">
@@ -184,23 +187,27 @@
       <bpmn:outgoing>Flow_01zj6wu</bpmn:outgoing>
       <bpmn:signalEventDefinition id="SignalEventDefinition_07fxx9r" signalRef="Signal_0em103h" />
     </bpmn:intermediateThrowEvent>
-    <bpmn:sequenceFlow id="Flow_0nfttqf" sourceRef="Event_17p7uzl" targetRef="Event_0xt282u" />
+    <bpmn:sequenceFlow id="Flow_0nfttqf" sourceRef="Start-Permitting" targetRef="Event_0xt282u" />
     <bpmn:sequenceFlow id="Flow_0z6yfoi" sourceRef="Event_0xt282u" targetRef="Activity_0sjl4gh" />
     <bpmn:sequenceFlow id="Flow_0zt9nj3" sourceRef="Activity_0sjl4gh" targetRef="Event_1ci4nxv" />
     <bpmn:sequenceFlow id="Flow_04st881" sourceRef="Event_1ci4nxv" targetRef="Activity_0rosvoc" />
     <bpmn:sequenceFlow id="Flow_0b3gezp" sourceRef="Activity_0rosvoc" targetRef="Activity_0xod8yz" />
     <bpmn:sequenceFlow id="Flow_04emx6n" sourceRef="Activity_0xod8yz" targetRef="Activity_18kzpgd" />
     <bpmn:sequenceFlow id="Flow_0oqx87h" sourceRef="Activity_18kzpgd" targetRef="Event_08f4pdd" />
-    <bpmn:sequenceFlow id="Flow_01zj6wu" sourceRef="Event_08f4pdd" targetRef="Event_08q3aj0" />
+    <bpmn:sequenceFlow id="Flow_01zj6wu" sourceRef="Event_08f4pdd" targetRef="End-Permitting" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Precon-Top-Pools">
       <bpmndi:BPMNShape id="Participant_0eer87x_di" bpmnElement="Phase-Precon-Top-Participant" isHorizontal="true">
         <dc:Bounds x="170" y="80" width="1460" height="390" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_0ujcg21_di" bpmnElement="Flow_0ujcg21">
-        <di:waypoint x="535" y="270" />
+      <bpmndi:BPMNEdge id="Flow_0j38ah4_di" bpmnElement="Flow_0j38ah4">
+        <di:waypoint x="648" y="270" />
         <di:waypoint x="720" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1d3730b_di" bpmnElement="Flow_1d3730b">
+        <di:waypoint x="535" y="270" />
+        <di:waypoint x="612" y="270" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_13lth3i_di" bpmnElement="Flow_13lth3i">
         <di:waypoint x="258" y="270" />
@@ -250,8 +257,11 @@
         <di:waypoint x="330" y="360" />
         <di:waypoint x="370" y="360" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start-DD">
         <dc:Bounds x="222" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="295" width="43" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0127iz4_di" bpmnElement="Activity_01tdux6">
         <dc:Bounds x="720" y="230" width="100" height="80" />
@@ -286,8 +296,11 @@
       <bpmndi:BPMNShape id="Activity_0vcax9q_di" bpmnElement="Activity_0vcax9q">
         <dc:Bounds x="1200" y="230" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1i9erlj_di" bpmnElement="Event_1i9erlj">
+      <bpmndi:BPMNShape id="Event_1i9erlj_di" bpmnElement="End-DD">
         <dc:Bounds x="1462" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1461" y="295" width="39" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_184vn1u_di" bpmnElement="Gateway_0t4pibt">
         <dc:Bounds x="485" y="245" width="50" height="50" />
@@ -324,11 +337,17 @@
         <di:waypoint x="868" y="1050" />
         <di:waypoint x="952" y="1050" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_0g7suni_di" bpmnElement="Event_0g7suni">
+      <bpmndi:BPMNShape id="Event_0g7suni_di" bpmnElement="End-Finance">
         <dc:Bounds x="952" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="950" y="1075" width="40" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0kykk1g_di" bpmnElement="Event_0kykk1g">
+      <bpmndi:BPMNShape id="Event_0kykk1g_di" bpmnElement="Start-Finance">
         <dc:Bounds x="262" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="260" y="1075" width="40" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0jaa4c8_di" bpmnElement="Activity_0jaa4c8">
         <dc:Bounds x="350" y="1010" width="100" height="80" />
@@ -368,8 +387,11 @@
         <di:waypoint x="288" y="820" />
         <di:waypoint x="340" y="820" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_1rkklen_di" bpmnElement="Event_1rkklen">
+      <bpmndi:BPMNShape id="Event_1rkklen_di" bpmnElement="Start-TV">
         <dc:Bounds x="252" y="802" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="258" y="845" width="24" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1qqkyku_di" bpmnElement="Activity_1qqkyku">
         <dc:Bounds x="340" y="780" width="100" height="80" />
@@ -383,8 +405,11 @@
       <bpmndi:BPMNShape id="Activity_079ykkc_di" bpmnElement="Activity_079ykkc">
         <dc:Bounds x="750" y="780" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0q19vnv_di" bpmnElement="Event_0q19vnv">
+      <bpmndi:BPMNShape id="Event_0q19vnv_di" bpmnElement="End-TV">
         <dc:Bounds x="892" y="802" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="900" y="845" width="20" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Participant_1mbrx1s_di" bpmnElement="Precon-Permitting-Participant" isHorizontal="true">
         <dc:Bounds x="170" y="500" width="1460" height="200" />
@@ -421,8 +446,11 @@
         <di:waypoint x="278" y="590" />
         <di:waypoint x="322" y="590" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Event_17p7uzl_di" bpmnElement="Event_17p7uzl">
+      <bpmndi:BPMNShape id="Event_17p7uzl_di" bpmnElement="Start-Permitting">
         <dc:Bounds x="242" y="572" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="236" y="615" width="50" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0xt282u_di" bpmnElement="Event_0xt282u">
         <dc:Bounds x="322" y="572" width="36" height="36" />
@@ -448,8 +476,11 @@
       <bpmndi:BPMNShape id="Activity_18kzpgd_di" bpmnElement="Activity_18kzpgd">
         <dc:Bounds x="870" y="550" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_08q3aj0_di" bpmnElement="Event_08q3aj0">
+      <bpmndi:BPMNShape id="Event_08q3aj0_di" bpmnElement="End-Permitting">
         <dc:Bounds x="1092" y="572" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1085" y="615" width="50" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_08f4pdd_di" bpmnElement="Event_08f4pdd">
         <dc:Bounds x="1012" y="572" width="36" height="36" />

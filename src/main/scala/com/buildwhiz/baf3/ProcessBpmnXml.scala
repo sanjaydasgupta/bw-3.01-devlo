@@ -22,6 +22,34 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
+  private def getMilestones(process: DynDoc, processName: String): Seq[Document] = {
+    val milestones: Seq[DynDoc] = process.get[Many[Document]]("milestones") match {
+      case Some(ms) => ms.filter(_.bpmn_name[String] == processName)
+      case None => Seq.empty[DynDoc]
+    }
+    milestones.map(milestone => {
+      new Document("bpmn_id", milestone.bpmn_id[String]).append("id", milestone.bpmn_id[String]).
+          append("name", milestone.name[String]).
+          append("start", milestone.start[String]).append("end", milestone.end[String]).
+          append("status", milestone.status[String]).append("elementType", "milestone").
+          append("on_critical_path", if (milestone.has("on_critical_path")) milestone.on_critical_path[Boolean] else false)
+    })
+  }
+
+  private def getEndNodes(process: DynDoc, processName: String): Seq[Document] = {
+    val endNodes: Seq[DynDoc] = process.get[Many[Document]]("end_nodes") match {
+      case Some(ens) => ens.filter(_.bpmn_name[String] == processName)
+      case None => Seq.empty[DynDoc]
+    }
+    endNodes.map(endNode => {
+      new Document("bpmn_id", endNode.bpmn_id[String]).append("id", endNode.bpmn_id[String]).
+          append("name", endNode.name[String]).
+          append("start", endNode.start[String]).append("end", endNode.end[String]).
+          append("status", endNode.status[String]).append("elementType", "end_node").
+          append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false)
+    })
+  }
+
   private def getTimers(process: DynDoc, processName: String): Seq[Document] = {
     val timers: Seq[DynDoc] = process.timers[Many[Document]].filter(_.bpmn_name[String] == processName)
     timers.map(timer => {
@@ -30,7 +58,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       new Document("bpmn_id", timer.bpmn_id[String]).append("id", timer.bpmn_id[String]).
         append("duration", durationString).append("duration_days", durationDays).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).
-        append("status", timer.status[String]).append("elementType", "timer").append("elementType", "timer").
+        append("status", timer.status[String]).append("elementType", "timer").
         append("on_critical_path", if (timer.has("on_critical_path")) timer.on_critical_path[Boolean] else false)
     })
   }
@@ -217,6 +245,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val xml = new String(byteBuffer.toArray)
       val processVariables = getVariables(process, bpmnFileName)
       val processTimers = getTimers(process, bpmnFileName)
+      val milestones = getMilestones(process, bpmnFileName)
+      val endNodes = getEndNodes(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
       val processActivities = getActivities(bpmnFileName, user, allActivities)
       val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities, request)
@@ -234,10 +264,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
       val returnValue = new Document("xml", xml).append("variables", processVariables).
-        append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
-        append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
-        append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
-        append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName))
+          append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
+          append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
+          append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
+          append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
+          append("end_nodes", endNodes)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

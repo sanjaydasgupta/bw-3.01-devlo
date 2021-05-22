@@ -22,6 +22,8 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   private def extensionProperties(e: Element, name: String) = e.getElementsByTagName("camunda:property").
     filter(_.getAttributes.getNamedItem("name").getTextContent == name)
 
+  private def cleanText(txt: String): String = txt.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
+
   private def validateProcess(namesAndDoms: Seq[(String, String, dom.Document)]): Seq[String] = {
     //BWLogger.log(getClass.getName, "validateProcess", "ENTRY")
 
@@ -121,7 +123,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         // caller-bpmn, called-bpmn, called-bpmn-id
         val callee = callNode.getAttributes.getNamedItem("calledElement").getTextContent
         val bpmnId = callNode.getAttributes.getNamedItem("id").getTextContent
-        val caller = getAttribute(callNode, "name")
+        //val caller = getAttribute(callNode, "name")
         //BWLogger.log(getClass.getName, "callerCalleeAndCalleeId", "EXIT")
         //BWLogger.log(getClass.getName, "callerCalleeAndCalleeId", "EXIT")
         (callerBpmnAndDom._2, callee, bpmnId)
@@ -142,14 +144,67 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def getTimerDefinitions(callerBpmnAndDom: (String, String, dom.Document)): Seq[(String, String, String, String, String)] = {
+  private def getMilestoneDefinitions(callerBpmnAndDom: (String, String, dom.Document)):
+      Seq[(String, String, String)] = {
+    try {
+
+      def getMilestoneNameAndId(milestoneNode: Element): (String, String, String) = {
+        // bpmn, name, id
+        val name = cleanText(milestoneNode.getAttributes.getNamedItem("name").getTextContent)
+        val bpmnId = milestoneNode.getAttributes.getNamedItem("id").getTextContent
+        //BWLogger.log(getClass.getName, "getNameTimerNameAndId", "EXIT-OK")
+        (callerBpmnAndDom._2, name, bpmnId)
+      }
+
+      val prefix = callerBpmnAndDom._3.getDocumentElement.getTagName.split(":")(0)
+      val processMilestoneNodes: Seq[Element] = callerBpmnAndDom._3.
+          getElementsByTagName(s"$prefix:intermediateThrowEvent").map(_.asInstanceOf[Element])
+      val milestoneNamesAndIds = processMilestoneNodes.map(n => getMilestoneNameAndId(n))
+      milestoneNamesAndIds
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "getTimerDefinitions", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+  private def getEndDefinitions(callerBpmnAndDom: (String, String, dom.Document)): Seq[(String, String, String)] = {
+    try {
+
+      def getEndId(milestoneNode: Element): (String, String, String) = {
+        // bpmn, name, id
+        val bpmnId = milestoneNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(milestoneNode.getAttributes.getNamedItem("name") match {
+          case null => ""
+          case nn => nn.getTextContent
+        })
+        //BWLogger.log(getClass.getName, "getNameTimerNameAndId", "EXIT-OK")
+        (callerBpmnAndDom._2, name, bpmnId)
+      }
+
+      val prefix = callerBpmnAndDom._3.getDocumentElement.getTagName.split(":")(0)
+      val processEndNodes: Seq[Element] = callerBpmnAndDom._3.getElementsByTagName(s"$prefix:endEvent").
+          map(_.asInstanceOf[Element])
+      val EndIds = processEndNodes.map(n => getEndId(n))
+      EndIds
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "getTimerDefinitions", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+  private def getTimerDefinitions(callerBpmnAndDom: (String, String, dom.Document)):
+      Seq[(String, String, String, String, String)] = {
     //BWLogger.log(getClass.getName, "getTimerDefinitions", "ENTRY")
     try {
 
       def getNameTimerNameAndId(timerNode: Element, prefix: String): (String, String, String, String, String) = {
         //BWLogger.log(getClass.getName, "getNameTimerNameAndId", "ENTRY")
         // bpmn, name, process-variable, id, duration
-        val name = timerNode.getAttributes.getNamedItem("name").getTextContent.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
+        val name = cleanText(timerNode.getAttributes.getNamedItem("name").getTextContent)
         val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
         val processVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
           find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
@@ -237,13 +292,12 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       def getNameRoleDescriptionAndDuration(callActivity: Element):
           (String, String, String, String, String, String, String, String, String, String) = {
         //BWLogger.log(getClass.getName, "getNameRoleDescriptionAndDuration", "ENTRY")
-        def clean(txt: String) = txt.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
         //val name = callActivity.getAttributes.getNamedItem("name").getTextContent.replaceAll("[\\s-]+", "")
-        val name = clean(callActivity.getAttributes.getNamedItem("name").getTextContent)
+        val name = cleanText(callActivity.getAttributes.getNamedItem("name").getTextContent)
         val fullPathName = if (callerBpmnAndDom._1.isEmpty) {
-          clean(name)
+          cleanText(name)
         } else {
-          s"${clean(callerBpmnAndDom._1)}/$name"
+          s"${cleanText(callerBpmnAndDom._1)}/$name"
         }
         val bpmnId = callActivity.getAttributes.getNamedItem("id").getTextContent
         val role = extensionProperties(callActivity, "bw-role") match {
@@ -312,7 +366,6 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       domParser.getDocument
     }
 
-    def clean(txt: String) = txt.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
     try {
       val dom = bpmnDom(bpmnName)
       val prefix = dom.getDocumentElement.getTagName.split(":")(0)
@@ -321,9 +374,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (caller.indexOf('/') != -1)
           throw new IllegalArgumentException(s"Element $bpmnName:$caller contains '/'")
         if (callerName.isEmpty) {
-          clean(caller)
+          cleanText(caller)
         } else {
-          s"$callerName/${clean(caller)}"
+          s"$callerName/${cleanText(caller)}"
         }
       }
       val callerAndBpmnNames = callActivities.
@@ -383,15 +436,21 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val timers: Many[Document] = allCallerBpmnAndDom.flatMap(getTimerDefinitions).map(kv =>
           {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "variable" -> kv._3, "bpmn_id" -> kv._4,
           "duration" -> kv._5, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
+      val milestones: Many[Document] = allCallerBpmnAndDom.flatMap(getMilestoneDefinitions).map(kv =>
+          {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "bpmn_id" -> kv._3,
+          "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
+      val endNodes: Many[Document] = allCallerBpmnAndDom.flatMap(getEndDefinitions).map(kv =>
+          {val doc: Document = Map("bpmn_name" -> kv._1, "name" -> kv._2, "bpmn_id" -> kv._3,
+          "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
       val subProcessCalls: Many[Document] = allCallerBpmnAndDom.flatMap(getCallDefinitions).map(t => {
-        new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
+          new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
           append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")
-      }).asJava
+          }).asJava
       val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
         "activity_ids" -> Seq.empty[ObjectId], "admin_person_id" -> adminPersonOid,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timers, "variables" -> variables,
         "bpmn_timestamps" -> subProcessCalls, "start" -> "00:00:00", "end" -> "00:00:00",
-        "assigned_roles" -> Seq.empty[Document])
+        "assigned_roles" -> Seq.empty[Document], "milestones" -> milestones, "end_nodes" -> endNodes)
       BWMongoDB3.processes.insertOne(newProcess)
       val processOid = newProcess.y._id[ObjectId]
       val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),

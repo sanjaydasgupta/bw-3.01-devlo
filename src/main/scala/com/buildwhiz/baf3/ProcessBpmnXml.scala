@@ -32,7 +32,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("name", milestone.name[String]).
           append("start", milestone.start[String]).append("end", milestone.end[String]).
           append("status", milestone.status[String]).append("elementType", "milestone").
-          append("on_critical_path", if (milestone.has("on_critical_path")) milestone.on_critical_path[Boolean] else false)
+          append("on_critical_path", if (milestone.has("on_critical_path")) milestone.on_critical_path[Boolean] else false).
+          append("offset", if (milestone.has("offset")) milestone.offset[Long].toString else "NA")
     })
   }
 
@@ -46,7 +47,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("name", endNode.name[String]).
           append("start", endNode.start[String]).append("end", endNode.end[String]).
           append("status", endNode.status[String]).append("elementType", "end_node").
-          append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false)
+          append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false).
+          append("offset", if (endNode.has("offset")) endNode.offset[Long].toString else "NA")
     })
   }
 

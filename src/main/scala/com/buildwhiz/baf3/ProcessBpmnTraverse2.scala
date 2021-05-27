@@ -16,36 +16,40 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
     val processOid = process._id[ObjectId]
     val name = ted.getAttributeValue("name")
     val id = ted.getAttributeValue("id")
     val query = Map("_id" -> processOid, "milestones" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName,
       "name" -> name)))
     val setter = Map($set -> Map("milestones.$.offset" -> offset))
-    BWLogger.log(getClass.getName, request.getMethod, s"setMilestoneOffset:query=$query, setter=$setter", request)
     val updateResult = BWMongoDB3.processes.updateOne(query, setter)
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    BWLogger.log(getClass.getName, request.getMethod,
-      s"EXIT-OK: setMilestoneOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
+    if (updateResult.getMatchedCount == 0) {
+      BWLogger.log(getClass.getName, request.getMethod,
+          s"ERROR:setMilestoneOffset:query=$query, setter=$setter", request)
+      //throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+    //BWLogger.log(getClass.getName, request.getMethod,
+    //  s"EXIT-OK: setMilestoneOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
   private def setEndEventOffset(endEvent: EndEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
     val processOid = process._id[ObjectId]
     val name = endEvent.getAttributeValue("name")
     val id = endEvent.getAttributeValue("id")
     val query = Map("_id" -> processOid, "end_nodes" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName,
       "name" -> name)))
     val setter = Map($set -> Map("end_notes.$.offset" -> offset))
-    BWLogger.log(getClass.getName, request.getMethod, s"setEndEventOffset:query=$query, setter=$setter", request)
     val updateResult = BWMongoDB3.processes.updateOne(query, setter)
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    BWLogger.log(getClass.getName, request.getMethod,
-      s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
+    if (updateResult.getMatchedCount == 0) {
+      BWLogger.log(getClass.getName, request.getMethod,
+          s"ERROR: setEndEventOffset:query=$query, setter=$setter", request)
+      //throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+    //BWLogger.log(getClass.getName, request.getMethod,
+    //  s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
   private def getTimerDuration(ted: TimerEventDefinition, process: DynDoc, bpmnName: String,
@@ -61,6 +65,21 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
         case None => 0
       }
     }
+  }
+
+  private def setCriticalPath(ut: FlowNode, process: DynDoc, bpmnName: String, request: HttpServletRequest): Unit = {
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setCriticalPath()", request)
+    val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
+    val name = ut.getAttributeValue("name")
+    val id = ut.getAttributeValue("id")
+    val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id, "name" -> name)
+    val updateResult = BWMongoDB3.activities.updateOne(query, Map($set -> Map("on_critical_path" -> true)))
+    if (updateResult.getMatchedCount == 0) {
+      BWLogger.log(getClass.getName, request.getMethod, s"ERROR:setCriticalPath:query=$query", request)
+      //throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+    //BWLogger.log(getClass.getName, request.getMethod,
+    //  s"EXIT-OK: setCriticalPath(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
@@ -107,15 +126,22 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
         unseenPredecessors
       }
 
-//      def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
-//        val incomingFlows: Seq[SequenceFlow] = flowNode.getIncoming.asScala.toSeq
-//        val allPredecessors = incomingFlows.map(f => if (f.getTarget == flowNode) f.getSource else f.getTarget)
-//        val unseenPredecessors = allPredecessors.diff(seenNodes.toSeq)
-//        unseenPredecessors
-//      }
-//
-      def maxPredecessorOffset(flowNode: FlowNode) = predecessors(flowNode).
-          map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).max
+      def maxPredecessorOffset(flowNode: FlowNode): Long = {
+        val thePredecessors = predecessors(flowNode)
+        if (thePredecessors.nonEmpty) {
+          val nodesAndOffsets = thePredecessors.
+              map(node => (node, getTimeOffset(node, bpmnName, onCriticalPath, seenNodes + flowNode)))
+          val maxOffset = nodesAndOffsets.map(_._2).max
+          if (maxOffset != 0) {
+            nodesAndOffsets.find(node => node._2 == maxOffset && node._1.isInstanceOf[UserTask]) match {
+              case Some(nodeAndOffset) => setCriticalPath(nodeAndOffset._1, process, bpmnName, request)
+              case None => // do nothing
+            }
+          }
+          maxOffset
+        } else
+          0
+      }
 
       def minPredecessorOffset(flowNode: FlowNode) = predecessors(flowNode).
           map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).min

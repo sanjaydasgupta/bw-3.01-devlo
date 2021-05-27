@@ -18,10 +18,9 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
       request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
     val processOid = process._id[ObjectId]
-    val name = ted.getAttributeValue("name")
+    //val name = ted.getAttributeValue("name")
     val id = ted.getAttributeValue("id")
-    val query = Map("_id" -> processOid, "milestones" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName,
-      "name" -> name)))
+    val query = Map("_id" -> processOid, "milestones" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName)))
     val setter = Map($set -> Map("milestones.$.offset" -> offset))
     val updateResult = BWMongoDB3.processes.updateOne(query, setter)
     if (updateResult.getMatchedCount == 0) {
@@ -37,11 +36,10 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
       request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
     val processOid = process._id[ObjectId]
-    val name = endEvent.getAttributeValue("name")
+    //val name = endEvent.getAttributeValue("name")
     val id = endEvent.getAttributeValue("id")
-    val query = Map("_id" -> processOid, "end_nodes" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName,
-      "name" -> name)))
-    val setter = Map($set -> Map("end_notes.$.offset" -> offset))
+    val query = Map("_id" -> processOid, "end_nodes" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName)))
+    val setter = Map($set -> Map("end_nodes.$.offset" -> offset))
     val updateResult = BWMongoDB3.processes.updateOne(query, setter)
     if (updateResult.getMatchedCount == 0) {
       BWLogger.log(getClass.getName, request.getMethod,
@@ -67,15 +65,16 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
     }
   }
 
-  private def setCriticalPath(ut: FlowNode, process: DynDoc, bpmnName: String, request: HttpServletRequest): Unit = {
+  private def setUserTaskOffset(ut: UserTask, process: DynDoc, bpmnName: String, offset: Long,
+      request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setCriticalPath()", request)
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val name = ut.getAttributeValue("name")
+    //val name = ut.getAttributeValue("name")
     val id = ut.getAttributeValue("id")
-    val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id, "name" -> name)
-    val updateResult = BWMongoDB3.activities.updateOne(query, Map($set -> Map("on_critical_path" -> true)))
+    val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id)
+    val updateResult = BWMongoDB3.activities.updateOne(query, Map($set -> Map("offset" -> offset)))
     if (updateResult.getMatchedCount == 0) {
-      BWLogger.log(getClass.getName, request.getMethod, s"ERROR:setCriticalPath:query=$query", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"ERROR:setUserTaskOffset:query=$query", request)
       //throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     }
     //BWLogger.log(getClass.getName, request.getMethod,
@@ -118,7 +117,7 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
       request: HttpServletRequest): Long = {
 
-    def getTimeOffset(node: FlowNode, bpmnName: String, onCriticalPath: Boolean, seenNodes: Set[FlowNode]): Long = {
+    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, seenNodes: Set[FlowNode]): Long = {
 
       def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
         val previousNodes: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
@@ -126,39 +125,33 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
         unseenPredecessors
       }
 
-      def maxPredecessorOffset(flowNode: FlowNode): Long = {
+      def maxPredecessorOffset(flowNode: FlowNode, stOffset: Long): Long = {
         val thePredecessors = predecessors(flowNode)
         if (thePredecessors.nonEmpty) {
-          val nodesAndOffsets = thePredecessors.
-              map(node => (node, getTimeOffset(node, bpmnName, onCriticalPath, seenNodes + flowNode)))
-          val maxOffset = nodesAndOffsets.map(_._2).max
-          if (maxOffset != 0) {
-            nodesAndOffsets.find(node => node._2 == maxOffset && node._1.isInstanceOf[UserTask]) match {
-              case Some(nodeAndOffset) => setCriticalPath(nodeAndOffset._1, process, bpmnName, request)
-              case None => // do nothing
-            }
-          }
-          maxOffset
+          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, seenNodes + predNode)).max
         } else
           0
       }
 
-      def minPredecessorOffset(flowNode: FlowNode) = predecessors(flowNode).
-          map(n => getTimeOffset(n, bpmnName, onCriticalPath, seenNodes + flowNode)).min
+      def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
+          map(n => getTimeOffset(n, stOffset, bpmnName, seenNodes + n)).min
 
       val timeOffset = node match {
         case userTask: UserTask =>
-          maxPredecessorOffset(userTask) + getActivityDuration(userTask.getId, process, bpmnName, durations, request)
+          val offset = maxPredecessorOffset(userTask, startOffset)
+          if (durations.nonEmpty)
+            setUserTaskOffset(userTask, process, bpmnName, offset, request)
+          offset + getActivityDuration(userTask.getId, process, bpmnName, durations, request)
         case serviceTask: ServiceTask =>
-          maxPredecessorOffset(serviceTask)
+          maxPredecessorOffset(serviceTask, startOffset)
         case _: StartEvent =>
-          0
+          startOffset
         case parallelGateway: ParallelGateway =>
-          maxPredecessorOffset(parallelGateway)
+          maxPredecessorOffset(parallelGateway, startOffset)
         case exclusiveGateway: ExclusiveGateway =>
-          minPredecessorOffset(exclusiveGateway)
+          minPredecessorOffset(exclusiveGateway, startOffset)
         case endEvent: EndEvent =>
-          val endOffset = maxPredecessorOffset(endEvent)
+          val endOffset = maxPredecessorOffset(endEvent, startOffset)
           if (durations.nonEmpty)
             setEndEventOffset(endEvent, process, bpmnName, endOffset, request)
           endOffset
@@ -167,34 +160,30 @@ object ProcessBpmnTraverse2 extends HttpUtils with DateTimeUtils with ProjectUti
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
             getActivityDuration(callActivity.getId, process, bpmnName, durations, request)
           } else {
+            val callOffset = maxPredecessorOffset(callActivity, startOffset)
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            getTimeOffset(endEvents.head, calledElement, onCriticalPath, seenNodes + callActivity)
+            endEvents.map(endEvent => getTimeOffset(endEvent, callOffset, calledElement, seenNodes + endEvent)).max
           }
-          maxPredecessorOffset(callActivity) + calledBpmnDuration
+          /*maxPredecessorOffset(callActivity, startOffset) + */calledBpmnDuration
         case ite: IntermediateThrowEvent => // Milestone
-          val milestoneOffset = maxPredecessorOffset(ite)
+          val milestoneOffset = maxPredecessorOffset(ite, startOffset)
           if (durations.nonEmpty)
             setMilestoneOffset(ite, process, bpmnName, milestoneOffset, request)
           milestoneOffset
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
           val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
           val delay = getTimerDuration(ted, process, bpmnName, durations, request)
-          maxPredecessorOffset(ice) + delay
+          maxPredecessorOffset(ice, startOffset) + delay
         case anyOtherNode: FlowNode =>
-          maxPredecessorOffset(anyOtherNode)
+          maxPredecessorOffset(anyOtherNode, startOffset)
       }
-      //BWLogger.log(getClass.getName, "getTimeOffset",
-      //    s"INFO: node: ${node.getName}(${node.getElementType.getTypeName}), offset: $timeOffset", request)
       timeOffset
     }
 
     val bpmnModel = bpmnModelInstance(bpmnName)
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    if (endEvents.length > 1)
-      BWLogger.log(getClass.getName, request.getMethod,
-         s"WARN: processDurationRecalculate() found ${endEvents.length} EndEvent nodes in BPMN", request)
-    val offset = getTimeOffset(endEvents.head, bpmnName, onCriticalPath = true, Set.empty[FlowNode])
+    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, Set.empty[FlowNode])).max
     offset
   }
 

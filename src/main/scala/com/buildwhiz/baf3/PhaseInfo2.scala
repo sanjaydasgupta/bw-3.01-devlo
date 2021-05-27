@@ -103,7 +103,8 @@ object PhaseInfo2 extends DateTimeUtils {
     }
     val bpmnName = PhaseApi.allProcesses(phase).head.bpmn_name[String]
     val durationLikely = try {
-      ProcessBpmnTraverse.processDurationRecalculate(bpmnName, phase._id[ObjectId], Map.empty[ObjectId, Int], request).toString
+      ProcessBpmnTraverse2.processDurationRecalculate(bpmnName, phase._id[ObjectId], Seq.empty[(String, String, Int)],
+        request).toString
     } catch {
       case t: Throwable =>
         val message = "ProcessBpmnTraverse.processDurationRecalculate() throws: "

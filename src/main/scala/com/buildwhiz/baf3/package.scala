@@ -73,12 +73,13 @@ package object baf3 {
       def isGroup: Boolean = code.matches(".+00 00")
       private def shortName: String = name.split("\\s+").init.mkString(" ")
       override def toString: String = "%s (%s)".format(if (isGroup) shortName else name, code)
+      def toStringWithoutCode: String = if (isGroup) shortName else name
     }
 
     private val oc33entries: Seq[OC33] = omniClass33text.split("\n").map(_.split(",").map(_.trim.replace("\"", ""))).
         map(array => OC33(array(0), array(1)))
 
-    def omniClass33groups(): Seq[String] = oc33entries.filter(_.isGroup).map(_.toString)
+    def omniClass33groups(): Seq[String] = oc33entries.filter(_.isGroup).map(_.toStringWithoutCode)
     def omniClass33skills(): Seq[String] = oc33entries.filterNot(_.isGroup).map(_.toString)
 
     def omniClass33skillsByGroup(): Map[String, Seq[String]] = {
@@ -95,7 +96,7 @@ package object baf3 {
         }
       }
       val pairs: Seq[(OC33, OC33)] = makeGroupSkillPairs(oc33entries.head, oc33entries.tail)
-      pairs.groupBy(_._1).map(ks => (ks._1.toString, ks._2.map(_._2.toString).reverse))
+      pairs.groupBy(_._1).map(ks => (ks._1.toStringWithoutCode, ks._2.map(_._2.toString).reverse))
     }
 
   }

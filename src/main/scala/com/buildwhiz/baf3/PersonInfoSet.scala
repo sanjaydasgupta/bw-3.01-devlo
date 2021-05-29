@@ -84,6 +84,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
       }
 
       val parameterConverters: Map[String, (String => Any, String)] = Map(
+        ("position", (_.trim, "position")),
         ("first_name", (_.trim, "first_name")),
         ("last_name", (_.trim, "last_name")),
         ("work_address", (_.trim, "work_address")),

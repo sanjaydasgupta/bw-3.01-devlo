@@ -32,6 +32,10 @@ class PersonInfo extends HttpServlet with HttpUtils {
 
     val yearsExperience = wrap(person.years_experience[Double], editable)
     val rating = wrap(person.rating[Int], editable)
+    val position = person.get[String]("position") match {
+      case Some(pos) => wrap(pos, editable)
+      case None => wrap("", editable)
+    }
     val skills = wrap(person.skills[Many[String]], editable)
     val active = wrap(if (person.has("enabled")) person.enabled[Boolean] else false, editable)
     val emails: Seq[DynDoc] = person.emails[Many[Document]]
@@ -64,7 +68,7 @@ class PersonInfo extends HttpServlet with HttpUtils {
         append("work_email", workEmail).append("work_phone", workPhone).append("work_address", workAddress).
         append("phone_can_text", phoneCanText).append("individual_roles", individualRoles).
         append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava).
-        append("mobile_phone", mobilePhone)
+        append("mobile_phone", mobilePhone).append("position", position)
     bson2json(personDoc)
   }
 

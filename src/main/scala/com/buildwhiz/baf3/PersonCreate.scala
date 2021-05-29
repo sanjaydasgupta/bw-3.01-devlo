@@ -107,13 +107,18 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
         case None => "US/Pacific"
       }
 
+      val position: String = parameters.get("position") match {
+        case Some(pos) => pos
+        case None => ""
+      }
+
       val newPersonRecord: Document = Map("organization_id" -> organizationOid, "first_name" -> firstName,
           "last_name" -> lastName, "years_experience" -> yearsExperience, "rating" -> ratingValue,
           "skills" -> skillsValue.asJava, "enabled" -> activeValue, "password" -> md5(firstName),
           "emails" -> Seq(new Document("type", "work").append("email", workEmail)).asJava,
           "phone_can_text" -> phoneCanText, "work_address" -> workAddress, "individual_roles" -> individualRoles.asJava,
           "phones" -> phones, "tz" -> timezone, "roles" -> Seq.empty[String].asJava,
-          "timestamps" -> Map("created" -> System.currentTimeMillis))
+          "timestamps" -> Map("created" -> System.currentTimeMillis), "position" -> position)
       BWMongoDB3.persons.insertOne(newPersonRecord)
 
       newPersonRecord.remove("password")

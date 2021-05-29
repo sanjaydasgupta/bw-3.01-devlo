@@ -33,11 +33,24 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
               val roles = memberInfo.roles[Many[String]].mkString(", ")
               val personRecord = PersonApi.personById(memberInfo.person_id[ObjectId])
               val personName = PersonApi.fullName(personRecord)
-              val phones = personRecord.phones[Many[Document]].map(p => s"${p.`type`[String]}:${p.phone[String]}").
-                  mkString(";")
-              val emails = personRecord.emails[Many[Document]].map(p => s"${p.`type`[String]}:${p.email[String]}").
-                  mkString(";")
-              Seq(team.team_name[String], partnerName, personName, roles, phones, emails).mkString("[\"", "\", \"", "\"]")
+              val workPhone: String = personRecord.phones[Many[Document]].find(_.`type`[String] == "work") match {
+                case Some(eml) => eml.phone[String]
+                case None => ""
+              }
+              val mobilePhone: String = personRecord.phones[Many[Document]].find(_.`type`[String] == "mobile") match {
+                case Some(eml) => eml.phone[String]
+                case None => ""
+              }
+              val email: String = personRecord.emails[Many[Document]].find(_.`type`[String] == "work") match {
+                case Some(eml) => eml.email[String]
+                case None => ""
+              }
+              val position = personRecord.get[String]("position") match {
+                case Some(pos) => pos
+                case None => ""
+              }
+              Seq(team.team_name[String], partnerName, personName, roles, workPhone, mobilePhone, email, position).
+                  mkString("[\"", "\", \"", "\"]")
             })
             case None => Seq.empty[String]
           }

@@ -148,6 +148,10 @@ object PersonApi {
   def person2document(person: DynDoc): Document = {
     val name = fullName(person)
     val active = if (person.has("enabled")) person.enabled[Boolean] else false
+    val position = person.get[String]("position") match {
+      case Some(pos) => pos
+      case None => ""
+    }
     val individualRoles: java.util.Collection[String] = if (person.has("individual_roles"))
       person.individual_roles[Many[String]]
     else
@@ -155,7 +159,7 @@ object PersonApi {
 
     new Document("_id", person._id[ObjectId]).append("name", name).append("skills", person.skills[Many[String]]).
         append("years_experience", person.years_experience[Int]).append("rating", person.rating[Double]).
-        append("active", active).append("individual_roles", individualRoles)
+        append("active", active).append("individual_roles", individualRoles).append("position", position)
   }
 
   def parentOrganization(personIn: Either[ObjectId, DynDoc]): Option[DynDoc] = {

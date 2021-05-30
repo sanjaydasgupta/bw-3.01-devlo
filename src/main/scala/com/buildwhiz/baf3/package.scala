@@ -104,8 +104,8 @@ package object baf3 {
   val masterData = Map(
     "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Work"),
     "Docs__category" -> Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
-        "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Submittals",
-        "Task-Specs", "Work-Scope"),
+        "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification"
+      , "Submittals", "Task-Specs", "Work-Scope"),
     "Docs__file_format" -> Seq("PDF", "DOC", "DOCX", "XLS", "XLSX", "GIF", "JPEG", "JPG", "PPT", "PPTX", "PNG", "SVG",
         "TIF", "TIFF", "TXT", "XML", "ZIP", "JSON", "BMP"),
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
@@ -130,8 +130,8 @@ package object baf3 {
     "Team__group" -> OmniClass33.omniClass33groups(),
     "Team__group_skill_mapping" -> OmniClass33.omniClass33skillsByGroup(),
     "Team__role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
-    "Team__individual_role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
-    "Team__team_role" -> Seq("Clean-Up", "Post-Approver", "Pre-Approver", "Responsible"),
+    "Team__individual_role" -> Seq("Contributor", "Finance-Contact", "Manager", "Principal", "Team-Admin", "Team-Lead"),
+    "Team__team_role" -> Seq("Post-Approver", "Pre-Approver", "Responsible", "Support"),
     "Team__omniclass33" -> OmniClass33.omniClass33skills()
   )
 

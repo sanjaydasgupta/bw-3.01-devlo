@@ -4,6 +4,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import org.bson.types.ObjectId
+import org.bson.Document
 
 object TeamApi {
 
@@ -11,5 +12,12 @@ object TeamApi {
     BWMongoDB3.teams.find(Map("_id" -> Map($in -> teamOids)))
 
   def teamById(teamOid: ObjectId): DynDoc = BWMongoDB3.teams.find(Map("_id" -> teamOid)).head
+
+  def memberOids(team: DynDoc): Seq[ObjectId] = team.get[Many[Document]]("team_members") match {
+    case Some(members) => members.map(_.person_id[ObjectId])
+    case None => Seq.empty[ObjectId]
+  }
+
+  def memberOids(teamOid: ObjectId): Seq[ObjectId] = memberOids(teamById(teamOid))
 
 }

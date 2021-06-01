@@ -34,9 +34,7 @@ object OrganizationApi {
 
   def validateNewName(newOrgName: String): Boolean = {
     val orgNameLength = newOrgName.length
-    if (newOrgName.trim.length != orgNameLength)
-      throw new IllegalArgumentException(s"Bad organization name (has blank padding): '$newOrgName'")
-    if (orgNameLength > 150 || orgNameLength < 5)
+    if (orgNameLength > 150 || orgNameLength < 1)
       throw new IllegalArgumentException(s"Bad organization name length: $orgNameLength")
     if (OrganizationApi.fetch(optName=Some(newOrgName)).nonEmpty)
       throw new IllegalArgumentException(s"Organization named '$newOrgName' already exists")

@@ -3,6 +3,7 @@ package com.buildwhiz.baf2
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import BWMongoDB3._
 import DynDoc._
+import com.buildwhiz.baf3.TeamApi
 import org.bson.types.ObjectId
 import org.bson.Document
 import com.buildwhiz.infra.GoogleDrive
@@ -39,6 +40,34 @@ object PersonApi {
     val person2 = personById(person2Oid)
     person1.has("organization_id") && person2.has("organization_id") &&
         person1.organization_id[ObjectId] == person2.organization_id[ObjectId]
+  }
+
+  def fetch3(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None,
+      optSkill: Option[String] = None, optProjectOid: Option[ObjectId] = None, optPhaseOid: Option[ObjectId] = None,
+      optProcessOid: Option[ObjectId] = None, optActivityOid: Option[ObjectId] = None): Seq[DynDoc] = {
+
+    val query: Map[String, Any] = (optWorkEmail, optOrganizationOid, optSkill, optPhaseOid, optProjectOid) match {
+      case (Some(workEmail), _, _, _, _) =>
+        Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> workEmail)))
+      case (None, Some(organizationOid), Some(skill), _, _) =>
+        Map("organization_id" -> organizationOid, "skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
+      case (None, Some(organizationOid), None, _, _) =>
+        Map("organization_id" -> organizationOid)
+      case (None, None, Some(skill), _, _) =>
+        Map("skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
+      case (None, None, None, Some(phaseOid), _) =>
+        val allTeamOids = PhaseApi.allTeamOids30(PhaseApi.phaseById(phaseOid))
+        val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
+        Map("_id" -> Map($in -> allMemberOids))
+      case (None, None, None, _, Some(projectOid)) =>
+        val allPhases: Seq[DynDoc] = ProjectApi.allPhases(projectOid)
+        val allTeamOids: Seq[ObjectId] = allPhases.flatMap(PhaseApi.allTeamOids30)
+        val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
+        Map("_id" -> Map($in -> allMemberOids))
+      case _ => Map.empty
+    }
+
+    BWMongoDB3.persons.find(query)
   }
 
   def fetch(optWorkEmail: Option[String] = None, optOrganizationOid: Option[ObjectId] = None,

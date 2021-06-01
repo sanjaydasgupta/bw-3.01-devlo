@@ -71,8 +71,11 @@ trait HttpUtils {
     }
   }
 
-  def successJson(message: String = "Update(s) successful"): String = {
-    new Document("ok", 1).append("message", message).toJson
+  def successJson(message: String = "Update(s) successful", fields: Map[String, Any] = Map.empty): String = {
+    val rv = new Document("ok", 1)
+    rv.append("message", message)
+    fields.foreach(kv => rv.append(kv._1, kv._2))
+    rv.toJson
   }
 
   def getParts(request: HttpServletRequest): Seq[Part] = request.getContentType match {

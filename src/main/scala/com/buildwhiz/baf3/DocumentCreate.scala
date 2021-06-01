@@ -47,11 +47,13 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
           !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
 
-      BWMongoDB3.document_master.insertOne(nameValuePairs ++ Map("versions" -> Seq.empty[Document]))
+      val documentRecord = (nameValuePairs ++ Map("versions" -> Seq.empty[Document])).asDoc
+      BWMongoDB3.document_master.insertOne(documentRecord)
 
-      response.getWriter.print(successJson())
+      val docOid = documentRecord.getObjectId("_id").toString
+      response.getWriter.print(successJson(fields = Map("document_id" -> docOid)))
       response.setContentType("application/json")
-      val message = s"""Created document '${nameValuePairs("name")}'"""
+      val message = s"""Created document name='${nameValuePairs("name")}', _id='$docOid'"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

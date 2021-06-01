@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1q72azn" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
+  <bpmn:collaboration id="Phase-Precon-Top-Pools">
+    <bpmn:participant id="Participant-Phase-Precon-Top3" name="DETAIL DESIGN/CD" processRef="Phase-Precon-Top3" />
+    <bpmn:participant id="Participant-Buyout3" name="Buyout" processRef="Precon-Buyout3" />
+    <bpmn:participant id="Participant-Budget-Estimate3" name="Budget/Estimate" processRef="Precon-Budget-Estimate3" />
+    <bpmn:participant id="Participant-Permitting3" name="PERMITTING" processRef="Precon-Permitting3" />
+    <bpmn:participant id="Participant-BIM-VDC-Plan3" name="BIM/VDC Plan" processRef="Precon-BIM-VDC-Plan3" />
+    <bpmn:participant id="Participant-Logistics3" name="Logistics" processRef="Precon-Logistics3" />
+    <bpmn:participant id="Participant-Finance3" name="FINANCE" processRef="Precon-Finance3" />
+    <bpmn:participant id="Participant-Milestones3" name="Milestones" processRef="Precon-Milestones3" />
+  </bpmn:collaboration>
+  <bpmn:process id="Phase-Precon-Top3" name="Phase Precon Top3" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_06k3xgh" />
+    <bpmn:startEvent id="Start-DD-CD" name="Start&#10;DD-CD">
+      <bpmn:outgoing>Flow_0czy359</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="End-DD-CD" name="End&#10;DD-CD">
+      <bpmn:incoming>Flow_0h1u072</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0h1u072" sourceRef="Detail-Design-CD" targetRef="End-DD-CD" />
+    <bpmn:sequenceFlow id="Flow_1l7d9of" sourceRef="Detail-Design-DD" targetRef="Detail-Design-CD" />
+    <bpmn:sequenceFlow id="Flow_1qppznq" sourceRef="Detail-Design-SD" targetRef="Detail-Design-DD" />
+    <bpmn:sequenceFlow id="Flow_0czy359" sourceRef="Start-DD-CD" targetRef="Detail-Design-SD" />
+    <bpmn:callActivity id="Detail-Design-SD" name="SD" calledElement="Precon-Design-100-SD">
+      <bpmn:incoming>Flow_0czy359</bpmn:incoming>
+      <bpmn:outgoing>Flow_1qppznq</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Detail-Design-DD" name="DD" calledElement="Precon-Design-100-DD">
+      <bpmn:incoming>Flow_1qppznq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l7d9of</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Detail-Design-CD" name="CD" calledElement="Precon-Design-100-CD">
+      <bpmn:incoming>Flow_1l7d9of</bpmn:incoming>
+      <bpmn:outgoing>Flow_0h1u072</bpmn:outgoing>
+    </bpmn:callActivity>
+  </bpmn:process>
+  <bpmn:signal id="Signal_1fg0m2z" name="Signal_36ebr5j" />
+  <bpmn:signal id="Signal_0uw5jzy" name="Signal_2774b6l" />
+  <bpmn:signal id="Signal_04db44q" name="Signal_18t5aqs" />
+  <bpmn:signal id="Signal_1fw75z7" name="Signal_0onkv33" />
+  <bpmn:signal id="Signal_1i5eq92" name="Signal_1j5bkks" />
+  <bpmn:signal id="Signal_051ql9o" name="Signal_1lahlnv" />
+  <bpmn:signal id="Signal_0em103h" name="Signal_2iu9i1a" />
+  <bpmn:signal id="Signal_1dvp7y7" name="Signal_2j6vhl7" />
+  <bpmn:process id="Precon-Buyout3" name="Precon Buyout" isExecutable="true">
+    <bpmn:startEvent id="Start-Buyout" name="Start&#10;Buyout">
+      <bpmn:outgoing>Flow_1opm3z6</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Develop-Buyout-Plan" name="Develop Buyout Plan">
+      <bpmn:incoming>Flow_1opm3z6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1mcs4zn</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Develop-Procurement-Log" name="Develop Procurement Log">
+      <bpmn:incoming>Flow_1mcs4zn</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gtshm9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End-Buyout" name="End&#10;Buyout">
+      <bpmn:incoming>Flow_0gtshm9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0gtshm9" sourceRef="Develop-Procurement-Log" targetRef="End-Buyout" />
+    <bpmn:sequenceFlow id="Flow_1mcs4zn" sourceRef="Develop-Buyout-Plan" targetRef="Develop-Procurement-Log" />
+    <bpmn:sequenceFlow id="Flow_1opm3z6" sourceRef="Start-Buyout" targetRef="Develop-Buyout-Plan" />
+  </bpmn:process>
+  <bpmn:process id="Precon-Budget-Estimate3" name="Precon Budget/Estimate" isExecutable="true">
+    <bpmn:startEvent id="Start-Budget-Estimate" name="Start&#10;Budget-Estimate">
+      <bpmn:outgoing>Flow_0122ksb</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="End-Budget-Estimate" name="End&#10;Budget-Estimate">
+      <bpmn:incoming>Flow_0u076i8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0wa46f0" sourceRef="Create-Estimates" targetRef="Final-Estimate-Approval" />
+    <bpmn:sequenceFlow id="Flow_11goe48" sourceRef="Allocate-Budget" targetRef="Create-Estimates" />
+    <bpmn:sequenceFlow id="Flow_0iva1vz" sourceRef="Set-Target" targetRef="Allocate-Budget" />
+    <bpmn:sequenceFlow id="Flow_0122ksb" sourceRef="Start-Budget-Estimate" targetRef="Set-Target" />
+    <bpmn:userTask id="Set-Target" name="Set Target">
+      <bpmn:incoming>Flow_0122ksb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0iva1vz</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Allocate-Budget" name="Allocate Budget">
+      <bpmn:incoming>Flow_0iva1vz</bpmn:incoming>
+      <bpmn:outgoing>Flow_11goe48</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Create-Estimates" name="Create Estimates">
+      <bpmn:incoming>Flow_11goe48</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wa46f0</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Final-Estimate-Approval" name="Final Estimate Approval">
+      <bpmn:incoming>Flow_0wa46f0</bpmn:incoming>
+      <bpmn:outgoing>Flow_1w3un06</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_1885gvm" signalRef="Signal_0uznatp" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_1w3un06" sourceRef="Final-Estimate-Approval" targetRef="Identify-Risks" />
+    <bpmn:userTask id="Identify-Risks" name="Identify Risks">
+      <bpmn:incoming>Flow_1w3un06</bpmn:incoming>
+      <bpmn:outgoing>Flow_0u076i8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0u076i8" sourceRef="Identify-Risks" targetRef="End-Budget-Estimate" />
+  </bpmn:process>
+  <bpmn:process id="Precon-Permitting3" name="Precon Permitting" isExecutable="true">
+    <bpmn:startEvent id="Start-Permitting" name="Start&#10;Permitting">
+      <bpmn:outgoing>Flow_0nfttqf</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="End-Permitting" name="Start&#10;Permitting">
+      <bpmn:incoming>Flow_01zj6wu</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0nfttqf" sourceRef="Start-Permitting" targetRef="Site-Permit-Application" />
+    <bpmn:sequenceFlow id="Flow_0914rqc" sourceRef="Site-Permit-Application" targetRef="Site-Permit-Review" />
+    <bpmn:sequenceFlow id="Flow_0zt9nj3" sourceRef="Site-Permit-Review" targetRef="Event_1ci4nxv" />
+    <bpmn:sequenceFlow id="Flow_04st881" sourceRef="Event_1ci4nxv" targetRef="Adendum-1" />
+    <bpmn:sequenceFlow id="Flow_0b3gezp" sourceRef="Adendum-1" targetRef="Adendum-2" />
+    <bpmn:sequenceFlow id="Flow_04emx6n" sourceRef="Adendum-2" targetRef="Adendum-3" />
+    <bpmn:sequenceFlow id="Flow_0oqx87h" sourceRef="Adendum-3" targetRef="Adendum-4" />
+    <bpmn:sequenceFlow id="Flow_1idlxmh" sourceRef="Adendum-4" targetRef="Event_08f4pdd" />
+    <bpmn:sequenceFlow id="Flow_01zj6wu" sourceRef="Event_08f4pdd" targetRef="End-Permitting" />
+    <bpmn:userTask id="Site-Permit-Application" name="Site Permit Application">
+      <bpmn:incoming>Flow_0nfttqf</bpmn:incoming>
+      <bpmn:outgoing>Flow_0914rqc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Site-Permit-Review" name="Site Permit Review">
+      <bpmn:incoming>Flow_0914rqc</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zt9nj3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Event_1ci4nxv" name="Site Permit Approved">
+      <bpmn:incoming>Flow_0zt9nj3</bpmn:incoming>
+      <bpmn:outgoing>Flow_04st881</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_04bzfn9" signalRef="Signal_051ql9o" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:userTask id="Adendum-1" name="Adendum 1">
+      <bpmn:incoming>Flow_04st881</bpmn:incoming>
+      <bpmn:outgoing>Flow_0b3gezp</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Adendum-2" name="Adendum 2">
+      <bpmn:incoming>Flow_0b3gezp</bpmn:incoming>
+      <bpmn:outgoing>Flow_04emx6n</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Adendum-3" name="Adendum 3">
+      <bpmn:incoming>Flow_04emx6n</bpmn:incoming>
+      <bpmn:outgoing>Flow_0oqx87h</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Adendum-4" name="Adendum 4">
+      <bpmn:incoming>Flow_0oqx87h</bpmn:incoming>
+      <bpmn:outgoing>Flow_1idlxmh</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Event_08f4pdd" name="All Permits Approved">
+      <bpmn:incoming>Flow_1idlxmh</bpmn:incoming>
+      <bpmn:outgoing>Flow_01zj6wu</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_07fxx9r" signalRef="Signal_0em103h" />
+    </bpmn:intermediateThrowEvent>
+  </bpmn:process>
+  <bpmn:process id="Precon-BIM-VDC-Plan3" name="Precon BIM/VDC Plan" isExecutable="true">
+    <bpmn:startEvent id="Start-BIM-VDC-Plan" name="Start&#10;BIM-VDC-Plan">
+      <bpmn:outgoing>Flow_14fccaz</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Prepare-BIM-Execution-Plan" name="Prepare BIM Execution Plan">
+      <bpmn:incoming>Flow_14fccaz</bpmn:incoming>
+      <bpmn:outgoing>Flow_02g7asm</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End-BIM-VDC-Plan" name="End&#10;BIM-VDC-Plan">
+      <bpmn:incoming>Flow_02g7asm</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_02g7asm" sourceRef="Prepare-BIM-Execution-Plan" targetRef="End-BIM-VDC-Plan" />
+    <bpmn:sequenceFlow id="Flow_14fccaz" sourceRef="Start-BIM-VDC-Plan" targetRef="Prepare-BIM-Execution-Plan" />
+  </bpmn:process>
+  <bpmn:process id="Precon-Logistics3" name="Precon Logistics" isExecutable="true">
+    <bpmn:endEvent id="End-Logistics" name="End&#10;Logistics">
+      <bpmn:incoming>Flow_09jqatv</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Start-Logistics" name="Start&#10;Logistics">
+      <bpmn:outgoing>Flow_1ksoh3f</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_09jqatv" sourceRef="Prepare-Safety-Plan" targetRef="End-Logistics" />
+    <bpmn:sequenceFlow id="Flow_0s1ha6c" sourceRef="Prepare-Logistics-Plan" targetRef="Prepare-Safety-Plan" />
+    <bpmn:sequenceFlow id="Flow_1ksoh3f" sourceRef="Start-Logistics" targetRef="Prepare-Logistics-Plan" />
+    <bpmn:userTask id="Prepare-Logistics-Plan" name="Prepare Logistics Plan">
+      <bpmn:incoming>Flow_1ksoh3f</bpmn:incoming>
+      <bpmn:outgoing>Flow_0s1ha6c</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Prepare-Safety-Plan" name="Prepare Safety Plan">
+      <bpmn:incoming>Flow_0s1ha6c</bpmn:incoming>
+      <bpmn:outgoing>Flow_09jqatv</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmn:process id="Precon-Finance3" name="Precon Finance" isExecutable="true">
+    <bpmn:endEvent id="End-Finance" name="End&#10;Finance">
+      <bpmn:incoming>Flow_0fnhuks</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Start-Finance" name="Start&#10;Finance">
+      <bpmn:outgoing>Flow_0xcm2r9</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_13xzcun" sourceRef="Construction-Loan-Application" targetRef="Event_0wr724h" />
+    <bpmn:sequenceFlow id="Flow_16oocju" sourceRef="Prepare-Finance-Package" targetRef="Construction-Loan-Application" />
+    <bpmn:sequenceFlow id="Flow_038jy3q" sourceRef="Prepare-Proforma" targetRef="Prepare-Finance-Package" />
+    <bpmn:sequenceFlow id="Flow_0xcm2r9" sourceRef="Start-Finance" targetRef="Prepare-Proforma" />
+    <bpmn:sequenceFlow id="Flow_0fnhuks" sourceRef="Event_0wr724h" targetRef="End-Finance" />
+    <bpmn:userTask id="Prepare-Proforma" name="Prepare Proforma">
+      <bpmn:incoming>Flow_0xcm2r9</bpmn:incoming>
+      <bpmn:outgoing>Flow_038jy3q</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Prepare-Finance-Package" name="Prepare Finance Package">
+      <bpmn:incoming>Flow_038jy3q</bpmn:incoming>
+      <bpmn:outgoing>Flow_16oocju</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Construction-Loan-Application" name="Construction Loan Application">
+      <bpmn:incoming>Flow_16oocju</bpmn:incoming>
+      <bpmn:outgoing>Flow_13xzcun</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="Event_0wr724h" name="Construction Loan Approval">
+      <bpmn:incoming>Flow_13xzcun</bpmn:incoming>
+      <bpmn:outgoing>Flow_0fnhuks</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalEventDefinition_1p9075g" signalRef="Signal_1dvp7y7" />
+    </bpmn:intermediateThrowEvent>
+  </bpmn:process>
+  <bpmn:signal id="Signal_0uznatp" name="Signal_2vrne9q" />
+  <bpmn:process id="Precon-Milestones3" name="Precon Milestones" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_19430y3" />
+    <bpmn:startEvent id="Start-Milestones" name="Start&#10;Milestones">
+      <bpmn:outgoing>Flow_0p5xelp</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="End-Milestones" name="End&#10;Milestones">
+      <bpmn:incoming>Flow_05154zz</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Milestone-50-DD" name="Milestone&#10;50% DD">
+      <bpmn:incoming>Flow_0tgw8ro</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xogg71</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Milestone-100-SD" name="Milestone  100% SD">
+      <bpmn:incoming>Flow_0p5xelp</bpmn:incoming>
+      <bpmn:outgoing>Flow_1r93cze</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_05154zz" sourceRef="Milestone-100-CD" targetRef="End-Milestones" />
+    <bpmn:sequenceFlow id="Flow_0ar5yho" sourceRef="Milestone-75-CD" targetRef="Milestone-100-CD" />
+    <bpmn:sequenceFlow id="Flow_1eakkdv" sourceRef="Milestone-100-DD" targetRef="Milestone-75-CD" />
+    <bpmn:sequenceFlow id="Flow_1xogg71" sourceRef="Milestone-50-DD" targetRef="Milestone-100-DD" />
+    <bpmn:sequenceFlow id="Flow_0tgw8ro" sourceRef="Milestone-25-DD" targetRef="Milestone-50-DD" />
+    <bpmn:sequenceFlow id="Flow_1r93cze" sourceRef="Milestone-100-SD" targetRef="Milestone-25-DD" />
+    <bpmn:sequenceFlow id="Flow_0p5xelp" sourceRef="Start-Milestones" targetRef="Milestone-100-SD" />
+    <bpmn:userTask id="Milestone-25-DD" name="Milestone&#10;25% DD">
+      <bpmn:incoming>Flow_1r93cze</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tgw8ro</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Milestone-100-DD" name="Milestone&#10;100% DD">
+      <bpmn:incoming>Flow_1xogg71</bpmn:incoming>
+      <bpmn:outgoing>Flow_1eakkdv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Milestone-75-CD" name="Milestone&#10;75% CD">
+      <bpmn:incoming>Flow_1eakkdv</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ar5yho</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Milestone-100-CD" name="Milestone&#10;100% CD">
+      <bpmn:incoming>Flow_0ar5yho</bpmn:incoming>
+      <bpmn:outgoing>Flow_05154zz</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Precon-Top-Pools">
+      <bpmndi:BPMNShape id="Participant_0eer87x_di" bpmnElement="Participant-Phase-Precon-Top3" isHorizontal="true">
+        <dc:Bounds x="170" y="290" width="1270" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0czy359_di" bpmnElement="Flow_0czy359">
+        <di:waypoint x="258" y="367" />
+        <di:waypoint x="454" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qppznq_di" bpmnElement="Flow_1qppznq">
+        <di:waypoint x="554" y="367" />
+        <di:waypoint x="755" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1l7d9of_di" bpmnElement="Flow_1l7d9of">
+        <di:waypoint x="855" y="367" />
+        <di:waypoint x="1056" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0h1u072_di" bpmnElement="Flow_0h1u072">
+        <di:waypoint x="1156" y="367" />
+        <di:waypoint x="1352" y="367" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start-DD-CD">
+        <dc:Bounds x="222" y="349" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="223" y="392" width="36" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1i9erlj_di" bpmnElement="End-DD-CD">
+        <dc:Bounds x="1352" y="349" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1353" y="392" width="36" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_160n5zz_di" bpmnElement="Detail-Design-SD">
+        <dc:Bounds x="454" y="327" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0q4ti4s_di" bpmnElement="Detail-Design-DD">
+        <dc:Bounds x="755" y="327" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vcax9q_di" bpmnElement="Detail-Design-CD">
+        <dc:Bounds x="1056" y="327" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1byw9ge_di" bpmnElement="Participant-Buyout3" isHorizontal="true">
+        <dc:Bounds x="170" y="970" width="1270" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1opm3z6_di" bpmnElement="Flow_1opm3z6">
+        <di:waypoint x="298" y="1050" />
+        <di:waypoint x="350" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mcs4zn_di" bpmnElement="Flow_1mcs4zn">
+        <di:waypoint x="450" y="1050" />
+        <di:waypoint x="510" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gtshm9_di" bpmnElement="Flow_0gtshm9">
+        <di:waypoint x="610" y="1050" />
+        <di:waypoint x="652" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0kykk1g_di" bpmnElement="Start-Buyout">
+        <dc:Bounds x="262" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="263" y="1075" width="35" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0jaa4c8_di" bpmnElement="Develop-Buyout-Plan">
+        <dc:Bounds x="350" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xgcmuy_di" bpmnElement="Develop-Procurement-Log">
+        <dc:Bounds x="510" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0g7suni_di" bpmnElement="End-Buyout">
+        <dc:Bounds x="652" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="653" y="1075" width="35" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_16eatnt_di" bpmnElement="Participant-Budget-Estimate3" isHorizontal="true">
+        <dc:Bounds x="170" y="750" width="1270" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0u076i8_di" bpmnElement="Flow_0u076i8">
+        <di:waypoint x="1219" y="820" />
+        <di:waypoint x="1312" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1w3un06_di" bpmnElement="Flow_1w3un06">
+        <di:waypoint x="1019" y="820" />
+        <di:waypoint x="1119" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0122ksb_di" bpmnElement="Flow_0122ksb">
+        <di:waypoint x="288" y="820" />
+        <di:waypoint x="383" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0iva1vz_di" bpmnElement="Flow_0iva1vz">
+        <di:waypoint x="483" y="820" />
+        <di:waypoint x="583" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11goe48_di" bpmnElement="Flow_11goe48">
+        <di:waypoint x="683" y="820" />
+        <di:waypoint x="783" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wa46f0_di" bpmnElement="Flow_0wa46f0">
+        <di:waypoint x="883" y="820" />
+        <di:waypoint x="983" y="820" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1rkklen_di" bpmnElement="Start-Budget-Estimate">
+        <dc:Bounds x="252" y="802" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="230" y="845" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0q19vnv_di" bpmnElement="End-Budget-Estimate">
+        <dc:Bounds x="1312" y="802" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1290" y="845" width="82" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qqkyku_di" bpmnElement="Set-Target">
+        <dc:Bounds x="383" y="780" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rsouoi_di" bpmnElement="Allocate-Budget">
+        <dc:Bounds x="583" y="780" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0w1v2bs_di" bpmnElement="Create-Estimates">
+        <dc:Bounds x="783" y="780" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ymomoz_di" bpmnElement="Final-Estimate-Approval">
+        <dc:Bounds x="983" y="802" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="968" y="845" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_079ykkc_di" bpmnElement="Identify-Risks">
+        <dc:Bounds x="1119" y="780" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1mbrx1s_di" bpmnElement="Participant-Permitting3" isHorizontal="true">
+        <dc:Bounds x="170" y="520" width="1270" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_01zj6wu_di" bpmnElement="Flow_01zj6wu">
+        <di:waypoint x="1321" y="600" />
+        <di:waypoint x="1362" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1idlxmh_di" bpmnElement="Flow_1idlxmh">
+        <di:waypoint x="1238" y="600" />
+        <di:waypoint x="1285" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0oqx87h_di" bpmnElement="Flow_0oqx87h">
+        <di:waypoint x="1091" y="600" />
+        <di:waypoint x="1138" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04emx6n_di" bpmnElement="Flow_04emx6n">
+        <di:waypoint x="944" y="600" />
+        <di:waypoint x="991" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0b3gezp_di" bpmnElement="Flow_0b3gezp">
+        <di:waypoint x="797" y="600" />
+        <di:waypoint x="844" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04st881_di" bpmnElement="Flow_04st881">
+        <di:waypoint x="650" y="600" />
+        <di:waypoint x="697" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zt9nj3_di" bpmnElement="Flow_0zt9nj3">
+        <di:waypoint x="567" y="600" />
+        <di:waypoint x="614" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0914rqc_di" bpmnElement="Flow_0914rqc">
+        <di:waypoint x="420" y="600" />
+        <di:waypoint x="467" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nfttqf_di" bpmnElement="Flow_0nfttqf">
+        <di:waypoint x="278" y="600" />
+        <di:waypoint x="320" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_17p7uzl_di" bpmnElement="Start-Permitting">
+        <dc:Bounds x="242" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="236" y="625" width="50" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_08q3aj0_di" bpmnElement="End-Permitting">
+        <dc:Bounds x="1362" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1356" y="625" width="50" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1x4al53_di" bpmnElement="Site-Permit-Application">
+        <dc:Bounds x="320" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0sjl4gh_di" bpmnElement="Site-Permit-Review">
+        <dc:Bounds x="467" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ci4nxv_di" bpmnElement="Event_1ci4nxv">
+        <dc:Bounds x="614" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="607" y="625" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rosvoc_di" bpmnElement="Adendum-1">
+        <dc:Bounds x="697" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xod8yz_di" bpmnElement="Adendum-2">
+        <dc:Bounds x="844" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_18kzpgd_di" bpmnElement="Adendum-3">
+        <dc:Bounds x="991" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14goynb_di" bpmnElement="Adendum-4">
+        <dc:Bounds x="1138" y="560" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_08f4pdd_di" bpmnElement="Event_08f4pdd">
+        <dc:Bounds x="1285" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1280" y="625" width="53" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_0sp47nq_di" bpmnElement="Participant-BIM-VDC-Plan3" isHorizontal="true">
+        <dc:Bounds x="170" y="1200" width="1270" height="150" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_14fccaz_di" bpmnElement="Flow_14fccaz">
+        <di:waypoint x="298" y="1270" />
+        <di:waypoint x="350" y="1270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02g7asm_di" bpmnElement="Flow_02g7asm">
+        <di:waypoint x="450" y="1270" />
+        <di:waypoint x="522" y="1270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_08cynvm_di" bpmnElement="Start-BIM-VDC-Plan">
+        <dc:Bounds x="262" y="1252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="244" y="1295" width="73" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1djkx2w_di" bpmnElement="Prepare-BIM-Execution-Plan">
+        <dc:Bounds x="350" y="1230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0kpb4n6_di" bpmnElement="End-BIM-VDC-Plan">
+        <dc:Bounds x="522" y="1252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="504" y="1295" width="73" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1vk0unk_di" bpmnElement="Participant-Logistics3" isHorizontal="true">
+        <dc:Bounds x="170" y="1430" width="1270" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1ksoh3f_di" bpmnElement="Flow_1ksoh3f">
+        <di:waypoint x="288" y="1510" />
+        <di:waypoint x="348" y="1510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0s1ha6c_di" bpmnElement="Flow_0s1ha6c">
+        <di:waypoint x="448" y="1510" />
+        <di:waypoint x="513" y="1510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09jqatv_di" bpmnElement="Flow_09jqatv">
+        <di:waypoint x="613" y="1510" />
+        <di:waypoint x="672" y="1510" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0f55m3j_di" bpmnElement="End-Logistics">
+        <dc:Bounds x="672" y="1492" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="669" y="1535" width="44" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0xlrzfu_di" bpmnElement="Start-Logistics">
+        <dc:Bounds x="252" y="1492" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="249" y="1535" width="44" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1m030wk_di" bpmnElement="Prepare-Logistics-Plan">
+        <dc:Bounds x="348" y="1470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0n8x25a_di" bpmnElement="Prepare-Safety-Plan">
+        <dc:Bounds x="513" y="1470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1ghz7sx_di" bpmnElement="Participant-Finance3" isHorizontal="true">
+        <dc:Bounds x="170" y="1690" width="1270" height="180" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0fnhuks_di" bpmnElement="Flow_0fnhuks">
+        <di:waypoint x="893" y="1780" />
+        <di:waypoint x="952" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xcm2r9_di" bpmnElement="Flow_0xcm2r9">
+        <di:waypoint x="298" y="1780" />
+        <di:waypoint x="359" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_038jy3q_di" bpmnElement="Flow_038jy3q">
+        <di:waypoint x="459" y="1780" />
+        <di:waypoint x="525" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16oocju_di" bpmnElement="Flow_16oocju">
+        <di:waypoint x="625" y="1780" />
+        <di:waypoint x="691" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13xzcun_di" bpmnElement="Flow_13xzcun">
+        <di:waypoint x="791" y="1780" />
+        <di:waypoint x="857" y="1780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0oracer_di" bpmnElement="End-Finance">
+        <dc:Bounds x="952" y="1762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="951" y="1805" width="40" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0hqqr2a_di" bpmnElement="Start-Finance">
+        <dc:Bounds x="262" y="1762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="261" y="1805" width="40" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0wia10i_di" bpmnElement="Prepare-Proforma">
+        <dc:Bounds x="359" y="1740" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_19biub4_di" bpmnElement="Prepare-Finance-Package">
+        <dc:Bounds x="525" y="1740" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0s8qhuh_di" bpmnElement="Construction-Loan-Application">
+        <dc:Bounds x="691" y="1740" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0wr724h_di" bpmnElement="Event_0wr724h">
+        <dc:Bounds x="857" y="1762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="832" y="1805" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1np357r_di" bpmnElement="Participant-Milestones3" isHorizontal="true">
+        <dc:Bounds x="170" y="80" width="1270" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0p5xelp_di" bpmnElement="Flow_0p5xelp">
+        <di:waypoint x="292" y="150" />
+        <di:waypoint x="353" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r93cze_di" bpmnElement="Flow_1r93cze">
+        <di:waypoint x="453" y="150" />
+        <di:waypoint x="519" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tgw8ro_di" bpmnElement="Flow_0tgw8ro">
+        <di:waypoint x="619" y="150" />
+        <di:waypoint x="685" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xogg71_di" bpmnElement="Flow_1xogg71">
+        <di:waypoint x="785" y="150" />
+        <di:waypoint x="851" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1eakkdv_di" bpmnElement="Flow_1eakkdv">
+        <di:waypoint x="951" y="150" />
+        <di:waypoint x="1017" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ar5yho_di" bpmnElement="Flow_0ar5yho">
+        <di:waypoint x="1117" y="150" />
+        <di:waypoint x="1183" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05154zz_di" bpmnElement="Flow_05154zz">
+        <di:waypoint x="1283" y="150" />
+        <di:waypoint x="1342" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1gl80e7_di" bpmnElement="Start-Milestones">
+        <dc:Bounds x="256" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="248" y="175" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_144yo9o_di" bpmnElement="End-Milestones">
+        <dc:Bounds x="1342" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1333" y="175" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ybr9hb_di" bpmnElement="Milestone-50-DD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="685" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0j3h020_di" bpmnElement="Milestone-100-SD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="353" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1fioxa7_di" bpmnElement="Milestone-25-DD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="519" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ekkytz_di" bpmnElement="Milestone-100-DD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="851" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1846987_di" bpmnElement="Milestone-75-CD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1017" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1j8dz60_di" bpmnElement="Milestone-100-CD" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="1183" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

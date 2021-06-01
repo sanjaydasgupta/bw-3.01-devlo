@@ -20,6 +20,17 @@ trait HttpUtils {
     }
   }
 
+  def setPersona(personOid: ObjectId, request: HttpServletRequest): Unit = {
+    getSessionAlternatives(request).setAttribute("bw-persona", personOid)
+  }
+
+  def getPersona(request: HttpServletRequest): Document = {
+    getSessionAlternatives(request).getAttribute("bw-persona") match {
+      case null => getSessionAlternatives(request).getAttribute("bw-user").asInstanceOf[Document]
+      case personOid => personOid.asInstanceOf[Document]
+    }
+  }
+
   def getUser(request: HttpServletRequest): Document =
     getSessionAlternatives(request).getAttribute("bw-user").asInstanceOf[Document]
 

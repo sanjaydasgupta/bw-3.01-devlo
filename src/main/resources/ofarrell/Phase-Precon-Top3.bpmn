@@ -224,7 +224,7 @@
       <bpmn:incoming>Flow_0tgw8ro</bpmn:incoming>
       <bpmn:outgoing>Flow_1xogg71</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:userTask id="Milestone-100-SD" name="Milestone  100% SD">
+    <bpmn:userTask id="Milestone-100-SD" name="Milestone&#10;100% SD">
       <bpmn:incoming>Flow_0p5xelp</bpmn:incoming>
       <bpmn:outgoing>Flow_1r93cze</bpmn:outgoing>
     </bpmn:userTask>

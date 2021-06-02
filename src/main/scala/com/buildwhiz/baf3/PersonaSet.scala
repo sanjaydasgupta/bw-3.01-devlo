@@ -21,13 +21,13 @@ class PersonaSet extends HttpServlet with HttpUtils {
       if (!PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
       val personOid = new ObjectId(parameterMap("person_id"))
-      if (!PersonApi.exists(personOid))
-        throw new IllegalArgumentException(s"Bad person_id: '$personOid'")
+      val persona = PersonApi.personById(personOid)
       setPersona(personOid, request)
 
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      BWLogger.audit(getClass.getName, request.getMethod, "EXIT-OK", request)
+      val message = s"Set persona to ${PersonApi.fullName(persona)}"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

@@ -20,7 +20,7 @@ class ProjectList extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
       val scope = parameters.getOrElse("scope", "all")
       val optCustomerOid = parameters.get("customer_id").map(new ObjectId(_))

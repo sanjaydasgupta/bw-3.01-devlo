@@ -18,7 +18,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase = PhaseApi.phaseById(phaseOid)
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       if (!PhaseApi.canManage(user._id[ObjectId], thePhase) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))

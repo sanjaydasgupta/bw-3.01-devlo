@@ -68,7 +68,7 @@ object ProjectInfo extends HttpUtils {
   def project2json(project: DynDoc, request: HttpServletRequest, doLog: Boolean = false): String = {
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", s"ENTRY", request)
-    val user: DynDoc = getUser(request)
+    val user: DynDoc = getPersona(request)
     val editable = ProjectInfo.isEditable(project, user)
     val bareDocumentTags: Seq[String] = if (project.has("document_tags")) {
       project.document_tags[Many[Document]].map(tagSpec => {

@@ -18,7 +18,7 @@ class ActivityInfo extends HttpServlet with HttpUtils {
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
       val activityRecord: DynDoc = ActivityApi.activityById(activityOid)
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       response.getWriter.print(ActivityInfo.activity2json(activityRecord, user))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

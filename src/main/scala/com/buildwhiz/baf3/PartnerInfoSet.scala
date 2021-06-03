@@ -15,7 +15,7 @@ class PartnerInfoSet extends HttpServlet with HttpUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
-      val user = getUser(request)
+      val user = getPersona(request)
       if (!PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")
       val parameterString = getStreamData(request)

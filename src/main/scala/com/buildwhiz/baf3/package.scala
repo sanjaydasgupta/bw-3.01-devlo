@@ -189,7 +189,10 @@ package object baf3 {
       "navLabel" -> "Partners", "routeUrl" -> "/private/partners", "toolTipLabel" -> "Partners"),
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/wand.svg",
-      "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications")
+      "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications"),
+    Map("access" -> "A", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
+      "navIconActive" -> "assets/images/teenyicons/solid-white/wand.svg",
+      "navLabel" -> "Lists", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Lists")
   )
 
   def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false):

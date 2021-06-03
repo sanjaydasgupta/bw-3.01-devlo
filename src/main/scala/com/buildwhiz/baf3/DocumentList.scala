@@ -82,7 +82,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val projectOid = new ObjectId(parameters("project_id"))
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
       val canManage = parameters.get("phase_id") match {
         case Some(phaseId) => PhaseApi.canManage(userOid, PhaseApi.phaseById(new ObjectId(phaseId)))

@@ -18,7 +18,7 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val teamOids: Seq[ObjectId] = phaseRecord.get[Many[Document]]("team_assignments") match {
         case Some(teamAssignments) => teamAssignments.map(_.team_id[ObjectId])
         case None => Seq.empty[ObjectId]

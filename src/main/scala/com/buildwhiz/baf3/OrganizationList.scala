@@ -30,7 +30,7 @@ class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val optOrganizationType = parameters.get("organization_type")
       val optProjectOid = parameters.get("project_id").map(new ObjectId(_))
       val optPhaseOid = parameters.get("phase_id").map(new ObjectId(_))

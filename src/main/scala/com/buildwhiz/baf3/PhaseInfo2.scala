@@ -19,7 +19,7 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       response.getWriter.print(PhaseInfo2.phase2json(phaseRecord, user, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

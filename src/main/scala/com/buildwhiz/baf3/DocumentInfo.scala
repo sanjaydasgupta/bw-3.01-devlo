@@ -56,7 +56,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val documentOid = new ObjectId(parameters("document_id"))
       val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
       val projectOid = docRecord.project_id[ObjectId]

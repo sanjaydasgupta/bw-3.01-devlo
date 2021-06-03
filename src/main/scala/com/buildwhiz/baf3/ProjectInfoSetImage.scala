@@ -20,7 +20,7 @@ class ProjectInfoSetImage extends HttpServlet with HttpUtils with MailUtils with
         throw new IllegalArgumentException("project_id not provided")
       val projectOid = new ObjectId(parameters("project_id"))
       val theProject = ProjectApi.projectById(projectOid)
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       if (!PersonApi.isBuildWhizAdmin(Right(user)) && !ProjectApi.canManage(user._id[ObjectId], theProject))
         throw new IllegalArgumentException("Not permitted")
       if (request.getParts.size == 1) {

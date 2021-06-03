@@ -19,7 +19,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils with Date
       if (!DocumentApi.exists(documentOid))
         throw new IllegalArgumentException(s"unknown document-id: $documentOid")
 
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val (authorOid, authorName) = parameters.get("author_id") match {
         case Some(aId) =>
           if (!PersonApi.isBuildWhizAdmin(Right(user)))

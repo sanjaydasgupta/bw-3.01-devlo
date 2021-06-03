@@ -79,7 +79,7 @@ class PersonInfo extends HttpServlet with HttpUtils {
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val personRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val personIsEditable = isEditable(personRecord, user)
       response.getWriter.print(person2json(personRecord, personIsEditable))
       response.setContentType("application/json")

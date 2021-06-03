@@ -16,7 +16,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))

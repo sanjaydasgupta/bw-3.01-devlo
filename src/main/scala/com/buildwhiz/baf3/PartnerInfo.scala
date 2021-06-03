@@ -20,7 +20,7 @@ class PartnerInfo extends HttpServlet with HttpUtils {
     try {
       val organizationOid = new ObjectId(parameters("organization_id"))
       val orgRecord: DynDoc = OrganizationApi.organizationById(organizationOid)
-      response.getWriter.print(PartnerInfo.partner2Document(orgRecord, getUser(request)).toJson)
+      response.getWriter.print(PartnerInfo.partner2Document(orgRecord, getPersona(request)).toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

@@ -17,7 +17,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
 
       val organizationOid = new ObjectId(parameters("organization_id"))
       if (!OrganizationApi.exists(organizationOid))

@@ -42,7 +42,7 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
           throw new IllegalArgumentException("project_id not provided")
       }
 
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       if (!ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid)) &&
           !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")

@@ -22,7 +22,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
       }
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val thePhase = PhaseApi.phaseById(phaseOid)
       if (!PhaseApi.canManage(user._id[ObjectId], thePhase) && !PersonApi.isBuildWhizAdmin(Right(user)))
         throw new IllegalArgumentException("Not permitted")

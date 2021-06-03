@@ -15,7 +15,7 @@ class PartnerCreate extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       if (!PersonApi.isBuildWhizAdmin(Right(user))) {
         throw new IllegalArgumentException("Not permitted")
       }

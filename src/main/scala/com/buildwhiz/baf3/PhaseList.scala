@@ -17,7 +17,7 @@ class PhaseList extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val projectOid = new ObjectId(parameters("project_id"))
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val personOid = user._id[ObjectId]
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val parentProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head

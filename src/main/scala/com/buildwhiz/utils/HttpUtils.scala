@@ -20,6 +20,10 @@ trait HttpUtils {
     }
   }
 
+  def resetPersona(request: HttpServletRequest): Unit = {
+    getSessionAlternatives(request).removeAttribute("bw-persona")
+  }
+
   def setPersona(personOid: ObjectId, request: HttpServletRequest): Unit = {
     getSessionAlternatives(request).setAttribute("bw-persona", personOid)
   }

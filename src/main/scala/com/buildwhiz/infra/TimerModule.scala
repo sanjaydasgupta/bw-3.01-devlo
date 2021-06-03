@@ -84,7 +84,7 @@ object TimerModule extends HttpUtils {
       if (dayOfWeek == Calendar.FRIDAY)
         fridayMorning(ms, project)
       // Perform any project-specific daily activities here
-      issueTaskDurationReminders(ms, project)
+      //issueTaskDurationReminders(ms, project)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "newDay",
@@ -180,7 +180,7 @@ object TimerModule extends HttpUtils {
       for (project <- projects) {
         val calendar = Calendar.getInstance(TimeZone.getTimeZone(ProjectApi.timeZone(project)))
         calendar.setTimeInMillis(ms)
-        activityDelayedCheck(ms, project, calendar)
+        //activityDelayedCheck(ms, project, calendar)
         val hours = calendar.get(Calendar.HOUR_OF_DAY)
         if (hours == 0) {
           val minutes = calendar.get(Calendar.MINUTE)

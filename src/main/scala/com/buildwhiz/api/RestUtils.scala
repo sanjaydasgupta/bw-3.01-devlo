@@ -138,7 +138,7 @@ trait RestUtils extends HttpUtils {
   }
 
   def userHasRole(request: HttpServletRequest, role: String): Boolean = {
-    val user: DynDoc = getUser(request)
+    val user: DynDoc = getPersona(request)
     user.roles[Many[String]].contains(role)
   }
 

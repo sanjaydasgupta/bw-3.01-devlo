@@ -15,55 +15,29 @@ import scala.collection.mutable
 
 class ProjectTeamsConfigUpload extends HttpServlet with HttpUtils with MailUtils {
 
-  private def storeTeamConfigurations(taskConfigurations: Seq[DynDoc]): Unit = {
-    for (taskConfig <- taskConfigurations) {
-      val activityOid = taskConfig._id[ObjectId]
-      val deliverables = taskConfig.deliverables[Seq[DynDoc]]
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-          Map($set -> Map("deliverables" -> deliverables)))
-      if (updateResult.getMatchedCount == 0)
-        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-    }
+  private def storeTeamConfigurations(projectOid: ObjectId, teamConfigurations: Seq[DynDoc]): Unit = {
+    val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid),
+      Map($set -> Map("teams" -> teamConfigurations)))
+    if (updateResult.getMatchedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
 
-  private def validateTaskConfigurations(taskConfigurations: Seq[DynDoc], processOid: ObjectId,
-      errorList: mutable.Buffer[String]): Unit = {
-    val tasksWithoutDeliverables = taskConfigurations.filter(_.deliverables[Seq[DynDoc]].isEmpty)
-    if (tasksWithoutDeliverables.nonEmpty) {
-      val taskNames = tasksWithoutDeliverables.map(_.name[String]).mkString(", ")
-      val taskRows = tasksWithoutDeliverables.map(_.row[Int]).mkString(", ")
-      //throw new IllegalArgumentException(s"Found tasks without deliverables: $namesOfTasksWithoutDeliverables")
-      errorList.append(s"ERROR: Found tasks without deliverables: $taskNames in rows $taskRows")
-    }
-    val providedTaskNames: Seq[String] = taskConfigurations.map(_.name[String])
-    val providedTaskNameCounts: Map[String, Int] =
-      providedTaskNames.foldLeft(Map.empty[String, Int])((counts, name) => {
+  private def validateTeamConfigurations(teamConfigurations: Seq[DynDoc], processOid: ObjectId,
+        errorList: mutable.Buffer[String]): Unit = {
+    val providedTeamNames: Seq[String] = teamConfigurations.map(_.name[String])
+    val providedTeamNameCounts: Map[String, Int] =
+      providedTeamNames.foldLeft(Map.empty[String, Int])((counts, name) => {
         val newCount = if (counts.contains(name))
           counts.map(pair => if (pair._1 == name) (name, pair._2 + 1) else pair)
         else
           Map(name -> 1) ++ counts
         newCount
       })
-    val duplicatedTaskNames = providedTaskNameCounts.filter(_._2 > 1).keys
-    if (duplicatedTaskNames.nonEmpty) {
+    val duplicatedTeamNames = providedTeamNameCounts.filter(_._2 > 1).keys
+    if (duplicatedTeamNames.nonEmpty) {
       //throw new IllegalArgumentException(s"""Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
-      errorList.append(s"""ERROR: Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
+      errorList.append(s"""ERROR: Found duplicated team names: ${duplicatedTeamNames.mkString(", ")}""")
     }
-    val activities = ProcessApi.allActivities(processOid)
-    if (activities.length != taskConfigurations.length) {
-      //throw new IllegalArgumentException(s"Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
-      errorList.append(s"ERROR: Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
-    }
-    val taskNameIdMap: Map[String, ObjectId] =
-        activities.map(activity => activity.name[String] -> activity._id[ObjectId]).toMap
-    val tasksWithUnexpectedNames = taskConfigurations.filterNot(t => taskNameIdMap.containsKey(t.name[String]))
-    if (tasksWithUnexpectedNames.nonEmpty) {
-      val taskNames = tasksWithUnexpectedNames.map(_.name[String]).mkString(", ")
-      val taskRows = tasksWithUnexpectedNames.map(_.row[Int]).mkString(", ")
-      //throw new IllegalArgumentException(s"""Found unexpected task names: ${unexpectedTaskNames.mkString(", ")}""")
-      errorList.append(s"ERROR: Found unexpected task names: $taskNames in rows: $taskRows")
-    }
-    taskConfigurations.foreach(config => config._id = taskNameIdMap.getOrElse(config.name[String], new ObjectId()))
   }
 
   private def useOneConfigRow(configTeamsErrorList: (Seq[DynDoc], mutable.Buffer[String]), configRow: Row):
@@ -75,9 +49,7 @@ class ProjectTeamsConfigUpload extends HttpServlet with HttpUtils with MailUtils
         case CellType.NUMERIC => cell.getNumericCellValue.toString.trim
         case CellType.STRING => cell.getStringCellValue.trim
         case cellType =>
-          //throw new IllegalArgumentException(s"Bad cell type, found '$cellType' in row $rowNumber")
-          errorList.append(s"ERROR: Bad cell type, found '$cellType' in row $rowNumber")
-          "ERROR (bad type)!"
+          throw new IllegalArgumentException(s"Bad cell type, found '$cellType' in row $rowNumber")
       }
     }
     val cellValues: Seq[Option[String]] = configRow.asScala.toSeq.map(getCellValue).
@@ -92,7 +64,7 @@ class ProjectTeamsConfigUpload extends HttpServlet with HttpUtils with MailUtils
           organizationName match {
             case None =>
               val newTeam: DynDoc = new Document("group", groupName).append("name", teamName).
-                append("omniClass", omniClassCode.getOrElse("--")).append("color", color.getOrElse("__"))
+                append("omniClass", omniClassCode.getOrElse("--")).append("color", color.getOrElse("--"))
               (newTeam +: configTeams, errorList)
             case Some(orgName) => OrganizationApi.organizationByName(orgName) match {
               case Some(organization) =>
@@ -107,34 +79,27 @@ class ProjectTeamsConfigUpload extends HttpServlet with HttpUtils with MailUtils
           }
         // ERROR row
         case _ =>
-          throw new IllegalArgumentException(s"Bad values in row $rowNumber")
+          errorList.append(s"ERROR: Bad values/format in row $rowNumber")
+          (configTeams, errorList)
       }
     }
   }
 
-  private def projectTeamsConfiguration(taskSheet: Sheet, processOid: ObjectId, errorList: mutable.Buffer[String]):
+  private def projectTeamsConfiguration(teamsConfigSheet: Sheet, processOid: ObjectId, errorList: mutable.Buffer[String]):
       Seq[DynDoc] = {
     val oldErrorCount = errorList.length
-    val configInfoIterator: Iterator[Row] = taskSheet.rowIterator.asScala
-    val header = configInfoIterator.take(1).next()
-    val taskHeaderCellCount = header.getPhysicalNumberOfCells
-    if (taskHeaderCellCount != 5) {
-      errorList.append(s"ERROR: Bad header - expected 5 cells, found $taskHeaderCellCount")
+    val teamConfigInfoIterator: Iterator[Row] = teamsConfigSheet.rowIterator.asScala
+    val header = teamConfigInfoIterator.take(1).next()
+    val teamHeaderCellCount = header.getPhysicalNumberOfCells
+    if (teamHeaderCellCount != 5) {
+      errorList.append(s"ERROR: Bad header - expected 5 cells, found $teamHeaderCellCount")
     }
     if (errorList.length == oldErrorCount) {
-      val reversedTeamConfigurations: Seq[DynDoc] = configInfoIterator.toSeq.
+      val reversedTeamConfigurations: Seq[DynDoc] = teamConfigInfoIterator.toSeq.
           foldLeft((Seq.empty[DynDoc], errorList))(useOneConfigRow)._1
-      val taskConfigurations = reversedTeamConfigurations.reverse
-      for (config <- taskConfigurations) {
-        val deliverables = config.deliverables[Seq[DynDoc]]
-        for (deliverable <- deliverables) {
-          val constraints = deliverable.constraints[Seq[DynDoc]]
-          deliverable.constraints = constraints.reverse
-        }
-        config.deliverables = deliverables.reverse
-      }
-      //validateTaskConfigurations(taskConfigurations, processOid, errorList)
-      taskConfigurations
+      val teamConfigurations = reversedTeamConfigurations.reverse
+      //validateTeamConfigurations(teamConfigurations, processOid, errorList)
+      teamConfigurations
     } else {
       Seq.empty[DynDoc]
     }
@@ -152,17 +117,17 @@ class ProjectTeamsConfigUpload extends HttpServlet with HttpUtils with MailUtils
       val parts = request.getParts
       if (parts.size != 1)
         throw new IllegalArgumentException(s"Unexpected number of files ${parts.size}")
-      val workbook = new XSSFWorkbook(parts.asScala.head.getInputStream)
-      val nbrOfSheets = workbook.getNumberOfSheets
+      val teamsConfigWorkbook = new XSSFWorkbook(parts.asScala.head.getInputStream)
+      val nbrOfSheets = teamsConfigWorkbook.getNumberOfSheets
       if (nbrOfSheets != 1)
         throw new IllegalArgumentException(s"bad sheet count - expected 1, got $nbrOfSheets")
-      val theSheet: Sheet = workbook.sheetIterator.next()
-      if (theSheet.getSheetName != projectOid.toString)
-        throw new IllegalArgumentException(s"Mismatched project_id ($projectOid != ${theSheet.getSheetName})")
+      val teamsConfigSheet: Sheet = teamsConfigWorkbook.sheetIterator.next()
+      if (teamsConfigSheet.getSheetName != projectOid.toString)
+        throw new IllegalArgumentException(s"Mismatched project_id ($projectOid != ${teamsConfigSheet.getSheetName})")
       val errorList = mutable.Buffer.empty[String]
-      val teamConfigurations = projectTeamsConfiguration(theSheet, projectOid, errorList)
+      val teamConfigurations = projectTeamsConfiguration(teamsConfigSheet, projectOid, errorList)
       if (errorList.isEmpty) {
-        storeTeamConfigurations(teamConfigurations)
+        storeTeamConfigurations(projectOid, teamConfigurations)
         BWLogger.audit(getClass.getName, request.getMethod, s"Uploaded project-team $projectOid configuration Excel", request)
       } else {
         val errors = errorList.mkString(";\n")

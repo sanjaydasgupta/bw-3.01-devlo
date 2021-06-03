@@ -1,6 +1,7 @@
 package com.buildwhiz.utils
 
 import com.buildwhiz.Entry
+import com.buildwhiz.infra.DynDoc
 
 import javax.servlet.http.{HttpServletRequest, HttpSession, Part}
 import com.buildwhiz.infra.DynDoc._
@@ -25,8 +26,15 @@ trait HttpUtils {
   }
 
   def setPersona(persona: Document, request: HttpServletRequest): Unit = {
-    if (persona.getObjectId("_id") != getPersona(request).getObjectId("_id")) {
-      getSessionAlternatives(request).setAttribute("bw-persona", persona)
+    val personaOid = persona.getObjectId("_id")
+    val user: DynDoc = getUser(request)
+    val userOid = user._id[ObjectId]
+    if (personaOid != getPersona(request).getObjectId("_id")) {
+      if (personaOid == userOid) {
+        resetPersona(request)
+      } else {
+        getSessionAlternatives(request).setAttribute("bw-persona", persona)
+      }
     }
   }
 

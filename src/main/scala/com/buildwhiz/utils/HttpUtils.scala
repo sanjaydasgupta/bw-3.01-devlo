@@ -25,7 +25,9 @@ trait HttpUtils {
   }
 
   def setPersona(persona: Document, request: HttpServletRequest): Unit = {
-    getSessionAlternatives(request).setAttribute("bw-persona", persona)
+    if (persona.getObjectId("_id") != getPersona(request).getObjectId("_id")) {
+      getSessionAlternatives(request).setAttribute("bw-persona", persona)
+    }
   }
 
   def getPersona(request: HttpServletRequest): Document = {

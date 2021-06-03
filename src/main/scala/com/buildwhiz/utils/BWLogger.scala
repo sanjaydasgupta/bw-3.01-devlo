@@ -1,7 +1,8 @@
 package com.buildwhiz.utils
 
-import java.util.{HashMap => JHashMap}
+import com.buildwhiz.baf2.PersonApi
 
+import java.util.{HashMap => JHashMap}
 import javax.servlet.http.HttpServletRequest
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
@@ -54,10 +55,19 @@ object BWLogger extends HttpUtils {
         map(kv => (kv._1, if (kv._2 == null) "" else kv._2.toString)).toSeq: _*)
   }
 
-  def audit(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
+  private def userNameAndId(request: HttpServletRequest): String = {
     val user: DynDoc = getUser(request)
-    val userNameAndId = f"${user.first_name[String]}%s ${user.last_name[String]}%s (${user._id[ObjectId]}%s)"
-    log(className, methodName, s"AUDIT: $userNameAndId => $eventName", request)
+    val persona: DynDoc = getPersona(request)
+    if (persona._id[ObjectId] == user._id[ObjectId]) {
+      s"${PersonApi.fullName(user)} (${user._id[ObjectId]})"
+    } else {
+      s"${PersonApi.fullName(user)} (${user._id[ObjectId]}) AS ${PersonApi.fullName(persona)} (${persona._id[ObjectId]})"
+    }
+  }
+
+  def audit(className: String, methodName: String, eventName: String, request: HttpServletRequest): Unit = {
+    val nameAndId = userNameAndId(request)
+    log(className, methodName, s"AUDIT: $nameAndId => $eventName", request)
   }
 
   def log(className: String, methodName: String, eventName: String, request: Option[HttpServletRequest]): Unit =
@@ -84,7 +94,7 @@ object BWLogger extends HttpUtils {
     }
     val paramsWithName = getUser(request) match {
       case null => parameters
-      case user => parameters ++ Map("u$nm" -> s"""${user.get("first_name")} ${user.get("last_name")}""")
+      case user => parameters ++ Map("u$nm" -> userNameAndId(request))
     }
     val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
     val query = request.getQueryString

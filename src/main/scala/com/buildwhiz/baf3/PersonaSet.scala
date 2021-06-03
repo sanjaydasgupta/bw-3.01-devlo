@@ -22,7 +22,7 @@ class PersonaSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException("Not permitted")
       val personOid = new ObjectId(parameterMap("person_id"))
       val persona = PersonApi.personById(personOid)
-      setPersona(personOid, request)
+      setPersona(persona.asDoc, request)
 
       response.getWriter.print(successJson())
       response.setContentType("application/json")

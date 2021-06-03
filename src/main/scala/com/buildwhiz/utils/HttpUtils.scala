@@ -24,14 +24,14 @@ trait HttpUtils {
     getSessionAlternatives(request).removeAttribute("bw-persona")
   }
 
-  def setPersona(personOid: ObjectId, request: HttpServletRequest): Unit = {
-    getSessionAlternatives(request).setAttribute("bw-persona", personOid)
+  def setPersona(persona: Document, request: HttpServletRequest): Unit = {
+    getSessionAlternatives(request).setAttribute("bw-persona", persona)
   }
 
   def getPersona(request: HttpServletRequest): Document = {
     getSessionAlternatives(request).getAttribute("bw-persona") match {
       case null => getSessionAlternatives(request).getAttribute("bw-user").asInstanceOf[Document]
-      case personOid => personOid.asInstanceOf[Document]
+      case persona => persona.asInstanceOf[Document]
     }
   }
 

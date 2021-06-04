@@ -1,6 +1,7 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.Document
@@ -48,12 +49,26 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
         throw new IllegalArgumentException("Not permitted")
 
       val documentRecord = (nameValuePairs ++ Map("versions" -> Seq.empty[Document])).asDoc
-      BWMongoDB3.document_master.insertOne(documentRecord)
+      val disposition: String = if (nameValuePairs.contains("deliverable_id") &&
+          nameValuePairs.getOrElse("category", "") == "Specification") {
+        val query = Map("deliverable_id" -> nameValuePairs("deliverable_id"), "category" -> "Specification")
+        BWMongoDB3.document_master.find(query).headOption match {
+          case None =>
+            BWMongoDB3.document_master.insertOne(documentRecord)
+            "Created"
+          case Some(existingRecord) =>
+            documentRecord.append("_id", existingRecord._id[ObjectId])
+            "Found"
+        }
+      } else {
+        BWMongoDB3.document_master.insertOne(documentRecord)
+        "Created"
+      }
 
       val docOid = documentRecord.getObjectId("_id").toString
       response.getWriter.print(successJson(fields = Map("document_id" -> docOid)))
       response.setContentType("application/json")
-      val message = s"""Created document name='${nameValuePairs("name")}', _id='$docOid'"""
+      val message = s"""$disposition document name='${nameValuePairs("name")}', _id='$docOid'"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
@@ -63,4 +78,3 @@ class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with Date
     }
   }
 }
-

@@ -58,12 +58,14 @@ object PersonApi {
       case (None, None, None, Some(phaseOid), _) =>
         val allTeamOids = PhaseApi.allTeamOids30(PhaseApi.phaseById(phaseOid))
         val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
-        Map("_id" -> Map($in -> allMemberOids))
+        val managers: Seq[ObjectId] = PhaseApi.managers(Left(phaseOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managers).distinct))
       case (None, None, None, _, Some(projectOid)) =>
         val allPhases: Seq[DynDoc] = ProjectApi.allPhases(projectOid)
         val allTeamOids: Seq[ObjectId] = allPhases.flatMap(PhaseApi.allTeamOids30)
         val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
-        Map("_id" -> Map($in -> allMemberOids))
+        val managers: Seq[ObjectId] = ProjectApi.managers(Left(projectOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managers).distinct))
       case _ => Map.empty
     }
 

@@ -121,7 +121,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getActivities(processName: String, user: DynDoc, processActivities: Seq[DynDoc]):
+  private def getActivities(processName: String, user: DynDoc, canManage: Boolean, processActivities: Seq[DynDoc]):
       Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val returnActivities = activities.map(activity => {
@@ -189,6 +189,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "NA"
       }
 
+      val description = activity.get[String]("description") match {
+        case Some(d) => new Document("editable", canManage).append("value", d)
+        case None => new Document("editable", canManage).append("value", "")
+      }
+
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
@@ -197,7 +202,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
         append("duration_likely", durationLikely).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
-        append("date_start_label", startLabel).append("date_end_label", endLabel).
+        append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
     })
     returnActivities
@@ -214,7 +219,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getPersona(request)
       //val userOid = user._id[ObjectId]
@@ -224,6 +229,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
       }
+      val canManage = PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
       val processModelStream = if (bpmnFileName == "****") {
         new ByteArrayInputStream(placeholder.getBytes)
       } else {
@@ -250,7 +256,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestones = getMilestones(process, bpmnFileName)
       val endNodes = getEndNodes(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
-      val processActivities = getActivities(bpmnFileName, user, allActivities)
+      val processActivities = getActivities(bpmnFileName, user, canManage, allActivities)
       val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
@@ -265,19 +271,21 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => ""
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
+      val bpmnDuration = ProcessBpmnTraverse2.processDurationRecalculate(bpmnFileName, process,
+        Seq.empty[(String, String, Int)], request)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
-          append("end_nodes", endNodes)
+          append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

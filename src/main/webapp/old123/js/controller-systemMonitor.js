@@ -24,7 +24,7 @@
 
   self.bgColor = function(row) {
     var color = 'white'
-    var patterns = ['/', '/home', 'mongodb', 'java'];
+    var patterns = ['/', '/home', 'mongodb', 'java', 'node'];
     patterns.forEach(function(pattern) {
       row.forEach(function(rowElement) {
         if (rowElement == pattern) {

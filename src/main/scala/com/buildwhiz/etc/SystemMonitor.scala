@@ -91,7 +91,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
     val output: String = "top -b -n 1".!!
     val lines = output.split("\n").map(_.trim).filter(_.nonEmpty).dropWhile(line => !line.startsWith("PID"))
     val filteredLines = lines.head +: lines.tail.
-        filter(line => if (filtered) line.matches("(?i).*(mongo|java).*") else true)
+        filter(line => if (filtered) line.matches("(?i).*(mongo|java|node).*") else true)
     val fieldedLines = filteredLines.map(_.split("\\s+"))
     val json = fieldedLines.map(_.mkString("[\"", "\", \"", "\"]")).mkString("[", ", ", "]")
     response.getWriter.print(json)
@@ -117,7 +117,7 @@ class SystemMonitor extends HttpServlet with HttpUtils with DateTimeUtils {
       val tz = getUser(request).get("tz").asInstanceOf[String]
       parameters("command") match {
         case "dfh" => dfh(response)
-        case "topbn-mj" => topbn(response, filtered = true)
+        case "topbn-mjn" => topbn(response, filtered = true)
         case "topbn-all" => topbn(response, filtered = false)
         case tomcatRe(dir) => tomcat(response, dir)
         case amazonS3Re(option) => amazonS3(option, response, tz)

@@ -148,7 +148,7 @@ package object baf3 {
       "navLabel" -> "Phase", "routeUrl" -> "/private/phases", "toolTipLabel" -> "Phase"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/clipboard-tick.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/clipboard-tick.svg",
-      "navLabel" -> "Tasks", "routeUrl" -> "/private/tasks", "toolTipLabel" -> "Tasks"),
+      "navLabel" -> "Phase Plan", "routeUrl" -> "/private/tasks", "toolTipLabel" -> "Phase Plan"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/bag.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/bag.svg",
       "navLabel" -> "Deliverables", "routeUrl" -> "/private/deliverables", "toolTipLabel" -> "Deliverables"),

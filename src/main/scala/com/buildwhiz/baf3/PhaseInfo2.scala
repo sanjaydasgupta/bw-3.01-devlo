@@ -1,11 +1,11 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
+import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
@@ -20,7 +20,7 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
       val user: DynDoc = getPersona(request)
-      response.getWriter.print(PhaseInfo2.phase2json(phaseRecord, user, request))
+      response.getWriter.print(PhaseInfo2.phase2json(phaseRecord, user))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
@@ -36,33 +36,32 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
 
 object PhaseInfo2 extends DateTimeUtils {
 
-  private def deliverables(task: DynDoc, user: DynDoc): Many[Document] = {
-    val deliverables: Seq[DynDoc] = if (task.has("deliverables")) task.deliverables[Many[Document]] else Nil
-    val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
-      val rawEndDate = deliverable.bpmn_scheduled_end_date[Long]
-      val endDate = if (rawEndDate == -1) {
-        "Not available"
-      } else {
-        val timeZone = user.tz[String]
-        dateTimeString(deliverable.bpmn_scheduled_end_date[Long], Some(timeZone))
-      }
+  private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
+    val userOid = user._id[ObjectId]
+    PhaseApi.canManage(userOid, phase)
+  }
+
+  private def deliverableInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
+    val phaseTeamOids = PhaseApi.allTeamOids30(phase).toSet
+    val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
+    val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
+    val myPhaseDeliverables = DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
+    val deliverableRecords: Seq[Document] = myPhaseDeliverables.map(deliverable => {
       val status = deliverable.status[String]
       val scope = status match {
-        case "defined" => "Future"
-        case "running" => "Current"
-        case "ended" => "Past"
-        case _ => "?"
+        case "Not-Started" => "Future"
+        case "Ended" => "Past"
+        case _ => "Current"
       }
       Map("_id" -> deliverable._id[ObjectId].toString, "name" -> deliverable.name[String],
-          "bpmn_name" -> deliverable.bpmn_name[String], "status" -> status, "display_status" -> "Dormant",
-          "due_date" -> endDate, "scope" -> scope)
+        "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
     })
     deliverableRecords.asJava
   }
 
-  private def taskInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
-    val firstProcess: Option[DynDoc] = PhaseApi.allProcesses(phase._id[ObjectId]).headOption
-    val tasks = firstProcess.toSeq.flatMap(p => ProcessApi.allActivities(p))
+  private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
+    val activityOids = deliverables.map(_.activity_id[ObjectId])
+    val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
       val rawEndDate = task.bpmn_scheduled_end_date[Long]
       val endDate = if (rawEndDate == -1) {
@@ -79,78 +78,51 @@ object PhaseInfo2 extends DateTimeUtils {
         case _ => "Current"
       }
       Map("_id" -> task._id[ObjectId].toString, "name" -> task.name[String], "bpmn_name" -> task.bpmn_name[String],
-          "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
-          "scope" -> scope, "deliverables" -> deliverables(task, user))
+        "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
+        "scope" -> scope)
     })
     taskRecords.asJava
   }
 
-  private def phaseDatesAndDurations(phase: DynDoc, request: HttpServletRequest): Seq[(String, Any)] = {
-    val timestamps: DynDoc = phase.timestamps[Document]
-    val (startDate, startDateLabel) = if (timestamps.has("date_start_actual")) {
-      (dateTimeString(timestamps.date_start_actual[Long]), "Actual Start Date")
-    } else if (timestamps.has("date_start_estimated")) {
-      (dateTimeString(timestamps.date_start_estimated[Long]), "Estimated Start Date")
-    } else {
-      ("NA", "Estimated Start Date")
-    }
-    val (finishDate, finishDateLabel) = if (timestamps.has("date_end_actual")) {
-      (dateTimeString(timestamps.date_end_actual[Long]), "Actual Finish Date")
-    } else if (timestamps.has("date_end_estimated")) {
-      (dateTimeString(timestamps.date_end_estimated[Long]), "Estimated Finish Date")
-    } else {
-      ("NA", "Estimated Finish Date")
-    }
-    val bpmnName = PhaseApi.allProcesses(phase).head.bpmn_name[String]
-    val durationLikely = try {
-      ProcessBpmnTraverse2.processDurationRecalculate(bpmnName, phase._id[ObjectId], Seq.empty[(String, String, Int)],
-        request).toString
-    } catch {
-      case t: Throwable =>
-        val message = "ProcessBpmnTraverse.processDurationRecalculate() throws: "
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: $message ${t.getClass.getName}(${t.getMessage})", request)
-        "NA"
-    }
+  private def phaseDatesAndDurations(phase: DynDoc): Seq[(String, Any)] = {
     Seq(
-      ("date_start", startDate),
-      ("date_finish", finishDate),
-      ("date_original_estimated_finish", "NA"),
-      ("label_date_start", startDateLabel),
-      ("label_date_finish", finishDateLabel),
-      ("duration_optimistic", "NA"),
-      ("duration_pessimistic", "NA"),
-      ("duration_likely", durationLikely)
+      ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
+      ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
+      ("actual_start_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("duration_optimistic", new Document("editable", false).append("value", "NA")),
+      ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
+      ("duration_likely", new Document("editable", false).append("value", "NA"))
     )
   }
 
   private def phaseKpis(phase: DynDoc): Many[Document] = {
     val ofOriginalBudget = "comment" -> "original budget"
     val kpis: Seq[DynDoc] =
-    Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
-      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
+      Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
+        Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
         Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3 %", ofOriginalBudget),
-      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
+        Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
         Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7 %", ofOriginalBudget),
-      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
-      kpis.map(_.asDoc).asJava
+        Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
+    kpis.map(_.asDoc).asJava
   }
 
-  private def phase2json(phase: DynDoc, user: DynDoc, request: HttpServletRequest): String = {
-    val editable = PhaseApi.canManage(user._id[ObjectId], phase)
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+  private def phase2json(phase: DynDoc, user: DynDoc): String = {
+    val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
-    val displayStatus2 = new Document("editable", false).append("value", PhaseApi.displayStatus2(phase, userIsAdmin))
+    val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
     val name = new Document("editable", editable).append("value", phase.name[String])
     val rawPhaseManagers = phase.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)(Phase|Project)-Manager")).map(role => {
-        val thePerson = PersonApi.personById(role.person_id[ObjectId])
-        val personName = PersonApi.fullName(thePerson)
-        new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
-      }).asJava
+      val thePerson = PersonApi.personById(role.person_id[ObjectId])
+      val personName = PersonApi.fullName(thePerson)
+      new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
+    }).asJava
     val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
     val rawGoals = phase.get[String]("goals") match {
-      case None => s"Goals for '${phase.name[String]}'"
+      case None => s"Goals for '$phase'"
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
@@ -158,12 +130,14 @@ object PhaseInfo2 extends DateTimeUtils {
       case Some(theProcess) => theProcess.bpmn_name[String]
       case None => "not-available"
     }
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+    val deliverableInfo = deliverableInformation(phase, user)
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
-        append("display_status", displayStatus2).append("managers", phaseManagers).append("goals", goals).
-        append("task_info", taskInformation(phase, user)).append("bpmn_name", bpmnName).
-        append("menu_items", displayedMenuItems(userIsAdmin, editable)).
-        append("display_edit_buttons", editable)
-    phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
+        append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
+        append("deliverable_info", deliverableInfo).
+        append("task_info", taskInformation(deliverableInfo, user)).append("bpmn_name", bpmnName).
+        append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
+    phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }

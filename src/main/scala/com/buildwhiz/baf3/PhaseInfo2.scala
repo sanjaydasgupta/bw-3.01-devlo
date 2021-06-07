@@ -77,7 +77,11 @@ object PhaseInfo2 extends DateTimeUtils {
         case "ended" => "Past"
         case _ => "Current"
       }
-      Map("_id" -> task._id[ObjectId].toString, "name" -> task.name[String], "bpmn_name" -> task.bpmn_name[String],
+      val taskName = task.get[String]("full_path_name") match {
+        case Some(fpn) => fpn
+        case None => task.name[String]
+      }
+      Map("_id" -> task._id[ObjectId].toString, "name" -> taskName, "bpmn_name" -> task.bpmn_name[String],
         "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
         "scope" -> scope)
     })

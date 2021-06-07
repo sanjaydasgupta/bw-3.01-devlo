@@ -53,14 +53,14 @@ object PhaseInfo2 extends DateTimeUtils {
         case "Ended" => "Past"
         case _ => "Current"
       }
-      Map("_id" -> deliverable._id[ObjectId].toString, "name" -> deliverable.name[String],
-        "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
+      Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
+        "name" -> deliverable.name[String], "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
     })
     deliverableRecords.asJava
   }
 
   private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
-    val activityOids = deliverables.map(_.activity_id[ObjectId])
+    val activityOids = deliverables.map(deliverable => new ObjectId(deliverable.activity_id[String]))
     val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
       val rawEndDate = task.bpmn_scheduled_end_date[Long]

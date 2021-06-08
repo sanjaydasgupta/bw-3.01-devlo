@@ -60,6 +60,7 @@ object PhaseInfo2 extends DateTimeUtils {
   }
 
   private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
+    val taskStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val activityOids = deliverables.map(deliverable => new ObjectId(deliverable.activity_id[String]))
     val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
@@ -70,10 +71,10 @@ object PhaseInfo2 extends DateTimeUtils {
         val timeZone = user.tz[String]
         dateTimeString(task.bpmn_scheduled_end_date[Long], Some(timeZone))
       }
-      val status = task.status[String]
-      val scope = status match {
-        case "defined" => "Future"
-        case "running" => "Current"
+      val taskOid = task._id[ObjectId]
+      val displayStatus = taskStatusValues(taskOid)
+      val scope = displayStatus.toLowerCase match {
+        case "not-started" => "Future"
         case "ended" => "Past"
         case _ => "Current"
       }
@@ -81,9 +82,8 @@ object PhaseInfo2 extends DateTimeUtils {
         case Some(fpn) => fpn
         case None => task.name[String]
       }
-      Map("_id" -> task._id[ObjectId].toString, "name" -> taskName, "bpmn_name" -> task.bpmn_name[String],
-        "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
-        "scope" -> scope)
+      Map("_id" -> taskOid.toString, "name" -> taskName, "bpmn_name" -> task.bpmn_name[String],
+        "status" -> displayStatus, "due_date" -> endDate, "scope" -> scope)
     })
     taskRecords.asJava
   }

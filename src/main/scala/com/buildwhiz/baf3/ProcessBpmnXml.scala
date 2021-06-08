@@ -124,7 +124,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
   private def getActivities(processName: String, user: DynDoc, canManage: Boolean, processActivities: Seq[DynDoc]):
       Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
+    val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+    val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val returnActivities = activities.map(activity => {
+      val activityOid = activity._id[ObjectId]
       val tasks = Seq.empty[Document]
       val status = if (tasks.exists(_.get("status") == "waiting"))
         "waiting"
@@ -196,6 +199,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
+        append("status_deliverables", activityStatusValues(activityOid)).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).

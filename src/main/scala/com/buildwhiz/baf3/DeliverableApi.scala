@@ -29,8 +29,9 @@ object DeliverableApi {
         "Active"
       }
 
-    val theMap = deliverables.groupBy(_.activity_id[String]).map(kv => (new ObjectId(kv._1), kv._2.map(_.status[String]))).
-        map(kv => (kv._1, aggregateStatus(kv._2)))
+    val theGroups = deliverables.groupBy(_.activity_id[ObjectId])
+    val statusValues = theGroups.map(kv => (kv._1, kv._2.map(_.status[String])))
+    val theMap = statusValues.map(kv => (kv._1, aggregateStatus(kv._2)))
     val mapWithDefault = new WithDefault[ObjectId, String](theMap, _ => "Unknown")
 
     mapWithDefault

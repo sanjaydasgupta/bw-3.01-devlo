@@ -136,10 +136,14 @@ object PhaseInfo2 extends DateTimeUtils {
     }
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val deliverableInfo = deliverableInformation(phase, user)
+    val deliverables2 = deliverableInfo.map(deliverable => {
+      deliverable.activity_id = new ObjectId(deliverable.activity_id[String])
+      deliverable
+    })
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).
-        append("task_info", taskInformation(deliverableInfo, user)).append("bpmn_name", bpmnName).
+        append("task_info", taskInformation(deliverables2, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))

@@ -214,10 +214,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   @tailrec
   private def bpmnAncestors(process: DynDoc, currentBpmnName: String, parents: Seq[String] = Nil): Seq[String] = {
+    val parents2 = if (parents.isEmpty) {
+      Seq(currentBpmnName)
+    } else {
+      parents
+    }
     process.bpmn_timestamps[Many[Document]].find(ts => ts.name[String] == currentBpmnName &&
         ts.has("parent_name") && ts.parent_name[String].trim.nonEmpty) match {
-      case None => parents
-      case Some(ts: DynDoc) => bpmnAncestors(process, ts.parent_name[String], ts.parent_name[String] +: parents)
+      case None => parents2
+      case Some(ts: DynDoc) =>
+        bpmnAncestors(process, ts.parent_name[String], ts.parent_name[String] +: parents2)
     }
   }
 

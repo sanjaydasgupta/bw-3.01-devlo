@@ -41,12 +41,15 @@ object PhaseInfo2 extends DateTimeUtils {
     PhaseApi.canManage(userOid, phase)
   }
 
-  private def deliverableInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
+  private def getDeliverables(phase: DynDoc, user: DynDoc): Seq[DynDoc] = {
     val phaseTeamOids = PhaseApi.allTeamOids30(phase).toSet
     val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
     val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
-    val myPhaseDeliverables = DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
-    val deliverableRecords: Seq[Document] = myPhaseDeliverables.map(deliverable => {
+    DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
+  }
+
+  private def deliverableInformation(deliverables: Seq[DynDoc]): Many[Document] = {
+    val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
       val status = deliverable.status[String]
       val scope = status match {
         case "Not-Started" => "Future"
@@ -141,15 +144,12 @@ object PhaseInfo2 extends DateTimeUtils {
       case None => "not-available"
     }
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-    val deliverableInfo = deliverableInformation(phase, user)
-    val deliverables2 = deliverableInfo.map(deliverable => {
-      deliverable.activity_id = new ObjectId(deliverable.activity_id[String])
-      deliverable
-    })
+    val deliverables = getDeliverables(phase, user)
+    val deliverableInfo = deliverableInformation(deliverables)
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).
-        append("task_info", taskInformation(deliverables2, user)).append("bpmn_name", bpmnName).
+        append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))

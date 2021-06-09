@@ -20,7 +20,7 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
       val user: DynDoc = getPersona(request)
-      response.getWriter.print(PhaseInfo2.phase2json(phaseRecord, user))
+      response.getWriter.print(PhaseInfo2.phase2json(phaseRecord, user, request: HttpServletRequest))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
@@ -61,7 +61,7 @@ object PhaseInfo2 extends DateTimeUtils {
 
   private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
     val taskStatusValues = DeliverableApi.taskStatusMap(deliverables)
-    val activityOids = deliverables.map(deliverable => new ObjectId(deliverable.activity_id[String]))
+    val activityOids = deliverables.map(_.activity_id[ObjectId])
     val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
       val rawEndDate = task.bpmn_scheduled_end_date[Long]
@@ -88,7 +88,13 @@ object PhaseInfo2 extends DateTimeUtils {
     taskRecords.asJava
   }
 
-  private def phaseDatesAndDurations(phase: DynDoc): Seq[(String, Any)] = {
+  private def phaseDatesAndDurations(phase: DynDoc, request: HttpServletRequest): Seq[(String, Any)] = {
+    val phaseDuration = PhaseApi.allProcesses(phase).headOption match {
+      case Some(process) =>
+        val bpmnName = process.bpmn_name[String]
+        ProcessBpmnTraverse2.processDurationRecalculate(bpmnName, process, Seq.empty[(String, String, Int)], request).toString
+      case None => "NA"
+    }
     Seq(
       ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
       ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
@@ -96,7 +102,7 @@ object PhaseInfo2 extends DateTimeUtils {
       ("actual_end_date", new Document("editable", false).append("value", "2020-12-31")),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
-      ("duration_likely", new Document("editable", false).append("value", "NA"))
+      ("duration_likely", new Document("editable", false).append("value", phaseDuration))
     )
   }
 
@@ -112,7 +118,7 @@ object PhaseInfo2 extends DateTimeUtils {
     kpis.map(_.asDoc).asJava
   }
 
-  private def phase2json(phase: DynDoc, user: DynDoc): String = {
+  private def phase2json(phase: DynDoc, user: DynDoc, request: HttpServletRequest): String = {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
@@ -145,7 +151,7 @@ object PhaseInfo2 extends DateTimeUtils {
         append("deliverable_info", deliverableInfo).
         append("task_info", taskInformation(deliverables2, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
-    phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }

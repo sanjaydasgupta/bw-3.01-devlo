@@ -135,7 +135,7 @@ object PhaseInfo2 extends DateTimeUtils {
     }).asJava
     val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
     val rawGoals = phase.get[String]("goals") match {
-      case None => s"Goals for '$phase'"
+      case None => s"Goals for '${phase.name[String]}'"
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)

@@ -16,14 +16,14 @@ class TaskInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
 
-    val parameters = getParameterMap(request)
+    val parameters = getParameterMap(request).filterNot(_._1 == "JSESSIONID")
     try {
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("description", (d => d, "description")),
         ("activity_id", (id2oid, "activity_id"))
       )
 
-      val parameterNames = parameterConverters.keys.toSeq.filterNot(_ == "JSESSIONID")
+      val parameterNames = parameterConverters.keys.toSeq
       val unknownParameters = parameters.keySet.toArray.filterNot(parameterNames.contains)
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
@@ -46,7 +46,8 @@ class TaskInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      BWLogger.audit(getClass.getName, request.getMethod, s"set duration of activity '$activityName'", request)
+      val message = s"""set parameters ${mongoDbNameValuePairs.map(_.toString()).mkString(", ")} of '$activityName'"""
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

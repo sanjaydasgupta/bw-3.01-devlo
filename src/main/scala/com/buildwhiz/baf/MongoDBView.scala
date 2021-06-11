@@ -36,7 +36,11 @@ class MongoDBView extends HttpServlet with HttpUtils {
       case fi: FindIterable[Document] @unchecked => fi.asScala.foreach(d => generateSchema(baseName, d, acc))
       case list: Many[_] => list.asScala.foreach(d => generateSchema(baseName + "[]", d, acc))
       case document: Document => for ((k, v) <- document.asScala) {
-        val typ = v.getClass.getSimpleName
+        val typ = if (v == null || v.getClass == null) {
+          "unknown"
+        } else {
+          v.getClass.getSimpleName
+        }
         val newKey = if (baseName.isEmpty) k else s"$baseName.$k"
         if (acc.contains(newKey)) {
           val schema = acc(newKey)
@@ -90,7 +94,7 @@ class MongoDBView extends HttpServlet with HttpUtils {
           } else {
             val docs: Seq[DynDoc] = BWMongoDB3(collection).find().limit(100)
             val jsonStrings: Seq[String] = docs.map(d => d.asDoc.toJson)
-            writer.print(jsonStrings.mkString("[", ", ", "]"))
+            writer.print(jsonStrings.mkString("[", ", ", "]").replaceAll("""(?!["])NaN(?!["])""", "\"unknown\""))
           }
         case (Some(collection), None, Some(update), Some(query)) =>
           val updateResult = BWMongoDB3(collection).updateMany(Document.parse(s"{$query}"), Document.parse(s"{$update}"))

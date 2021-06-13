@@ -4,7 +4,7 @@ import com.buildwhiz.infra.DynDoc.document2DynDoc
 import com.buildwhiz.utils.BWLogger
 import com.mongodb.{MongoClientException, ReadConcern, ReadPreference,
     TransactionOptions, WriteConcern}
-import com.mongodb.client.{FindIterable, MongoClients, MongoCollection, TransactionBody}
+import com.mongodb.client.{AggregateIterable, FindIterable, MongoClients, MongoCollection, TransactionBody}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -44,6 +44,8 @@ object BWMongoDB3 extends Dynamic {
   private lazy val db = mongoClient.getDatabase("BuildWhiz")
 
   implicit def findIterable2DynDocSeq(fi: FindIterable[Document]): Seq[DynDoc] = fi.asScala.map(document2DynDoc).toSeq
+  implicit def aggregateIterable2DynDocSeq(aggregateIterable: AggregateIterable[Document]): Seq[DynDoc] =
+    aggregateIterable.asScala.map(document2DynDoc).toSeq
 
   def selectDynamic(cn: String): MongoCollection[Document] = db.getCollection(cn)
 

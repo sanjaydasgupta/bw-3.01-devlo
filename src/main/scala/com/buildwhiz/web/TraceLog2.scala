@@ -76,9 +76,9 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
         case "hours" =>
           val startMs = untilMs - 3600L * 1000L * duration
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs))),
+            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
             Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 3600000L)))),
+              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
               "count" -> Map("$sum" -> 1))
             ),
             Map("$sort" -> Map("_id" -> -1))
@@ -87,9 +87,9 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
         case "days" =>
           val startMs = untilMs - 86400L * 1000L * duration
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs))),
+            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
             Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 3600000L)))),
+              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
               "count" -> Map("$sum" -> 1))
             ),
             Map("$sort" -> Map("_id" -> -1))
@@ -98,9 +98,9 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
         case _ =>
           val startMs = untilMs - 86400L * 1000L * 7
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs))),
+            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
             Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 3600000L)))),
+              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
               "count" -> Map("$sum" -> 1))
             ),
             Map("$sort" -> Map("_id" -> -1))

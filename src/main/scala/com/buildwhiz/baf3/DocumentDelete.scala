@@ -37,8 +37,9 @@ class DocumentDelete extends HttpServlet with HttpUtils with MailUtils {
 
       // ToDo: delete document from Google-Drive
 
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
-      response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

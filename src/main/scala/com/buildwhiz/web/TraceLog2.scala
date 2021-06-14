@@ -50,12 +50,10 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(50, 50)
-      writer.println(List("Timestamp", "Count").zip(widths).
+      val widths = Seq(10, 10, 10, 35, 35)
+      writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
           map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
-
-      val labels = List("_id", "count")
 
       val millisNow = System.currentTimeMillis
       val (untilStr, untilMs, untilUnit, untilNum) = parameters.get("until") match {
@@ -72,58 +70,55 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
           }
       }
       val traceLogCollection = BWMongoDB3.trace_log
+      val grouper = Map("$group" ->
+          Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
+          "details" -> Map($push -> Map("event" -> "$event_name", "process" -> "$process_id", "variables" -> "$variables",
+          "milliseconds" -> Map("$toString" -> "$milliseconds"), "activity" -> "$activity_name"))))
+
       val traceLogDocs: Seq[DynDoc] = durationUnit match {
         case "hours" =>
           val startMs = untilMs - 3600L * 1000L * duration
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
-            Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
-              "count" -> Map("$sum" -> 1))
-            ),
+            {Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs)))},
+            grouper,
             Map("$sort" -> Map("_id" -> -1))
           )
           traceLogCollection.aggregate(pipeline.asJava)
         case "days" =>
           val startMs = untilMs - 86400L * 1000L * duration
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
-            Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
-              "count" -> Map("$sum" -> 1))
-            ),
+            {Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs)))},
+            grouper,
             Map("$sort" -> Map("_id" -> -1))
           )
           traceLogCollection.aggregate(pipeline.asJava)
         case _ =>
           val startMs = untilMs - 86400L * 1000L * 7
           val pipeline: Seq[Document] = Seq(
-            Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs))),
-            Map(
-              "$group" -> Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
-              "count" -> Map("$sum" -> 1))
-            ),
+            {Map("$match" -> Map("milliseconds" -> Map("$gte" -> startMs, "$lte" -> untilMs)))},
+            grouper,
             Map("$sort" -> Map("_id" -> -1))
           )
           traceLogCollection.aggregate(pipeline.asJava)
       }
 
-      for (doc <- traceLogDocs) {
-        val fields = labels.map(doc.asDoc.get).toBuffer
-        fields(0) = dateTimeString(fields.head.asInstanceOf[Long], parameters.get("tz").orElse(Some("Asia/Calcutta")))
-        val htmlRowData = fields.zip(widths).
-            map(p => {
-              val text = p._1.toString
-              val color = if (text.toLowerCase.contains("error")) "red" else "black"
-              s"""<td style="width: ${p._2}%; color:$color" align="center">$text</td>"""
-            }).mkString.replaceAll("\n+", " ")
-        val user: DynDoc = getUser(request)
-        val fullName = PersonApi.fullName(user)
+      val user: DynDoc = getUser(request)
+      val fullName = PersonApi.fullName(user)
+      val details: Seq[DynDoc] = traceLogDocs.flatMap(_.details[Many[Document]])
+      details.sortBy(_.milliseconds[String]).reverse.foreach(detail => {
+        val activity = detail.activity[String]
+        val variables = detail.variables[Document]
+        val process = detail.process[String]
+        val event = detail.event[String]
+        val timestamp = dateTimeString(detail.milliseconds[String].toLong, parameters.get("tz").orElse(Some("Asia/Calcutta")))
+        val color = if (event.toLowerCase.contains("error")) "red" else "black"
+        val htmlRowData = Seq(timestamp, process, activity, event, variables.toJson).zip(widths).
+            map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
-          writer.println(s"""<tr style="background-color: beige;">$htmlRowData</tr>""")
+          writer.println(s"""<tr style="background-color: beige;color: $color" align="center">$htmlRowData</tr>""")
         else
-          writer.println(s"<tr>$htmlRowData</tr>")
-      }
+          writer.println(s"""<tr style="color: $color" align="center">$htmlRowData</tr>""")
+      })
       if (traceLogDocs.isEmpty)
         writer.println(s"""<tr><td colspan="5" align="center">No such rows!</td></tr>""")
       writer.println("</table>")

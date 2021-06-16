@@ -34,7 +34,7 @@ class PhaseInfo2 extends HttpServlet with HttpUtils {
 
 }
 
-object PhaseInfo2 extends DateTimeUtils {
+object PhaseInfo2 extends HttpUtils with DateTimeUtils {
 
   private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
@@ -92,6 +92,25 @@ object PhaseInfo2 extends DateTimeUtils {
   }
 
   private def phaseDatesAndDurations(phase: DynDoc, request: HttpServletRequest): Seq[(String, Any)] = {
+    val timestamps: DynDoc = phase.timestamps[Document]
+    val user: DynDoc = getPersona(request)
+    val timezone = user.tz[String]
+    val estimatedStartDate = timestamps.get[Long]("estimated_start_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val estimatedFinishDate = timestamps.get[Long]("estimated_finish_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val actualStartDate = timestamps.get[Long]("actual_start_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val actualFinishDate = timestamps.get[Long]("actual_finish_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
     val phaseDuration = PhaseApi.allProcesses(phase).headOption match {
       case Some(process) =>
         val bpmnName = process.bpmn_name[String]
@@ -99,10 +118,10 @@ object PhaseInfo2 extends DateTimeUtils {
       case None => "NA"
     }
     Seq(
-      ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
-      ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
-      ("actual_start_date", new Document("editable", false).append("value", "2020-12-31")),
-      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("estimated_start_date", estimatedStartDate),
+      ("estimated_finish_date", estimatedFinishDate),
+      ("actual_start_date", actualStartDate),
+      ("actual_finish_date", actualFinishDate),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
       ("duration_likely", new Document("editable", false).append("value", phaseDuration))

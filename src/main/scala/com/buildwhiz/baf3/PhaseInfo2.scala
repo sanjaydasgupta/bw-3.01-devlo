@@ -118,10 +118,10 @@ object PhaseInfo2 extends HttpUtils with DateTimeUtils {
       case None => "NA"
     }
     Seq(
-      ("estimated_start_date", estimatedStartDate),
-      ("estimated_finish_date", estimatedFinishDate),
-      ("actual_start_date", actualStartDate),
-      ("actual_finish_date", actualFinishDate),
+      ("estimated_start_date", new Document("editable", true).append("value", estimatedStartDate)),
+      ("estimated_finish_date", new Document("editable", true).append("value", estimatedFinishDate)),
+      ("actual_start_date", new Document("editable", false).append("value", actualStartDate)),
+      ("actual_finish_date", new Document("editable", false).append("value", actualFinishDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
       ("duration_likely", new Document("editable", false).append("value", phaseDuration))

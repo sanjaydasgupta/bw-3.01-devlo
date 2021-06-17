@@ -21,6 +21,7 @@ class PartnerDelete extends HttpServlet with HttpUtils {
       }
 
       val organizationOid = new ObjectId(parameters("organization_id"))
+      val organizationRecord = OrganizationApi.organizationById(organizationOid)
 
       val sponsoredProjects: Seq[DynDoc] = BWMongoDB3.projects.find(Map("customer_organization_id" -> organizationOid))
       val engagedTeams: Seq[DynDoc] = BWMongoDB3.teams.find(Map("organization_id" -> organizationOid))
@@ -38,7 +39,6 @@ class PartnerDelete extends HttpServlet with HttpUtils {
       if (deleteResult.getDeletedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
 
-      val organizationRecord = OrganizationApi.organizationById(organizationOid)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       val message = s"deleted organization '${organizationRecord.name[String]}'"

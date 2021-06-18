@@ -112,6 +112,7 @@ package object baf3 {
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
       "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",
       "Soils-Report", "Survey", "Traffic-Study", "Wind-Study"),
+    "Issue__category" -> Seq("Design", "Material", "Procurement", "Safety", "Security"),
     "Partners__skills" -> OmniClass33.omniClass33skills(),
     "ProjectInfoSet__building_use" -> Seq(
       "Assembly Facility", "Education Facility", "Public Service Facility", "Cultural Facility",

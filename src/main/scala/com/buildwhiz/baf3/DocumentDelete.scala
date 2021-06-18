@@ -33,7 +33,7 @@ class DocumentDelete extends HttpServlet with HttpUtils with MailUtils {
           if (!ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid)) &&
               !PersonApi.isBuildWhizAdmin(Right(user)))
             throw new IllegalArgumentException(s"Not permitted")
-          val updateResult = BWMongoDB3.document_master.deleteOne(mongoQuery)
+          val updateResult = BWMongoDB3.document_master.deleteMany(mongoQuery)
           if (updateResult.getDeletedCount == 0)
             throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
           s"Deleted ${updateResult.getDeletedCount} document(s) by '$mongoQuery'"

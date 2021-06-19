@@ -20,14 +20,19 @@ class TaskDurationsCommit extends HttpServlet with HttpUtils {
       if (!postData.has("duration_values"))
         throw new IllegalArgumentException("'duration_values' not provided")
       val durationValues: Seq[DynDoc] = postData.duration_values[Many[Document]]
+      val badDurations = durationValues.filter(dv => !(dv.has("activity_id") && dv.has("duration_likely")) &&
+          !(dv.has("timer_id") && dv.has("duration")))
+      if (badDurations.nonEmpty)
+        throw new IllegalArgumentException(s"found duration_values without expected fields")
       for (durationValue <- durationValues) {
-        if (!durationValue.has("activity_id")) {
-          throw new IllegalArgumentException("missing 'activity_id'")
-        }
-        ActivityApi.durationsSet3(new ObjectId(durationValue.activity_id[String]),
+        if (durationValue.has("activity_id")) {
+          ActivityApi.durationsSet3(new ObjectId(durationValue.activity_id[String]),
             durationValue.get[String]("duration_optimistic").map(_.toInt),
             durationValue.get[String]("duration_pessimistic").map(_.toInt),
             durationValue.get[String]("duration_likely").map(_.toInt))
+        } else {
+          // commit timer duration
+        }
       }
       response.getWriter.print(successJson())
       response.setContentType("application/json")

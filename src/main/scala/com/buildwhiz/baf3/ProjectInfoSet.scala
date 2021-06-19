@@ -1,12 +1,12 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.slack.SlackApi
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
@@ -22,10 +22,10 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
       if (!postData.containsKey("project_id"))
         throw new IllegalArgumentException("project_id not provided")
       val projectId = postData.remove("project_id").asInstanceOf[String]
-      val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue.asInstanceOf[String])).toSeq
+      val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue)).toSeq
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      val message = ProjectInfoSet.setProjectFields(projectId, nameValuePairs, request)
+      val message = ProjectInfoSet2.setProjectFields(projectId, nameValuePairs, request)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
@@ -37,7 +37,7 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
 
 }
 
-object ProjectInfoSet {
+object ProjectInfoSet extends DateTimeUtils {
 
   def managers2roles(projectOid: ObjectId, mids: String): Many[Document] = {
     val projMgrOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
@@ -64,15 +64,15 @@ object ProjectInfoSet {
     ("land_area_acres", "land_area_acres"), ("site_area", "land_area_acres"),
     ("max_building_height_ft", "max_building_height_ft"), ("building_height", "max_building_height_ft"),
     ("total_floor_area", "total_floor_area"),
-    ("project_id", "project_id"), ("project_managers", "assigned_roles")
+    ("project_id", "project_id"), ("project_managers", "assigned_roles"), ("phase_info", "phase_info")
   )
 
   private val converters: Map[String, (ObjectId, String) => Any] = Map(
     "project_managers" -> managers2roles, "customer" -> ((_, id) => new ObjectId(id))
   )
 
-  def setProjectFields(projectId: String, nameValuePairs: Seq[(String, String)], request: HttpServletRequest,
-      doLog: Boolean = false): String = {
+  def setProjectFields(projectId: String, nameValuePairs: Seq[(String, AnyRef)], request: HttpServletRequest,
+                       doLog: Boolean = false): String = {
     if (doLog)
       BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     if (nameValuePairs.isEmpty)
@@ -82,19 +82,39 @@ object ProjectInfoSet {
       throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
     nameValuePairs.find(_._1 == "name") match {
       case Some((_, name)) =>
-        ProjectApi.validateNewName(name)
+        ProjectApi.validateNewName(name.toString)
       case None =>
     }
+    val (phaseInfo, projectNameValuePairs) = nameValuePairs.partition(_._1 == "phase_info")
     val projectOid = new ObjectId(projectId)
-    val mongoDbSetters = nameValuePairs.map(p =>
-      if (converters.contains(p._1))
-        (fullNames(p._1), converters(p._1)(projectOid, p._2))
-      else
-        (fullNames(p._1), p._2)
-    ).toMap
-    val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid), Map("$set" -> mongoDbSetters))
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    if (phaseInfo.nonEmpty) {
+      val phaseInfoArray: Seq[DynDoc] = phaseInfo.head._2.asInstanceOf[Many[Document]]
+      for (phaseInfo <- phaseInfoArray) {
+        val phaseOid = new ObjectId(phaseInfo._id[String])
+        val mongoDbSetters: Document = (phaseInfo.get[String]("start_date"), phaseInfo.get[String]("end_date")) match {
+          case (Some(startDate), None) => Map("timestamps.date_start_estimated" -> milliseconds(startDate))
+          case (None, Some(endDate)) => Map("timestamps.date_end_estimated" -> milliseconds(endDate))
+          case (Some(startDate), Some(endDate)) => Map("timestamps.date_start_estimated" -> milliseconds(startDate),
+            "timestamps.date_end_estimated" -> milliseconds(endDate))
+          case (None, None) =>
+            throw new IllegalArgumentException(s"No dates for phase: $phaseOid")
+        }
+        val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid), Map("$set" -> mongoDbSetters))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
+    }
+    if (projectNameValuePairs.nonEmpty) {
+      val mongoDbSetters = projectNameValuePairs.map(p =>
+        if (converters.contains(p._1))
+          (fullNames(p._1), converters(p._1)(projectOid, p._2.toString))
+        else
+          (fullNames(p._1), p._2)
+      ).toMap
+      val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> projectOid), Map("$set" -> mongoDbSetters))
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
     val parametersChanged = nameValuePairs.map(_._1).mkString("[", ", ", "]")
     val message = s"""Updated parameters $parametersChanged of project $projectOid"""
     val managers = ProjectApi.managers(Left(projectOid))

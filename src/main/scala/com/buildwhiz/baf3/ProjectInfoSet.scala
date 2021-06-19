@@ -63,7 +63,7 @@ object ProjectInfoSet extends DateTimeUtils {
     ("construction_area_sqft", "construction_area_sqft"), ("building_footprint", "construction_area_sqft"),
     ("land_area_acres", "land_area_acres"), ("site_area", "land_area_acres"),
     ("max_building_height_ft", "max_building_height_ft"), ("building_height", "max_building_height_ft"),
-    ("total_floor_area", "total_floor_area"),
+    ("total_floor_area", "total_floor_area"), ("tz", "tz"),
     ("project_id", "project_id"), ("project_managers", "assigned_roles"), ("phase_info", "phase_info")
   )
 

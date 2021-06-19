@@ -138,6 +138,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val totalFloorArea = fieldSpecification(project, "total_floor_area", editable, 0.0)
     val landAreaAcres = fieldSpecification(project, "land_area_acres", editable, 0.0)
     val maxBldgHeightFt = fieldSpecification(project, "max_building_height_ft", editable, 0.0)
+    val tz = fieldSpecification(project, "tz", editable)
     val rawProjectManagers = project.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)Project-Manager")).map(role => {
       val thePerson = PersonApi.personById(role.person_id[ObjectId])
@@ -156,7 +157,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         append("construction_area_sqft", constAreaSqFt).append("building_footprint", constAreaSqFt).
         append("land_area_acres", landAreaAcres).append("site_area", landAreaAcres).
         append("max_building_height_ft", maxBldgHeightFt).append("building_height", maxBldgHeightFt).
-        append("phase_info", phaseInfo).append("total_floor_area", totalFloorArea).
+        append("phase_info", phaseInfo).append("total_floor_area", totalFloorArea).append("tz", tz).
         append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).

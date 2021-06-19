@@ -43,15 +43,15 @@ object NodeConnector extends HttpServlet with HttpUtils {
     if (nodeEntity != null) {
       BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() found nodeEntity", request)
       val entityString = Source.fromInputStream(nodeEntity.getContent).getLines.mkString("\n")
-      if (entityString.startsWith("{") && entityString.endsWith("}")) {
-        BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() found {...}", request)
+      if (nodeStatusCode == 200 && entityString.startsWith("{") && entityString.endsWith("}")) {
+        BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() found 200 {...}", request)
         val nodeDocument = Document.parse(entityString)
         val user: DynDoc = getPersona(request)
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
         nodeDocument.append("menu_items", displayedMenuItems(isAdmin))
         response.getWriter.print(nodeDocument.toJson)
       } else {
-        BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest() NO {...} ($entityString)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest() NOT 200 {...} ($entityString)", request)
         nodeEntity.writeTo(response.getOutputStream)
       }
     } else {

@@ -1,14 +1,15 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
+import scala.collection.JavaConverters._
 
-import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class PhaseList extends HttpServlet with HttpUtils {
 
@@ -24,9 +25,13 @@ class PhaseList extends HttpServlet with HttpUtils {
       val phases: Seq[DynDoc] = if (isAdmin) {
         ProjectApi.allPhases(parentProject)
       } else {
-        ProjectApi.phasesByUser(personOid, parentProject)
+        val allPhases = ProjectApi.phasesByUser(personOid, parentProject)
+        allPhases.filter(p => PhaseApi.allProcesses(p).nonEmpty)
       }
-      response.getWriter.print(phases.map(phase2json).mkString("[", ", ", "]"))
+      val phaseInfoList: Many[Document] = phases.map(phase2json).map(_.asDoc).asJava
+      val menuItems = displayedMenuItems(isAdmin, ProjectApi.canManage(personOid, parentProject))
+      val result = new Document("menu_items", menuItems).append("phases", phaseInfoList)
+      response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${phases.length})", request)
@@ -38,7 +43,7 @@ class PhaseList extends HttpServlet with HttpUtils {
     }
   }
 
-  def phase2json(phase: DynDoc): String = {
+  def phase2json(phase: DynDoc): DynDoc = {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
     val (bpmnName, displayStatus) = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
@@ -51,11 +56,9 @@ class PhaseList extends HttpServlet with HttpUtils {
     } else {
       ("2020-06-01", "2021-05-31")
     }
-    val projectDocument = new Document("name", phase.name[String]).append("_id", phaseOid.toString).
-      append("managers", managerNames).append("display_status", displayStatus).
-      append("date_start", dateStart).append("date_end", dateEnd).
-      append("budget", "0.00").append("expenditure", "0.00").append("bpmn_name", bpmnName)
-    bson2json(projectDocument)
+    Map("name" -> phase.name[String], "_id"-> phaseOid.toString, "managers"-> managerNames,
+      "display_status"-> displayStatus, "date_start"-> dateStart, "date_end"-> dateEnd,
+      "budget"-> "0.00", "expenditure"-> "0.00", "bpmn_name"-> bpmnName)
   }
 
 }

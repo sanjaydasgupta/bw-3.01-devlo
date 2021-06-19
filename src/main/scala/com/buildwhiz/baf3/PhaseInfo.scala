@@ -167,7 +167,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val deliverableInfo = deliverableInformation(deliverables)
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
-        append("deliverable_info", deliverableInfo).
+        append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
         append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))

@@ -25,9 +25,9 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
       case Some(tp) => tp
       case None => false
     }
-    val areasOfOperation: Many[String] = org.get[Many[String]]("areas_of_operation") match {
-      case Some(tp) => tp
-      case None => Seq.empty[String].asJava
+    val areasOfOperation: String = org.get[Many[String]]("areas_of_operation") match {
+      case Some(tp) => tp.mkString(",")
+      case None => ""
     }
     new Document("_id", org._id[ObjectId].toString).append("name", org.name[String]).append("rating", org.rating[Int]).
         append("project_sponsor", projectSponsor).append("design_partner", designPartner).
@@ -36,9 +36,9 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   private def partnerList(optOrganizationType: Option[String] = None, optSkill: Option[String] = None):
-  Seq[DynDoc] = {
+      Seq[Document] = {
     val organizations = OrganizationApi.fetch(optSkill = optSkill, optOrgType = optOrganizationType)
-    organizations
+    organizations.map(orgDynDocToDocument)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -74,36 +74,31 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
             }
         }
       }
-      val customerOrganizationOids: Seq[ObjectId] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id"))
-      val myPhases: Seq[DynDoc] = myProjects.flatMap(ProjectApi.allPhases)
-      val enrolledTeamOids: Seq[ObjectId] = myPhases.flatMap(_.get[Many[Document]]("team_assignments")).
-          flatMap(_.map(_.team_id[ObjectId]))
-      val enrolledOrganizationOids: Seq[ObjectId] = TeamApi.teamsByIds(enrolledTeamOids).
-          flatMap(_.get[ObjectId]("organization_id"))
-      val myProjectsOrganizations: Seq[DynDoc] = (customerOrganizationOids ++ enrolledOrganizationOids).distinct.
-          map(cOid => OrganizationApi.organizationById(cOid)).filter(matchSkill).filter(matchOrganizationType)
-      val displayAllOrganizations: Boolean = isAdmin || myProjects.exists(p => ProjectApi.canManage(user._id[ObjectId], p))
+      val myProjectsOrganizations: Seq[DynDoc] = myProjects.flatMap(_.get[ObjectId]("customer_organization_id").
+          map(cOid => OrganizationApi.organizationById(cOid))).distinct.filter(matchSkill).filter(matchOrganizationType)
+      val displayAllOrganizations: Boolean = isAdmin || optProjectOid.
+          map(pOid => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(pOid))).isDefined
 
       val allOrganizations: Seq[DynDoc] = if (displayAllOrganizations) {
-        OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations
+        (OrganizationApi.fetch(optOrgType = optOrganizationType, optSkill = skillParameter) ++ myProjectsOrganizations).distinct
       } else {
         myProjectsOrganizations
       }
 
       val partners: Seq[DynDoc] =
-        (optOrganizationType, skillParameter, optActivityOids, optPhaseOid, optProjectOid) match {
-          case (_, Some(skill), _, _, _) =>
-            if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
-            //if (RoleListSecondary.secondaryRoles.contains(skill))
-              allOrganizations
-            else
-              partnerList(optOrganizationType = optOrganizationType, optSkill = skillParameter)
-          case (_, _, Some(_), _, _) => allOrganizations
-          case (_, _, _, Some(_), _) => allOrganizations
-          case (_, _, _, _, Some(_)) => allOrganizations
-          case _ => allOrganizations
-        }
-      val partnerDetails: Many[Document] = partners.sortBy(_.name[String]).map(orgDynDocToDocument).distinct.asJava
+          (optOrganizationType, skillParameter, optActivityOids, optPhaseOid, optProjectOid) match {
+        case (_, Some(skill), _, _, _) =>
+          if (RoleListSecondary.secondaryRoles.contains(skill) || skill == "none")
+          //if (RoleListSecondary.secondaryRoles.contains(skill))
+            allOrganizations
+          else
+            partnerList(optOrganizationType = optOrganizationType, optSkill = skillParameter)
+        case (_, _, Some(_), _, _) => allOrganizations
+        case (_, _, _, Some(_), _) => allOrganizations
+        case (_, _, _, _, Some(_)) => allOrganizations
+        case _ => allOrganizations
+      }
+      val partnerDetails: Many[Document] = partners.distinct.sortBy(_.name[String]).map(orgDynDocToDocument).asJava
       val menuItems = displayedMenuItems(isAdmin, isAdmin)
       val result = new Document("partner_list", partnerDetails).append("can_add_partner", isAdmin).
           append("menu_items", menuItems)

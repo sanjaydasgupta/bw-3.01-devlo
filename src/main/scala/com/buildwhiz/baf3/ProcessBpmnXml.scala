@@ -106,7 +106,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
-      val durationLikely = ProcessBpmnTraverse2.processDurationRecalculate(calledBpmnName, process,
+      val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process,
           Seq.empty[(String, String, Int)], request)
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
@@ -281,7 +281,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => ""
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
-      val bpmnDuration = ProcessBpmnTraverse2.processDurationRecalculate(bpmnFileName, process,
+      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, process,
         Seq.empty[(String, String, Int)], request)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).

@@ -1,16 +1,18 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import org.apache.http.HttpEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import org.bson.types.ObjectId
+import org.bson.Document
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 object NodeConnector extends HttpServlet with HttpUtils {
 
@@ -38,15 +40,25 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val nodeReasonPhrase = nodeResponse.getStatusLine.getReasonPhrase
     response.setStatus(nodeStatusCode)
     val nodeEntity = nodeResponse.getEntity
-    if (nodeEntity != null)
-      nodeEntity.writeTo(response.getOutputStream)
+    if (nodeEntity != null) {
+      BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() found nodeEntity", request)
+      val entityString = Source.fromInputStream(nodeEntity.getContent).getLines.mkString("\n")
+      if (entityString.startsWith("{") && entityString.endsWith("}")) {
+        BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() found {...}", request)
+        val nodeDocument = Document.parse(entityString)
+        val user: DynDoc = getPersona(request)
+        val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+        nodeDocument.append("menu_items", displayedMenuItems(isAdmin))
+        response.getWriter.print(nodeDocument.toJson)
+      } else {
+        BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest() NO {...} ($entityString)", request)
+        nodeEntity.writeTo(response.getOutputStream)
+      }
+    } else {
+      BWLogger.log(getClass.getName, request.getMethod, "executeNodeRequest() NO nodeEntity", request)
+    }
     nodeRequest.releaseConnection()
     BWLogger.log(getClass.getName, request.getMethod, s"EXIT-$nodeStatusCode ($nodeReasonPhrase)", request)
-  }
-
-  private def augmentEntity(httpEntity: HttpEntity): HttpEntity = {
-    httpEntity.getContent
-    httpEntity
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

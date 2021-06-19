@@ -20,7 +20,7 @@ class PhaseInfo extends HttpServlet with HttpUtils {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
       val user: DynDoc = getPersona(request)
-      response.getWriter.print(PhaseInfo.phase2json(phaseRecord, user))
+      response.getWriter.print(PhaseInfo.phase2json(phaseRecord, user, request: HttpServletRequest))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
@@ -34,32 +34,36 @@ class PhaseInfo extends HttpServlet with HttpUtils {
 
 }
 
-object PhaseInfo extends DateTimeUtils {
+object PhaseInfo extends HttpUtils with DateTimeUtils {
 
   private def isEditable(phase: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
     PhaseApi.canManage(userOid, phase)
   }
 
-  private def deliverableInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
+  private def getDeliverables(phase: DynDoc, user: DynDoc): Seq[DynDoc] = {
     val phaseTeamOids = PhaseApi.allTeamOids30(phase).toSet
     val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
     val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
-    val myPhaseDeliverables = DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
-    val deliverableRecords: Seq[Document] = myPhaseDeliverables.map(deliverable => {
+    DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
+  }
+
+  private def deliverableInformation(deliverables: Seq[DynDoc]): Many[Document] = {
+    val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
       val status = deliverable.status[String]
       val scope = status match {
         case "Not-Started" => "Future"
         case "Ended" => "Past"
         case _ => "Current"
       }
-      Map("_id" -> deliverable._id[ObjectId].toString, "name" -> deliverable.name[String],
-        "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
+      Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
+        "name" -> deliverable.name[String], "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
     })
     deliverableRecords.asJava
   }
 
   private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
+    val taskStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val activityOids = deliverables.map(_.activity_id[ObjectId])
     val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
@@ -70,45 +74,73 @@ object PhaseInfo extends DateTimeUtils {
         val timeZone = user.tz[String]
         dateTimeString(task.bpmn_scheduled_end_date[Long], Some(timeZone))
       }
-      val status = task.status[String]
-      val scope = status match {
-        case "defined" => "Future"
-        case "running" => "Current"
+      val taskOid = task._id[ObjectId]
+      val displayStatus = taskStatusValues(taskOid)
+      val scope = displayStatus.toLowerCase match {
+        case "not-started" => "Future"
         case "ended" => "Past"
         case _ => "Current"
       }
-      Map("_id" -> task._id[ObjectId].toString, "name" -> task.name[String], "bpmn_name" -> task.bpmn_name[String],
-          "status" -> status, "display_status" -> ActivityApi.displayStatus2(task), "due_date" -> endDate,
-          "scope" -> scope)
+      val taskName = task.get[String]("full_path_name") match {
+        case Some(fpn) => fpn
+        case None => task.name[String]
+      }
+      Map("_id" -> taskOid.toString, "name" -> taskName, "bpmn_name" -> task.bpmn_name[String],
+        "status" -> displayStatus, "due_date" -> endDate, "scope" -> scope)
     })
     taskRecords.asJava
   }
 
-  private def phaseDatesAndDurations(phase: DynDoc): Seq[(String, Any)] = {
+  private def phaseDatesAndDurations(phase: DynDoc, request: HttpServletRequest): Seq[(String, Any)] = {
+    val timestamps: DynDoc = phase.timestamps[Document]
+    val user: DynDoc = getPersona(request)
+    val timezone = user.tz[String]
+    val estimatedStartDate = timestamps.get[Long]("estimated_start_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val estimatedFinishDate = timestamps.get[Long]("estimated_finish_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val actualStartDate = timestamps.get[Long]("actual_start_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val actualFinishDate = timestamps.get[Long]("actual_finish_date") match {
+      case Some(dt) => dateString(dt, timezone)
+      case None => "NA"
+    }
+    val phaseDuration = PhaseApi.allProcesses(phase).headOption match {
+      case Some(process) =>
+        val bpmnName = process.bpmn_name[String]
+        ProcessBpmnTraverse2.processDurationRecalculate(bpmnName, process, Seq.empty[(String, String, Int)], request).toString
+      case None => "NA"
+    }
     Seq(
-      ("estimated_start_date", new Document("editable", true).append("value", "2020-12-31")),
-      ("estimated_finish_date", new Document("editable", true).append("value", "2020-12-31")),
-      ("actual_start_date", new Document("editable", false).append("value", "2020-12-31")),
-      ("actual_end_date", new Document("editable", false).append("value", "2020-12-31")),
+      ("estimated_start_date", new Document("editable", true).append("value", estimatedStartDate)),
+      ("estimated_finish_date", new Document("editable", true).append("value", estimatedFinishDate)),
+      ("actual_start_date", new Document("editable", false).append("value", actualStartDate)),
+      ("actual_finish_date", new Document("editable", false).append("value", actualFinishDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
-      ("duration_likely", new Document("editable", false).append("value", "NA"))
+      ("duration_likely", new Document("editable", false).append("value", phaseDuration))
     )
   }
 
   private def phaseKpis(phase: DynDoc): Many[Document] = {
     val ofOriginalBudget = "comment" -> "original budget"
     val kpis: Seq[DynDoc] =
-    Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
-      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
+      Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
+        Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
         Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3 %", ofOriginalBudget),
-      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
+        Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
         Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7 %", ofOriginalBudget),
-      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
-      kpis.map(_.asDoc).asJava
+        Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
+    kpis.map(_.asDoc).asJava
   }
 
-  private def phase2json(phase: DynDoc, user: DynDoc): String = {
+  private def phase2json(phase: DynDoc, user: DynDoc, request: HttpServletRequest): String = {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
@@ -116,13 +148,13 @@ object PhaseInfo extends DateTimeUtils {
     val name = new Document("editable", editable).append("value", phase.name[String])
     val rawPhaseManagers = phase.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)(Phase|Project)-Manager")).map(role => {
-        val thePerson = PersonApi.personById(role.person_id[ObjectId])
-        val personName = PersonApi.fullName(thePerson)
-        new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
-      }).asJava
+      val thePerson = PersonApi.personById(role.person_id[ObjectId])
+      val personName = PersonApi.fullName(thePerson)
+      new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
+    }).asJava
     val phaseManagers = new Document("editable", editable).append("value", rawPhaseManagers)
     val rawGoals = phase.get[String]("goals") match {
-      case None => s"Goals for '$phase'"
+      case None => s"Goals for '${phase.name[String]}'"
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
@@ -131,13 +163,14 @@ object PhaseInfo extends DateTimeUtils {
       case None => "not-available"
     }
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-    val deliverableInfo = deliverableInformation(phase, user)
+    val deliverables = getDeliverables(phase, user)
+    val deliverableInfo = deliverableInformation(deliverables)
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).
-        append("task_info", taskInformation(deliverableInfo, user)).append("bpmn_name", bpmnName).
+        append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
-    phaseDatesAndDurations(phase).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }

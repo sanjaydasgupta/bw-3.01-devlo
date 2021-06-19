@@ -38,10 +38,14 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val nodeReasonPhrase = nodeResponse.getStatusLine.getReasonPhrase
     response.setStatus(nodeStatusCode)
     val nodeEntity = nodeResponse.getEntity
-    if (nodeEntity != null)
+    val message = if (nodeEntity != null) {
       nodeEntity.writeTo(response.getOutputStream)
+      s"$nodeStatusCode ($nodeReasonPhrase) - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
+    } else {
+      s"$nodeStatusCode ($nodeReasonPhrase)"
+    }
     nodeRequest.releaseConnection()
-    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-$nodeStatusCode ($nodeReasonPhrase)", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-$message", request)
   }
 
   private def augmentEntity(httpEntity: HttpEntity): HttpEntity = {

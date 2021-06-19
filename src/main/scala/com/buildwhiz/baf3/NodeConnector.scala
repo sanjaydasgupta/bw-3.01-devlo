@@ -3,7 +3,7 @@ package com.buildwhiz.baf3
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import org.apache.http.HttpEntity
+import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
@@ -32,25 +32,25 @@ object NodeConnector extends HttpServlet with HttpUtils {
 
   private def executeNodeRequest(request: HttpServletRequest, response: HttpServletResponse,
       nodeRequest: HttpRequestBase): Unit = {
+    def exitStatus(httpResponse: HttpResponse): String = {
+      if (httpResponse.getStatusLine.getStatusCode == 200) {
+        "OK"
+      } else {
+        s"WARN ${httpResponse.getStatusLine.getStatusCode} (${httpResponse.getStatusLine.getReasonPhrase})"
+      }
+    }
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
-    val nodeStatusCode = nodeResponse.getStatusLine.getStatusCode
-    val nodeReasonPhrase = nodeResponse.getStatusLine.getReasonPhrase
-    response.setStatus(nodeStatusCode)
+    response.setStatus(nodeResponse.getStatusLine.getStatusCode)
     val nodeEntity = nodeResponse.getEntity
     val message = if (nodeEntity != null) {
       nodeEntity.writeTo(response.getOutputStream)
-      s"$nodeStatusCode ($nodeReasonPhrase) - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
+      s"${exitStatus(nodeResponse)} - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
     } else {
-      s"$nodeStatusCode ($nodeReasonPhrase)"
+      exitStatus(nodeResponse)
     }
     nodeRequest.releaseConnection()
     BWLogger.log(getClass.getName, request.getMethod, s"EXIT-$message", request)
-  }
-
-  private def augmentEntity(httpEntity: HttpEntity): HttpEntity = {
-    httpEntity.getContent
-    httpEntity
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

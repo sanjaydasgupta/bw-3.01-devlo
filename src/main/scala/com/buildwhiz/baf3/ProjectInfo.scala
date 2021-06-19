@@ -1,12 +1,12 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
@@ -20,7 +20,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val projectRecord: DynDoc = ProjectApi.projectById(projectOid)
-      response.getWriter.print(ProjectInfo.project2json(projectRecord, request))
+      response.getWriter.print(ProjectInfo2.project2json(projectRecord, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
@@ -34,33 +34,55 @@ class ProjectInfo extends HttpServlet with HttpUtils {
 
 }
 
-object ProjectInfo extends HttpUtils {
+object ProjectInfo extends HttpUtils with DateTimeUtils {
 
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
     ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
   }
 
-  private def phaseInformation(project: DynDoc): Many[Document] = {
+  private def phaseInformation(project: DynDoc, user: DynDoc): Many[Document] = {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
+      val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+      val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
       val displayStatus = PhaseApi.displayStatus(phase)
+      val displayStatus2 = PhaseApi.displayStatus2(phase, userIsAdmin)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
-      Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus,
-        "start_date" -> "NA", "end_date" -> "NA", "_id" -> phase._id[ObjectId].toString,
+      val startDateEditable = canManage && phase.status[String] == "defined"
+      val endDateEditable = canManage && phase.status[String] != "ended"
+      val timestamps: DynDoc = phase.timestamps[Document]
+      val startDate = if (timestamps.has("date_start_actual")) {
+        dateTimeString(timestamps.date_start_actual[Long])
+      } else if (timestamps.has("date_start_estimated")) {
+        dateTimeString(timestamps.date_start_estimated[Long])
+      } else {
+        "NA"
+      }
+      val endDate = if (timestamps.has("date_end_actual")) {
+        dateTimeString(timestamps.date_end_actual[Long])
+      } else if (timestamps.has("date_end_estimated")) {
+        dateTimeString(timestamps.date_end_estimated[Long])
+      } else {
+        "NA"
+      }
+      Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus2,
+        "start_date" -> new Document("editable", startDateEditable).append("value", startDate),
+        "end_date" -> new Document("editable", endDateEditable).append("value", endDate),
+        "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,
         "budget" -> f"$budget%5.2f", "expenditure" -> f"$expenditure%5.2f")
     })
     returnValue.asJava
   }
 
   private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean, defaultValue: Any = ""):
-      Document = {
+  Document = {
     val names = structuredName.split("/").map(_.trim)
     val storedValue = names.init.foldLeft(project.asDoc)((dd, s) =>
       dd.getOrDefault(s, new Document()).asInstanceOf[Document]).
-      getOrDefault(names.last, defaultValue.toString).toString
+        getOrDefault(names.last, defaultValue.toString).toString
     val value = if (storedValue == "" && defaultValue != "") defaultValue else storedValue
     new Document("editable", editable).append("value", value)
   }
@@ -118,12 +140,12 @@ object ProjectInfo extends HttpUtils {
     val maxBldgHeightFt = fieldSpecification(project, "max_building_height_ft", editable, 0.0)
     val rawProjectManagers = project.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)Project-Manager")).map(role => {
-          val thePerson = PersonApi.personById(role.person_id[ObjectId])
-          val personName = PersonApi.fullName(thePerson)
-          new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
-        }).asJava
+      val thePerson = PersonApi.personById(role.person_id[ObjectId])
+      val personName = PersonApi.fullName(thePerson)
+      new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
+    }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
-    val phaseInfo = new Document("editable", false).append("value", phaseInformation(project))
+    val phaseInfo = phaseInformation(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
         append("status", status).append("display_status", displayStatus).append("goals", goals).

@@ -32,7 +32,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("name", milestone.name[String]).
           append("start", milestone.start[String]).append("end", milestone.end[String]).
           append("status", milestone.status[String]).append("elementType", "milestone").
-          append("on_critical_path", if (milestone.has("on_critical_path")) milestone.on_critical_path[Boolean] else false).
+          //append("on_critical_path", if (milestone.has("on_critical_path")) milestone.on_critical_path[Boolean] else false).
+          append("on_critical_path", false).
           append("offset", if (milestone.has("offset")) milestone.offset[Long].toString else "NA")
     })
   }
@@ -47,7 +48,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("name", endNode.name[String]).
           append("start", endNode.start[String]).append("end", endNode.end[String]).
           append("status", endNode.status[String]).append("elementType", "end_node").
-          append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false).
+          //append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false).
+          append("on_critical_path", false).
           append("offset", if (endNode.has("offset")) endNode.offset[Long].toString else "NA")
     })
   }
@@ -61,7 +63,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration", durationString).append("duration_days", durationDays).append("name", timer.name[String]).
         append("start", timer.start[String]).append("end", timer.end[String]).
         append("status", timer.status[String]).append("elementType", "timer").
-        append("on_critical_path", if (timer.has("on_critical_path")) timer.on_critical_path[Boolean] else false)
+        //append("on_critical_path", if (timer.has("on_critical_path")) timer.on_critical_path[Boolean] else false).
+        append("on_critical_path", false)
     })
   }
 
@@ -92,6 +95,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
       val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
+      val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId]))
+      val uniqueStatusValues = DeliverableApi.taskStatusMap(deliverables).values.toSet
+      val aggregatedStatus = uniqueStatusValues.size match {
+        case 0 => "Upcoming"
+        case 1 => uniqueStatusValues.head
+        case _ => "Current"
+      }
       val startEndAndLabels = bpmnActivities.map(a => activityStartEndAndLabel(a, timezone))
       val startDatesAndLabels = startEndAndLabels.map(_._1).sortBy(_._1)
       val startDate = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._1).head else "NA"
@@ -111,13 +121,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
-        append("start", startDate).append("end", endDate).append("status", stamp.status[String]).
+        append("start", startDate).append("end", endDate).append("status", aggregatedStatus).
         append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
         append("duration_likely", durationLikely).
-        append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false)
+        //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
+        append("on_critical_path", false)
     })
   }
 
@@ -198,8 +209,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
 
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
-        append("status", status).append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
-        append("status_deliverables", activityStatusValues(activityOid)).
+        append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
+        append("status", activityStatusValues(activityOid)).
         append("duration", getActivityDuration(activity)).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
@@ -207,7 +218,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration_likely", durationLikely).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
-        append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false)
+        //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).
+        append("on_critical_path", false)
     })
     returnActivities
   }

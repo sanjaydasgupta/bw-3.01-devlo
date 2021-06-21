@@ -96,6 +96,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val calledBpmnName = stamp.name[String]
       val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
       val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId]))
+      val deliverableCount = deliverables.length
       val uniqueStatusValues = DeliverableApi.taskStatusMap(deliverables).values.toSet
       val aggregatedStatus = uniqueStatusValues.size match {
         case 0 => "Upcoming"
@@ -128,7 +129,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
         append("duration_likely", durationLikely).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
-        append("on_critical_path", false)
+        append("on_critical_path", false).append("deliverable_count", deliverableCount)
     })
   }
 
@@ -139,13 +140,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val returnActivities = activities.map(activity => {
       val activityOid = activity._id[ObjectId]
+      val deliverableCount = deliverables.count(_.activity_id[ObjectId] == activityOid)
       val tasks = Seq.empty[Document]
-      val status = if (tasks.exists(_.get("status") == "waiting"))
-        "waiting"
-      else if (tasks.exists(_.get("status") == "waiting2"))
-        "waiting2"
-      else
-        activity.status[String]
+//      val status = if (tasks.exists(_.get("status") == "waiting"))
+//        "waiting"
+//      else if (tasks.exists(_.get("status") == "waiting2"))
+//        "waiting2"
+//      else
+//        activity.status[String]
 
       val timezone = user.tz[String]
 
@@ -219,7 +221,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).
-        append("on_critical_path", false)
+        append("on_critical_path", false).append("deliverable_count", deliverableCount)
     })
     returnActivities
   }

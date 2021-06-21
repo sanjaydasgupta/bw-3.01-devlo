@@ -42,7 +42,7 @@ object DeliverableApi {
       (kv._1, kv._2.map(deliverable => externalStatusMap.getOrElse(deliverable.status[String], "Unknown"))))
     val theMap = statusValues.map(kv => (kv._1, aggregateStatus(kv._2)))
     val taskBpmnStatusMap = theMap.map(kv => (kv._1, bpmnStatusMap.getOrElse(kv._2, "Unknown")))
-    val mapWithDefault = new WithDefault[ObjectId, String](taskBpmnStatusMap, _ => "Upcoming")
+    val mapWithDefault = new WithDefault[ObjectId, String](taskBpmnStatusMap, _ => "Unknown")
 
     mapWithDefault
   }

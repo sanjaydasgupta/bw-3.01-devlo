@@ -99,7 +99,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val deliverableCount = deliverables.length
       val uniqueStatusValues = DeliverableApi.taskStatusMap(deliverables).values.toSet
       val aggregatedStatus = uniqueStatusValues.size match {
-        case 0 => "Upcoming"
+        case 0 => "Unknown"
         case 1 => uniqueStatusValues.head
         case _ => "Current"
       }

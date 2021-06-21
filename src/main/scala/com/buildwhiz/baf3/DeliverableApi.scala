@@ -21,20 +21,20 @@ object DeliverableApi {
   def deliverablesByActivityOids(activityOids: Seq[ObjectId]): Seq[DynDoc] =
       BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> activityOids)))
 
-  private val externalStatusMap: Map[String, String] = Map(
+  val externalStatusMap: Map[String, String] = Map(
     "Not-Started" -> "Not-Started", "Pre-Approved" -> "Not-Started", "Deliverable-Started" -> "Active",
     "Deliverable-Started And Pre-Approved" -> "Active", "Deliverable-Completed" -> "Review",
     "Completion-Detected" -> "Completed", "Completed" -> "Completed", "Completed-pl" -> "Completed",
     "Review-Reject" -> "Rework")
 
-  def taskStatusMap(deliverables: Seq[DynDoc]): Map[ObjectId, String] = {
-    def aggregateStatus(statusValues: Seq[String]): String =
-      if (statusValues.distinct.length == 1) {
-        statusValues.head
-      } else {
-        "Active"
-      }
+  def aggregateStatus(statusValues: Seq[String]): String =
+    if (statusValues.distinct.length == 1) {
+      statusValues.head
+    } else {
+      "Active"
+    }
 
+  def taskStatusMap(deliverables: Seq[DynDoc]): Map[ObjectId, String] = {
     val bpmnStatusMap: Map[String, String] = Map("Not-Started" -> "Upcoming", "Completed" -> "Completed",
       "Active" -> "Current")
     val theGroups = deliverables.groupBy(_.activity_id[ObjectId])

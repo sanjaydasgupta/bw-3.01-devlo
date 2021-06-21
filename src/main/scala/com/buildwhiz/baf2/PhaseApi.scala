@@ -1,9 +1,11 @@
 package com.buildwhiz.baf2
 
+import com.buildwhiz.baf3.DeliverableApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
+
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -129,6 +131,16 @@ object PhaseApi {
 
   def displayStatus2(phase: DynDoc, userIsAdmin: Boolean): String = {
     displayStatus(phase)
+  }
+
+  def displayStatus3(phase: DynDoc): String = {
+    PhaseApi.allProcesses(phase).headOption match {
+      case Some(theProcess) =>
+        val activities = ProcessApi.allActivities(theProcess)
+        val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+        DeliverableApi.aggregateStatus(deliverables.map(_.status[String]).map(DeliverableApi.externalStatusMap))
+      case None => "NA"
+    }
   }
 
   def validateNewName(newPhaseName: String, projectOid: ObjectId): Boolean = {

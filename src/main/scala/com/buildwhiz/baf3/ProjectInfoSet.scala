@@ -25,7 +25,7 @@ class ProjectInfoSet extends HttpServlet with HttpUtils {
       val nameValuePairs = postData.entrySet.asScala.map(es => (es.getKey, es.getValue)).toSeq
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      val message = ProjectInfoSet2.setProjectFields(projectId, nameValuePairs, request)
+      val message = ProjectInfoSet.setProjectFields(projectId, nameValuePairs, request)
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

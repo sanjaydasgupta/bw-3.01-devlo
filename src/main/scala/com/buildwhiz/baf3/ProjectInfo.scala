@@ -20,7 +20,7 @@ class ProjectInfo extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val projectRecord: DynDoc = ProjectApi.projectById(projectOid)
-      response.getWriter.print(ProjectInfo2.project2json(projectRecord, request))
+      response.getWriter.print(ProjectInfo.project2json(projectRecord, request))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

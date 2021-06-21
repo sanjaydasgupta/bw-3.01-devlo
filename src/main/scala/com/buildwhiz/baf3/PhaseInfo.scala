@@ -53,7 +53,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       val status = deliverable.status[String]
       val scope = status match {
         case "Not-Started" => "Future"
-        case "Ended" => "Past"
+        case "Completed" | "Ended" => "Past"
         case _ => "Current"
       }
       Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
@@ -78,7 +78,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       val displayStatus = taskStatusValues(taskOid)
       val scope = displayStatus.toLowerCase match {
         case "not-started" => "Future"
-        case "ended" => "Past"
+        case "completed" | "ended" => "Past"
         case _ => "Current"
       }
       val taskName = task.get[String]("full_path_name") match {
@@ -91,7 +91,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     taskRecords.asJava
   }
 
-  private def phaseDatesAndDurations(phase: DynDoc, request: HttpServletRequest): Seq[(String, Any)] = {
+  private def phaseDatesAndDurations(phase: DynDoc, editable: Boolean, status: String, request: HttpServletRequest):
+      Seq[(String, Any)] = {
     val timestamps: DynDoc = phase.timestamps[Document]
     val user: DynDoc = getPersona(request)
     val timezone = user.tz[String]
@@ -117,9 +118,11 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         ProcessBpmnTraverse2.processDurationRecalculate(bpmnName, process, Seq.empty[(String, String, Int)], request).toString
       case None => "NA"
     }
+    val startDateEditable = editable && status == "Not-Started"
+    val finishDateEditable = editable && status != "Completed"
     Seq(
-      ("estimated_start_date", new Document("editable", true).append("value", estimatedStartDate)),
-      ("estimated_finish_date", new Document("editable", true).append("value", estimatedFinishDate)),
+      ("estimated_start_date", new Document("editable", startDateEditable).append("value", estimatedStartDate)),
+      ("estimated_finish_date", new Document("editable", finishDateEditable).append("value", estimatedFinishDate)),
       ("actual_start_date", new Document("editable", false).append("value", actualStartDate)),
       ("actual_finish_date", new Document("editable", false).append("value", actualFinishDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
@@ -144,7 +147,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
-    val displayStatus = new Document("editable", false).append("value", PhaseApi.displayStatus(phase))
+    val rawDisplayStatus = PhaseApi.displayStatus3(phase)
+    val displayStatus = new Document("editable", false).append("value", rawDisplayStatus)
     val name = new Document("editable", editable).append("value", phase.name[String])
     val rawPhaseManagers = phase.assigned_roles[Many[Document]].
         filter(_.role_name[String].matches("(?i)(Phase|Project)-Manager")).map(role => {
@@ -170,7 +174,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
         append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
-    phaseDatesAndDurations(phase, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
+    phaseDatesAndDurations(phase, editable, rawDisplayStatus, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson
   }

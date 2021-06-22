@@ -127,19 +127,25 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       ("actual_finish_date", new Document("editable", false).append("value", actualFinishDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
-      ("duration_likely", new Document("editable", false).append("value", phaseDuration))
+      ("duration_likely", new Document("editable", false).append("value", phaseDuration)),
+      ("estimated_dates_editable", finishDateEditable)
     )
   }
 
   private def phaseKpis(phase: DynDoc): Many[Document] = {
     val ofOriginalBudget = "comment" -> "original budget"
-    val kpis: Seq[DynDoc] =
-      Seq(Map("name" -> "Original budget", "value" -> "1.5 MM USD", "percent" -> "", "comment" -> ""),
-        Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
-        Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3 %", ofOriginalBudget),
-        Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
-        Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7 %", ofOriginalBudget),
-        Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget))
+    val originalBudget = phase.get[Any]("original_budget") match {
+      case Some(budget) => budget.toString
+      case None => "NA"
+    }
+    val kpis: Seq[DynDoc] = Seq(
+      Map("name" -> "Original budget", "value" -> s"$originalBudget MM USD", "percent" -> "", "comment" -> ""),
+      Map("name" -> "Current budget", "value" -> "1.65 MM USD", "percent" -> "115.3 %", ofOriginalBudget),
+      Map("name" -> "Committed expense", "value" -> "0.75 MM USD", "percent" -> "49.3 %", ofOriginalBudget),
+      Map("name" -> "Accrued expense", "value" -> "0.85 MM USD", "percent" -> "55.9 %", ofOriginalBudget),
+      Map("name" -> "Paid expense", "value" -> "0.5 MM USD", "percent" -> "40.7 %", ofOriginalBudget),
+      Map("name" -> "Change orders", "value" -> "0.05 MM USD", "percent" -> "5.5 %", ofOriginalBudget)
+    )
     kpis.map(_.asDoc).asJava
   }
 

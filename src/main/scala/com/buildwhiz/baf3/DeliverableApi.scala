@@ -21,11 +21,12 @@ object DeliverableApi {
   def deliverablesByActivityOids(activityOids: Seq[ObjectId]): Seq[DynDoc] =
       BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> activityOids)))
 
-  val externalStatusMap: Map[String, String] = Map(
+  val rawExternalStatusMap: Map[String, String] = Map(
     "Not-Started" -> "Not-Started", "Pre-Approved" -> "Not-Started", "Deliverable-Started" -> "Active",
     "Deliverable-Started And Pre-Approved" -> "Active", "Deliverable-Completed" -> "Review",
     "Completion-Detected" -> "Completed", "Completed" -> "Completed", "Completed-pl" -> "Completed",
     "Review-Reject" -> "Rework")
+  val externalStatusMap = new WithDefault[String, String](rawExternalStatusMap, _ => "Unknown")
 
   def aggregateStatus(statusValues: Seq[String]): String =
     if (statusValues.distinct.length == 1) {

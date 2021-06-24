@@ -1,9 +1,9 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.slack.SlackApi
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{PersonApi, PhaseApi}
@@ -11,11 +11,12 @@ import com.buildwhiz.baf2.{PersonApi, PhaseApi}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
 
-class PhaseInfoSet extends HttpServlet with HttpUtils {
+class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
+      val user: DynDoc = getPersona(request)
       def nop(input: String): Any = input
       def managers2roles(mids: String): Many[Document] = {
         val phaseManagerOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
@@ -31,11 +32,14 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
 
         managersInRoles
       }
+      def date2long(date: String): Long = {
+        milliseconds(date, Some(user.tz[String]))
+      }
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("name", (nop, "name")), ("description", (nop, "description")), ("goals", (nop, "goals")),
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
-        ("estimated_start_date", (nop, "timestamps.estimated_start_date")),
-        ("estimated_finish_date", (nop, "timestamps.estimated_finish_date"))
+        ("estimated_start_date", (date2long, "timestamps.estimated_start_date")),
+        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date"))
       )
       val parameterString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)

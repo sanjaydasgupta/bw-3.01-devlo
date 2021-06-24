@@ -69,6 +69,13 @@ object ActivityApi extends DateTimeUtils {
       None
   }
 
+  def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
+    (process.get[Long]("estimated_start_date"), activity.get[Long]("offset")) match {
+      case (Some(processStartDate), Some(offset)) => Some(processStartDate + offset * 86400 * 1000)
+      case _ => None
+    }
+  }
+
   def scheduledEnd(activity: DynDoc): Option[Long] = {
     if (activity.has("bpmn_scheduled_end_date")) {
       val date = activity.bpmn_scheduled_end_date[Long]
@@ -78,6 +85,13 @@ object ActivityApi extends DateTimeUtils {
         Some(date)
     } else
       None
+  }
+
+  def scheduledEnd3(process: DynDoc, activity: DynDoc): Option[Long] = {
+    (scheduledStart3(process, activity), activity.get[Long]("duration")) match {
+      case (Some(scheduledStartDate), Some(offset)) => Some(scheduledStartDate + offset * 86400 * 1000)
+      case _ => None
+    }
   }
 
   def scheduledDuration(activity: DynDoc): Float = {

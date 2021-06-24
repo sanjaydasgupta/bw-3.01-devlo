@@ -34,8 +34,8 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("name", (nop, "name")), ("description", (nop, "description")), ("goals", (nop, "goals")),
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
-        ("estimated_start_date", (nop, "estimated_start_date")),
-        ("estimated_finish_date", (nop, "estimated_finish_date"))
+        ("estimated_start_date", (nop, "timestamps.estimated_start_date")),
+        ("estimated_finish_date", (nop, "timestamps.estimated_finish_date"))
       )
       val parameterString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)

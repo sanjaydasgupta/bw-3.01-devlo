@@ -73,8 +73,7 @@ class Entry extends HttpServlet with HttpUtils {
           map(c => s"[name:${c.getName} domain:${c.getDomain} path:${c.getPath} value:${c.getValue}]").mkString(", ")
         log(s"ERROR: Authentication failed (cookies: $cookies)", request)
       }
-      val uri = request.getRequestURI
-      response.sendRedirect("/" + uri.split("/")(1))
+      throw new IllegalArgumentException("BuildWhiz: Not logged in")
     }
   }
 

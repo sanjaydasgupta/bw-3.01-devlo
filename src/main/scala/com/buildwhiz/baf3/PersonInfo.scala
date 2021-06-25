@@ -59,7 +59,8 @@ class PersonInfo extends HttpServlet with HttpUtils {
         append("work_email", workEmail).append("work_phone", workPhone).append("work_address", workAddress).
         append("phone_can_text", phoneCanText).append("individual_roles", individualRoles).
         append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava).
-        append("mobile_phone", mobilePhone).append("position", position)
+        append("mobile_phone", mobilePhone).append("position", position).
+        append("display_edit_buttons", userIsAdmin || userOwnsRecord)
     bson2json(personDoc)
   }
 

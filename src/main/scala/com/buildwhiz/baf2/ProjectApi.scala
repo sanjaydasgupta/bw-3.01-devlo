@@ -1,9 +1,11 @@
 package com.buildwhiz.baf2
 
+import com.buildwhiz.baf3.TeamApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -92,8 +94,9 @@ object ProjectApi extends HttpUtils {
   }
 
   def hasRole30(personOid: ObjectId, project: DynDoc): Boolean = {
-    project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
-        allPhases(project).exists(phase => PhaseApi.hasRole30(personOid, phase))
+    val hasProjectRole = project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
+        TeamApi.teamsByMemberOid(personOid).exists(_.project_id[ObjectId] == project._id[ObjectId])
+    hasProjectRole || allPhases(project).exists(phase => PhaseApi.hasRole30(personOid, phase))
   }
 
   def hasRole(personOid: ObjectId, project: DynDoc): Boolean = {

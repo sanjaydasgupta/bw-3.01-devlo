@@ -129,6 +129,8 @@ package object baf3 {
     "PhaseList__scope" -> Seq("all", "current", "future", "past"),
     "PhaseInfo__task_info__scope" -> Seq("all", "current", "future", "past"),
     "PartnerList__serving_area" -> Seq("USA", "Europe", "India", "California:USA"),
+    "RFI__category" -> Seq("Code Compliance", "Design Coordination", "Documentation Incomplete", "Constructability",
+        "Documentation Conflict", "Field Condition"),
     "Team__group" -> OmniClass33.omniClass33groups(),
     "Team__group_skill_mapping" -> OmniClass33.omniClass33skillsByGroup(),
     "Team__role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),

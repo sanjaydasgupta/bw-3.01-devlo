@@ -1,11 +1,12 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
-import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi}
+import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
@@ -45,7 +46,12 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val phaseTeamOids = PhaseApi.allTeamOids30(phase).toSet
     val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
     val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
-    DeliverableApi.deliverablesByTeamOids(myPhaseTeams.map(_._id[ObjectId]))
+    val phaseActivityOids: Seq[ObjectId] = PhaseApi.allProcesses(phase).headOption match {
+      case Some(process) => ProcessApi.allActivities(process).map(_._id[ObjectId])
+      case None => Seq.empty
+    }
+    BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> phaseActivityOids),
+        "team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> myPhaseTeams.map(_._id[ObjectId]))))))
   }
 
   private def deliverableInformation(deliverables: Seq[DynDoc]): Many[Document] = {

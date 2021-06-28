@@ -18,7 +18,8 @@ object NodeConnector extends HttpServlet with HttpUtils {
     if (request.getParameter("uid") != null)
       throw new IllegalArgumentException("Bad parameter name 'uid' found")
     val user: DynDoc = getPersona(request)
-    val userParam = s"uid=${user._id[ObjectId]}"
+    val userName = s"${user.first_name} ${user.last_name}".replace(" ", "%20")
+    val userParam = s"uid=${user._id[ObjectId]}&u$$nm=$userName"
     val urlParts = request.getRequestURL.toString.split("/")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)

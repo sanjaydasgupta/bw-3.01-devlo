@@ -80,6 +80,7 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
             case None => Seq.empty[ObjectId]
           }
           TeamApi.teamsByIds(teamOids)
+        case _ => Seq.empty[DynDoc]
       }
       val workbook = new XSSFWorkbook()
       val teamsSheet = workbook.createSheet("Teams-Contact-Info.xlsx")

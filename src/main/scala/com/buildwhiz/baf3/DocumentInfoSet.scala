@@ -1,12 +1,12 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.BWMongoDB3
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
 import scala.collection.JavaConverters._
-
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
@@ -15,26 +15,38 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
-
+      val user: DynDoc = getPersona(request)
       def csv2array(csv: String): Many[String] = csv.split(",").map(_.trim).filter(_.nonEmpty).toSeq.asJava
       val parameterInfo: Map[String, (String=>Any, String)] = Map("name" -> (n => n, "name"),
-        "document_id" -> (id => new ObjectId(id), "document_id"), "tags" -> (csv2array, "labels"))
+        "document_id" -> (id => new ObjectId(id), "document_id"), "tags" -> (csv2array, "labels"),
+        "comment" -> (n => n, "comment"))
 
       val unknownParameters = parameters.keySet.filterNot(_ == "JSESSIONID").
           filterNot(paramName => parameterInfo.contains(paramName))
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""bad parameters found: ${unknownParameters.mkString(", ")}""")
 
-      val parameterValues: Map[String, Any] = parameterInfo.filter(kv => parameters.contains(kv._1)).
+      val convertedParameterValues: Map[String, Any] = parameterInfo.filter(kv => parameters.contains(kv._1)).
           map(kv => (kv._2._2, kv._2._1(parameters(kv._1))))
-      val documentOid = parameterValues("document_id").asInstanceOf[ObjectId]
-      val setter: Map[String, Any] = parameterValues.filterNot(_._1 == "ObjectId")
-      if (setter.isEmpty)
+      val documentOid = convertedParameterValues("document_id").asInstanceOf[ObjectId]
+      val parameterValues = convertedParameterValues.filterNot(_._1 == "document_id")
+      if (parameterValues.isEmpty)
         throw new IllegalArgumentException("No parameter values found")
-      val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid), Map("$set" -> setter))
+      val updater = if (parameterValues.contains("comment")) {
+        if (parameterValues.size > 1) {
+          Map($set -> parameterValues.filterNot(_._1 == "comment"), $push -> Map("text" -> parameterValues("comment"),
+            "author_person_id" -> user._id[ObjectId], "timestamp" -> System.currentTimeMillis))
+        } else {
+          Map($push -> Map("timestamp" -> System.currentTimeMillis,
+            "text" -> parameterValues("comment"), "author_person_id" -> user._id[ObjectId]))
+        }
+      } else {
+        Map($set -> parameterValues)
+      }
+      val updateResult = BWMongoDB3.document_master.updateOne(Map("_id" -> documentOid), updater)
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-      val values = setter.map(kv => "%s=%s".format(kv._1, kv._2)).mkString(", ")
+      val values = parameterValues.map(kv => "%s=%s".format(kv._1, kv._2)).mkString(", ")
       val message = s"""Set parameters $values for document $documentOid"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
       response.getWriter.print(successJson())

@@ -48,6 +48,25 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     })
   }
 
+  private def commentsInformation(doc: DynDoc, user: DynDoc): Seq[Document] = {
+    val rawComments: Seq[DynDoc] = if (doc.has("comments")) {
+      doc.comments[Many[Document]]
+    } else {
+      Seq.empty[DynDoc]
+    }
+    rawComments.reverse.map(comment => {
+      val authorName = if (comment.has("author_person_id")) {
+        val authorOid = comment.author_person_id[ObjectId]
+        val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
+        PersonApi.fullName(author)
+      } else {
+        "NA"
+      }
+      new Document("author", authorName).append("text", comment.text[String]).
+          append("datetime", dateTimeString(comment.timestamp[Long], Some(user.tz[String])))
+    })
+  }
+
   private def wrap(value: Any, editable: Boolean): DynDoc = {
     new Document("editable", editable).append("value", value.toString)
   }
@@ -79,11 +98,12 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case None => "NA"
       }
       val versionInfo: Seq[Document] = versionInformation(docRecord, user)
+      val commentsInfo: Seq[Document] = commentsInformation(docRecord, user)
       val returnDoc: Document = Map("deliverable_name" -> wrap(deliverableName, editable = false),
         "name" -> wrap(docRecord.name[String], editable = editable),
         "phase_name" -> wrap(phaseName, editable = false),
         "task_name" -> wrap(taskName, editable = false), "tags" -> wrap(tags, editable = editable),
-        "versions" -> versionInfo)
+        "versions" -> versionInfo, "comments" -> commentsInfo)
       response.getWriter.print(returnDoc.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

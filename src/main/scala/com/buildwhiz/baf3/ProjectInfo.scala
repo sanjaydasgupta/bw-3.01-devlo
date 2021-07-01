@@ -4,12 +4,13 @@ import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
+import scala.math.random
 
 class ProjectInfo extends HttpServlet with HttpUtils {
 
@@ -39,6 +40,16 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
   private def isEditable(project: DynDoc, user: DynDoc): Boolean = {
     val userOid = user._id[ObjectId]
     ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
+  }
+
+  private def phaseInformation2(project: DynDoc, user: DynDoc): Many[Document] = {
+    def rint(): String = (random() * 15).toInt.toString
+    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+    ProjectApi.allPhases(project).map(phase => {
+      new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
+          append("display_status", PhaseApi.displayStatus2(phase, userIsAdmin)).append("alert_count", rint()).
+          append("rfi_count", rint()).append("issue_count", rint())
+    }).asJava
   }
 
   private def phaseInformation(project: DynDoc, user: DynDoc): Many[Document] = {
@@ -147,6 +158,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
     val phaseInfo = phaseInformation(project, user)
+    val phaseInfo2 = phaseInformation2(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
         append("status", status).append("display_status", displayStatus).append("goals", goals).
@@ -162,7 +174,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).
         append("menu_items", displayedMenuItems(userIsAdmin, userCanManageProject)).
-        append("canUploadImage", userCanManageProject)
+        append("canUploadImage", userCanManageProject).append("phase_info2", phaseInfo2)
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)
     projectDoc.toJson

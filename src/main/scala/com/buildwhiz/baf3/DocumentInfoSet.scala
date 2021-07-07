@@ -33,12 +33,12 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
       if (parameterValues.isEmpty)
         throw new IllegalArgumentException("No parameter values found")
       val updater = if (parameterValues.contains("comment")) {
+        val commentRecord = Map("text" -> parameterValues("comment"), "author_person_id" -> user._id[ObjectId],
+            "timestamp" -> System.currentTimeMillis)
         if (parameterValues.size > 1) {
-          Map($set -> parameterValues.filterNot(_._1 == "comment"), $push -> Map("text" -> parameterValues("comment"),
-            "author_person_id" -> user._id[ObjectId], "timestamp" -> System.currentTimeMillis))
+          Map($set -> parameterValues.filterNot(_._1 == "comment"), $push -> Map("comments" -> commentRecord))
         } else {
-          Map($push -> Map("timestamp" -> System.currentTimeMillis,
-            "text" -> parameterValues("comment"), "author_person_id" -> user._id[ObjectId]))
+          Map($push -> Map("comments" -> commentRecord))
         }
       } else {
         Map($set -> parameterValues)

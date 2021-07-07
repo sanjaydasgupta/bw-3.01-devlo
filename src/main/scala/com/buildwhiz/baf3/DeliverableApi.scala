@@ -21,30 +21,29 @@ object DeliverableApi {
   def deliverablesByActivityOids(activityOids: Seq[ObjectId]): Seq[DynDoc] =
       BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> activityOids)))
 
-  val rawExternalStatusMap: Map[String, String] = Map(
+  private val rawExternalStatusMap: Map[String, String] = Map(
     "Not-Started" -> "Not-Started", "Pre-Approved" -> "Not-Started", "Deliverable-Started" -> "Active",
     "Deliverable-Started And Pre-Approved" -> "Active", "Deliverable-Completed" -> "Review",
     "Completion-Detected" -> "Completed", "Completed" -> "Completed", "Completed-pl" -> "Completed",
     "Review-Reject" -> "Rework")
-  val externalStatusMap = new WithDefault[String, String](rawExternalStatusMap, _ => "Unknown")
+  private val externalStatusMap = new WithDefault[String, String](rawExternalStatusMap, _ => "Unknown")
 
-  def aggregateStatus(statusValues: Seq[String]): String =
-    if (statusValues.distinct.length == 1) {
-      statusValues.head
-    } else {
-      "Active"
+  def aggregateStatus(deliverables: Seq[DynDoc]): String = {
+    val distinctStatusValues = deliverables.map(_.status[String]).distinct
+    distinctStatusValues.length match {
+      case 0 => "Unknown"
+      case 1 => externalStatusMap(distinctStatusValues.head)
+      case _ => "Active"
     }
+  }
 
   def taskStatusMap(deliverables: Seq[DynDoc]): Map[ObjectId, String] = {
     val bpmnStatusMap: Map[String, String] = Map("Not-Started" -> "Upcoming", "Completed" -> "Completed",
       "Active" -> "Current")
-    val theGroups = deliverables.groupBy(_.activity_id[ObjectId])
-    val statusValues = theGroups.map(kv =>
-      (kv._1, kv._2.map(deliverable => externalStatusMap.getOrElse(deliverable.status[String], "Unknown"))))
-    val theMap = statusValues.map(kv => (kv._1, aggregateStatus(kv._2)))
-    val taskBpmnStatusMap = theMap.map(kv => (kv._1, bpmnStatusMap.getOrElse(kv._2, "Unknown")))
+    val deliverablesGroupedByActivity = deliverables.groupBy(_.activity_id[ObjectId])
+    val activityStatusMap = deliverablesGroupedByActivity.map(pair => (pair._1, aggregateStatus(pair._2)))
+    val taskBpmnStatusMap = activityStatusMap.map(kv => (kv._1, bpmnStatusMap.getOrElse(kv._2, "Unknown")))
     val mapWithDefault = new WithDefault[ObjectId, String](taskBpmnStatusMap, _ => "Unknown")
-
     mapWithDefault
   }
 }

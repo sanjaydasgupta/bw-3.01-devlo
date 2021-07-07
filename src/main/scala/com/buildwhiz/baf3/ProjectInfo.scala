@@ -47,7 +47,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     ProjectApi.allPhases(project).map(phase => {
       new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
-          append("display_status", PhaseApi.displayStatus2(phase, userIsAdmin)).append("alert_count", rint()).
+          append("display_status", PhaseApi.displayStatus3(phase)).append("alert_count", rint()).
           append("rfi_count", rint()).append("issue_count", rint())
     }).asJava
   }
@@ -58,8 +58,8 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val returnValue: Seq[Document] = phases.map(phase => {
       val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
-      val displayStatus = PhaseApi.displayStatus(phase)
-      val displayStatus2 = PhaseApi.displayStatus2(phase, userIsAdmin)
+      //val displayStatus = PhaseApi.displayStatus(phase)
+      val displayStatus3 = PhaseApi.displayStatus3(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
       val startDateEditable = canManage && phase.status[String] == "defined"
@@ -79,7 +79,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       } else {
         "NA"
       }
-      Map("name" -> phase.name[String], "status" -> displayStatus, "display_status" -> displayStatus2,
+      Map("name" -> phase.name[String], "status" -> displayStatus3, "display_status" -> displayStatus3,
         "start_date" -> new Document("editable", startDateEditable).append("value", startDate),
         "end_date" -> new Document("editable", endDateEditable).append("value", endDate),
         "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,
@@ -113,9 +113,8 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val documentTags = new Document("editable", false).append("value", bareDocumentTags.asJava)
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
-    val status = new Document("editable", false).append("value", rawStatus)
+    //val status = new Document("editable", false).append("value", rawStatus)
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-    val displayStatus = new Document("editable", false).append("value", ProjectApi.displayStatus2(project, userIsAdmin))
     val rawName = project.name[String]
     val name = new Document("editable", editable).append("value", rawName)
     val rawSummary = project.get[String]("summary") match {
@@ -158,10 +157,17 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
     val phaseInfo = phaseInformation(project, user)
+    val phaseStatusValues: Seq[String] = phaseInfo.map(_.status[String]).distinct
+    val rawDisplayStatus3 = phaseStatusValues.length match {
+      case 0 => "Unknown"
+      case 1 => phaseStatusValues.head
+      case _ => "Active"
+    }
+    val displayStatus3 = new Document("editable", false).append("value", rawDisplayStatus3)
     val phaseInfo2 = phaseInformation2(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
-        append("status", status).append("display_status", displayStatus).append("goals", goals).
+        append("status", displayStatus3).append("display_status", displayStatus3).append("goals", goals).
         append("document_tags", documentTags).append("project_managers", projectManagers).
         append("type", projectType).append("project_type", projectType).append("building_use", buildingUse).
         append("construction_type", constructionType).append("image_url", ProjectApi.imageUrl(Right(project))).

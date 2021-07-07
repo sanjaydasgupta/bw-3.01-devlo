@@ -138,7 +138,7 @@ object PhaseApi {
       case Some(theProcess) =>
         val activities = ProcessApi.allActivities(theProcess)
         val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
-        DeliverableApi.aggregateStatus(deliverables.map(_.status[String]).map(DeliverableApi.externalStatusMap))
+        DeliverableApi.aggregateStatus(deliverables)
       case None => "NA"
     }
   }

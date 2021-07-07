@@ -51,7 +51,7 @@ class ProjectList extends HttpServlet with HttpUtils {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
-      "display_status" -> PhaseApi.displayStatus2(phase, userIsAdmin), "alert_count" -> rint(), "rfi_count" -> rint(),
+      "display_status" -> PhaseApi.displayStatus3(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
       "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
     })
     val address: DynDoc = project.address[Document]
@@ -64,8 +64,14 @@ class ProjectList extends HttpServlet with HttpUtils {
       case None => s"Summary for '$name'"
       case Some(theSummary) => theSummary
     }
+    val distinctPhaseStatusValues: Seq[String] = phases.map(_.display_status[String]).distinct
+    val displayStatus3 = distinctPhaseStatusValues.length match {
+      case 0 => "Unknown"
+      case 1 => distinctPhaseStatusValues.head
+      case _ => "Active"
+    }
     Map("name" -> name, "_id" -> project._id[ObjectId].toString, "summary" -> summary,
-        "display_status" -> ProjectApi.displayStatus2(project, userIsAdmin),
+        "display_status" -> displayStatus3,
         "address_line1" -> address.line1[String],
         "address_line2" -> address.line2[String], "address_line3" -> address.line3[String],
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],

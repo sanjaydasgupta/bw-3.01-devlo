@@ -51,10 +51,10 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case None => Seq.empty
     }
     BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> phaseActivityOids),
-        "team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> myPhaseTeams.map(_._id[ObjectId]))))))
+      "team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> myPhaseTeams.map(_._id[ObjectId]))))))
   }
 
-  private def deliverableInformation(deliverables: Seq[DynDoc]): Many[Document] = {
+  private def deliverableInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
     val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
       val status = deliverable.status[String]
       val scope = status match {
@@ -62,8 +62,24 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         case "Completed" | "Ended" => "Past"
         case _ => "Current"
       }
-      Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
-        "name" -> deliverable.name[String], "status" -> status, "due_date" -> "Not Available", "scope" -> scope)
+      val teamAssignments: Seq[DynDoc] = deliverable.team_assignments[Many[Document]]
+      val (teamName, teamRole) = teamAssignments match {
+        case Seq(teamAssignment) =>
+          val team = TeamApi.teamById(teamAssignment.team_id[ObjectId])
+          (team.team_name[String], teamAssignment.role[String])
+        case ta: Seq[DynDoc] if ta.length > 1 =>
+          val teamOids = teamAssignments.map(_.team_id[ObjectId])
+          val teamsHavingMembers = TeamApi.teamsByIds(teamOids).filter(_.has("team_members"))
+          val teamsWithPersonOids: Seq[(DynDoc, Seq[ObjectId])] =
+              teamsHavingMembers.map(at => (at, at.team_members[Many[Document]].map(_.person_id[ObjectId])))
+          val myTeam = teamsWithPersonOids.find(_._2.contains(user._id[ObjectId])).head._1
+          val teamAssignment = teamAssignments.find(_.team_id[ObjectId] == myTeam._id[ObjectId]).head
+          (myTeam.team_name[String], teamAssignment.role[String])
+        case _ => // Not possible, keeps compiler happy!
+      }
+       Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
+        "name" -> deliverable.name[String], "status" -> status, "due_date" -> "Not Available", "scope" -> scope,
+        "team_name" -> teamName, "team_role" -> teamRole)
     })
     deliverableRecords.asJava
   }
@@ -180,10 +196,12 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     }
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val deliverables = getDeliverables(phase, user)
-    val deliverableInfo = deliverableInformation(deliverables)
+    val deliverableInfo = deliverableInformation(deliverables, user)
+    val displayStartButton = editable
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
+        append("display_start_buttons", displayStartButton).
         append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, editable, rawDisplayStatus, request).foreach(pair => phaseDoc.append(pair._1, pair._2))

@@ -24,15 +24,19 @@ trait BpmnUtils {
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
     val allProcessDefinitions: Seq[ProcessDefinition] =
       repositoryService.createProcessDefinitionQuery().list().asScala.filter(_.getKey == bpmnName)
-    val expectedVersion = if (allProcessDefinitions.length == 1 || version == -1)
-      allProcessDefinitions.map(_.getVersion).max
-    else
-      version
+    val expectedVersion = if (allProcessDefinitions.nonEmpty) {
+      if (version == -1)
+        allProcessDefinitions.map(_.getVersion).max
+      else
+        version
+    } else {
+      0
+    }
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got allProcessDefinitions")
     val processDefinition = allProcessDefinitions.find(_.getVersion == expectedVersion) match {
       case Some(pd) => pd
       case None =>
-        val message = s"process '$bpmnName' not found among ${allProcessDefinitions.map(_.getKey).mkString(", ")}"
+        val message = s"process '$bpmnName' not found among '${allProcessDefinitions.map(_.getKey).mkString(", ")}'"
         throw new IllegalArgumentException(message)
     }
     //BWLogger.log(getClass.getName, "getProcessDefinition", "EXIT")

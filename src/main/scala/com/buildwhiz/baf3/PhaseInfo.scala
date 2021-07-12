@@ -10,6 +10,7 @@ import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
+import scala.math.random
 
 class PhaseInfo extends HttpServlet with HttpUtils {
 
@@ -171,6 +172,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     kpis.map(_.asDoc).asJava
   }
 
+  private def rint(): String = (random() * 15).toInt.toString
+
   private def phase2json(phase: DynDoc, user: DynDoc, request: HttpServletRequest): String = {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
@@ -197,11 +200,16 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val deliverables = getDeliverables(phase, user)
     val deliverableInfo = deliverableInformation(deliverables, user)
-    val displayStartButton = editable & (phase.get[Boolean]("started") match {case Some(sv) => sv; case None => false})
+    val counters: Document =
+      Map[String, String]("alert_count" -> rint(), "rfi_count" -> rint(), "issue_count" -> rint())
+    val timestamps: DynDoc = phase.timestamps[Document]
+    val estimatedDatesExist = timestamps.has("estimated_start_date") && timestamps.has("estimated_finish_date")
+    val displayStartButton = editable && estimatedDatesExist &&
+        (phase.get[Boolean]("started") match {case Some(sv) => !sv; case None => true})
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
-        append("display_start_button", displayStartButton).
+        append("display_start_button", displayStartButton).append("counters", counters).
         append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, editable, rawDisplayStatus, request).foreach(pair => phaseDoc.append(pair._1, pair._2))

@@ -39,7 +39,8 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
         ("name", (nop, "name")), ("description", (nop, "description")), ("goals", (nop, "goals")),
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
         ("estimated_start_date", (date2long, "timestamps.estimated_start_date")),
-        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date"))
+        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date")),
+        ("started", (_.toBoolean, "started"))
       )
       val parameterString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)

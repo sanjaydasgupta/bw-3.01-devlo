@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import scala.collection.immutable.Map.WithDefault
 import scala.util.Either
 
 object PhaseApi {
@@ -134,12 +135,21 @@ object PhaseApi {
   }
 
   def displayStatus3(phase: DynDoc): String = {
-    PhaseApi.allProcesses(phase).headOption match {
-      case Some(theProcess) =>
-        val activities = ProcessApi.allActivities(theProcess)
-        val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
-        DeliverableApi.aggregateStatus(deliverables)
-      case None => "NA"
+    val started = phase.get[Boolean]("started") match {
+      case Some(sv) => sv
+      case None => false
+    }
+    val phaseStatusFromDeliverables = new WithDefault[String, String](Map("Completed" -> "Completed"), _ => "Active")
+    if (started) {
+      PhaseApi.allProcesses(phase).headOption match {
+        case Some(theProcess) =>
+          val activities = ProcessApi.allActivities(theProcess)
+          val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+          phaseStatusFromDeliverables(DeliverableApi.aggregateStatus(deliverables))
+        case None => "Unknown"
+      }
+    } else {
+      "Planning"
     }
   }
 

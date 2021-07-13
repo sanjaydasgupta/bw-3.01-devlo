@@ -119,19 +119,19 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val timestamps: DynDoc = phase.timestamps[Document]
     val user: DynDoc = getPersona(request)
     val timezone = user.tz[String]
-    val estimatedStartDate = timestamps.get[Long]("estimated_start_date") match {
+    val estimatedStartDate = timestamps.get[Long]("date_start_estimated") match {
       case Some(dt) => dateString(dt, timezone)
       case None => "NA"
     }
-    val estimatedFinishDate = timestamps.get[Long]("estimated_finish_date") match {
+    val estimatedEndDate = timestamps.get[Long]("date_end_estimated") match {
       case Some(dt) => dateString(dt, timezone)
       case None => "NA"
     }
-    val actualStartDate = timestamps.get[Long]("actual_start_date") match {
+    val actualStartDate = timestamps.get[Long]("date_start_actual") match {
       case Some(dt) => dateString(dt, timezone)
       case None => "NA"
     }
-    val actualFinishDate = timestamps.get[Long]("actual_finish_date") match {
+    val actualEndDate = timestamps.get[Long]("date_end_actual") match {
       case Some(dt) => dateString(dt, timezone)
       case None => "NA"
     }
@@ -142,16 +142,20 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case None => "NA"
     }
     val startDateEditable = editable && status == "Not-Started"
-    val finishDateEditable = editable && status != "Completed"
+    val endDateEditable = editable && status != "Completed"
     Seq(
       ("estimated_start_date", new Document("editable", startDateEditable).append("value", estimatedStartDate)),
-      ("estimated_finish_date", new Document("editable", finishDateEditable).append("value", estimatedFinishDate)),
+      ("estimated_finish_date", new Document("editable", endDateEditable).append("value", estimatedEndDate)),
       ("actual_start_date", new Document("editable", false).append("value", actualStartDate)),
-      ("actual_finish_date", new Document("editable", false).append("value", actualFinishDate)),
+      ("actual_finish_date", new Document("editable", false).append("value", actualEndDate)),
+      ("date_start_estimated", new Document("editable", startDateEditable).append("value", estimatedStartDate)),
+      ("date_end_estimated", new Document("editable", endDateEditable).append("value", estimatedEndDate)),
+      ("date_start_actual", new Document("editable", false).append("value", actualStartDate)),
+      ("date_end_actual", new Document("editable", false).append("value", actualEndDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
       ("duration_likely", new Document("editable", false).append("value", phaseDuration)),
-      ("estimated_dates_editable", finishDateEditable)
+      ("estimated_dates_editable", endDateEditable)
     )
   }
 
@@ -203,7 +207,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val counters: Document =
       Map[String, String]("alert_count" -> rint(), "rfi_count" -> rint(), "issue_count" -> rint())
     val timestamps: DynDoc = phase.timestamps[Document]
-    val estimatedDatesExist = timestamps.has("estimated_start_date") && timestamps.has("estimated_finish_date")
+    val estimatedDatesExist = timestamps.has("date_start_estimated") && timestamps.has("date_end_estimated")
     val displayStartButton = editable && estimatedDatesExist &&
         (phase.get[Boolean]("started") match {case Some(sv) => !sv; case None => true})
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).

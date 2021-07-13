@@ -40,6 +40,8 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
         ("estimated_start_date", (date2long, "timestamps.estimated_start_date")),
         ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date")),
+        ("date_start_estimated", (date2long, "timestamps.date_start_estimated")),
+        ("date_end_estimated", (date2long, "timestamps.date_end_estimated")),
         ("started", (_.toBoolean, "started"))
       )
       val parameterString = getStreamData(request)

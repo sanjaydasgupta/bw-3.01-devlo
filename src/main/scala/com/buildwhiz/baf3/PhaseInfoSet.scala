@@ -38,8 +38,8 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("name", (nop, "name")), ("description", (nop, "description")), ("goals", (nop, "goals")),
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
-        ("estimated_start_date", (date2long, "timestamps.estimated_start_date")),
-        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date")),
+        ("estimated_start_date", (date2long, "timestamps.estimated_start_date")), // ToDo delete later
+        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date")), // ToDo delete later
         ("date_start_estimated", (date2long, "timestamps.date_start_estimated")),
         ("date_end_estimated", (date2long, "timestamps.date_end_estimated")),
         ("started", (_.toBoolean, "started"))

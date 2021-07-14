@@ -182,7 +182,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val editable = isEditable(phase, user)
     val description = new Document("editable", editable).append("value", phase.description[String])
     val status = new Document("editable", false).append("value", phase.status[String])
-    val rawDisplayStatus = PhaseApi.displayStatus3(phase)
+    val rawDisplayStatus = PhaseApi.displayStatus31(phase)
     val displayStatus = new Document("editable", false).append("value", rawDisplayStatus)
     val name = new Document("editable", editable).append("value", phase.name[String])
     val rawPhaseManagers = phase.assigned_roles[Many[Document]].

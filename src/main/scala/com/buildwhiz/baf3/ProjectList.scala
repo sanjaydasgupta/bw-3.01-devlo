@@ -51,7 +51,7 @@ class ProjectList extends HttpServlet with HttpUtils {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
-      "display_status" -> PhaseApi.displayStatus3(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
+      "display_status" -> PhaseApi.displayStatus31(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
       "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
     })
     val address: DynDoc = project.address[Document]

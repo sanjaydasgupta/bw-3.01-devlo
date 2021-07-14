@@ -47,7 +47,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     ProjectApi.allPhases(project).map(phase => {
       new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
-          append("display_status", PhaseApi.displayStatus3(phase)).append("alert_count", rint()).
+          append("display_status", PhaseApi.displayStatus31(phase)).append("alert_count", rint()).
           append("rfi_count", rint()).append("issue_count", rint())
     }).asJava
   }
@@ -59,7 +59,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
       //val displayStatus = PhaseApi.displayStatus(phase)
-      val displayStatus3 = PhaseApi.displayStatus3(phase)
+      val displayStatus3 = PhaseApi.displayStatus31(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
       val startDateEditable = canManage && phase.status[String] == "defined"

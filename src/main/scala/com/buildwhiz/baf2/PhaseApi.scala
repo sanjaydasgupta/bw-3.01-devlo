@@ -134,6 +134,19 @@ object PhaseApi {
     displayStatus(phase)
   }
 
+  def displayStatus31(phase: DynDoc): String = {
+    (phase.get[Boolean]("started"), phase.get[Boolean]("ended")) match {
+      case (None, _) | (Some(false), _) =>
+        "Planning"
+      case (Some(true), None) | (Some(true), Some(false)) =>
+        "Active"
+      case (_, Some(true)) =>
+        "Ended"
+      case _ =>
+        "Unknown"
+    }
+  }
+
   def displayStatus3(phase: DynDoc): String = {
     val started = phase.get[Boolean]("started") match {
       case Some(sv) => sv

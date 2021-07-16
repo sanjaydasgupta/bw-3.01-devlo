@@ -78,9 +78,17 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
           (myTeam.team_name[String], teamAssignment.role[String])
         case _ => // Not possible, keeps compiler happy!
       }
-       Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
-        "name" -> deliverable.name[String], "status" -> status, "due_date" -> "Not Available", "scope" -> scope,
-        "team_name" -> teamName, "team_role" -> teamRole)
+      val (weekOffset, commitDate): (Int, String) = deliverable.get[Long]("commit_date_value") match {
+        case Some(commitDate) =>
+          (math.round((commitDate - System.currentTimeMillis) / (7.0 * 86400000)).toInt, dateString(commitDate))
+        case None =>
+          (52, "Not available")
+      }
+      val externalStatus = DeliverableApi.externalStatusMapWithDefault(status)
+      Map("_id" -> deliverable._id[ObjectId].toString, "activity_id" -> deliverable.activity_id[ObjectId].toString,
+          "name" -> deliverable.name[String], "status" -> externalStatus, "due_date" -> "Not Available",
+          "scope" -> scope, "team_name" -> teamName, "team_role" -> teamRole, "week_offset" -> weekOffset,
+          "commit_date" -> commitDate)
     })
     deliverableRecords.asJava
   }

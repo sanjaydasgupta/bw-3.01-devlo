@@ -26,13 +26,13 @@ object DeliverableApi {
     "Deliverable-Started And Pre-Approved" -> "Active", "Deliverable-Completed" -> "Review",
     "Completion-Detected" -> "Completed", "Completed" -> "Completed", "Completed-pl" -> "Completed",
     "Review-Reject" -> "Rework")
-  private val externalStatusMap = new WithDefault[String, String](rawExternalStatusMap, _ => "Unknown")
+  val externalStatusMapWithDefault = new WithDefault[String, String](rawExternalStatusMap, _ => "Unknown")
 
   def aggregateStatus(deliverables: Seq[DynDoc]): String = {
     val distinctStatusValues = deliverables.map(_.status[String]).distinct
     distinctStatusValues.length match {
       case 0 => "Unknown"
-      case 1 => externalStatusMap(distinctStatusValues.head)
+      case 1 => externalStatusMapWithDefault(distinctStatusValues.head)
       case _ => "Active"
     }
   }

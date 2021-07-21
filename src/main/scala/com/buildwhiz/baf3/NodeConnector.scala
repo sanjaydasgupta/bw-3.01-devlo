@@ -5,7 +5,8 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpPost, HttpRequestBase}
-import org.apache.http.entity.StringEntity
+import org.apache.http.entity.{ContentType, StringEntity}
+import org.apache.http.entity.mime.{HttpMultipartMode, MultipartEntityBuilder}
 import org.apache.http.impl.client.HttpClients
 import org.bson.types.ObjectId
 
@@ -74,12 +75,30 @@ object NodeConnector extends HttpServlet with HttpUtils {
       val httpPost = new HttpPost(nodeUri(request))
       request.getHeaderNames.asScala.filterNot(_ == "Content-Length").
           foreach(hdrName => httpPost.setHeader(hdrName, request.getHeader(hdrName)))
-      val streamData = getStreamData(request)
-      BWLogger.log(getClass.getName, request.getMethod, s"input-stream: $streamData", request)
-      val stringEntity = new StringEntity(streamData)
-      httpPost.setEntity(stringEntity)
+      val contentType = request.getContentType
+      contentType.split(";").head.trim match {
+        case "application/json" =>
+          val jsonText = getStreamData(request)
+          val stringEntity = new StringEntity(jsonText)
+          httpPost.setEntity(stringEntity)
+          BWLogger.log(getClass.getName, request.getMethod, s"content($contentType) text: [$jsonText]", request)
+        case "multipart/form-data" =>
+          val entityBuilder = MultipartEntityBuilder.create()
+          entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+          var totalLength: Long = 0
+          for (part <- request.getParts.iterator.asScala) {
+            totalLength += part.getSize
+            val partContentType = ContentType.create(part.getContentType)
+            entityBuilder.addBinaryBody(part.getName, part.getInputStream, partContentType, part.getSubmittedFileName)
+          }
+          val multipartEntity = entityBuilder.build()
+          httpPost.setEntity(multipartEntity)
+          httpPost.setHeader("Content-Type", multipartEntity.getContentType.getValue)
+          BWLogger.log(getClass.getName, request.getMethod, s"content($contentType) length: $totalLength", request)
+        case _ =>
+          throw new IllegalArgumentException(s"unknown contentType: '$contentType'")
+      }
       httpPost.removeHeaders("Content-Length")
-      httpPost.addHeader("Content-Type", "application/json")
       executeNodeRequest(request, response, httpPost)
     } catch {
       case t: Throwable =>

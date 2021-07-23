@@ -11,10 +11,11 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import java.io.{File => javaFile, BufferedReader, FileReader}
+import java.util.regex.Pattern
 
 trait MailUtils3 {
 
-  def sendGridKey(): String = {
+  private def sendGridKey(): String = {
     val tomcatDir = new javaFile("server").listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
     val doNotTouchFolder = new javaFile(tomcatDir, "webapps/bw-3.01/WEB-INF/classes/do-not-touch")
     if (!doNotTouchFolder.exists()) {
@@ -32,11 +33,17 @@ trait MailUtils3 {
         keyFileReader.readLine()
   }
 
+  private def isHtml(text: String): Boolean = {
+    val tagRe = Pattern.compile("</?[^>]+>")
+    val parts = tagRe.split(text)
+    parts.length > 1
+  }
+
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
     try {
       val fromAddress = new Email("notifications@550of.com")
-      val content = new Content("text/plain", body)
+      val content = new Content(if (isHtml(body)) "text/html" else "text/plain", body)
       val sendGrid = new SendGrid(sendGridKey())
       for (userOid <- recipientOids) {
         Future {

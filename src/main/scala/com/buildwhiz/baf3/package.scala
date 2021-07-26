@@ -194,21 +194,24 @@ package object baf3 {
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/wand.svg",
       "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications"),
-    Map("access" -> "AI", "navIcon" -> "assets/images/teenyicons/outline-white/list-layout.svg",
+    Map("access" -> "AIM", "navIcon" -> "assets/images/teenyicons/outline-white/list-layout.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/list-layout.svg",
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
   )
 
   def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false):
       Many[Document] = {
-    val filteredMenuItems = if (starting) {
+    val menuItemsList2 = if (starting) {
       menuItemsList.filter(_.getString("access").contains("I"))
-    } else if (userIsAdmin) {
-      menuItemsList
-    } else if (userIsManager) {
-      menuItemsList.filter(items => items.getString("access").contains("*") || items.getString("access").contains("M"))
     } else {
-      menuItemsList.filter(_.getString("access").contains("*"))
+      menuItemsList
+    }
+    val filteredMenuItems = if (userIsAdmin) {
+      menuItemsList2
+    } else if (userIsManager) {
+      menuItemsList2.filter(items => items.getString("access").contains("*") || items.getString("access").contains("M"))
+    } else {
+      menuItemsList2.filter(_.getString("access").contains("*"))
     }
     filteredMenuItems.map(doc => {
       val withoutAccess = doc.entrySet().asScala.map(es => (es.getKey, es.getValue)).filterNot(_._1 == "access").toMap

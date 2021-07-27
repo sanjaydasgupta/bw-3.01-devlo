@@ -43,7 +43,12 @@ trait MailUtils3 {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
     try {
       val fromAddress = new Email("notifications@550of.com")
-      val content = new Content(if (isHtml(body)) "text/html" else "text/plain", body)
+      val content = if (isHtml(body)) {
+        new Content("text/html", body.replaceAll("\n", "<br/>"))
+      } else {
+        new Content("text/plain", body)
+      }
+
       val sendGrid = new SendGrid(sendGridKey())
       for (userOid <- recipientOids) {
         Future {

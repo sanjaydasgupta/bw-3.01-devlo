@@ -25,7 +25,7 @@ class HelpMessageSend extends HttpServlet with HttpUtils with MailUtils3 {
       val fullName = PersonApi.fullName(user)
 
       val emailSubject = s"Help-Message from $fullName (${user._id[ObjectId]})"
-      val emailBody = s"User's-Subject: $subject\n\n$body"
+      val emailBody = s"User's Subject: $subject\n\nUser's Message: $body"
       val adminOids = PersonApi.listAdmins.map(_._id[ObjectId])
       sendMail(adminOids, emailSubject, emailBody, Some(request))
 

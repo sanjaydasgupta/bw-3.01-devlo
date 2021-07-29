@@ -195,9 +195,12 @@ object PhaseApi {
     if (phase.has("tz")) {
       phase.tz[String]
     } else {
-      val managerOids = managers(Right(phase))
-      PersonApi.personsByIds(managerOids).map(_.tz[String]).groupBy(t => t).
-        map(p => (p._1, p._2.length)).reduce((a, b) => if (a._2 > b._2) a else b)._1
+      val parent = parentProject(phase._id[ObjectId])
+      if (parent.has("tz")) {
+        parent.tz[String]
+      } else {
+        "GMT"
+      }
     }
   }
 

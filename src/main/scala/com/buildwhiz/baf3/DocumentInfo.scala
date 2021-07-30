@@ -54,7 +54,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     } else {
       Seq.empty[DynDoc]
     }
-    rawComments.reverse.map(comment => {
+    rawComments.reverseMap(comment => {
       val authorName = if (comment.has("author_person_id")) {
         val authorOid = comment.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head
@@ -73,7 +73,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getPersona(request)
       val documentOid = new ObjectId(parameters("document_id"))
@@ -89,8 +89,15 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case Some(activityOid) => ActivityApi.activityById(activityOid).name[String]
         case None => "NA"
       }
-      val deliverableName = docRecord.get[ObjectId]("deliverable_id") match {
-        case Some(activityOid) => DeliverableApi.deliverableById(activityOid).name[String]
+      val deliverableName: String = docRecord.get[ObjectId]("deliverable_id") match {
+        case Some(deliverableOid) =>
+          try {
+            DeliverableApi.deliverableById(deliverableOid).name[String]
+          } catch {
+            case _: Throwable =>
+              BWLogger.log(getClass.getName, request.getMethod, s"WARN: bad deliverable_id ($deliverableOid)", request)
+              "NA"
+          }
         case None => "NA"
       }
       val tags = docRecord.get[Many[String]]("labels") match {
@@ -107,10 +114,10 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.print(returnDoc.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${versionInfo.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${versionInfo.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

@@ -166,6 +166,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val displayStatus3 = new Document("editable", false).append("value", rawDisplayStatus3)
     val phaseInfo2 = phaseInformation2(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
+    val canCreatePhase = PersonApi.fullName(user).matches("Prabhas Admin|Sanjay Admin")
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).
         append("status", displayStatus3).append("display_status", displayStatus3).append("goals", goals).
         append("document_tags", documentTags).append("project_managers", projectManagers).
@@ -180,7 +181,8 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).
         append("menu_items", displayedMenuItems(userIsAdmin, userCanManageProject)).
-        append("canUploadImage", userCanManageProject).append("phase_info2", phaseInfo2)
+        append("canUploadImage", userCanManageProject).append("phase_info2", phaseInfo2).
+        append("can_create_phase", canCreatePhase)
     if(doLog)
       BWLogger.log(getClass.getName, "project2json", "EXIT-OK", request)
     projectDoc.toJson

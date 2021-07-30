@@ -16,6 +16,9 @@ class ProjectCreate extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val loggedInUser = getUser(request)
+      if (!PersonApi.fullName(loggedInUser).matches("Prabhas Admin|Sanjay Admin"))
+        throw new IllegalArgumentException("Not permitted")
       val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
       val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head

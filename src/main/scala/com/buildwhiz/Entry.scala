@@ -23,6 +23,7 @@ class Entry extends HttpServlet with HttpUtils {
       case ("Login", "baf2") => true
       case ("Logout", "baf2") => true
       case ("GLogin", "baf3") => true
+      case ("MSLogin", "baf3") => true
       case ("Logout", "baf3") => true
       case ("SlackSlashCommand", "slack") => true
       case ("SlackEventCallback", "slack") => true
@@ -146,10 +147,10 @@ class Entry extends HttpServlet with HttpUtils {
 
 object Entry {
 
-  type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse)
-    def doPost(req: HttpServletRequest, res: HttpServletResponse)
-    def doPut(req: HttpServletRequest, res: HttpServletResponse)
-    def doDelete(req: HttpServletRequest, res: HttpServletResponse)}
+  type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit
+    def doPost(req: HttpServletRequest, res: HttpServletResponse): Unit
+    def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit
+    def doDelete(req: HttpServletRequest, res: HttpServletResponse): Unit}
 
   val cache: mutable.Map[String, BWServlet] = mutable.Map.empty[String, BWServlet]
   val sessionCache: mutable.Map[String, HttpSession] = mutable.Map.empty[String, HttpSession]

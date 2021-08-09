@@ -98,19 +98,21 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     variableNamesAndTypes
   }
 
-  private def getCallDefinitions(callerBpmnAndDom: (String, String, dom.Document)): Seq[(String, String, String)] = {
-    def callerCalleeAndCalleeId(callNode: Element/*, prefix: String*/): (String, String, String) = {
-      // caller-bpmn, called-bpmn, called-bpmn-id
+  private def getCallDefinitions(callerBpmnAndDom: (String, String, dom.Document)):
+      Seq[(String, String, String, Boolean)] = {
+    def callerCalleeAndCalleeId(callNode: Element, prefix: String): (String, String, String, Boolean) = {
+      // caller-bpmn, called-bpmn, called-bpmn-id, is-takt
+      val isTakt = callNode.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
       val callee = callNode.getAttributes.getNamedItem("calledElement").getTextContent
       val bpmnId = callNode.getAttributes.getNamedItem("id").getTextContent
-      (callerBpmnAndDom._2, callee, bpmnId)
+      (callerBpmnAndDom._2, callee, bpmnId, isTakt)
     }
 
     val prefix = callerBpmnAndDom._3.getDocumentElement.getTagName.split(":")(0)
     val callActivities: Seq[Node] = callerBpmnAndDom._3.getElementsByTagName(s"$prefix:callActivity")
     val subProcCallElements = callActivities.
         filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler")
-    val subProcessCalls = subProcCallElements.map(n => callerCalleeAndCalleeId(n.asInstanceOf[Element]))
+    val subProcessCalls = subProcCallElements.map(n => callerCalleeAndCalleeId(n.asInstanceOf[Element], prefix))
     subProcessCalls
   }
 
@@ -350,7 +352,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined"); doc}).asJava
     val subProcessCalls: Many[Document] = allCallerBpmnAndDom.flatMap(getCallDefinitions).map(t => {
       new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
-        append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined")
+        append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined").
+        append("is_takt", t._4)
     }).asJava
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "activity_ids" -> Seq.empty[ObjectId], "admin_person_id" -> user._id[ObjectId],

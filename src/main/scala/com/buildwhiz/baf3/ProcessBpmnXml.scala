@@ -120,6 +120,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       )
       val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process,
           Seq.empty[(String, String, Int)], request)
+      val isTakt = stamp.get[Boolean]("is_takt") match {
+        case Some(taktValue) => taktValue
+        case None => false
+      }
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
@@ -128,7 +132,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
-        append("duration_likely", durationLikely).
+        append("duration_likely", durationLikely).append("is_takt", isTakt).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount)
     })
@@ -252,6 +256,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       //val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val phaseOid = new ObjectId(parameters("phase_id"))
+      val globalTakt = parameters.get("is_takt") match {
+        case Some(taktValue) => taktValue.toBoolean
+        case None => false
+      }
       val process: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
@@ -305,7 +313,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
-          append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString)
+          append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

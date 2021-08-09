@@ -82,7 +82,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
-                                  durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
+      durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)
     BWMongoDB3.activities.find(query).headOption match {
@@ -97,7 +97,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           }
         }
       case None =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find activity", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find $query", request)
         0
     }
   }

@@ -228,7 +228,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).
-        append("on_critical_path", false).append("deliverable_count", deliverableCount)
+        append("on_critical_path", false).append("deliverable_count", deliverableCount).
+        append("sub_zones", "NA").append("start_delay", 0)
     })
     returnActivities
   }
@@ -313,7 +314,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
-          append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt)
+          append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
+          append("repetition_count", 1).append("cycle_time", "NA")
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

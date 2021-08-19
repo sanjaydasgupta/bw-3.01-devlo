@@ -99,13 +99,14 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def getCallDefinitions(callerBpmnAndDom: (String, String, dom.Document)):
-      Seq[(String, String, String, Boolean)] = {
-    def callerCalleeAndCalleeId(callNode: Element, prefix: String): (String, String, String, Boolean) = {
+      Seq[(String, String, String, Boolean, String)] = {
+    def callerCalleeAndCalleeId(callNode: Element, prefix: String): (String, String, String, Boolean, String) = {
       // caller-bpmn, called-bpmn, called-bpmn-id, is-takt
       val isTakt = callNode.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
       val callee = callNode.getAttributes.getNamedItem("calledElement").getTextContent
-      val bpmnId = callNode.getAttributes.getNamedItem("id").getTextContent
-      (callerBpmnAndDom._2, callee, bpmnId, isTakt)
+      val callerElementId = callNode.getAttributes.getNamedItem("id").getTextContent
+      val callerElementName = callNode.getAttributes.getNamedItem("name").getTextContent
+      (callerBpmnAndDom._2, callee, callerElementId, isTakt, callerElementName)
     }
 
     val prefix = callerBpmnAndDom._3.getDocumentElement.getTagName.split(":")(0)
@@ -353,7 +354,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val subProcessCalls: Many[Document] = allCallerBpmnAndDom.flatMap(getCallDefinitions).map(t => {
       new Document ("parent_name", t._1).append("name", t._2).append("parent_activity_id", t._3).
         append("offset", new Document("start", "00:00:00").append("end", "00:00:00")).append("status", "defined").
-        append("is_takt", t._4)
+        append("is_takt", t._4).append("parent_activity_name", t._5)
     }).asJava
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "activity_ids" -> Seq.empty[ObjectId], "admin_person_id" -> user._id[ObjectId],

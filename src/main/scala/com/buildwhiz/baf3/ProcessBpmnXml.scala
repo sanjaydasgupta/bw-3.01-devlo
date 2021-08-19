@@ -245,7 +245,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         ts.has("parent_name") && ts.parent_name[String].trim.nonEmpty) match {
       case None => parents2
       case Some(ts: DynDoc) =>
-        bpmnAncestors(process, ts.parent_name[String], ts.parent_name[String] +: parents2)
+        val parentActivityName = ts.get[String]("parent_activity_name") match {
+          case Some(pan) => pan.replaceAll("\\s+", " ")
+          case None => ts.parent_name[String]
+        }
+        bpmnAncestors(process, ts.parent_name[String], parentActivityName +: parents2)
     }
   }
 

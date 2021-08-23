@@ -47,8 +47,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         listener.getAttribute("event") == "start") && endEvents.length == 1 &&
         endExecutionListeners.length == 1)
 
-      val userTasks: Seq[Element] = processDom.getElementsByTagName(s"$prefix:userTask").
-        map(_.asInstanceOf[Element])
+      val userTasks: Seq[Element] =
+          processDom.getElementsByTagName(s"$prefix:userTask").map(_.asInstanceOf[Element]) ++
+          processDom.getElementsByTagName(s"$prefix:task").map(_.asInstanceOf[Element])
       val userTaskStartListeners = userTasks.flatMap(executionListeners)
       val userTaskOk = userTaskStartListeners.forall(listener => (listener.hasAttribute("class") &&
         listener.getAttribute("class") == "com.buildwhiz.jelly.ActivityHandlerStart") &&
@@ -277,8 +278,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val prefix = callerBpmnAndDom._3.getDocumentElement.getTagName.split(":")(0)
     val bpmnCallActivities: Seq[Element] = callerBpmnAndDom._3.getElementsByTagName(s"$prefix:callActivity").
         map(_.asInstanceOf[Element])
-    val bpmnUserTasks: Seq[Element] = callerBpmnAndDom._3.getElementsByTagName(s"$prefix:userTask").
-        map(_.asInstanceOf[Element])
+    val bpmnUserTasks: Seq[Element] =
+        callerBpmnAndDom._3.getElementsByTagName(s"$prefix:userTask").map(_.asInstanceOf[Element]) ++
+        callerBpmnAndDom._3.getElementsByTagName(s"$prefix:task").map(_.asInstanceOf[Element])
     val buildWhizActivities = bpmnCallActivities.filter(_.getAttributes.getNamedItem("calledElement").
         getTextContent == "Infra-Activity-Handler") ++ bpmnUserTasks
     val activityNamesRolesDescriptionsAndDurations = buildWhizActivities.sortWith((a, b) => sequence(a) < sequence(b)).

@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils with BpmnUtils {
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
-                                 request: HttpServletRequest): Unit = {
+      request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = ted.getAttributeValue("name")
@@ -33,7 +33,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   private def setEndEventOffset(endEvent: EndEvent, process: DynDoc, bpmnName: String, offset: Long,
-                                request: HttpServletRequest): Unit = {
+      request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = endEvent.getAttributeValue("name")
@@ -51,7 +51,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   private def getTimerDuration(ted: TimerEventDefinition, process: DynDoc, bpmnName: String,
-                               durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
+      durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val timerDurations = durations.filter(_._1 == "T").map(t => (t._2, t._3)).toMap
     val theTimer: DynDoc = process.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
         filter(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")).head
@@ -65,8 +65,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
     }
   }
 
-  private def setUserTaskOffset(ut: UserTask, process: DynDoc, bpmnName: String, offset: Long,
-                                request: HttpServletRequest): Unit = {
+  private def setUserTaskOffset(ut: Task, process: DynDoc, bpmnName: String, offset: Long,
+      request: HttpServletRequest): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setCriticalPath()", request)
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     //val name = ut.getAttributeValue("name")
@@ -103,7 +103,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, durations: Seq[(String, String, Int)],
-                                 request: HttpServletRequest): Long = {
+      request: HttpServletRequest): Long = {
 
     val process = PhaseApi.allProcesses(phaseOid) match {
       case Seq(soloProcess) => soloProcess
@@ -115,7 +115,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
-                                 request: HttpServletRequest): Long = {
+      request: HttpServletRequest): Long = {
 
     def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, seenNodes: Set[FlowNode]): Long = {
 
@@ -137,7 +137,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           map(n => getTimeOffset(n, stOffset, bpmnName, seenNodes + n)).min
 
       val timeOffset = node match {
-        case userTask: UserTask =>
+        case userTask: Task =>
           val offset = maxPredecessorOffset(userTask, startOffset)
           if (durations.nonEmpty)
             setUserTaskOffset(userTask, process, bpmnName, offset, request)

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1xtdvyt" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
+  <bpmn:process id="TAKT-Floor" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_1e7b5b9</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1e7b5b9" sourceRef="Start" targetRef="One-Floor-of-Super-Structure" />
+    <bpmn:sequenceFlow id="Flow_0onfg28" sourceRef="One-Floor-of-Super-Structure" targetRef="Exterior-Walls" />
+    <bpmn:sequenceFlow id="Flow_023e7p2" sourceRef="Exterior-Walls" targetRef="Interior-Walls" />
+    <bpmn:sequenceFlow id="Flow_0suz8t8" sourceRef="Interior-Walls" targetRef="Plumbing-Rough-in" />
+    <bpmn:sequenceFlow id="Flow_0867k4o" sourceRef="Plumbing-Rough-in" targetRef="Electrical-Rough-in" />
+    <bpmn:sequenceFlow id="Flow_1xq3fbl" sourceRef="Electrical-Rough-in" targetRef="Mech-Rough-in" />
+    <bpmn:sequenceFlow id="Flow_0p2i2cv" sourceRef="Mech-Rough-in" targetRef="Dry-Wall" />
+    <bpmn:sequenceFlow id="Flow_0eklub1" sourceRef="Dry-Wall" targetRef="Painting" />
+    <bpmn:sequenceFlow id="Flow_076mown" sourceRef="Painting" targetRef="MEP-Finish" />
+    <bpmn:sequenceFlow id="Flow_1wg67l7" sourceRef="MEP-Finish" targetRef="Interior-Finish" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_0lekqbi</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0lekqbi" sourceRef="Interior-Finish" targetRef="End" />
+    <bpmn:task id="Interior-Finish" name="Interior Finish">
+      <bpmn:incoming>Flow_1wg67l7</bpmn:incoming>
+      <bpmn:outgoing>Flow_0lekqbi</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="MEP-Finish" name="MEP Finish">
+      <bpmn:incoming>Flow_076mown</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wg67l7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Painting" name="Painting">
+      <bpmn:incoming>Flow_0eklub1</bpmn:incoming>
+      <bpmn:outgoing>Flow_076mown</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Dry-Wall" name="Dry Wall">
+      <bpmn:incoming>Flow_0p2i2cv</bpmn:incoming>
+      <bpmn:outgoing>Flow_0eklub1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Mech-Rough-in" name="Mech Rough-in">
+      <bpmn:incoming>Flow_1xq3fbl</bpmn:incoming>
+      <bpmn:outgoing>Flow_0p2i2cv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Electrical-Rough-in" name="Electrical Rough-in">
+      <bpmn:incoming>Flow_0867k4o</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xq3fbl</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Plumbing-Rough-in" name="Plumbing Rough-in">
+      <bpmn:incoming>Flow_0suz8t8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0867k4o</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Interior-Walls" name="Interior Walls">
+      <bpmn:incoming>Flow_023e7p2</bpmn:incoming>
+      <bpmn:outgoing>Flow_0suz8t8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Exterior-Walls" name="Exterior Walls">
+      <bpmn:incoming>Flow_0onfg28</bpmn:incoming>
+      <bpmn:outgoing>Flow_023e7p2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="One-Floor-of-Super-Structure" name="One Floor of Super Structure">
+      <bpmn:incoming>Flow_1e7b5b9</bpmn:incoming>
+      <bpmn:outgoing>Flow_0onfg28</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:textAnnotation id="TextAnnotation_0u8v40i">
+      <bpmn:text>TAKT GROUP
+There are N such processes running in parallel, one for each floor</bpmn:text>
+    </bpmn:textAnnotation>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="TAKT-Floor">
+      <bpmndi:BPMNEdge id="Flow_0lekqbi_di" bpmnElement="Flow_0lekqbi">
+        <di:waypoint x="760" y="450" />
+        <di:waypoint x="791" y="450" />
+        <di:waypoint x="791" y="330" />
+        <di:waypoint x="822" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wg67l7_di" bpmnElement="Flow_1wg67l7">
+        <di:waypoint x="340" y="450" />
+        <di:waypoint x="660" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_076mown_di" bpmnElement="Flow_076mown">
+        <di:waypoint x="710" y="370" />
+        <di:waypoint x="710" y="390" />
+        <di:waypoint x="320" y="390" />
+        <di:waypoint x="320" y="410" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0eklub1_di" bpmnElement="Flow_0eklub1">
+        <di:waypoint x="620" y="330" />
+        <di:waypoint x="660" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0p2i2cv_di" bpmnElement="Flow_0p2i2cv">
+        <di:waypoint x="480" y="330" />
+        <di:waypoint x="520" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xq3fbl_di" bpmnElement="Flow_1xq3fbl">
+        <di:waypoint x="340" y="330" />
+        <di:waypoint x="380" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0867k4o_di" bpmnElement="Flow_0867k4o">
+        <di:waypoint x="710" y="246" />
+        <di:waypoint x="710" y="270" />
+        <di:waypoint x="290" y="270" />
+        <di:waypoint x="290" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0suz8t8_di" bpmnElement="Flow_0suz8t8">
+        <di:waypoint x="620" y="206" />
+        <di:waypoint x="660" y="206" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_023e7p2_di" bpmnElement="Flow_023e7p2">
+        <di:waypoint x="480" y="206" />
+        <di:waypoint x="520" y="206" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0onfg28_di" bpmnElement="Flow_0onfg28">
+        <di:waypoint x="340" y="206" />
+        <di:waypoint x="380" y="206" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1e7b5b9_di" bpmnElement="Flow_1e7b5b9">
+        <di:waypoint x="178" y="330" />
+        <di:waypoint x="209" y="330" />
+        <di:waypoint x="209" y="206" />
+        <di:waypoint x="240" y="206" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1rbxz1k_di" bpmnElement="Start">
+        <dc:Bounds x="142" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="149" y="355" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0wkq3ws_di" bpmnElement="End">
+        <dc:Bounds x="822" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="831" y="355" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0u8v40i_di" bpmnElement="TextAnnotation_0u8v40i">
+        <dc:Bounds x="320" y="110" width="360" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0j2nh29_di" bpmnElement="Interior-Finish">
+        <dc:Bounds x="660" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1w3r1n6_di" bpmnElement="MEP-Finish">
+        <dc:Bounds x="240" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1x6z1ac_di" bpmnElement="Painting">
+        <dc:Bounds x="660" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1fxaa92_di" bpmnElement="Dry-Wall">
+        <dc:Bounds x="520" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_041w9be_di" bpmnElement="Mech-Rough-in">
+        <dc:Bounds x="380" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tdyoko_di" bpmnElement="Electrical-Rough-in">
+        <dc:Bounds x="240" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1q8u2rm_di" bpmnElement="Plumbing-Rough-in">
+        <dc:Bounds x="660" y="166" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0xjhqti_di" bpmnElement="Interior-Walls">
+        <dc:Bounds x="520" y="166" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0keqch7_di" bpmnElement="Exterior-Walls">
+        <dc:Bounds x="380" y="166" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_149p5bb_di" bpmnElement="One-Floor-of-Super-Structure">
+        <dc:Bounds x="240" y="166" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

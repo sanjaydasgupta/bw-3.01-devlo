@@ -19,50 +19,6 @@
       <bpmn:outgoing>Flow_1iyivpn</bpmn:outgoing>
       <bpmn:outgoing>Flow_011ql27</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:userTask id="Architecture" name="Architecture">
-      <bpmn:incoming>Flow_1sy2mxh</bpmn:incoming>
-      <bpmn:outgoing>Flow_007zzzz</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Structure" name="Structure">
-      <bpmn:incoming>Flow_05fklv1</bpmn:incoming>
-      <bpmn:outgoing>Flow_1hw83fc</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Interior" name="Interior">
-      <bpmn:incoming>Flow_1wc8ton</bpmn:incoming>
-      <bpmn:outgoing>Flow_05mk9by</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Civil" name="Civil">
-      <bpmn:incoming>Flow_1ycupwu</bpmn:incoming>
-      <bpmn:outgoing>Flow_0oruajq</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Landscpe" name="Landscpe">
-      <bpmn:incoming>Flow_0agvc19</bpmn:incoming>
-      <bpmn:outgoing>Flow_0778qhu</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Energy-Modeling" name="Energy Modeling">
-      <bpmn:incoming>Flow_1684b92</bpmn:incoming>
-      <bpmn:outgoing>Flow_1eh77hz</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Mech" name="Mech">
-      <bpmn:incoming>Flow_1e7qak1</bpmn:incoming>
-      <bpmn:outgoing>Flow_06ummqt</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Plumbing" name="Plumbing">
-      <bpmn:incoming>Flow_1hkauub</bpmn:incoming>
-      <bpmn:outgoing>Flow_1v1gvb8</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Electrical" name="Electrical">
-      <bpmn:incoming>Flow_0adno73</bpmn:incoming>
-      <bpmn:outgoing>Flow_1ib9kxw</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Low-Voltage-BMS" name="Low Voltage/ BMS">
-      <bpmn:incoming>Flow_0g6yg6d</bpmn:incoming>
-      <bpmn:outgoing>Flow_0k95qwf</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="FLS" name="FLS">
-      <bpmn:incoming>Flow_1d5vbte</bpmn:incoming>
-      <bpmn:outgoing>Flow_05nx2pg</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1sy2mxh" sourceRef="Start-100-SD" targetRef="Architecture" />
     <bpmn:sequenceFlow id="Flow_1e7qak1" sourceRef="Start-100-SD" targetRef="Mech" />
     <bpmn:sequenceFlow id="Flow_1hkauub" sourceRef="Start-100-SD" targetRef="Plumbing" />
@@ -86,26 +42,6 @@
     <bpmn:sequenceFlow id="Flow_05mk9by" sourceRef="Interior" targetRef="Integration" />
     <bpmn:sequenceFlow id="Flow_1eh77hz" sourceRef="Energy-Modeling" targetRef="Integration" />
     <bpmn:sequenceFlow id="Flow_1ib9kxw" sourceRef="Electrical" targetRef="Integration" />
-    <bpmn:userTask id="Acoustics" name="Acoustics">
-      <bpmn:incoming>Flow_0gmkpdl</bpmn:incoming>
-      <bpmn:outgoing>Flow_08iknla</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Envelope" name="Envelope">
-      <bpmn:incoming>Flow_0row5yf</bpmn:incoming>
-      <bpmn:outgoing>Flow_1l63lln</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Accesibility" name="Accesibility">
-      <bpmn:incoming>Flow_011ql27</bpmn:incoming>
-      <bpmn:outgoing>Flow_1bas8ax</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="GC" name="GC">
-      <bpmn:incoming>Flow_1r0a9g6</bpmn:incoming>
-      <bpmn:outgoing>Flow_0txzswz</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Owner" name="Owner">
-      <bpmn:incoming>Flow_1iyivpn</bpmn:incoming>
-      <bpmn:outgoing>Flow_0igorp1</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0row5yf" sourceRef="Start-100-SD" targetRef="Envelope" />
     <bpmn:sequenceFlow id="Flow_0gmkpdl" sourceRef="Start-100-SD" targetRef="Acoustics" />
     <bpmn:sequenceFlow id="Flow_1r0a9g6" sourceRef="Start-100-SD" targetRef="GC" />
@@ -116,8 +52,42 @@
     <bpmn:sequenceFlow id="Flow_1bas8ax" sourceRef="Accesibility" targetRef="Integration" />
     <bpmn:sequenceFlow id="Flow_0txzswz" sourceRef="GC" targetRef="Integration" />
     <bpmn:sequenceFlow id="Flow_0igorp1" sourceRef="Owner" targetRef="Integration" />
-    <bpmn:userTask id="Integration" name="Integration">
-      <bpmn:incoming>Flow_0igorp1</bpmn:incoming>
+    <bpmn:sequenceFlow id="Flow_0qpj0dg" sourceRef="Integration" targetRef="End-100-SD" />
+    <bpmn:sequenceFlow id="Flow_007zzzz" sourceRef="Architecture" targetRef="Integration" />
+    <bpmn:sequenceFlow id="Flow_1hw83fc" sourceRef="Structure" targetRef="Integration" />
+    <bpmn:task id="Owner" name="Owner">
+      <bpmn:incoming>Flow_1iyivpn</bpmn:incoming>
+      <bpmn:outgoing>Flow_0igorp1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="GC" name="GC">
+      <bpmn:incoming>Flow_1r0a9g6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0txzswz</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Accesibility" name="Accesibility">
+      <bpmn:incoming>Flow_011ql27</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bas8ax</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Envelope" name="Envelope">
+      <bpmn:incoming>Flow_0row5yf</bpmn:incoming>
+      <bpmn:outgoing>Flow_1l63lln</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Acoustics" name="Acoustics">
+      <bpmn:incoming>Flow_0gmkpdl</bpmn:incoming>
+      <bpmn:outgoing>Flow_08iknla</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Energy-Modeling" name="Energy Modeling">
+      <bpmn:incoming>Flow_1684b92</bpmn:incoming>
+      <bpmn:outgoing>Flow_1eh77hz</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Interior" name="Interior">
+      <bpmn:incoming>Flow_1wc8ton</bpmn:incoming>
+      <bpmn:outgoing>Flow_05mk9by</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Landscpe" name="Landscpe">
+      <bpmn:incoming>Flow_0agvc19</bpmn:incoming>
+      <bpmn:outgoing>Flow_0778qhu</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Integration" name="Integration">
       <bpmn:incoming>Flow_06ummqt</bpmn:incoming>
       <bpmn:incoming>Flow_1v1gvb8</bpmn:incoming>
       <bpmn:incoming>Flow_05nx2pg</bpmn:incoming>
@@ -131,13 +101,43 @@
       <bpmn:incoming>Flow_1l63lln</bpmn:incoming>
       <bpmn:incoming>Flow_1bas8ax</bpmn:incoming>
       <bpmn:incoming>Flow_0txzswz</bpmn:incoming>
+      <bpmn:incoming>Flow_0igorp1</bpmn:incoming>
       <bpmn:incoming>Flow_007zzzz</bpmn:incoming>
       <bpmn:incoming>Flow_1hw83fc</bpmn:incoming>
       <bpmn:outgoing>Flow_0qpj0dg</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:sequenceFlow id="Flow_0qpj0dg" sourceRef="Integration" targetRef="End-100-SD" />
-    <bpmn:sequenceFlow id="Flow_007zzzz" sourceRef="Architecture" targetRef="Integration" />
-    <bpmn:sequenceFlow id="Flow_1hw83fc" sourceRef="Structure" targetRef="Integration" />
+    </bpmn:task>
+    <bpmn:task id="Civil" name="Civil">
+      <bpmn:incoming>Flow_1ycupwu</bpmn:incoming>
+      <bpmn:outgoing>Flow_0oruajq</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Structure" name="Structure">
+      <bpmn:incoming>Flow_05fklv1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hw83fc</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Low-Voltage-BMS" name="Low Voltage/ BMS">
+      <bpmn:incoming>Flow_0g6yg6d</bpmn:incoming>
+      <bpmn:outgoing>Flow_0k95qwf</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="FLS" name="FLS">
+      <bpmn:incoming>Flow_1d5vbte</bpmn:incoming>
+      <bpmn:outgoing>Flow_05nx2pg</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Electrical" name="Electrical">
+      <bpmn:incoming>Flow_0adno73</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ib9kxw</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Plumbing" name="Plumbing">
+      <bpmn:incoming>Flow_1hkauub</bpmn:incoming>
+      <bpmn:outgoing>Flow_1v1gvb8</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Mech" name="Mech">
+      <bpmn:incoming>Flow_1e7qak1</bpmn:incoming>
+      <bpmn:outgoing>Flow_06ummqt</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Architecture" name="Architecture">
+      <bpmn:incoming>Flow_1sy2mxh</bpmn:incoming>
+      <bpmn:outgoing>Flow_007zzzz</bpmn:outgoing>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Precon-Design-100-SD">
@@ -343,62 +343,62 @@
           <dc:Bounds x="145" y="665" width="73" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1cdicds_di" bpmnElement="Architecture">
-        <dc:Bounds x="350" y="80" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0spxate_di" bpmnElement="Structure">
-        <dc:Bounds x="620" y="500" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1t0vn0w_di" bpmnElement="Interior">
-        <dc:Bounds x="480" y="700" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1sum6ie_di" bpmnElement="Civil">
-        <dc:Bounds x="766" y="570" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_085imsi_di" bpmnElement="Landscpe">
-        <dc:Bounds x="350" y="630" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_143zdos_di" bpmnElement="Energy-Modeling">
-        <dc:Bounds x="620" y="760" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1q07vrj_di" bpmnElement="Mech">
-        <dc:Bounds x="480" y="150" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_05ad0uc_di" bpmnElement="Plumbing">
-        <dc:Bounds x="620" y="220" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1e7c5w5_di" bpmnElement="Electrical">
-        <dc:Bounds x="746" y="290" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0zaicl6_di" bpmnElement="Low-Voltage-BMS">
-        <dc:Bounds x="480" y="430" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0lpg12p_di" bpmnElement="FLS">
-        <dc:Bounds x="350" y="360" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1t2qe78_di" bpmnElement="End-100-SD">
         <dc:Bounds x="1132" y="622" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1115" y="665" width="70" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0150qwr_di" bpmnElement="Acoustics">
-        <dc:Bounds x="772" y="830" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_11wc6wx_di" bpmnElement="Envelope">
-        <dc:Bounds x="350" y="900" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_14ofj6l_di" bpmnElement="Accesibility">
-        <dc:Bounds x="480" y="970" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0rcdvr1_di" bpmnElement="GC">
-        <dc:Bounds x="620" y="1040" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1gtzcor_di" bpmnElement="Owner">
+      <bpmndi:BPMNShape id="Activity_0f3pa54_di" bpmnElement="Owner">
         <dc:Bounds x="772" y="1110" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1rd1wys_di" bpmnElement="Integration">
+      <bpmndi:BPMNShape id="Activity_0pb946c_di" bpmnElement="GC">
+        <dc:Bounds x="620" y="1040" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_09jkrec_di" bpmnElement="Accesibility">
+        <dc:Bounds x="480" y="970" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0w7f8ni_di" bpmnElement="Envelope">
+        <dc:Bounds x="350" y="900" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1a6ng2c_di" bpmnElement="Acoustics">
+        <dc:Bounds x="772" y="830" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vbllcm_di" bpmnElement="Energy-Modeling">
+        <dc:Bounds x="620" y="760" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0n8cw9b_di" bpmnElement="Interior">
+        <dc:Bounds x="480" y="700" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1j37416_di" bpmnElement="Landscpe">
+        <dc:Bounds x="350" y="630" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1gsrmlt_di" bpmnElement="Integration">
         <dc:Bounds x="970" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14gtpzi_di" bpmnElement="Civil">
+        <dc:Bounds x="766" y="570" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_18rma6g_di" bpmnElement="Structure">
+        <dc:Bounds x="620" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_043wt5a_di" bpmnElement="Low-Voltage-BMS">
+        <dc:Bounds x="480" y="430" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0sg5t0a_di" bpmnElement="FLS">
+        <dc:Bounds x="350" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_030tr48_di" bpmnElement="Electrical">
+        <dc:Bounds x="746" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xrqlp3_di" bpmnElement="Plumbing">
+        <dc:Bounds x="620" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1yk68eu_di" bpmnElement="Mech">
+        <dc:Bounds x="480" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1jsakml_di" bpmnElement="Architecture">
+        <dc:Bounds x="350" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

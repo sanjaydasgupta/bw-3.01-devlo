@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Install-Concrete-Columns" name="Install Concrete Columns" isExecutable="true">
     <bpmn:extensionElements>
       <camunda:executionListener class="com.buildwhiz.jelly.TimerTransitions" event="start" />
@@ -31,51 +31,7 @@
       <bpmn:incoming>SequenceFlow_0hzh4qr</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0hzh4qr" sourceRef="Remove-Forms" targetRef="End" />
-    <bpmn:userTask id="Install-Rebars" name="Install Rebars">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="1" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0ql1o9v</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Install-in-column-Electrical-Conduits" name="Install in-column&#10;Electrical&#10;Conduits">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 76 00" />
-          <camunda:property name="bw-sequence" value="2" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Place-Forms" name="Place Forms">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="3" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-skill" value="33-41 31 00" />
-          <camunda:property name="bw-sequence" value="4" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Remove-Forms" name="Remove Forms">
+    <bpmn:task id="Remove-Forms" name="Remove Forms">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-skill" value="33-41 31 00" />
@@ -85,21 +41,59 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1clltlt</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0hzh4qr</bpmn:outgoing>
-    </bpmn:userTask>
+    </bpmn:task>
+    <bpmn:task id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="4" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Place-Forms" name="Place Forms">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="3" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-in-column-Electrical-Conduits" name="Install in-column&#10;Electrical&#10;Conduits">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 76 00" />
+          <camunda:property name="bw-sequence" value="2" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rebars" name="Install Rebars">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-skill" value="33-41 31 00" />
+          <camunda:property name="bw-sequence" value="1" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ql1o9v</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Install-Concrete-Columns">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="156" y="103" width="36" height="36" />
+      <bpmndi:BPMNEdge id="SequenceFlow_0hzh4qr_di" bpmnElement="SequenceFlow_0hzh4qr">
+        <di:waypoint x="498" y="315" />
+        <di:waypoint x="648" y="315" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="162" y="139" width="24" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
-        <di:waypoint x="445" y="121" />
-        <di:waypoint x="484" y="121" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="303" y="176" width="90" height="0" />
+          <dc:Bounds x="416" y="358" width="90" height="13" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
@@ -127,13 +121,6 @@
           <dc:Bounds x="718" y="176" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ql1o9v_di" bpmnElement="SequenceFlow_0ql1o9v">
-        <di:waypoint x="192" y="121" />
-        <di:waypoint x="345" y="121" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="112" y="171" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1clltlt_di" bpmnElement="SequenceFlow_1clltlt">
         <di:waypoint x="357" y="315" />
         <di:waypoint x="398" y="315" />
@@ -141,6 +128,26 @@
           <dc:Bounds x="218" y="380" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ql1o9v_di" bpmnElement="SequenceFlow_0ql1o9v">
+        <di:waypoint x="192" y="121" />
+        <di:waypoint x="345" y="121" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="112" y="171" width="90" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
+        <di:waypoint x="445" y="121" />
+        <di:waypoint x="484" y="121" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="303" y="176" width="90" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="156" y="103" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="162" y="139" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1d0j8a5_di" bpmnElement="Forms-Removal-Delay">
         <dc:Bounds x="321" y="297" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -153,27 +160,20 @@
           <dc:Bounds x="656" y="336" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0hzh4qr_di" bpmnElement="SequenceFlow_0hzh4qr">
-        <di:waypoint x="498" y="315" />
-        <di:waypoint x="648" y="315" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="416" y="358" width="90" height="13" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_02b2g4t_di" bpmnElement="Install-Rebars">
-        <dc:Bounds x="345" y="81" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_13vbbkl_di" bpmnElement="Remove-Forms">
+        <dc:Bounds x="398" y="275" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1o4e34z_di" bpmnElement="Install-in-column-Electrical-Conduits">
-        <dc:Bounds x="484" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0sgdvob_di" bpmnElement="Place-Forms">
-        <dc:Bounds x="616" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1ygvc29_di" bpmnElement="Pour-or-Shoot-Concrete">
+      <bpmndi:BPMNShape id="Activity_1hmbgsu_di" bpmnElement="Pour-or-Shoot-Concrete">
         <dc:Bounds x="760" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1wj30yr_di" bpmnElement="Remove-Forms">
-        <dc:Bounds x="398" y="275" width="100" height="80" />
+      <bpmndi:BPMNShape id="Activity_0r85c19_di" bpmnElement="Place-Forms">
+        <dc:Bounds x="616" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0jc3zk4_di" bpmnElement="Install-in-column-Electrical-Conduits">
+        <dc:Bounds x="484" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02j25sm_di" bpmnElement="Install-Rebars">
+        <dc:Bounds x="345" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

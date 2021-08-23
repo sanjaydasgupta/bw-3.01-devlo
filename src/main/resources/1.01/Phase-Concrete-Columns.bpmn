@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Phase-Concrete-Columns" name="Phase Concrete Columns" isExecutable="true">
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
@@ -31,7 +31,7 @@
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0ql1o9v" sourceRef="Start" targetRef="Install-Rebars" />
     <bpmn:sequenceFlow id="SequenceFlow_0wl2d4f" sourceRef="Install-Rebars" targetRef="Install-in-column-Electrical-Conduits" />
-    <bpmn:userTask id="Install-Rebars" name="Install Rebars">
+    <bpmn:task id="Install-Rebars" name="Install Rebars">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="simple-one" />
@@ -41,8 +41,8 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0ql1o9v</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0wl2d4f</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Install-in-column-Electrical-Conduits" name="Install in-column&#10;Electrical&#10;Conduits">
+    </bpmn:task>
+    <bpmn:task id="Install-in-column-Electrical-Conduits" name="Install in-column&#10;Electrical&#10;Conduits">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="simple-two" />
@@ -52,8 +52,8 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0wl2d4f</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1baykbc</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Place-Forms" name="Place Forms">
+    </bpmn:task>
+    <bpmn:task id="Place-Forms" name="Place Forms">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="simple-one" />
@@ -63,8 +63,8 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1baykbc</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0xsjrrw</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete">
+    </bpmn:task>
+    <bpmn:task id="Pour-or-Shoot-Concrete" name="Pour or Shoot&#10;Concrete">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="simple-two" />
@@ -74,8 +74,8 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0xsjrrw</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1r6xtmh</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Remove-Forms" name="Remove Forms">
+    </bpmn:task>
+    <bpmn:task id="Remove-Forms" name="Remove Forms">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="simple-one" />
@@ -85,16 +85,24 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1clltlt</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1uqepov</bpmn:outgoing>
-    </bpmn:userTask>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Concrete-Columns">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="156" y="135" width="36" height="36" />
+      <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
+        <di:waypoint x="465" y="153" />
+        <di:waypoint x="504" y="153" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="162" y="171" width="24" height="14" />
+          <dc:Bounds x="303" y="143" width="90" height="0" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ql1o9v_di" bpmnElement="SequenceFlow_0ql1o9v">
+        <di:waypoint x="192" y="153" />
+        <di:waypoint x="365" y="153" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="102" y="138" width="90" height="0" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1baykbc_di" bpmnElement="SequenceFlow_1baykbc">
         <di:waypoint x="604" y="153" />
         <di:waypoint x="636" y="153" />
@@ -113,24 +121,11 @@
           <dc:Bounds x="569" y="143" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
-        <dc:Bounds x="707" y="293" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="716" y="329" width="20" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="SequenceFlow_1r6xtmh_di" bpmnElement="SequenceFlow_1r6xtmh">
         <di:waypoint x="321" y="311" />
         <di:waypoint x="360" y="311" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="159" y="301" width="90" height="0" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ql1o9v_di" bpmnElement="SequenceFlow_0ql1o9v">
-        <di:waypoint x="192" y="153" />
-        <di:waypoint x="365" y="153" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="102" y="138" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_1clltlt_di" bpmnElement="SequenceFlow_1clltlt">
@@ -147,32 +142,37 @@
           <dc:Bounds x="445" y="296" width="90" height="0" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_188aarp_di" bpmnElement="End">
+        <dc:Bounds x="707" y="293" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="716" y="329" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="IntermediateCatchEvent_1d0j8a5_di" bpmnElement="Forms-Removal-Delay">
         <dc:Bounds x="360" y="293" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="340" y="329" width="78" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0wl2d4f_di" bpmnElement="SequenceFlow_0wl2d4f">
-        <di:waypoint x="465" y="153" />
-        <di:waypoint x="504" y="153" />
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="156" y="135" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="303" y="143" width="90" height="0" />
+          <dc:Bounds x="162" y="171" width="24" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="UserTask_0crhrlc_di" bpmnElement="Install-Rebars">
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13o4i9b_di" bpmnElement="Install-Rebars">
         <dc:Bounds x="365" y="113" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_1ndd3bf_di" bpmnElement="Install-in-column-Electrical-Conduits">
+      <bpmndi:BPMNShape id="Activity_0wmj93z_di" bpmnElement="Install-in-column-Electrical-Conduits">
         <dc:Bounds x="504" y="113" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_0pguoxu_di" bpmnElement="Place-Forms">
+      <bpmndi:BPMNShape id="Activity_0zdaxi0_di" bpmnElement="Place-Forms">
         <dc:Bounds x="636" y="113" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_19xuwa8_di" bpmnElement="Pour-or-Shoot-Concrete">
+      <bpmndi:BPMNShape id="Activity_1f72vvs_di" bpmnElement="Pour-or-Shoot-Concrete">
         <dc:Bounds x="221" y="271" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="UserTask_151s6ne_di" bpmnElement="Remove-Forms">
+      <bpmndi:BPMNShape id="Activity_185p3cj_di" bpmnElement="Remove-Forms">
         <dc:Bounds x="437" y="271" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

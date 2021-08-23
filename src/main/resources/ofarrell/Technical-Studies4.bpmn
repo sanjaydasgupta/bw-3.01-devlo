@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_00jk742" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_00jk742" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
   <bpmn:process id="Technical-Studies4" name="Technical Studies4" isExecutable="true">
     <bpmn:parallelGateway id="ParallelGateway_067r4d7">
       <bpmn:incoming>SequenceFlow_01p1dyh</bpmn:incoming>
@@ -15,51 +15,6 @@
       <bpmn:outgoing>SequenceFlow_1bfgy9l</bpmn:outgoing>
       <bpmn:outgoing>SequenceFlow_0oesni1</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:userTask id="Soil-Study" name="Soil Study">
-      <bpmn:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Soil-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
-          <camunda:property name="bw-actual-start" value="2018-07-16" />
-          <camunda:property name="bw-scheduled-end" value="2018-08-02" />
-          <camunda:property name="bw-actual-end" value="2018-08-02" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1bfgy9l</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_01p1dyh</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Geotechnical-Study" name="Geotechnical Study">
-      <bpmn:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Geotechnical-Engineer" />
-          <camunda:property name="bw-scheduled-start" value="2018-08-16" />
-          <camunda:property name="bw-actual-start" value="2018-08-16" />
-          <camunda:property name="bw-scheduled-end" value="2018-09-18" />
-          <camunda:property name="bw-actual-end" value="2018-09-18" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0gk3qpv</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0gkdqti</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Wind-Study" name="Wind Study">
-      <bpmn:extensionElements>
-        <camunda:in variables="all" />
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Wind-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
-          <camunda:property name="bw-actual-start" value="2018-07-16" />
-          <camunda:property name="bw-scheduled-end" value="2018-08-14" />
-          <camunda:property name="bw-actual-end" value="2018-08-14" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0mkei4n</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1kx3j9q</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_01p1dyh" sourceRef="Soil-Study" targetRef="ParallelGateway_067r4d7" />
     <bpmn:sequenceFlow id="SequenceFlow_1kx3j9q" sourceRef="Wind-Study" targetRef="ParallelGateway_067r4d7" />
     <bpmn:sequenceFlow id="SequenceFlow_0gk3qpv" sourceRef="ParallelGateway_0fhnql8" targetRef="Geotechnical-Study" />
@@ -80,9 +35,10 @@
       <bpmn:incoming>SequenceFlow_04k0s10</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_04k0s10" sourceRef="ParallelGateway_067r4d7" targetRef="End" />
-    <bpmn:userTask id="Acoustics-Study" name="Acoustics Study">
+    <bpmn:sequenceFlow id="SequenceFlow_0oesni1" sourceRef="ParallelGateway_0fhnql8" targetRef="Acoustics-Study" />
+    <bpmn:sequenceFlow id="SequenceFlow_0ycdm32" sourceRef="Acoustics-Study" targetRef="ParallelGateway_067r4d7" />
+    <bpmn:task id="Acoustics-Study" name="Acoustics Study">
       <bpmn:extensionElements>
-        <camunda:in variables="all" />
         <camunda:properties>
           <camunda:property name="bw-role" value="Acoustics-Engineer" />
         </camunda:properties>
@@ -90,90 +46,130 @@
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_0oesni1</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_0ycdm32</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:sequenceFlow id="SequenceFlow_0oesni1" sourceRef="ParallelGateway_0fhnql8" targetRef="Acoustics-Study" />
-    <bpmn:sequenceFlow id="SequenceFlow_0ycdm32" sourceRef="Acoustics-Study" targetRef="ParallelGateway_067r4d7" />
+    </bpmn:task>
+    <bpmn:task id="Soil-Study" name="Soil Study">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Soil-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
+          <camunda:property name="bw-actual-start" value="2018-07-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-08-02" />
+          <camunda:property name="bw-actual-end" value="2018-08-02" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1bfgy9l</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_01p1dyh</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Wind-Study" name="Wind Study">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Wind-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-07-16" />
+          <camunda:property name="bw-actual-start" value="2018-07-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-08-14" />
+          <camunda:property name="bw-actual-end" value="2018-08-14" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0mkei4n</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1kx3j9q</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Geotechnical-Study" name="Geotechnical Study">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Geotechnical-Engineer" />
+          <camunda:property name="bw-scheduled-start" value="2018-08-16" />
+          <camunda:property name="bw-actual-start" value="2018-08-16" />
+          <camunda:property name="bw-scheduled-end" value="2018-09-18" />
+          <camunda:property name="bw-actual-end" value="2018-09-18" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0gk3qpv</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0gkdqti</bpmn:outgoing>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Technical-Studies4">
-      <bpmndi:BPMNShape id="ParallelGateway_067r4d7_di" bpmnElement="ParallelGateway_067r4d7">
-        <dc:Bounds x="608" y="316" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ParallelGateway_0fhnql8_di" bpmnElement="ParallelGateway_0fhnql8">
-        <dc:Bounds x="276" y="316" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_1ajhavc_di" bpmnElement="Soil-Study">
-        <dc:Bounds x="416" y="394" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_0ad8hai_di" bpmnElement="Geotechnical-Study">
-        <dc:Bounds x="416" y="44" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="CallActivity_1o6kncp_di" bpmnElement="Wind-Study">
-        <dc:Bounds x="416" y="219" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_01p1dyh_di" bpmnElement="SequenceFlow_01p1dyh">
-        <di:waypoint x="516" y="434" />
-        <di:waypoint x="633" y="434" />
+      <bpmndi:BPMNEdge id="SequenceFlow_0ycdm32_di" bpmnElement="SequenceFlow_0ycdm32">
+        <di:waypoint x="516" y="603" />
+        <di:waypoint x="633" y="603" />
         <di:waypoint x="633" y="366" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1kx3j9q_di" bpmnElement="SequenceFlow_1kx3j9q">
-        <di:waypoint x="516" y="259" />
-        <di:waypoint x="633" y="259" />
-        <di:waypoint x="633" y="316" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0gk3qpv_di" bpmnElement="SequenceFlow_0gk3qpv">
-        <di:waypoint x="301" y="316" />
-        <di:waypoint x="301" y="84" />
-        <di:waypoint x="416" y="84" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0mkei4n_di" bpmnElement="SequenceFlow_0mkei4n">
-        <di:waypoint x="301" y="316" />
-        <di:waypoint x="301" y="259" />
-        <di:waypoint x="416" y="259" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1bfgy9l_di" bpmnElement="SequenceFlow_1bfgy9l">
+      <bpmndi:BPMNEdge id="SequenceFlow_0oesni1_di" bpmnElement="SequenceFlow_0oesni1">
         <di:waypoint x="301" y="366" />
-        <di:waypoint x="301" y="434" />
-        <di:waypoint x="416" y="434" />
+        <di:waypoint x="301" y="603" />
+        <di:waypoint x="416" y="603" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="StartEvent_0i8jjps_di" bpmnElement="Start">
-        <dc:Bounds x="156" y="323" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="164" y="366" width="24" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1ia5n4a_di" bpmnElement="SequenceFlow_1ia5n4a">
-        <di:waypoint x="192" y="341" />
-        <di:waypoint x="276" y="341" />
+      <bpmndi:BPMNEdge id="SequenceFlow_04k0s10_di" bpmnElement="SequenceFlow_04k0s10">
+        <di:waypoint x="658" y="341" />
+        <di:waypoint x="749" y="341" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="SequenceFlow_0gkdqti_di" bpmnElement="SequenceFlow_0gkdqti">
         <di:waypoint x="516" y="84" />
         <di:waypoint x="633" y="84" />
         <di:waypoint x="633" y="316" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ia5n4a_di" bpmnElement="SequenceFlow_1ia5n4a">
+        <di:waypoint x="192" y="341" />
+        <di:waypoint x="276" y="341" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1bfgy9l_di" bpmnElement="SequenceFlow_1bfgy9l">
+        <di:waypoint x="301" y="366" />
+        <di:waypoint x="301" y="434" />
+        <di:waypoint x="416" y="434" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0mkei4n_di" bpmnElement="SequenceFlow_0mkei4n">
+        <di:waypoint x="301" y="316" />
+        <di:waypoint x="301" y="259" />
+        <di:waypoint x="416" y="259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0gk3qpv_di" bpmnElement="SequenceFlow_0gk3qpv">
+        <di:waypoint x="301" y="316" />
+        <di:waypoint x="301" y="84" />
+        <di:waypoint x="416" y="84" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1kx3j9q_di" bpmnElement="SequenceFlow_1kx3j9q">
+        <di:waypoint x="516" y="259" />
+        <di:waypoint x="633" y="259" />
+        <di:waypoint x="633" y="316" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_01p1dyh_di" bpmnElement="SequenceFlow_01p1dyh">
+        <di:waypoint x="516" y="434" />
+        <di:waypoint x="633" y="434" />
+        <di:waypoint x="633" y="366" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ParallelGateway_067r4d7_di" bpmnElement="ParallelGateway_067r4d7">
+        <dc:Bounds x="608" y="316" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_0fhnql8_di" bpmnElement="ParallelGateway_0fhnql8">
+        <dc:Bounds x="276" y="316" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_0i8jjps_di" bpmnElement="Start">
+        <dc:Bounds x="156" y="323" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="164" y="366" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0loieig_di" bpmnElement="End">
         <dc:Bounds x="749" y="323" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="758" y="366" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_04k0s10_di" bpmnElement="SequenceFlow_04k0s10">
-        <di:waypoint x="658" y="341" />
-        <di:waypoint x="749" y="341" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1puvsga_di" bpmnElement="Acoustics-Study">
+      <bpmndi:BPMNShape id="Activity_0wrs81t_di" bpmnElement="Acoustics-Study">
         <dc:Bounds x="416" y="563" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0oesni1_di" bpmnElement="SequenceFlow_0oesni1">
-        <di:waypoint x="301" y="366" />
-        <di:waypoint x="301" y="603" />
-        <di:waypoint x="416" y="603" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ycdm32_di" bpmnElement="SequenceFlow_0ycdm32">
-        <di:waypoint x="516" y="603" />
-        <di:waypoint x="633" y="603" />
-        <di:waypoint x="633" y="366" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_12go0jx_di" bpmnElement="Soil-Study">
+        <dc:Bounds x="416" y="394" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_124pyve_di" bpmnElement="Wind-Study">
+        <dc:Bounds x="416" y="219" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0rr0gb0_di" bpmnElement="Geotechnical-Study">
+        <dc:Bounds x="416" y="44" width="100" height="80" />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

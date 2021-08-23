@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1iogoee" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.1.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_1iogoee" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
   <bpmn:process id="HRE4" name="HRE4" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:extensionElements>
@@ -8,116 +8,13 @@
       <bpmn:outgoing>SequenceFlow_0dw0ktb</bpmn:outgoing>
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="SequenceFlow_0dw0ktb" sourceRef="Start" targetRef="HRE-Part-2-SOW" />
-    <bpmn:userTask id="HRE-Part-2-SOW" name="HRE Part-2 SOW">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Historic-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2018-11-06" />
-          <camunda:property name="bw-actual-start" value="2018-11-06" />
-          <camunda:property name="bw-scheduled-end" value="2018-11-13" />
-          <camunda:property name="bw-actual-end" value="2018-11-13" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0dw0ktb</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0p8yo71</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0p8yo71" sourceRef="HRE-Part-2-SOW" targetRef="EP-Review-SOW" />
-    <bpmn:userTask id="EP-Review-SOW" name="EP Review SOW">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Env-Planning" />
-          <camunda:property name="bw-scheduled-start" value="2018-11-14" />
-          <camunda:property name="bw-actual-start" value="2018-11-14" />
-          <camunda:property name="bw-scheduled-end" value="2018-11-19" />
-          <camunda:property name="bw-actual-end" value="2018-11-19" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0p8yo71</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0m1y20x</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0m1y20x" sourceRef="EP-Review-SOW" targetRef="HRE-Part-2-Draft-1" />
-    <bpmn:userTask id="HRE-Part-2-Draft-1" name="HRE Part-2 Draft-1">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Historic-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2018-11-20" />
-          <camunda:property name="bw-actual-start" value="2018-11-20" />
-          <camunda:property name="bw-scheduled-end" value="2018-12-19" />
-          <camunda:property name="bw-actual-end" value="2018-12-19" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0m1y20x</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_1huoyaj</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_1huoyaj" sourceRef="HRE-Part-2-Draft-1" targetRef="EP-Review-of-HRE-Part-2-Draft-1" />
-    <bpmn:userTask id="EP-Review-of-HRE-Part-2-Draft-1" name="EP Review of HRE Part-2 Draft-1">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Env-Planning" />
-          <camunda:property name="bw-scheduled-start" value="2018-12-20" />
-          <camunda:property name="bw-actual-start" value="2018-12-20" />
-          <camunda:property name="bw-scheduled-end" value="2019-01-24" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1huoyaj</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_05vjgzm</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_05vjgzm" sourceRef="EP-Review-of-HRE-Part-2-Draft-1" targetRef="HRE-Part-2-Draft-2" />
-    <bpmn:userTask id="HRE-Part-2-Draft-2" name="HRE Part-2 Draft-2">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Historic-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2019-01-24" />
-          <camunda:property name="bw-scheduled-end" value="2019-02-07" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_05vjgzm</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0ul67pn</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0ul67pn" sourceRef="HRE-Part-2-Draft-2" targetRef="EP-Review-of-HRE-Part-2-Draft-2" />
-    <bpmn:userTask id="EP-Review-of-HRE-Part-2-Draft-2" name="EP Review of HRE Part-2 Draft-2">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Env-Planning" />
-          <camunda:property name="bw-scheduled-start" value="2019-02-07" />
-          <camunda:property name="bw-scheduled-end" value="2019-02-22" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0ul67pn</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0janpat</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0janpat" sourceRef="EP-Review-of-HRE-Part-2-Draft-2" targetRef="HRE-Part-2-Final" />
-    <bpmn:userTask id="HRE-Part-2-Final" name="HRE Part-2 Final">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Historic-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2019-02-22" />
-          <camunda:property name="bw-scheduled-end" value="2019-03-01" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_0janpat</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_0buqc1o</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="SequenceFlow_0buqc1o" sourceRef="HRE-Part-2-Final" targetRef="EP-Review-of-HRE-Part-2-Draft-2-Complete" />
-    <bpmn:userTask id="HRER-PTR-Part-2" name="HRER/PTR Part-2">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Historic-Consultant" />
-          <camunda:property name="bw-scheduled-start" value="2019-03-01" />
-          <camunda:property name="bw-scheduled-end" value="2019-03-22" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>SequenceFlow_1rm0dso</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_01bt0jx</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:endEvent id="End" name="End">
       <bpmn:extensionElements>
         <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="start" />
@@ -131,71 +28,158 @@
       <bpmn:outgoing>SequenceFlow_1rm0dso</bpmn:outgoing>
       <bpmn:signalEventDefinition signalRef="Signal_0yb1ukk" />
     </bpmn:intermediateThrowEvent>
+    <bpmn:task id="HRER-PTR-Part-2" name="HRER/PTR Part-2">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2019-03-01" />
+          <camunda:property name="bw-scheduled-end" value="2019-03-22" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1rm0dso</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_01bt0jx</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="HRE-Part-2-Final" name="HRE Part-2 Final">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2019-02-22" />
+          <camunda:property name="bw-scheduled-end" value="2019-03-01" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0janpat</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0buqc1o</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="EP-Review-of-HRE-Part-2-Draft-2" name="EP Review of HRE Part-2 Draft-2">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-scheduled-start" value="2019-02-07" />
+          <camunda:property name="bw-scheduled-end" value="2019-02-22" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0ul67pn</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0janpat</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="HRE-Part-2-Draft-2" name="HRE Part-2 Draft-2">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2019-01-24" />
+          <camunda:property name="bw-scheduled-end" value="2019-02-07" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_05vjgzm</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0ul67pn</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="EP-Review-of-HRE-Part-2-Draft-1" name="EP Review of HRE Part-2 Draft-1">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-scheduled-start" value="2018-12-20" />
+          <camunda:property name="bw-actual-start" value="2018-12-20" />
+          <camunda:property name="bw-scheduled-end" value="2019-01-24" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1huoyaj</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_05vjgzm</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="HRE-Part-2-Draft-1" name="HRE Part-2 Draft-1">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-11-20" />
+          <camunda:property name="bw-actual-start" value="2018-11-20" />
+          <camunda:property name="bw-scheduled-end" value="2018-12-19" />
+          <camunda:property name="bw-actual-end" value="2018-12-19" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0m1y20x</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1huoyaj</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="EP-Review-SOW" name="EP Review SOW">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Env-Planning" />
+          <camunda:property name="bw-scheduled-start" value="2018-11-14" />
+          <camunda:property name="bw-actual-start" value="2018-11-14" />
+          <camunda:property name="bw-scheduled-end" value="2018-11-19" />
+          <camunda:property name="bw-actual-end" value="2018-11-19" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0p8yo71</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0m1y20x</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="HRE-Part-2-SOW" name="HRE Part-2 SOW">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Historic-Consultant" />
+          <camunda:property name="bw-scheduled-start" value="2018-11-06" />
+          <camunda:property name="bw-actual-start" value="2018-11-06" />
+          <camunda:property name="bw-scheduled-end" value="2018-11-13" />
+          <camunda:property name="bw-actual-end" value="2018-11-13" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0dw0ktb</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0p8yo71</bpmn:outgoing>
+    </bpmn:task>
   </bpmn:process>
   <bpmn:signal id="Signal_0yb1ukk" name="EP Review of HRE Part 2 Draft 2 Complete" />
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="HRE4">
+      <bpmndi:BPMNEdge id="SequenceFlow_1rm0dso_di" bpmnElement="SequenceFlow_1rm0dso">
+        <di:waypoint x="1273" y="121" />
+        <di:waypoint x="1312" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_01bt0jx_di" bpmnElement="SequenceFlow_01bt0jx">
+        <di:waypoint x="1412" y="121" />
+        <di:waypoint x="1455" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0buqc1o_di" bpmnElement="SequenceFlow_0buqc1o">
+        <di:waypoint x="1207" y="121" />
+        <di:waypoint x="1237" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0janpat_di" bpmnElement="SequenceFlow_0janpat">
+        <di:waypoint x="1064" y="121" />
+        <di:waypoint x="1107" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0ul67pn_di" bpmnElement="SequenceFlow_0ul67pn">
+        <di:waypoint x="921" y="121" />
+        <di:waypoint x="964" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_05vjgzm_di" bpmnElement="SequenceFlow_05vjgzm">
+        <di:waypoint x="778" y="121" />
+        <di:waypoint x="821" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1huoyaj_di" bpmnElement="SequenceFlow_1huoyaj">
+        <di:waypoint x="635" y="121" />
+        <di:waypoint x="678" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0m1y20x_di" bpmnElement="SequenceFlow_0m1y20x">
+        <di:waypoint x="492" y="121" />
+        <di:waypoint x="535" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0p8yo71_di" bpmnElement="SequenceFlow_0p8yo71">
+        <di:waypoint x="342" y="121" />
+        <di:waypoint x="392" y="121" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0dw0ktb_di" bpmnElement="SequenceFlow_0dw0ktb">
+        <di:waypoint x="192" y="121" />
+        <di:waypoint x="242" y="121" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
         <dc:Bounds x="156" y="103" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="163" y="146" width="24" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0dw0ktb_di" bpmnElement="SequenceFlow_0dw0ktb">
-        <di:waypoint x="192" y="121" />
-        <di:waypoint x="242" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1q8ln8o_di" bpmnElement="HRE-Part-2-SOW">
-        <dc:Bounds x="242" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0p8yo71_di" bpmnElement="SequenceFlow_0p8yo71">
-        <di:waypoint x="342" y="121" />
-        <di:waypoint x="392" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0rymji9_di" bpmnElement="EP-Review-SOW">
-        <dc:Bounds x="392" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0m1y20x_di" bpmnElement="SequenceFlow_0m1y20x">
-        <di:waypoint x="492" y="121" />
-        <di:waypoint x="535" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1ji9iin_di" bpmnElement="HRE-Part-2-Draft-1">
-        <dc:Bounds x="535" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_1huoyaj_di" bpmnElement="SequenceFlow_1huoyaj">
-        <di:waypoint x="635" y="121" />
-        <di:waypoint x="678" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_06znpea_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-1">
-        <dc:Bounds x="678" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_05vjgzm_di" bpmnElement="SequenceFlow_05vjgzm">
-        <di:waypoint x="778" y="121" />
-        <di:waypoint x="821" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_1hvx4b5_di" bpmnElement="HRE-Part-2-Draft-2">
-        <dc:Bounds x="821" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0ul67pn_di" bpmnElement="SequenceFlow_0ul67pn">
-        <di:waypoint x="921" y="121" />
-        <di:waypoint x="964" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_177blb4_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-2">
-        <dc:Bounds x="964" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0janpat_di" bpmnElement="SequenceFlow_0janpat">
-        <di:waypoint x="1064" y="121" />
-        <di:waypoint x="1107" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_0piz935_di" bpmnElement="HRE-Part-2-Final">
-        <dc:Bounds x="1107" y="81" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_0buqc1o_di" bpmnElement="SequenceFlow_0buqc1o">
-        <di:waypoint x="1207" y="121" />
-        <di:waypoint x="1237" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="CallActivity_06mhg1k_di" bpmnElement="HRER-PTR-Part-2">
-        <dc:Bounds x="1312" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="EndEvent_0yfa7b9_di" bpmnElement="End">
         <dc:Bounds x="1455" y="103" width="36" height="36" />
@@ -203,19 +187,35 @@
           <dc:Bounds x="1463" y="146" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="SequenceFlow_01bt0jx_di" bpmnElement="SequenceFlow_01bt0jx">
-        <di:waypoint x="1412" y="121" />
-        <di:waypoint x="1455" y="121" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="SequenceFlow_1rm0dso_di" bpmnElement="SequenceFlow_1rm0dso">
-        <di:waypoint x="1273" y="121" />
-        <di:waypoint x="1312" y="121" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="IntermediateThrowEvent_0aei5tg_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-2-Complete">
         <dc:Bounds x="1237" y="103" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="1215" y="146" width="83" height="40" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0q0itmj_di" bpmnElement="HRER-PTR-Part-2">
+        <dc:Bounds x="1312" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qt0oc4_di" bpmnElement="HRE-Part-2-Final">
+        <dc:Bounds x="1107" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0issav6_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-2">
+        <dc:Bounds x="964" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0sqwti6_di" bpmnElement="HRE-Part-2-Draft-2">
+        <dc:Bounds x="821" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1j6f4zz_di" bpmnElement="EP-Review-of-HRE-Part-2-Draft-1">
+        <dc:Bounds x="678" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1flrkzi_di" bpmnElement="HRE-Part-2-Draft-1">
+        <dc:Bounds x="535" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1objvir_di" bpmnElement="EP-Review-SOW">
+        <dc:Bounds x="392" y="81" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_06hfhuo_di" bpmnElement="HRE-Part-2-SOW">
+        <dc:Bounds x="242" y="81" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

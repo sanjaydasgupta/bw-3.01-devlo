@@ -1,101 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0y2h16r" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_0y2h16r" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.6.0">
   <bpmn:signal id="Signal_1l6ouy4" name="EM-Start" />
   <bpmn:process id="Phase-Site-Permit-Complete" name="Phase Site Permit Complete" isExecutable="true">
     <bpmn:extensionElements>
       <camunda:executionListener class="com.buildwhiz.jelly.BpmnStart" event="start" />
       <camunda:executionListener class="com.buildwhiz.jelly.BpmnEnd" event="end" />
     </bpmn:extensionElements>
-    <bpmn:userTask id="Storm-Water-Strategy" name="Storm Water Strategy">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Civil-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0gmz3w6</bpmn:incoming>
-      <bpmn:outgoing>Flow_069ob8i</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="MEP-Load-Calculation" name="MEP Load Calculation">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1y2urou</bpmn:incoming>
-      <bpmn:outgoing>Flow_164rtjp</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Water-Heater-Selection" name="Water Heater Selection">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1yteojh</bpmn:incoming>
-      <bpmn:outgoing>Flow_0wjtbmi</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="HVAC-Technology-Selection" name="HVAC Technology Selection">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_16322mt</bpmn:incoming>
-      <bpmn:outgoing>Flow_1unijqb</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Electrical-one-Line-Diagram" name="Electrical one Line Diagram">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0bkbqpl</bpmn:incoming>
-      <bpmn:outgoing>Flow_00vymbf</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="MEP-Rooms-Specification" name="MEP Rooms Specification">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_08occcf</bpmn:incoming>
-      <bpmn:outgoing>Flow_0nxojwp</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Identify-Shaft-Size-and-Locations" name="Identify Shaft Size &#38; Locations">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="MEP" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1sahzes</bpmn:incoming>
-      <bpmn:outgoing>Flow_0hx4jiy</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Smoke-Control-Requirements" name="Smoke Control Requirements">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Smoke-Control-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0hc9tcr</bpmn:incoming>
-      <bpmn:outgoing>Flow_02wyj0z</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:userTask id="Structure-Concept-Drawing" name="Structure Concept Drawing">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Structural-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0vcvq8i</bpmn:incoming>
-      <bpmn:outgoing>Flow_1a51n38</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:outgoing>Flow_0bkbqpl</bpmn:outgoing>
       <bpmn:outgoing>Flow_16322mt</bpmn:outgoing>
@@ -131,16 +41,6 @@
     <bpmn:sequenceFlow id="Flow_0hc9tcr" sourceRef="Start" targetRef="Smoke-Control-Requirements" />
     <bpmn:sequenceFlow id="Flow_1yteojh" sourceRef="Start" targetRef="Water-Heater-Selection" />
     <bpmn:sequenceFlow id="Flow_0wjtbmi" sourceRef="Water-Heater-Selection" targetRef="Gateway_1rko05x" />
-    <bpmn:userTask id="Structure-BoD" name="Structure BoD">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Structural-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1w6inj5</bpmn:incoming>
-      <bpmn:outgoing>Flow_0g400tv</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1w6inj5" sourceRef="Start" targetRef="Structure-BoD" />
     <bpmn:sequenceFlow id="Flow_0nxojwp" sourceRef="MEP-Rooms-Specification" targetRef="Gateway_196pn0k" />
     <bpmn:sequenceFlow id="Flow_0hx4jiy" sourceRef="Identify-Shaft-Size-and-Locations" targetRef="Gateway_196pn0k" />
@@ -157,42 +57,10 @@
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="Flow_02wyj0z" sourceRef="Smoke-Control-Requirements" targetRef="Gateway_196pn0k" />
     <bpmn:sequenceFlow id="Flow_08occcf" sourceRef="Gateway_1rko05x" targetRef="MEP-Rooms-Specification" />
-    <bpmn:userTask id="Revit-Model" name="Revit Model">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Architect" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1fblxna</bpmn:incoming>
-      <bpmn:outgoing>Flow_1a6q8vn</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0q1oe50</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0wlckg3</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1fblxna" sourceRef="Gateway_196pn0k" targetRef="Revit-Model" />
     <bpmn:sequenceFlow id="Flow_1a51n38" sourceRef="Structure-Concept-Drawing" targetRef="Gateway_196pn0k" />
     <bpmn:sequenceFlow id="Flow_1a6q8vn" sourceRef="Revit-Model" targetRef="Gateway_00jp3s9" />
-    <bpmn:userTask id="Site-Permit-Submittal" name="Site Permit Submittal">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Architect" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0pyf11d</bpmn:incoming>
-      <bpmn:outgoing>Flow_0tii9ho</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_069ob8i" sourceRef="Storm-Water-Strategy" targetRef="Gateway_196pn0k" />
-    <bpmn:userTask id="Storm-Water-Control-Plan" name="Storm Water Control Plan">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Civil-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1pzsojh</bpmn:incoming>
-      <bpmn:outgoing>Flow_1scwwnv</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1pzsojh" sourceRef="Start" targetRef="Storm-Water-Control-Plan" />
     <bpmn:sequenceFlow id="Flow_0pyf11d" sourceRef="Gateway_00jp3s9" targetRef="Site-Permit-Submittal" />
     <bpmn:parallelGateway id="Gateway_00jp3s9">
@@ -202,50 +70,10 @@
       <bpmn:outgoing>Flow_0pyf11d</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="Flow_1scwwnv" sourceRef="Storm-Water-Control-Plan" targetRef="Gateway_00jp3s9" />
-    <bpmn:userTask id="Green-Building-LEED-GPR" name="Green Building LEED / GPR">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Green-Building-Consultant" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0v7ayoj</bpmn:incoming>
-      <bpmn:outgoing>Flow_1n3yz5j</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0v7ayoj" sourceRef="Start" targetRef="Green-Building-LEED-GPR" />
     <bpmn:sequenceFlow id="Flow_1n3yz5j" sourceRef="Green-Building-LEED-GPR" targetRef="Gateway_00jp3s9" />
-    <bpmn:userTask id="Energy-Model" name="Energy Model">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Green-Building-Consultant" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0q1oe50</bpmn:incoming>
-      <bpmn:outgoing>Flow_0yf99jk</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0q1oe50" sourceRef="Revit-Model" targetRef="Energy-Model" />
-    <bpmn:userTask id="Convert-to-ASSEMBLE" name="Convert to ASSEMBLE">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Architect" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_0wlckg3</bpmn:incoming>
-      <bpmn:outgoing>Flow_02xxsx4</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0wlckg3" sourceRef="Revit-Model" targetRef="Convert-to-ASSEMBLE" />
-    <bpmn:userTask id="Utility-Coordianation" name="Utility Coordianation">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Utility-Coordination" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1rb5y69</bpmn:incoming>
-      <bpmn:outgoing>Flow_1itnvox</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0k4bc39" sourceRef="Gateway_1rko05x" targetRef="Gateway_0ezt2cf" />
     <bpmn:sequenceFlow id="Flow_1itnvox" sourceRef="Utility-Coordianation" targetRef="End" />
     <bpmn:endEvent id="End" name="End">
@@ -257,33 +85,28 @@
     <bpmn:sequenceFlow id="Flow_0tii9ho" sourceRef="Site-Permit-Submittal" targetRef="End" />
     <bpmn:sequenceFlow id="Flow_0yf99jk" sourceRef="Energy-Model" targetRef="End" />
     <bpmn:sequenceFlow id="Flow_02xxsx4" sourceRef="Convert-to-ASSEMBLE" targetRef="Cost-Estimation" />
-    <bpmn:userTask id="Other-Civil-Studies" name="Other Civil Studies">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Civil-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_1w8cwpe</bpmn:incoming>
-      <bpmn:outgoing>Flow_0iyx5ln</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1w8cwpe" sourceRef="Start" targetRef="Other-Civil-Studies" />
     <bpmn:sequenceFlow id="Flow_0iyx5ln" sourceRef="Other-Civil-Studies" targetRef="Gateway_0ezt2cf" />
     <bpmn:sequenceFlow id="Flow_1rb5y69" sourceRef="Gateway_0ezt2cf" targetRef="Utility-Coordianation" />
-    <bpmn:userTask id="Structure-SSBQ" name="Structure SSBQ">
-      <bpmn:extensionElements>
-        <camunda:properties>
-          <camunda:property name="bw-role" value="Structural-Engg" />
-        </camunda:properties>
-        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
-      </bpmn:extensionElements>
-      <bpmn:incoming>Flow_03hwpdo</bpmn:incoming>
-      <bpmn:outgoing>Flow_069q5rm</bpmn:outgoing>
-    </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_03hwpdo" sourceRef="Start" targetRef="Structure-SSBQ" />
     <bpmn:sequenceFlow id="Flow_069q5rm" sourceRef="Structure-SSBQ" targetRef="Gateway_196pn0k" />
     <bpmn:sequenceFlow id="Flow_1ggh6t5" sourceRef="Cost-Estimation" targetRef="End" />
-    <bpmn:userTask id="Cost-Estimation" name="Cost Estimation">
+    <bpmn:parallelGateway id="Gateway_0ezt2cf">
+      <bpmn:incoming>Flow_0iyx5ln</bpmn:incoming>
+      <bpmn:incoming>Flow_0k4bc39</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rb5y69</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Utility-Coordianation" name="Utility Coordianation">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Utility-Coordination" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1rb5y69</bpmn:incoming>
+      <bpmn:outgoing>Flow_1itnvox</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Cost-Estimation" name="Cost Estimation">
       <bpmn:extensionElements>
         <camunda:properties>
           <camunda:property name="bw-role" value="General-Contractor" />
@@ -292,12 +115,189 @@
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_02xxsx4</bpmn:incoming>
       <bpmn:outgoing>Flow_1ggh6t5</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:parallelGateway id="Gateway_0ezt2cf">
-      <bpmn:incoming>Flow_0iyx5ln</bpmn:incoming>
-      <bpmn:incoming>Flow_0k4bc39</bpmn:incoming>
-      <bpmn:outgoing>Flow_1rb5y69</bpmn:outgoing>
-    </bpmn:parallelGateway>
+    </bpmn:task>
+    <bpmn:task id="Convert-to-ASSEMBLE" name="Convert to ASSEMBLE">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0wlckg3</bpmn:incoming>
+      <bpmn:outgoing>Flow_02xxsx4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Energy-Model" name="Energy Model">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Green-Building-Consultant" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0q1oe50</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yf99jk</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Site-Permit-Submittal" name="Site Permit Submittal">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0pyf11d</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tii9ho</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Revit-Model" name="Revit Model">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Architect" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1fblxna</bpmn:incoming>
+      <bpmn:outgoing>Flow_1a6q8vn</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0q1oe50</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0wlckg3</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Other-Civil-Studies" name="Other Civil Studies">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Civil-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1w8cwpe</bpmn:incoming>
+      <bpmn:outgoing>Flow_0iyx5ln</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Storm-Water-Control-Plan" name="Storm Water Control Plan">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Civil-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1pzsojh</bpmn:incoming>
+      <bpmn:outgoing>Flow_1scwwnv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Storm-Water-Strategy" name="Storm Water Strategy">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Civil-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0gmz3w6</bpmn:incoming>
+      <bpmn:outgoing>Flow_069ob8i</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Structure-SSBQ" name="Structure SSBQ">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Structural-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_03hwpdo</bpmn:incoming>
+      <bpmn:outgoing>Flow_069q5rm</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Structure-Concept-Drawing" name="Structure Concept Drawing">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Structural-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0vcvq8i</bpmn:incoming>
+      <bpmn:outgoing>Flow_1a51n38</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Structure-BoD" name="Structure BoD">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Structural-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1w6inj5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0g400tv</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Identify-Shaft-Size-and-Locations" name="Identify Shaft Size &#38; Locations">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1sahzes</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hx4jiy</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="MEP-Rooms-Specification" name="MEP Rooms Specification">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_08occcf</bpmn:incoming>
+      <bpmn:outgoing>Flow_0nxojwp</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Water-Heater-Selection" name="Water Heater Selection">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1yteojh</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wjtbmi</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="MEP-Load-Calculation" name="MEP Load Calculation">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1y2urou</bpmn:incoming>
+      <bpmn:outgoing>Flow_164rtjp</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="HVAC-Technology-Selection" name="HVAC Technology Selection">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_16322mt</bpmn:incoming>
+      <bpmn:outgoing>Flow_1unijqb</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Electrical-one-Line-Diagram" name="Electrical one Line Diagram">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="MEP" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0bkbqpl</bpmn:incoming>
+      <bpmn:outgoing>Flow_00vymbf</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Smoke-Control-Requirements" name="Smoke Control Requirements">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Smoke-Control-Engg" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0hc9tcr</bpmn:incoming>
+      <bpmn:outgoing>Flow_02wyj0z</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Green-Building-LEED-GPR" name="Green Building LEED / GPR">
+      <bpmn:extensionElements>
+        <camunda:properties>
+          <camunda:property name="bw-role" value="Green-Building-Consultant" />
+        </camunda:properties>
+        <camunda:executionListener class="com.buildwhiz.jelly.ActivityHandlerStart" event="start" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0v7ayoj</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n3yz5j</bpmn:outgoing>
+    </bpmn:task>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Site-Permit-Complete">
@@ -417,9 +417,8 @@
         <di:waypoint x="960" y="520" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_08occcf_di" bpmnElement="Flow_08occcf">
-        <di:waypoint x="655" y="560" />
-        <di:waypoint x="670" y="560" />
-        <di:waypoint x="670" y="450" />
+        <di:waypoint x="630" y="535" />
+        <di:waypoint x="630" y="450" />
         <di:waypoint x="710" y="450" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_02wyj0z_di" bpmnElement="Flow_02wyj0z">
@@ -518,33 +517,6 @@
         <di:waypoint x="290" y="311" />
         <di:waypoint x="430" y="311" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="Activity_1e1ps45_di" bpmnElement="Storm-Water-Strategy" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
-        <dc:Bounds x="430" y="966" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_09bw4o2_di" bpmnElement="MEP-Load-Calculation" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="430" y="473" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1qlg2as_di" bpmnElement="Water-Heater-Selection" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="430" y="570" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0ben98g_di" bpmnElement="HVAC-Technology-Selection" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="430" y="372" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_073nsxx_di" bpmnElement="Electrical-one-Line-Diagram" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="430" y="271" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_04fr5uk_di" bpmnElement="MEP-Rooms-Specification" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="710" y="410" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_06uc3yw_di" bpmnElement="Identify-Shaft-Size-and-Locations" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
-        <dc:Bounds x="710" y="520" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1hfzgdg_di" bpmnElement="Smoke-Control-Requirements" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
-        <dc:Bounds x="430" y="175" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0qr6a2h_di" bpmnElement="Structure-Concept-Drawing" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
-        <dc:Bounds x="430" y="768" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1h9mskj_di" bpmnElement="Start">
         <dc:Bounds x="152" y="592" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -554,35 +526,11 @@
       <bpmndi:BPMNShape id="Gateway_16wfab7_di" bpmnElement="Gateway_1rko05x">
         <dc:Bounds x="605" y="535" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_11267sx_di" bpmnElement="Structure-BoD" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
-        <dc:Bounds x="430" y="669" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1g3pbvs_di" bpmnElement="Gateway_196pn0k">
         <dc:Bounds x="885" y="495" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1pmxcq6_di" bpmnElement="Revit-Model" bioc:stroke="black" bioc:fill="white">
-        <dc:Bounds x="960" y="480" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1tgmrvd_di" bpmnElement="Site-Permit-Submittal">
-        <dc:Bounds x="1245" y="460" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0huibx6_di" bpmnElement="Storm-Water-Control-Plan" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
-        <dc:Bounds x="430" y="1065" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_08o1ain_di" bpmnElement="Gateway_00jp3s9">
         <dc:Bounds x="1115" y="475" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0hfxk3i_di" bpmnElement="Green-Building-LEED-GPR" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
-        <dc:Bounds x="430" y="80" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_00p10v2_di" bpmnElement="Energy-Model" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
-        <dc:Bounds x="1245" y="590" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_16xj3jb_di" bpmnElement="Convert-to-ASSEMBLE">
-        <dc:Bounds x="1170" y="710" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_07q3oo2_di" bpmnElement="Utility-Coordianation">
-        <dc:Bounds x="1245" y="840" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0sue3xj_di" bpmnElement="End">
         <dc:Bounds x="1478" y="482" width="36" height="36" />
@@ -590,17 +538,68 @@
           <dc:Bounds x="1486" y="525" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0f5ivcg_di" bpmnElement="Other-Civil-Studies" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
-        <dc:Bounds x="430" y="1160" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1dyphh0_di" bpmnElement="Structure-SSBQ" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
-        <dc:Bounds x="430" y="867" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0xsg71y_di" bpmnElement="Cost-Estimation">
-        <dc:Bounds x="1300" y="710" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_16vgseu_di" bpmnElement="Gateway_0ezt2cf">
         <dc:Bounds x="995" y="855" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1v845wp_di" bpmnElement="Utility-Coordianation">
+        <dc:Bounds x="1245" y="840" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1q1v8u7_di" bpmnElement="Cost-Estimation">
+        <dc:Bounds x="1300" y="710" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vrbqmq_di" bpmnElement="Convert-to-ASSEMBLE">
+        <dc:Bounds x="1170" y="710" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1nty3ge_di" bpmnElement="Energy-Model" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="1245" y="590" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1yipo3j_di" bpmnElement="Site-Permit-Submittal">
+        <dc:Bounds x="1245" y="460" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ed9gzt_di" bpmnElement="Revit-Model" bioc:stroke="black" bioc:fill="white">
+        <dc:Bounds x="960" y="480" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0im80yh_di" bpmnElement="Other-Civil-Studies" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="430" y="1160" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1wtswi2_di" bpmnElement="Storm-Water-Control-Plan" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="430" y="1065" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_08i5uta_di" bpmnElement="Storm-Water-Strategy" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
+        <dc:Bounds x="430" y="966" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0z53yhm_di" bpmnElement="Structure-SSBQ" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="430" y="867" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hkbj60_di" bpmnElement="Structure-Concept-Drawing" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="430" y="768" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_04pncc0_di" bpmnElement="Structure-BoD" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
+        <dc:Bounds x="430" y="669" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0spiekd_di" bpmnElement="Identify-Shaft-Size-and-Locations" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="710" y="520" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_03n7k6r_di" bpmnElement="MEP-Rooms-Specification" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="710" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_180fb7k_di" bpmnElement="Water-Heater-Selection" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="430" y="570" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0nfao9x_di" bpmnElement="MEP-Load-Calculation" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="430" y="473" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0v5d58p_di" bpmnElement="HVAC-Technology-Selection" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="430" y="372" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01kem1c_di" bpmnElement="Electrical-one-Line-Diagram" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
+        <dc:Bounds x="430" y="271" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12kil6h_di" bpmnElement="Smoke-Control-Requirements" bioc:stroke="rgb(251, 140, 0)" bioc:fill="rgb(255, 224, 178)">
+        <dc:Bounds x="430" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_004oylw_di" bpmnElement="Green-Building-LEED-GPR" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
+        <dc:Bounds x="430" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

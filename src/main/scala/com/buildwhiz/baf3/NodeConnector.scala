@@ -9,10 +9,12 @@ import org.apache.http.client.methods.{HttpGet, HttpPost, HttpRequestBase}
 import org.apache.http.entity.{ContentType, StringEntity}
 import org.apache.http.entity.mime.{HttpMultipartMode, MultipartEntityBuilder}
 import org.apache.http.impl.client.HttpClients
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 object NodeConnector extends HttpServlet with HttpUtils {
 
@@ -48,8 +50,20 @@ object NodeConnector extends HttpServlet with HttpUtils {
     response.setStatus(nodeResponse.getStatusLine.getStatusCode)
     val nodeEntity = nodeResponse.getEntity
     val message = if (nodeEntity != null) {
-      nodeEntity.writeTo(response.getOutputStream)
-      s"${exitStatus(nodeResponse)} - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
+      if (nodeEntity.getContentType.getValue == "application/json") {
+        val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines.mkString("\n")
+        val nodeEntityDocument = Document.parse(nodeEntityString)
+        val user: DynDoc = getPersona(request)
+        val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+        nodeEntityDocument.append("menu_items", displayedMenuItems(isAdmin))
+        val updatedNodeDocumentJson = nodeEntityDocument.toJson
+        val updatedNodeDocumentEntity = new StringEntity(updatedNodeDocumentJson)
+        updatedNodeDocumentEntity.writeTo(response.getOutputStream)
+        s"${exitStatus(nodeResponse)} - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
+      } else {
+        nodeEntity.writeTo(response.getOutputStream)
+        s"${exitStatus(nodeResponse)} - Length:${nodeEntity.getContentLength};Type:${nodeEntity.getContentType}"
+      }
     } else {
       exitStatus(nodeResponse)
     }

@@ -59,10 +59,10 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
         nodeEntityDocument.append("menu_items", displayedMenuItems(isAdmin))
         val updatedNodeEntityString = nodeEntityDocument.toJson
-        BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():updated-entity=$updatedNodeEntityString", request)
         val containsMenuItems = updatedNodeEntityString.contains("menu_items")
-        BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():menu_items=$containsMenuItems", request)
+        //BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():menu_items=$containsMenuItems", request)
         val updatedNodeEntity = new StringEntity(updatedNodeEntityString, ContentType.create("application/json", "utf-8"))
+        response.setHeader("Content-Length", updatedNodeEntity.getContentLength.toString)
         updatedNodeEntity.writeTo(response.getOutputStream)
         s"${exitStatus(nodeResponse)} - Length:${updatedNodeEntity.getContentLength};Type:${updatedNodeEntity.getContentType}"
       } else {

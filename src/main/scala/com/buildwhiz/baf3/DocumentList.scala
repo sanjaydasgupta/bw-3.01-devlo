@@ -92,8 +92,9 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val canAdd = canManage || PersonApi.isBuildWhizAdmin(Right(user))
       val allDocuments = getDocuments(user, request).asJava
       //val gDriveUrl = PersonApi.userGDriveFolderUrl(user)
+      val menuItems = displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), canManage)
       val result = new Document("document_list", allDocuments).append("can_rename", canManage).
-          append("can_delete", canDelete).append("can_add", canAdd)//.append("g_drive_url", gDriveUrl)
+          append("can_delete", canDelete).append("can_add", canAdd).append("menu_items", menuItems)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

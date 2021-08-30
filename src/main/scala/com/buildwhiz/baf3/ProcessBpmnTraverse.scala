@@ -53,15 +53,21 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   private def getTimerDuration(ted: TimerEventDefinition, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val timerDurations = durations.filter(_._1 == "T").map(t => (t._2, t._3)).toMap
-    val theTimer: DynDoc = process.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
-        filter(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")).head
-    if (timerDurations.contains(theTimer.bpmn_id[String])) {
-      duration2ms(theTimer.duration[String]) / 86400000L
-    } else {
-      theTimer.get[String]("duration") match {
-        case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt
-        case None => 0
-      }
+    process.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
+        find(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")) match {
+      case Some(theTimer) =>
+        if (timerDurations.contains(theTimer.bpmn_id[String])) {
+          duration2ms(theTimer.duration[String]) / 86400000L
+        } else {
+          theTimer.get[String]("duration") match {
+            case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt
+            case None => 0
+          }
+        }
+      case None =>
+        val timer = s"ted: ${ted.getAttributeValue("name")}, process: ${process.name[String]}, bpmnName: $bpmnName"
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getTimerDuration() cant find $timer", request)
+        0
     }
   }
 
@@ -97,7 +103,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           }
         }
       case None =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find $query", request)
+        val message = s"id: $bpmnId, process: ${process.name[String]}, bpmnName: $bpmnName"
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find $message", request)
         0
     }
   }

@@ -124,7 +124,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
       request: HttpServletRequest): Long = {
 
-    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, seenNodes: Set[FlowNode]): Long = {
+    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String, seenNodes: Set[FlowNode]): Long = {
 
       def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
         val previousNodes: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
@@ -135,13 +135,13 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
       def maxPredecessorOffset(flowNode: FlowNode, stOffset: Long): Long = {
         val thePredecessors = predecessors(flowNode)
         if (thePredecessors.nonEmpty) {
-          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, seenNodes + predNode)).max
+          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, prefix, seenNodes + predNode)).max
         } else
           0
       }
 
       def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
-          map(n => getTimeOffset(n, stOffset, bpmnName, seenNodes + n)).min
+          map(n => getTimeOffset(n, stOffset, bpmnName, prefix, seenNodes + n)).min
 
       val timeOffset = node match {
         case serviceTask: ServiceTask =>
@@ -167,10 +167,15 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
             getActivityDuration(callActivity.getId, process, bpmnName, durations, request)
           } else {
-            val callOffset = maxPredecessorOffset(callActivity, startOffset)
-            val bpmnModel2 = bpmnModelInstance(calledElement)
-            val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            endEvents.map(endEvent => getTimeOffset(endEvent, callOffset, calledElement, seenNodes + endEvent)).max
+            val isTakt = callActivity.getLoopCharacteristics != null
+            if (isTakt) {
+              70
+            } else {
+              val callOffset = maxPredecessorOffset(callActivity, startOffset)
+              val bpmnModel2 = bpmnModelInstance(calledElement)
+              val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
+              endEvents.map(endEvent => getTimeOffset(endEvent, callOffset, calledElement, prefix, seenNodes + endEvent)).max
+            }
           }
           /*maxPredecessorOffset(callActivity, startOffset) + */calledBpmnDuration
         case ite: IntermediateThrowEvent => // Milestone
@@ -189,8 +194,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
     }
 
     val bpmnModel = bpmnModelInstance(bpmnName)
+    val domPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, Set.empty[FlowNode])).max
+    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, domPrefix, Set.empty[FlowNode])).max
     offset
   }
 

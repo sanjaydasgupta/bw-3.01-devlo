@@ -125,6 +125,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => false
       }
 
+      val theDuration = if (isTakt) 70 else durationLikely
+
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", startDate).append("end", endDate).append("status", aggregatedStatus).
@@ -132,18 +134,19 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
-        append("duration_likely", durationLikely).append("is_takt", isTakt).
+        append("duration_likely", theDuration).append("is_takt", isTakt).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount)
     })
   }
 
   private def getActivities(process: DynDoc, processName: String, user: DynDoc, canManage: Boolean,
-      processActivities: Seq[DynDoc]): Seq[Document] = {
+      processActivities: Seq[DynDoc], globalTakt: Boolean): Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
-    val returnActivities = activities.map(activity => {
+    val returnActivities = activities.zipWithIndex.map(activityAndIndex => {
+      val (activity, index) = activityAndIndex
       val activityOid = activity._id[ObjectId]
       val deliverableCount = deliverables.count(_.activity_id[ObjectId] == activityOid)
       val tasks = Seq.empty[Document]
@@ -210,6 +213,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "NA"
       }
 
+      val theDuration: String = if (globalTakt) (5 + index % 3).toString else durationLikely
+
       val description = activity.get[String]("description") match {
         case Some(d) => new Document("editable", canManage).append("value", d)
         case None => new Document("editable", canManage).append("value", "")
@@ -224,12 +229,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
         append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
-        append("duration_likely", durationLikely).append("duration_actual", "NA").
+        append("duration_likely", theDuration).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount).
-        append("sub_zones", "NA").append("start_delay", 0)
+        append("sub_zones", "1").append("start_delay", 0)
     })
     returnActivities
   }
@@ -296,7 +301,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestones = getMilestones(process, bpmnFileName)
       val endNodes = getEndNodes(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
-      val processActivities = getActivities(process, bpmnFileName, user, canManage, allActivities)
+      val processActivities = getActivities(process, bpmnFileName, user, canManage, allActivities, globalTakt)
       val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
@@ -319,7 +324,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
-          append("repetition_count", 1).append("cycle_time", "NA")
+          append("repetition_count", 10).append("cycle_time", "7")
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

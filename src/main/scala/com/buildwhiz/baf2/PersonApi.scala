@@ -193,6 +193,19 @@ object PersonApi {
         append("active", active).append("individual_roles", individualRoles).append("position", position)
   }
 
+  def isBusy30(personOid: ObjectId): Boolean = {
+    val projects = ProjectApi.projectsByUser30(personOid)
+    projects.nonEmpty
+  }
+
+  def delete30(personOid: ObjectId): Unit = {
+    if (isBusy30(personOid))
+      throw new IllegalArgumentException(s"person id $personOid is busy")
+    val deleteResult = BWMongoDB3.persons.deleteOne(Map("_id" -> personOid))
+    if (deleteResult.getDeletedCount == 0)
+      throw new IllegalArgumentException(s"MongoDB update failed: $deleteResult")
+  }
+
   def parentOrganization(personIn: Either[ObjectId, DynDoc]): Option[DynDoc] = {
     val person = personIn match {
       case Right(pd) => pd

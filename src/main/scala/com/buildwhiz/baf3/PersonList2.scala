@@ -23,7 +23,11 @@ class PersonList2 extends HttpServlet with HttpUtils {
       val activityOidOption = parameters.get("activity_id").map(new ObjectId(_))
       val persons = PersonApi.fetch3(None, organisationOidOption, skillOption, projectOidOption, phaseOidOption,
         processOidOption, activityOidOption)
-      val personDocuments = persons.map(PersonApi.person2document).sortBy(p => p.getString("name")).asJava
+      val personDocuments = persons.map(p => {
+        val pd: DynDoc = PersonApi.person2document(p)
+        pd._id = pd._id[ObjectId].toString
+        pd.asDoc
+      }).sortBy(p => p.getString("name")).asJava
       val user: DynDoc = getPersona(request)
       val menuItems = displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)))
       val result = new Document("person_list", personDocuments).append("menu_items", menuItems)

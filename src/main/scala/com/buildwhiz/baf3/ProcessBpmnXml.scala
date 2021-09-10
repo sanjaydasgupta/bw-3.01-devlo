@@ -70,11 +70,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   private def activityStartEndAndLabel(process: DynDoc, activity: DynDoc, timezone: String):
       ((String, String), (String, String)) = {
+    val activityOid = activity._id[ObjectId]
+    val unknownDatePattern = "__/__/____"
     val startAndLabel = ActivityApi.actualStart3(activity) match {
       case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Actual Start Date")
       case None => ActivityApi.scheduledStart3(process, activity) match {
         case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Scheduled Start Date")
-        case None => ("NA", "Scheduled Start Date")
+        case None => (unknownDatePattern, "Scheduled Start Date")
       }
     }
 
@@ -82,7 +84,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Actual End Date")
       case None => ActivityApi.scheduledEnd3(process, activity) match {
         case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Scheduled End Date")
-        case None => ("NA", "Scheduled End Date")
+        case None => (unknownDatePattern, "Scheduled End Date")
       }
     }
 

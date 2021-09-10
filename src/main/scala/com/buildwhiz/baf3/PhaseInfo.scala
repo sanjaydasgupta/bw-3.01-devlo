@@ -149,13 +149,9 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         ProcessBpmnTraverse.processDurationRecalculate(bpmnName, process, Seq.empty[(String, String, Int)], request).toString
       case None => "NA"
     }
-    val startDateEditable = editable && status == "Not-Started"
+    val startDateEditable = editable && status == "Planning"
     val endDateEditable = editable && status != "Completed"
     Seq(
-      ("estimated_start_date", new Document("editable", startDateEditable).append("value", estimatedStartDate)), // ToDo delete later
-      ("estimated_finish_date", new Document("editable", endDateEditable).append("value", estimatedEndDate)), // ToDo delete later
-      ("actual_start_date", new Document("editable", false).append("value", actualStartDate)), // ToDo delete later
-      ("actual_finish_date", new Document("editable", false).append("value", actualEndDate)), // ToDo delete later
       ("date_start_estimated", new Document("editable", startDateEditable).append("value", estimatedStartDate)),
       ("date_end_estimated", new Document("editable", endDateEditable).append("value", estimatedEndDate)),
       ("date_start_actual", new Document("editable", false).append("value", actualStartDate)),

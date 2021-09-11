@@ -32,28 +32,28 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
         managersInRoles
       }
+      val parameterString = getStreamData(request)
+      BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)
+      val postData = Document.parse(parameterString)
+      if (!postData.containsKey("phase_id"))
+        throw new IllegalArgumentException("phase_id not provided")
+      val phaseOid = new ObjectId(postData.remove("phase_id").asInstanceOf[String])
+      val thePhase = PhaseApi.phaseById(phaseOid)
+      val phaseTimeZone = PhaseApi.timeZone(thePhase)
       def date2long(date: String): Long = {
-        milliseconds(date, Some(user.tz[String]))
+        milliseconds(date, Some(phaseTimeZone))
       }
       val parameterConverters: Map[String, (String => Any, String)] = Map(
         ("name", (nop, "name")), ("description", (nop, "description")), ("goals", (nop, "goals")),
         ("phase_id", (nop, "phase_id")), ("managers", (managers2roles, "assigned_roles")),
-        ("estimated_start_date", (date2long, "timestamps.estimated_start_date")), // ToDo delete later
-        ("estimated_finish_date", (date2long, "timestamps.estimated_finish_date")), // ToDo delete later
         ("date_start_estimated", (date2long, "timestamps.date_start_estimated")),
         ("date_end_estimated", (date2long, "timestamps.date_end_estimated")),
         ("started", (_.toBoolean, "started"))
       )
-      val parameterString = getStreamData(request)
-      BWLogger.log(getClass.getName, request.getMethod, s"Parameter-String: $parameterString", request)
-      val postData = Document.parse(parameterString)
       val parameterNames = parameterConverters.keys.toSeq
       val unknownParameters = postData.keySet.toArray.filterNot(parameterNames.contains)
       if (unknownParameters.nonEmpty)
         throw new IllegalArgumentException(s"""Unknown parameter(s): ${unknownParameters.mkString(", ")}""")
-      if (!postData.containsKey("phase_id"))
-        throw new IllegalArgumentException("phase_id not provided")
-      val phaseOid = new ObjectId(postData.remove("phase_id").asInstanceOf[String])
       val mongoDbNameValuePairs = parameterNames.filter(postData.containsKey).
           map(paramName => (parameterConverters(paramName)._2,
           parameterConverters(paramName)._1(postData.getString(paramName))))

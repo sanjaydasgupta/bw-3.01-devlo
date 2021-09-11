@@ -126,7 +126,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       Seq[(String, Any)] = {
     val timestamps: DynDoc = phase.timestamps[Document]
     val user: DynDoc = getPersona(request)
-    val timezone = user.tz[String]
+    val timezone = PhaseApi.timeZone(phase)
     val estimatedStartDate = timestamps.get[Long]("date_start_estimated") match {
       case Some(dt) => dateString(dt, timezone)
       case None => "NA"

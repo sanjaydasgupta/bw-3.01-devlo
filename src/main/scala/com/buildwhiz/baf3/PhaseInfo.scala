@@ -93,7 +93,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     deliverableRecords.asJava
   }
 
-  private def taskInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
+  private def taskInformation(deliverables: Seq[DynDoc], phase: DynDoc): Many[Document] = {
     val taskStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val activityOids = deliverables.map(_.activity_id[ObjectId])
     val tasks = ActivityApi.activitiesByIds(activityOids)
@@ -102,7 +102,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       val endDate = if (rawEndDate == -1) {
         "Not available"
       } else {
-        val timeZone = user.tz[String]
+        val timeZone = PhaseApi.timeZone(phase)
         dateTimeString(task.bpmn_scheduled_end_date[Long], Some(timeZone))
       }
       val taskOid = task._id[ObjectId]
@@ -218,7 +218,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
         append("display_start_button", displayStartButton).append("counters", counters).
-        append("task_info", taskInformation(deliverables, user)).append("bpmn_name", bpmnName).
+        append("task_info", taskInformation(deliverables, phase)).append("bpmn_name", bpmnName).
         append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, editable, rawDisplayStatus, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))

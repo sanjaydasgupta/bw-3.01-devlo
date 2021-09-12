@@ -69,6 +69,20 @@ object ActivityApi extends DateTimeUtils {
       None
   }
 
+  def scheduledStart31(phase: DynDoc, activity: DynDoc): Option[Long] = {
+    val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+    val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
+    val activityOffset: Option[Long] = activity.get[Long]("offset")
+    phaseStartDate.flatMap(psd => activityOffset.map(_ * 86400 * 1000 + psd))
+  }
+
+  def scheduledEnd31(phase: DynDoc, activity: DynDoc): Option[Long] = {
+    val activityDurations: Option[DynDoc] = activity.get[Document]("durations")
+    val activityLikelyDuration: Option[Long] =
+        activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d * 86400L * 1000L)})
+    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.map(_ + startDate))
+  }
+
   def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
     (process.get[Long]("estimated_start_date"), activity.get[Long]("offset")) match {
       case (Some(processStartDate), Some(offset)) => Some(processStartDate + offset * 86400 * 1000)
@@ -312,36 +326,27 @@ object ActivityApi extends DateTimeUtils {
     PhaseApi.canManage(personOid, phase)
   }
 
-  def durationOptimistic3(activity: DynDoc): Option[Int] = activity.get[Int]("duration_optimistic")
-  def durationPessimistic3(activity: DynDoc): Option[Int] = activity.get[Int]("duration_pessimistic")
-  def durationLikely3(activity: DynDoc): Option[Int] = activity.get[Int]("duration_likely")
+  def durationOptimistic3(activity: DynDoc): Option[Int] = {
+    val durations: Option[DynDoc] = activity.get[Document]("durations")
+    durations.flatMap(_.get[Int]("optimistic") match {case Some(-1) => None; case someOtherD => someOtherD})
+  }
+  def durationPessimistic3(activity: DynDoc): Option[Int] = {
+    val durations: Option[DynDoc] = activity.get[Document]("durations")
+    durations.flatMap(_.get[Int]("pessimistic") match {case Some(-1) => None; case someOtherD => someOtherD})
+  }
+  def durationLikely3(activity: DynDoc): Option[Int] = {
+    val durations: Option[DynDoc] = activity.get[Document]("durations")
+    durations.flatMap(_.get[Int]("likely") match {case Some(-1) => None; case someOtherD => someOtherD})
+  }
 
   def durationsSet3(activityOid: ObjectId, optDurationOptimistic: Option[Int] = None,
       optDurationPessimistic: Option[Int] = None, optDurationLikely: Option[Int] = None): Unit = {
     val setters: Seq[(String, Int)] = Seq(("duration_optimistic", optDurationOptimistic),
         ("duration_pessimistic", optDurationPessimistic), ("duration_likely", optDurationLikely)).flatMap {
-      case (fieldName, Some(duration)) => Some((fieldName, duration))
+      case (fieldName, Some(duration)) => Some((fieldName.replace("duration_", "durations."), duration))
       case (_, None) => None
     }
     val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> setters.toMap))
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-  }
-  def durationOptimisticSet3(activityOid: ObjectId, value: Int): Unit = {
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-        Map($set -> Map("duration_optimistic" -> value)))
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-  }
-  def durationPessimisticSet3(activityOid: ObjectId, value: Int): Unit = {
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-        Map($set -> Map("duration_pessimistic" -> value)))
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-  }
-  def durationLikelySet3(activityOid: ObjectId, value: Int): Unit = {
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
-        Map($set -> Map("duration_likely" -> value)))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }

@@ -68,13 +68,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def activityStartEndAndLabel(process: DynDoc, activity: DynDoc, timezone: String):
+  private def activityStartEndAndLabel(phase: DynDoc, activity: DynDoc):
       ((String, String), (String, String)) = {
-    val activityOid = activity._id[ObjectId]
+    val timezone = PhaseApi.timeZone(phase)
     val unknownDatePattern = "__/__/____"
+
     val startAndLabel = ActivityApi.actualStart3(activity) match {
       case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Actual Start Date")
-      case None => ActivityApi.scheduledStart3(process, activity) match {
+      case None => ActivityApi.scheduledStart31(phase, activity) match {
         case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Scheduled Start Date")
         case None => (unknownDatePattern, "Scheduled Start Date")
       }
@@ -82,7 +83,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
     val endAndLabel = ActivityApi.actualEnd3(activity) match {
       case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Actual End Date")
-      case None => ActivityApi.scheduledEnd3(process, activity) match {
+      case None => ActivityApi.scheduledEnd31(phase, activity) match {
         case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Scheduled End Date")
         case None => (unknownDatePattern, "Scheduled End Date")
       }
@@ -91,9 +92,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     (startAndLabel, endAndLabel)
   }
 
-  private def getSubProcessCalls(process: DynDoc, processName: String, user: DynDoc, processActivities: Seq[DynDoc],
+  private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
       request: HttpServletRequest): Seq[Document] = {
-    val timezone = user.tz[String]
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
@@ -106,7 +106,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case 1 => uniqueStatusValues.head
         case _ => "Current"
       }
-      val startEndAndLabels = bpmnActivities.map(activity => activityStartEndAndLabel(process, activity, timezone))
+      val startEndAndLabels = bpmnActivities.map(activity => activityStartEndAndLabel(phase, activity))
       val startDatesAndLabels = startEndAndLabels.map(_._1).sortBy(_._1)
       val startDate = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._1).head else "NA"
       val startLabel = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._2).head else "Scheduled Start Date"
@@ -142,7 +142,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getActivities(process: DynDoc, processName: String, user: DynDoc, canManage: Boolean,
+  private def getActivities(phase: DynDoc, processName: String, canManage: Boolean,
       processActivities: Seq[DynDoc], globalTakt: Boolean): Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
@@ -159,9 +159,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 //      else
 //        activity.status[String]
 
-      val timezone = user.tz[String]
-
-      val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(process, activity, timezone)
+      val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity)
 
       val assignments: Seq[DynDoc] = ActivityApi.teamAssignment.list(activity._id[ObjectId])
 
@@ -268,6 +266,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       //val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val phaseOid = new ObjectId(parameters("phase_id"))
+      val thePhase = PhaseApi.phaseById(phaseOid)
       val globalTakt = parameters.get("is_takt") match {
         case Some(taktValue) => taktValue.toBoolean
         case None => false
@@ -276,7 +275,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
       }
-      val canManage = PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
+      val canManage = PhaseApi.canManage(user._id[ObjectId], thePhase)
       val processModelStream = if (bpmnFileName == "****") {
         new ByteArrayInputStream(placeholder.getBytes)
       } else {
@@ -303,8 +302,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestones = getMilestones(process, bpmnFileName)
       val endNodes = getEndNodes(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
-      val processActivities = getActivities(process, bpmnFileName, user, canManage, allActivities, globalTakt)
-      val processCalls = getSubProcessCalls(process, bpmnFileName, user, allActivities, request)
+      val processActivities = getActivities(thePhase, bpmnFileName, canManage, allActivities, globalTakt)
+      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

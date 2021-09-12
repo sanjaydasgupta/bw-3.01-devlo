@@ -30,6 +30,8 @@ object DynDoc {
 
   implicit def document2DynDoc(d: Document): DynDoc = new DynDoc(d)
 
+  implicit def documentOption2DynDocOption(ds: Option[Document]): Option[DynDoc] = ds.map(document2DynDoc)
+
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(document2DynDoc)
 
   implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala

@@ -42,9 +42,8 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
   }
 
-  private def phaseInformation2(project: DynDoc, user: DynDoc): Many[Document] = {
+  private def phaseInformation2(project: DynDoc): Many[Document] = {
     def rint(): String = (random() * 15).toInt.toString
-    val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     ProjectApi.allPhases(project).map(phase => {
       new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
           append("display_status", PhaseApi.displayStatus31(phase)).append("alert_count", rint()).
@@ -56,32 +55,31 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val returnValue: Seq[Document] = phases.map(phase => {
-      val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
       //val displayStatus = PhaseApi.displayStatus(phase)
       val displayStatus3 = PhaseApi.displayStatus31(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
-      val startDateEditable = canManage && phase.status[String] == "defined"
-      val endDateEditable = canManage && phase.status[String] != "ended"
+      val estimatedDatesEditable = canManage && phase.status[String] == "Planning"
       val timestamps: DynDoc = phase.timestamps[Document]
+      val phaseTimezone = PhaseApi.timeZone(phase)
       val startDate = if (timestamps.has("date_start_actual")) {
-        dateTimeString(timestamps.date_start_actual[Long])
+        dateString(timestamps.date_start_actual[Long], phaseTimezone)
       } else if (timestamps.has("date_start_estimated")) {
-        dateTimeString(timestamps.date_start_estimated[Long])
+        dateString(timestamps.date_start_estimated[Long], phaseTimezone)
       } else {
         "NA"
       }
       val endDate = if (timestamps.has("date_end_actual")) {
-        dateTimeString(timestamps.date_end_actual[Long])
+        dateString(timestamps.date_end_actual[Long], phaseTimezone)
       } else if (timestamps.has("date_end_estimated")) {
-        dateTimeString(timestamps.date_end_estimated[Long])
+        dateString(timestamps.date_end_estimated[Long], phaseTimezone)
       } else {
         "NA"
       }
       Map("name" -> phase.name[String], "status" -> displayStatus3, "display_status" -> displayStatus3,
-        "start_date" -> new Document("editable", startDateEditable).append("value", startDate),
-        "end_date" -> new Document("editable", endDateEditable).append("value", endDate),
+        "start_date" -> new Document("editable", estimatedDatesEditable).append("value", startDate),
+        "end_date" -> new Document("editable", estimatedDatesEditable).append("value", endDate),
         "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,
         "budget" -> f"$budget%5.2f", "expenditure" -> f"$expenditure%5.2f")
     })
@@ -112,7 +110,6 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       Seq.empty[String].asJava
     val documentTags = new Document("editable", false).append("value", bareDocumentTags.asJava)
     val description = new Document("editable", editable).append("value", project.description[String])
-    val rawStatus = project.status[String]
     //val status = new Document("editable", false).append("value", rawStatus)
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val rawName = project.name[String]
@@ -164,7 +161,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       case _ => "Active"
     }
     val displayStatus3 = new Document("editable", false).append("value", rawDisplayStatus3)
-    val phaseInfo2 = phaseInformation2(project, user)
+    val phaseInfo2 = phaseInformation2(project)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val canCreatePhase = PersonApi.fullName(user).matches("Prabhas Admin|Sanjay Admin")
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).

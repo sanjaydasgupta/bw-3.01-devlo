@@ -125,7 +125,6 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
   private def phaseDatesAndDurations(phase: DynDoc, editable: Boolean, status: String, request: HttpServletRequest):
       Seq[(String, Any)] = {
     val timestamps: DynDoc = phase.timestamps[Document]
-    val user: DynDoc = getPersona(request)
     val timezone = PhaseApi.timeZone(phase)
     val estimatedStartDate = timestamps.get[Long]("date_start_estimated") match {
       case Some(dt) => dateString(dt, timezone)
@@ -149,17 +148,16 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
         ProcessBpmnTraverse.processDurationRecalculate(bpmnName, process, Seq.empty[(String, String, Int)], request).toString
       case None => "NA"
     }
-    val startDateEditable = editable && status == "Planning"
-    val endDateEditable = editable && status != "Completed"
+    val estimatedDatesEditable = editable && status == "Planning"
     Seq(
-      ("date_start_estimated", new Document("editable", startDateEditable).append("value", estimatedStartDate)),
-      ("date_end_estimated", new Document("editable", endDateEditable).append("value", estimatedEndDate)),
+      ("date_start_estimated", new Document("editable", estimatedDatesEditable).append("value", estimatedStartDate)),
+      ("date_end_estimated", new Document("editable", estimatedDatesEditable).append("value", estimatedEndDate)),
       ("date_start_actual", new Document("editable", false).append("value", actualStartDate)),
       ("date_end_actual", new Document("editable", false).append("value", actualEndDate)),
       ("duration_optimistic", new Document("editable", false).append("value", "NA")),
       ("duration_pessimistic", new Document("editable", false).append("value", "NA")),
       ("duration_likely", new Document("editable", false).append("value", phaseDuration)),
-      ("estimated_dates_editable", endDateEditable)
+      ("estimated_dates_editable", estimatedDatesEditable)
     )
   }
 

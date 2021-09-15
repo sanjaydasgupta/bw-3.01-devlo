@@ -17,6 +17,12 @@ trait DateTimeUtils {
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
+  def dateTimeStringAmerican(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT")): String = {
+    val usDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z")
+    timeZoneCode.foreach(tzc => usDateFormat.setTimeZone(TimeZone.getTimeZone(tzc)))
+    usDateFormat.format(new Date(milliSeconds))
+  }
+
   def milliseconds(yyyymmdd: String, timeZoneCode: Option[String] = Some("GMT")): Long = {
     val Array(year, month, date) = yyyymmdd.split("-").map(_.toInt)
     val calendar = Calendar.getInstance(TimeZone.getTimeZone(timeZoneCode.get))

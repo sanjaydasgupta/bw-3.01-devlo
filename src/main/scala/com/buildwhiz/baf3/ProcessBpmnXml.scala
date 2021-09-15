@@ -74,17 +74,17 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val unknownDatePattern = "__/__/____"
 
     val startAndLabel = ActivityApi.actualStart3(activity) match {
-      case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Actual Start Date")
+      case Some(start) => (dateTimeStringAmerican(start, Some(timezone)).split(" ").head, "Actual Start Date")
       case None => ActivityApi.scheduledStart31(phase, activity) match {
-        case Some(start) => (dateTimeString(start, Some(timezone)).split(" ").head, "Scheduled Start Date")
+        case Some(start) => (dateTimeStringAmerican(start, Some(timezone)).split(" ").head, "Scheduled Start Date")
         case None => (unknownDatePattern, "Scheduled Start Date")
       }
     }
 
     val endAndLabel = ActivityApi.actualEnd3(activity) match {
-      case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Actual End Date")
+      case Some(end) => (dateTimeStringAmerican(end, Some(timezone)).split(" ").head, "Actual End Date")
       case None => ActivityApi.scheduledEnd31(phase, activity) match {
-        case Some(end) => (dateTimeString(end, Some(timezone)).split(" ").head, "Scheduled End Date")
+        case Some(end) => (dateTimeStringAmerican(end, Some(timezone)).split(" ").head, "Scheduled End Date")
         case None => (unknownDatePattern, "Scheduled End Date")
       }
     }

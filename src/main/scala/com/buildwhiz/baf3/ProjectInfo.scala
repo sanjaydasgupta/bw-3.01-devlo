@@ -54,13 +54,12 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
   private def phaseInformation(project: DynDoc, user: DynDoc): Many[Document] = {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+    val canManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val returnValue: Seq[Document] = phases.map(phase => {
-      val canManage = PhaseApi.canManage(user._id[ObjectId], phase)
-      //val displayStatus = PhaseApi.displayStatus(phase)
-      val displayStatus3 = PhaseApi.displayStatus31(phase)
+      val phaseDisplayStatus = PhaseApi.displayStatus31(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
-      val estimatedDatesEditable = canManage && phase.status[String] == "Planning"
+      val estimatedDatesEditable = canManageProject && phaseDisplayStatus == "Planning"
       val timestamps: DynDoc = phase.timestamps[Document]
       val phaseTimezone = PhaseApi.timeZone(phase)
       val startDate = if (timestamps.has("date_start_actual")) {
@@ -77,7 +76,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       } else {
         "NA"
       }
-      Map("name" -> phase.name[String], "status" -> displayStatus3, "display_status" -> displayStatus3,
+      Map("name" -> phase.name[String], "status" -> phaseDisplayStatus, "display_status" -> phaseDisplayStatus,
         "start_date" -> new Document("editable", estimatedDatesEditable).append("value", startDate),
         "end_date" -> new Document("editable", estimatedDatesEditable).append("value", endDate),
         "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,

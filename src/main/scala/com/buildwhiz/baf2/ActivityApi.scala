@@ -70,10 +70,14 @@ object ActivityApi extends DateTimeUtils {
   }
 
   def scheduledStart31(phase: DynDoc, activity: DynDoc): Option[Long] = {
-    val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
-    val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
-    val activityOffset: Option[Long] = activity.get[Long]("offset")
-    phaseStartDate.flatMap(psd => activityOffset.map(_ * 86400 * 1000 + psd))
+    try {
+      val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+      val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
+      val activityOffset: Option[Long] = activity.get[Long]("offset")
+      phaseStartDate.flatMap(psd => activityOffset.map(_ * 86400 * 1000 + psd))
+    } catch {
+      case _: Throwable => None
+    }
   }
 
   def scheduledEnd31(phase: DynDoc, activity: DynDoc): Option[Long] = {

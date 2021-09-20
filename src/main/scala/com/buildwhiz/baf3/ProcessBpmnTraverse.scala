@@ -167,14 +167,16 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
             getActivityDuration(callActivity.getId, process, bpmnName, durations, request)
           } else {
+            val callOffset = maxPredecessorOffset(callActivity, startOffset)
+            val bpmnModel2 = bpmnModelInstance(calledElement)
+            val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
             val isTakt = callActivity.getLoopCharacteristics != null
+            val duration = endEvents.map(endEvent =>
+                getTimeOffset(endEvent, callOffset, calledElement, prefix, seenNodes + endEvent)).max
             if (isTakt) {
-              70
+              70 // ToDo: Hardwired value for TAKT mockup
             } else {
-              val callOffset = maxPredecessorOffset(callActivity, startOffset)
-              val bpmnModel2 = bpmnModelInstance(calledElement)
-              val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-              endEvents.map(endEvent => getTimeOffset(endEvent, callOffset, calledElement, prefix, seenNodes + endEvent)).max
+              duration
             }
           }
           /*maxPredecessorOffset(callActivity, startOffset) + */calledBpmnDuration

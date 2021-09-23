@@ -14,6 +14,21 @@ import scala.io.Source
 
 trait HttpUtils {
 
+  def uiContextSelected(request: HttpServletRequest, operation: Option[Boolean] = None): Boolean = {
+    val userSession = getSessionAlternatives(request)
+    val wasSelected: Boolean = userSession.getAttribute("ui_context_selected") match {
+      case null => false
+      case selected => selected.asInstanceOf[Boolean]
+    }
+    operation match {
+      case Some(select) =>
+        userSession.setAttribute("ui_context_selected", select)
+        wasSelected
+      case None =>
+        wasSelected
+    }
+  }
+
   def getSessionAlternatives(request: HttpServletRequest): HttpSession = {
     getParameterMap(request).get("JSESSIONID") match {
       case Some(sessionId) => Entry.sessionCache.getOrElse(sessionId, request.getSession)

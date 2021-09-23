@@ -57,7 +57,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val nodeEntityDocument = Document.parse(nodeEntityString)
         val user: DynDoc = getPersona(request)
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-        nodeEntityDocument.append("menu_items", displayedMenuItems(isAdmin))
+        nodeEntityDocument.append("menu_items", displayedMenuItems(isAdmin, isAdmin, !uiContextSelected(request)))
         val updatedNodeEntityString = nodeEntityDocument.toJson
         val containsMenuItems = updatedNodeEntityString.contains("menu_items")
         //BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():menu_items=$containsMenuItems", request)

@@ -1,7 +1,6 @@
 package com.buildwhiz.slack
 
 import java.io.ByteArrayOutputStream
-
 import com.buildwhiz.baf2.{ActivityApi, DashboardEntries, PersonApi, TaskList}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
@@ -40,6 +39,21 @@ object SlackApi extends DateTimeUtils {
         "Not connected"
       s"${PersonApi.fullName(who)}'s Slack status is '$slackStatus'"
     }
+  }
+
+  def pushHomePages(): Unit = {
+    BWLogger.log(getClass.getName, "pushHomePages", "ENTRY")
+    try {
+      val slackUsers: Seq[DynDoc] = BWMongoDB3.persons.find(Map("slack_id" -> Map($exists -> true)))
+      for (slackUser <- slackUsers) {
+        val slackId = slackUser.slack_id[String]
+        SlackApi.viewPublish(None, slackId, None)
+      }
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "pushHomePages", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+    }
+    BWLogger.log(getClass.getName, "pushHomePages", "EXIT-OK")
   }
 
   def sendToUser(stringOrBlocks: Either[String, Seq[DynDoc]], user: Either[DynDoc, ObjectId],
@@ -355,10 +369,10 @@ object SlackApi extends DateTimeUtils {
   private def homePage(optUser: Option[DynDoc] = None): String = {
     val itemsBasic: Seq[(String, String)] = Seq(
       ("Work Context", "(Project: *not selected*, Phase: *not selected*"),
-      ("Tasks", "(click button to see list of tasks)"),
-      ("Issues", "(click button to see list of tasks)"),
-      ("Projects", "(click button to see list of tasks)"),
-      ("Organizations", "(click button to see list of tasks)"),
+      ("Deliverables", "(click button to see list of deliverables)"),
+      ("Issues", "(click button to see list of issues)"),
+      ("Projects", "(click button to see list of projects)"),
+      ("Organizations", "(click button to see list of organizations)"),
       ("Profile", "(contact info, skills, password, etc)")
     )
     val items: Seq[(String, String)] = optUser match {

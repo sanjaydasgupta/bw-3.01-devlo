@@ -136,8 +136,15 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
                  dates(request))
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
+              val singleProjectIndicator = ProjectApi.projectsByUser30(personRecord.getObjectId("_id")) match {
+                case Seq(project) =>
+                  new Document("project_id", project._id[ObjectId].toString).append("project_name", project.name[String])
+                case _ => new Document()
+              }
+              resultPerson.append("single_project_indicator", singleProjectIndicator)
               recordLoginTime(personRecord)
-              BWLogger.audit(getClass.getName, request.getMethod, "Login Id-Token-Verifier OK", request)
+              val message = s"Login OK. SPI=${singleProjectIndicator.toJson}"
+              BWLogger.audit(getClass.getName, request.getMethod, message, request)
               bson2json(resultPerson)
           }
           response.getWriter.print(result)

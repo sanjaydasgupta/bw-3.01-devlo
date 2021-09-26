@@ -2,14 +2,11 @@ package com.buildwhiz.tools.scripts
 
 import com.buildwhiz.baf2.PhaseApi
 import com.buildwhiz.baf3.DeliverableApi
-import com.buildwhiz.infra.BWMongoDB3._
-import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.utils.BWLogger
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
 
 object PhaseBpmnMigration {
 
@@ -36,40 +33,39 @@ object PhaseBpmnMigration {
             if (go) {
               d.remove("_id")
               d.activity_id = toActivity._id[ObjectId]
-              //BWMongoDB3.deliverables.insertOne(d.asDoc)
+              BWMongoDB3.deliverables.insertOne(d.asDoc)
               response.getWriter.println(s"\tCloned deliverable '${d.name[String]}' ($activityIds)")
             } else {
               response.getWriter.println(s"\tCan clone deliverable '${d.name[String]}' ($activityIds)")
             }
           }
         } else if (fromFullPathName.startsWith("DD/")) {
+          response.getWriter.println(s"Disambiguating '$fromFullPathName' for any deliverables ...")
           for (d <- deliverables) {
             val description = d.description[String]
             val prefix = description.split(" ").head.trim()
-            toActivitiesMap.find(_._1.matches(s"${prefix}[% ]+DD${fromFullPathName.substring(2)}")) match {
+            toActivitiesMap.find(_._1.matches(s"$prefix[% ]+DD${fromFullPathName.substring(2)}")) match {
               case Some((_, toActivity)) =>
-                response.getWriter.println(s"$fromFullPathName --> ${toActivity.full_path_name[String]}")
+                response.getWriter.println(s"\t$fromFullPathName --> ${toActivity.full_path_name[String]}")
                 val activityIds = s"from ${fromActivity._id[ObjectId]} to ${toActivity._id[ObjectId]}"
                 if (go) {
                   d.remove("_id")
                   d.activity_id = toActivity._id[ObjectId]
-                  //BWMongoDB3.deliverables.insertOne(d.asDoc)
+                  BWMongoDB3.deliverables.insertOne(d.asDoc)
                   response.getWriter.println(s"\tCloned deliverable '${d.name[String]}' ($activityIds)")
                 } else {
                   response.getWriter.println(s"\tCan clone deliverable '${d.name[String]}' ($activityIds)")
                 }
               case None =>
-                response.getWriter.println(s"PROBLEM: $fromFullPathName --> Nil")
+                response.getWriter.println(s"PROBLEM (no disambiguation found): $fromFullPathName --> Nil")
             }
-            response.getWriter.println(s"\tConfusion with '${d.name[String]}'")
           }
         } else if (deliverables.nonEmpty) {
-          response.getWriter.println(s"PROBLEM: $fromFullPathName --> Nil")
+          response.getWriter.println(s"PROBLEM (no partner activity, deliverables exist): $fromFullPathName --> Nil")
         } else {
-          response.getWriter.println(s"WARNING: $fromFullPathName --> Nil (but no deliverables exist)")
+          response.getWriter.println(s"WARNING (no partner activity, no deliverables): $fromFullPathName --> Nil")
         }
       }
-      //BWLogger.log(getClass.getName, "main()", "EXIT-OK", request)
       response.getWriter.println(s"${getClass.getName}:main() EXIT-OK")
     } else {
       response.getWriter.println(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} from-phase-id, to-phase-id [,GO]")

@@ -29,7 +29,11 @@ class PersonList2 extends HttpServlet with HttpUtils {
         pd.asDoc
       }).sortBy(p => p.getString("name")).asJava
       val user: DynDoc = getPersona(request)
-      val menuItems = displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)))
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+      val menuItems = uiContextSelectedManaged(request) match {
+        case None => displayedMenuItems(isAdmin, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
+      }
       val result = new Document("person_list", personDocuments).append("menu_items", menuItems)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")

@@ -23,6 +23,8 @@ class PhaseInfo extends HttpServlet with HttpUtils {
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
       val user: DynDoc = getPersona(request)
       response.getWriter.print(PhaseInfo.phase2json(phaseRecord, user, request: HttpServletRequest))
+      val canManage = PhaseApi.canManage(user._id[ObjectId], phaseRecord)
+      uiContextSelectedManaged(request, Some((true, canManage)))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)

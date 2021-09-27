@@ -92,7 +92,11 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val canAdd = canManage || PersonApi.isBuildWhizAdmin(Right(user))
       val allDocuments = getDocuments(user, request).asJava
       //val gDriveUrl = PersonApi.userGDriveFolderUrl(user)
-      val menuItems = displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), canManage)
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+      val menuItems = uiContextSelectedManaged(request) match {
+        case None => displayedMenuItems(isAdmin, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
+      }
       val result = new Document("document_list", allDocuments).append("can_rename", canManage).
           append("can_delete", canDelete).append("can_add", canAdd).append("menu_items", menuItems)
       response.getWriter.print(result.toJson)

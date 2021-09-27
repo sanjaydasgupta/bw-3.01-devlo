@@ -14,18 +14,19 @@ import scala.io.Source
 
 trait HttpUtils {
 
-  def uiContextSelected(request: HttpServletRequest, operation: Option[Boolean] = None): Boolean = {
+  def uiContextSelectedManaged(request: HttpServletRequest, newValues: Option[(Boolean, Boolean)] = None):
+      Option[(Boolean, Boolean)] = {
     val userSession = getSessionAlternatives(request)
-    val wasSelected: Boolean = userSession.getAttribute("ui_context_selected") match {
-      case null => false
-      case selected => selected.asInstanceOf[Boolean]
+    val previousValues: Option[(Boolean, Boolean)] = userSession.getAttribute("ui_context_selected_managed") match {
+      case null => None
+      case selected => selected.asInstanceOf[Option[(Boolean, Boolean)]]
     }
-    operation match {
-      case Some(select) =>
-        userSession.setAttribute("ui_context_selected", select)
-        wasSelected
+    newValues match {
+      case Some(_) =>
+        userSession.setAttribute("ui_context_selected_managed", newValues)
+        previousValues
       case None =>
-        wasSelected
+        previousValues
     }
   }
 

@@ -68,9 +68,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def activityStartEndAndLabel(phase: DynDoc, activity: DynDoc):
+  private def activityStartEndAndLabel(phase: DynDoc, activity: DynDoc, request: HttpServletRequest):
       ((String, String), (String, String)) = {
-    val timezone = PhaseApi.timeZone(phase)
+    val timezone = PhaseApi.timeZone(phase, Some(request))
     val unknownDatePattern = "__/__/____"
 
     val startAndLabel = ActivityApi.actualStart3(activity) match {
@@ -106,7 +106,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case 1 => uniqueStatusValues.head
         case _ => "Current"
       }
-      val startEndAndLabels = bpmnActivities.map(activity => activityStartEndAndLabel(phase, activity))
+      val startEndAndLabels = bpmnActivities.map(activity => activityStartEndAndLabel(phase, activity, request))
       val startDatesAndLabels = startEndAndLabels.map(_._1).sortBy(_._1)
       val startDate = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._1).head else "NA"
       val startLabel = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._2).head else "Scheduled Start Date"
@@ -143,7 +143,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
   }
 
   private def getActivities(phase: DynDoc, processName: String, canManage: Boolean,
-      processActivities: Seq[DynDoc], globalTakt: Boolean): Seq[Document] = {
+      processActivities: Seq[DynDoc], globalTakt: Boolean, request: HttpServletRequest): Seq[Document] = {
     val activities = processActivities.filter(_.bpmn_name[String] == processName)
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
@@ -159,7 +159,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 //      else
 //        activity.status[String]
 
-      val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity)
+      val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity, request)
 
       val assignments: Seq[DynDoc] = ActivityApi.teamAssignment.list(activity._id[ObjectId])
 
@@ -302,7 +302,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestones = getMilestones(process, bpmnFileName)
       val endNodes = getEndNodes(process, bpmnFileName)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
-      val processActivities = getActivities(thePhase, bpmnFileName, canManage, allActivities, globalTakt)
+      val processActivities = getActivities(thePhase, bpmnFileName, canManage, allActivities, globalTakt, request)
       val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]

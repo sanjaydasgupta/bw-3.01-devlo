@@ -39,7 +39,7 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
         throw new IllegalArgumentException("phase_id not provided")
       val phaseOid = new ObjectId(postData.remove("phase_id").asInstanceOf[String])
       val thePhase = PhaseApi.phaseById(phaseOid)
-      val phaseTimeZone = PhaseApi.timeZone(thePhase)
+      val phaseTimeZone = PhaseApi.timeZone(thePhase, Some(request))
       def date2long(date: String): Long = {
         milliseconds(date, Some(phaseTimeZone))
       }

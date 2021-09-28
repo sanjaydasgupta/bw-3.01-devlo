@@ -54,7 +54,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     }).asJava
   }
 
-  private def phaseInformation(project: DynDoc, user: DynDoc): Many[Document] = {
+  private def phaseInformation(project: DynDoc, user: DynDoc, request: HttpServletRequest): Many[Document] = {
     val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
     val canManageProject = ProjectApi.canManage(user._id[ObjectId], project)
@@ -64,7 +64,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       val expenditure = budget * 0.5
       val estimatedDatesEditable = canManageProject && phaseDisplayStatus == "Planning"
       val timestamps: DynDoc = phase.timestamps[Document]
-      val phaseTimezone = PhaseApi.timeZone(phase)
+      val phaseTimezone = PhaseApi.timeZone(phase, Some(request))
       val startDate = if (timestamps.has("date_start_actual")) {
         dateString(timestamps.date_start_actual[Long], phaseTimezone)
       } else if (timestamps.has("date_start_estimated")) {
@@ -155,7 +155,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       new Document("_id", thePerson._id[ObjectId].toString).append("name", personName)
     }).asJava
     val projectManagers = new Document("editable", editable).append("value", rawProjectManagers)
-    val phaseInfo = phaseInformation(project, user)
+    val phaseInfo = phaseInformation(project, user, request)
     val phaseStatusValues: Seq[String] = phaseInfo.map(_.status[String]).distinct
     val rawDisplayStatus3 = phaseStatusValues.length match {
       case 0 => "Unknown"

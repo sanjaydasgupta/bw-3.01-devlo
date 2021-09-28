@@ -376,7 +376,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val action: Document = Map("bpmn_name" -> bpmn, "name" -> name, "type" -> "main", "status" -> "defined",
         "inbox" -> Seq.empty[ObjectId], "outbox" -> Seq.empty[ObjectId], "assignee_role" -> activityRole,
         "duration" -> activityDuration, "start" -> "00:00:00", "end" -> "00:00:00", "on_critical_path" -> false)
-      val timeZone = PhaseApi.timeZone(thePhase)
+      val timeZone = PhaseApi.timeZone(thePhase, Some(request))
       val durations: Document = Map("optimistic" -> -1, "pessimistic" -> -1, "likely" -> -1, "actual" -> -1)
       val activity: Document = Map("bpmn_name" -> bpmn, "name" -> name, "actions" -> Seq(action),
         "status" -> "defined", "bpmn_id" -> bpmnId, "role" -> activityRole, "description" -> activityDescription,

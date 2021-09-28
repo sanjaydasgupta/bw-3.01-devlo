@@ -191,7 +191,7 @@ object PhaseApi {
     (projectManagers ++ phaseManagers).distinct
   }
 
-  def timeZone(phase: DynDoc): String = {
+  def timeZone(phase: DynDoc, optRequest: Option[HttpServletRequest] = None): String = {
     if (phase.has("tz")) {
       phase.tz[String]
     } else {
@@ -199,6 +199,11 @@ object PhaseApi {
       if (parent.has("tz")) {
         parent.tz[String]
       } else {
+        val method = optRequest match {
+          case None => "LOCAL"
+          case Some(request) => request.getMethod
+        }
+        BWLogger.log(getClass.getName, method, s"WARN: NO timezone in project ${parent.name[String]}", optRequest)
         "GMT"
       }
     }

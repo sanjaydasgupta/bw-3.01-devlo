@@ -73,10 +73,10 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
 
   private def setUserTaskOffset(ut: Task, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setCriticalPath()", request)
+    val id = ut.getAttributeValue("id")
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setUserTaskOffset(id=$id, bpmnName=$bpmnName, offset=$offset)", request)
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     //val name = ut.getAttributeValue("name")
-    val id = ut.getAttributeValue("id")
     val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id)
     val updateResult = BWMongoDB3.activities.updateOne(query, Map($set -> Map("offset" -> offset)))
     if (updateResult.getMatchedCount == 0) {
@@ -117,32 +117,42 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
       case _ => throw new IllegalArgumentException("Bad phase: mis-configured processes")
     }
 
-    val duration = processDurationRecalculate(bpmnName, process, durations, request)
+    val duration = if (durations.isEmpty) {
+      processDurationRecalculate(bpmnName, process, Seq.empty, request)
+    } else {
+      if (bpmnName != process.bpmn_name[String]) {
+        processDurationRecalculate(process.bpmn_name[String], process, durations, request)
+        processDurationRecalculate(bpmnName, process, Seq.empty, request)
+      } else {
+        processDurationRecalculate(bpmnName, process, durations, request)
+      }
+    }
     duration
   }
 
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
       request: HttpServletRequest): Long = {
 
-    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String, seenNodes: Set[FlowNode]): Long = {
+    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {
 
       def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
         val previousNodes: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
-        val unseenPredecessors = previousNodes.diff(seenNodes.toSeq)
+        val unseenPredecessors = previousNodes//.diff(seenNodes.toSeq)
         unseenPredecessors
       }
 
       def maxPredecessorOffset(flowNode: FlowNode, stOffset: Long): Long = {
         val thePredecessors = predecessors(flowNode)
         if (thePredecessors.nonEmpty) {
-          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, prefix, seenNodes + predNode)).max
+          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, prefix/*, seenNodes + predNode*/)).max
         } else
-          0
+          stOffset
       }
 
       def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
-          map(n => getTimeOffset(n, stOffset, bpmnName, prefix, seenNodes + n)).min
+          map(n => getTimeOffset(n, stOffset, bpmnName, prefix/*, seenNodes + n*/)).min
 
+      //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY getTimeOffset(bpmnName=$bpmnName, startOffset=$startOffset)", request)
       val timeOffset = node match {
         case serviceTask: ServiceTask =>
           maxPredecessorOffset(serviceTask, startOffset)
@@ -172,7 +182,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
             val isTakt = callActivity.getLoopCharacteristics != null
             val duration = endEvents.map(endEvent =>
-                getTimeOffset(endEvent, callOffset, calledElement, prefix, seenNodes + endEvent)).max
+                getTimeOffset(endEvent, callOffset, calledElement, prefix/*, seenNodes + endEvent*/)).max
             if (isTakt) {
               70 // ToDo: Hardwired value for TAKT mockup
             } else {
@@ -198,7 +208,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
     val bpmnModel = bpmnModelInstance(bpmnName)
     val domPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, domPrefix, Set.empty[FlowNode])).max
+    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, domPrefix/*, Set.empty[FlowNode]*/)).max
     offset
   }
 

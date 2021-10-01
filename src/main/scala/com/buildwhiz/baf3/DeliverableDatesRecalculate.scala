@@ -4,17 +4,23 @@ import com.buildwhiz.baf2.PhaseApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.types.ObjectId
 import org.bson.Document
 
 import java.io.PrintWriter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
+class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private var writer: Option[PrintWriter] = None
-  private def write(s: String): Unit = writer.foreach(_.print(s))
+  private def respond(s: String): Unit = writer.foreach(_.print(s))
+  private var verboseSetting: Option[Boolean] = Some(true)
+  private val verbose = true
+//  private lazy val verbose = verboseSetting match {
+//    case Some(true) => true
+//    case _ => false
+//  }
 
   private var phaseRecord: Option[DynDoc] = None
   private lazy val activities = phaseRecord.map(p => PhaseApi.allActivities(p._id[ObjectId])).get
@@ -46,11 +52,16 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
   }
 
   private def addDaysToDate(date: Long, days: Int): Long = {
-    date + days * 86400 * 1000
+    date + days * 86400L * 1000L
+  }
+  private def msToDate(ms: Long): String = {
+    val phaseTimeZone = phaseRecord.map(p => PhaseApi.timeZone(p)).get
+    dateString(ms, phaseTimeZone)
   }
 
   private def earliestStartDate(deliverable: DynDoc, level: Int): Long = {
-    write("&nbsp;&nbsp;" * level + s"ENTRY EarliestStartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+    if (verbose)
+      respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level + s"ENTRY EarliestStartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
     if (constraintsByOwnerOid.contains(deliverable._id[ObjectId])) {
       val constraints = constraintsByOwnerOid(deliverable._id[ObjectId])
       val constraintEndDates: Seq[Long] = constraints.map(constraint => {
@@ -59,9 +70,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
           case "Document" | "Work" =>
             if (deliverablesByOid.contains(constraintOid)) {
               val constraintDeliverable = deliverablesByOid(constraintOid)
-              traverseOneTree(constraintDeliverable, level + 1)
+              val deliverableDate = traverseOneTree(constraintDeliverable, level + 1)
+              //if (verbose)
+              //  respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+              //    s"DELIVERABLE: ${constraintDeliverable.name[String]} = ${msToDate(deliverableDate)}<br/>")
+              deliverableDate
             } else {
-              write("&nbsp;&nbsp;" * (level + 1) + s"MISSING constraint-deliverable: $constraintOid<br/>")
+              respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) + s"MISSING constraint-deliverable: $constraintOid</font><br/>")
               -1
             }
           case "Material" | "Labor" | "Equipment" =>
@@ -71,10 +86,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
                 case Some(d) => addDaysToDate(phaseStartDate, d)
                 case None => phaseStartDate
               }
-              write("&nbsp;&nbsp;" * (level + 1) + s"PROCUREMENT: ${procurementRecord.name[String]} = $procurementDate<br/>")
+              if (verbose)
+                respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+                  s"PROCUREMENT: ${procurementRecord.name[String]} = ${msToDate(procurementDate)}<br/>")
               procurementDate
             } else {
-              write("&nbsp;&nbsp;" * (level + 1) + s"MISSING procurement: $constraintOid<br/>")
+              respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+                  s"MISSING procurement: $constraintOid</font><br/>")
               -1
             }
           case "Data" =>
@@ -84,10 +102,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
                 case Some(d) => addDaysToDate(phaseStartDate, d)
                 case None => phaseStartDate
               }
-              write("&nbsp;&nbsp;" * (level + 1) + s"DATA: ${keyDataRecord.name[String]} = $keyDataDate<br/>")
+              if (verbose)
+                respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+                  s"DATA: ${keyDataRecord.name[String]} = ${msToDate(keyDataDate)}<br/>")
               keyDataDate
             } else {
-              write("&nbsp;&nbsp;" * (level + 1) + s"MISSING key-data: $constraintOid<br/>")
+              respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+                  s"MISSING key-data: $constraintOid</font><br/>")
               -1
             }
         }
@@ -97,22 +118,31 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
       } else {
         phaseStartDate
       }
-      write("&nbsp;&nbsp;" * level + s"EXIT EarliestStartDate(${deliverable.name[String]})<br/>")
+      if (verbose)
+        respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
+          s"EXIT EarliestStartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart)}<br/>")
       dateStart
     } else {
-      write("&nbsp;&nbsp;" * (level + 1) + s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})<br/>")
-      write("&nbsp;&nbsp;" * level + s"EXIT EarliestStartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+      if (verbose)
+        respond("""<font color="blue">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+          s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
+      if (verbose)
+        respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
+          s"EXIT EarliestStartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(phaseStartDate)}<br/>")
       phaseStartDate
     }
   }
 
   private def traverseOneTree(deliverable: DynDoc, level: Int): Long = {
-    write("&nbsp;&nbsp;" * level + s"ENTRY TraverseOneTree(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+    if (verbose)
+      respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
+        s"ENTRY TraverseOneTree(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
     def setEndDate(deliverable: DynDoc, date: Long): Unit = {
       val updateResult = BWMongoDB3.deliverables.updateOne(Map("_id" -> deliverable._id[ObjectId]),
           Map($set -> Map("date_end_estimated" -> date)))
       if (updateResult.getMatchedCount == 0) {
-        write("&nbsp;&nbsp;" * (level + 1) + s"FAILED MongoDB update for ${deliverable.name[String]} (${deliverable._id[ObjectId]})<br/>")
+        respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
+            s"FAILED MongoDB update for ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
       }
     }
     val dateEnd = deliverable.get[Long]("date_end_actual") match {
@@ -131,7 +161,9 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
         }
         estimatedEndDate
     }
-    write("&nbsp;&nbsp;" * level + s"EXIT TraverseOneTree(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = $dateEnd<br/>")
+    if (verbose)
+      respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
+        s"EXIT TraverseOneTree(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd)}<br/>")
     dateEnd
   }
 
@@ -139,14 +171,17 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
     val t0 = System.currentTimeMillis
     val constraintsByConstraintOid = constraints.groupBy(_.constraint_id[ObjectId])
     val endDeliverables = deliverables.filter(d => !constraintsByConstraintOid.contains(d._id[ObjectId]))
-    write(s"""${endDeliverables.length} End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/>""")
+    if (verbose)
+      respond(s"""${endDeliverables.length} End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
     for (endDeliverable <- endDeliverables) {
-      traverseOneTree(endDeliverable, 1)
+      traverseOneTree(endDeliverable, 0)
+      if (verbose)
+        respond("<br/>")
     }
     val leafDeliverables = deliverables.filter(d => !constraintsByOwnerOid.contains(d._id[ObjectId]))
     //val soloDeliverables = endDeliverables.filter(d => leafDeliverables.map(_._id[ObjectId]).contains(d._id[ObjectId]))
     val delay = System.currentTimeMillis - t0
-    write(s"time: $delay ms<br/>")
+    respond(s"<br/>time: $delay ms<br/>")
     val resutlDoc: Document = Map(
         //"solo_deliverables" ->
         //  soloDeliverables.map(d => Map("name" -> d.name[String], "type" -> d.deliverable_type[String])),
@@ -162,25 +197,33 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
-      response.setContentType("text/html")
       writer = Some(response.getWriter)
-      write("<html><br/>")
       val parameters = getParameterMap(request)
+      //respond(s"BEFORE: verboseSetting: $verboseSetting")
+      //respond(s"""BEFORE: parameters.get("verbose"): ${parameters.get("verbose")}""")
+      verboseSetting = parameters.get("verbose") match {
+        case None => Some(false)
+        case Some(v) => Some(v.toBoolean)
+      }
+      //respond(s"AFTER: verboseSetting: $verboseSetting, verbose: $verbose")
       val phaseOid = new ObjectId(parameters("phase_id"))
       phaseRecord = Some(PhaseApi.phaseById(phaseOid))
-      write(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
-      write(s"Procurements: ${procurementsByOid.size}, KeyData: ${keyDataByOid.size}<br/>")
+      respond("<html><br/><tt>")
+      if (verbose)
+        respond(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
+      if (verbose)
+        respond(s"Procurements: ${procurementsByOid.size}, KeyData: ${keyDataByOid.size}<br/><br/>")
       val timestamps: Option[DynDoc] = phaseRecord.map(_.timestamps[Document])
       timestamps.flatMap(_.get[Long]("date_start_estimated")) match {
         case Some(dse) => phaseStartDate = dse
-          val result = phaseRecord.map(_ => traverseAllTrees()).get
+          phaseRecord.map(_ => traverseAllTrees())
           //response.getWriter.print(result.toJson)
           response.setStatus(HttpServletResponse.SC_OK)
           BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
         case None =>
           BWLogger.log(getClass.getName, request.getMethod, "EXIT-WARN: phase start-date undefined", request)
       }
-      write("</html>")
+      respond("</tt></html>")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

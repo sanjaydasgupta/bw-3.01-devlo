@@ -149,7 +149,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case Some(dateEndActual) =>
         dateEndActual
       case _ =>
-        val esd = earliestStartDate(deliverable, level)
+        val esd = earliestStartDate(deliverable, level + 1)
         val estimatedEndDate = addDaysToDate(esd, deliverable.duration[Int])
         deliverable.get[Long]("date_end_estimated") match {
           case Some(des) =>

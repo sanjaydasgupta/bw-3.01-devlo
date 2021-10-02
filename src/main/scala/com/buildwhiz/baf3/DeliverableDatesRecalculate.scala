@@ -16,45 +16,18 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private var writer: Option[PrintWriter] = None
   private def respond(s: String): Unit = writer.foreach(_.print(s))
 
-  private var phaseRecord: Option[DynDoc] = None
-  private lazy val activities = phaseRecord.map(p => PhaseApi.allActivities(p._id[ObjectId])).get
-  private var phaseStartDate: Long = 0
-
-  private lazy val procurementsByOid: Map[ObjectId, DynDoc] = {
-    val procurements: Seq[DynDoc] =
-        BWMongoDB3.procurements.find(Map("activity_id" -> Map($in -> activities.map(_._id[ObjectId]))))
-    procurements.map(_._id[ObjectId]).zip(procurements).toMap
-  }
-
-  private lazy val keyDataByOid: Map[ObjectId, DynDoc] = {
-    val project = phaseRecord.map(p => PhaseApi.parentProject(p._id[ObjectId])).get
-    val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
-    keyData.map(_._id[ObjectId]).zip(keyData).toMap
-  }
-
-  private lazy val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
-  private lazy val deliverableOids = deliverables.map(_._id[ObjectId])
-  private lazy val deliverablesByOid: Map[ObjectId, DynDoc] = {
-    deliverableOids.zip(deliverables).toMap
-  }
-
-  private lazy val constraints: Seq[DynDoc] = {
-    BWMongoDB3.constraints.find(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
-  }
-  private lazy val constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]] = {
-    constraints.groupBy(_.owner_deliverable_id[ObjectId])
-  }
-
   private def addDaysToDate(date: Long, days: Int): Long = {
     val millisecondsPerDay = 86400000L
     date + days * millisecondsPerDay
   }
-  private def msToDate(ms: Long): String = {
-    val phaseTimeZone = phaseRecord.map(p => PhaseApi.timeZone(p)).get
-    dateString(ms, phaseTimeZone)
+  private def msToDate(ms: Long, timezone: String): String = {
+    dateString(ms, timezone)
   }
 
-  private def startDate(deliverable: DynDoc, level: Int, verbose: Boolean): Long = {
+  private def startDate(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc], deliverable: DynDoc,
+      deliverablesByOid: Map[ObjectId, DynDoc], constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]],
+      procurementsByOid: Map[ObjectId, DynDoc], keyDataByOid: Map[ObjectId, DynDoc], level: Int,
+      verbose: Boolean): Long = {
     if (verbose)
       respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
           s"ENTRY StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
@@ -66,7 +39,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
           case "Document" | "Work" =>
             if (deliverablesByOid.contains(constraintOid)) {
               val constraintDeliverable = deliverablesByOid(constraintOid)
-              val deliverableDate = EndDate(constraintDeliverable, level + 1, verbose)
+              val deliverableDate = endDate(timezone, phaseStartDate, activities, constraintDeliverable,
+                deliverablesByOid, constraintsByOwnerOid, procurementsByOid, keyDataByOid, level + 1, verbose)
               //if (verbose)
               //  respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
               //    s"DELIVERABLE: ${constraintDeliverable.name[String]} = ${msToDate(deliverableDate)}<br/>")
@@ -85,7 +59,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               }
               if (verbose)
                 respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
-                  s"PROCUREMENT End-Date: ${procurementRecord.name[String]} ($constraintOid) = ${msToDate(procurementDate)}<br/>")
+                  s"PROCUREMENT End-Date: ${procurementRecord.name[String]} ($constraintOid) = ${msToDate(procurementDate, timezone)}<br/>")
               procurementDate
             } else {
               respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
@@ -101,7 +75,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               }
               if (verbose)
                 respond("&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
-                  s"DATA End-Date: ${keyDataRecord.name[String]} ($constraintOid) = ${msToDate(keyDataDate)}<br/>")
+                  s"DATA End-Date: ${keyDataRecord.name[String]} ($constraintOid) = ${msToDate(keyDataDate, timezone)}<br/>")
               keyDataDate
             } else {
               respond("""<font color="red">""" + "&nbsp;&nbsp;&nbsp;&nbsp;" * (level + 1) +
@@ -117,7 +91,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       }
       if (verbose)
         respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
-          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart)}<br/>")
+          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart, timezone)}<br/>")
       dateStart
     } else {
       if (verbose)
@@ -125,12 +99,15 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
           s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
       if (verbose)
         respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
-          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(phaseStartDate)}<br/>")
+          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(phaseStartDate, timezone)}<br/>")
       phaseStartDate
     }
   }
 
-  private def EndDate(deliverable: DynDoc, level: Int, verbose: Boolean): Long = {
+  private def endDate(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc], deliverable: DynDoc,
+      deliverablesByOid: Map[ObjectId, DynDoc], constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]],
+      procurementsByOid: Map[ObjectId, DynDoc], keyDataByOid: Map[ObjectId, DynDoc], level: Int,
+      verbose: Boolean): Long = {
     if (verbose)
       respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
         s"ENTRY EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
@@ -146,7 +123,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case Some(dateEndActual) =>
         dateEndActual
       case _ =>
-        val estimatedStartDate = startDate(deliverable, level + 1, verbose)
+        val estimatedStartDate = startDate(timezone, phaseStartDate, activities, deliverable, deliverablesByOid, constraintsByOwnerOid,
+            procurementsByOid, keyDataByOid, level + 1, verbose)
         val estimatedEndDate = addDaysToDate(estimatedStartDate, deliverable.duration[Int])
         deliverable.get[Long]("date_end_estimated") match {
           case Some(existingEndDate) =>
@@ -179,17 +157,21 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
     if (verbose)
       respond("&nbsp;&nbsp;&nbsp;&nbsp;" * level +
-        s"EXIT EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd)}<br/>")
+        s"EXIT EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd, timezone)}<br/>")
     dateEnd
   }
 
-  private def traverseAllTrees(verbose: Boolean): Unit = {
+  private def traverseAllTrees(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc], deliverables: Seq[DynDoc],
+      deliverablesByOid: Map[ObjectId, DynDoc], constraints: Seq[DynDoc],
+      constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]], procurementsByOid: Map[ObjectId, DynDoc],
+      keyDataByOid: Map[ObjectId, DynDoc], verbose: Boolean): Unit = {
     val constraintsByConstraintOid = constraints.groupBy(_.constraint_id[ObjectId])
     val endDeliverables = deliverables.filter(d => !constraintsByConstraintOid.contains(d._id[ObjectId]))
     if (verbose)
       respond(s"""${endDeliverables.length} End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
     for (endDeliverable <- endDeliverables) {
-      EndDate(endDeliverable, 0, verbose)
+      endDate(timezone, phaseStartDate, activities, endDeliverable, deliverablesByOid, constraintsByOwnerOid, procurementsByOid,
+          keyDataByOid, 0, verbose)
       if (verbose)
         respond("<br/>")
     }
@@ -199,12 +181,29 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     val t0 = System.currentTimeMillis
     val parameters = getParameterMap(request)
     val phaseOid = new ObjectId(parameters("phase_id"))
-    phaseRecord = Some(PhaseApi.phaseById(phaseOid))
-    val timestamps: Option[DynDoc] = phaseRecord.map(_.timestamps[Document])
+    val phaseRecord = PhaseApi.phaseById(phaseOid)
+    val timezone = PhaseApi.timeZone(phaseRecord)
+    val activities = PhaseApi.allActivities(phaseRecord._id[ObjectId])
+    val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+    val deliverableOids = deliverables.map(_._id[ObjectId])
+    val deliverablesByOid: Map[ObjectId, DynDoc] = deliverableOids.zip(deliverables).toMap
+    val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
+    val constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]] = constraints.groupBy(_.owner_deliverable_id[ObjectId])
+    val procurementsByOid: Map[ObjectId, DynDoc] = {
+      val procurements: Seq[DynDoc] =
+        BWMongoDB3.procurements.find(Map("activity_id" -> Map($in -> activities.map(_._id[ObjectId]))))
+      procurements.map(_._id[ObjectId]).zip(procurements).toMap
+    }
+    val keyDataByOid: Map[ObjectId, DynDoc] = {
+      val project = PhaseApi.parentProject(phaseRecord._id[ObjectId])
+      val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
+      keyData.map(_._id[ObjectId]).zip(keyData).toMap
+    }
+    val timestamps: DynDoc = phaseRecord.timestamps[Document]
     if (verbose) {
       respond("<html><br/><tt>")
-      timestamps.flatMap(_.get[Long]("date_start_estimated")) match {
-        case Some(dse) => respond(s"Phase 'date_start_estimated': ${msToDate(dse)}<br/>")
+      timestamps.get[Long]("date_start_estimated") match {
+        case Some(dse) => respond(s"Phase 'date_start_estimated': ${msToDate(dse, timezone)}<br/>")
         case None => respond("WARNING: project has no \'date_start_estimated\'")
       }
       respond(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
@@ -213,9 +212,10 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       respond(s"With 'date_end_estimated': ${withDate.length}, Without 'date_end_estimated': ${withoutDate.length}<br/>")
       respond("<br/>")
     }
-    timestamps.flatMap(_.get[Long]("date_start_estimated")) match {
-      case Some(dse) => phaseStartDate = dse
-        phaseRecord.foreach(_ => traverseAllTrees(verbose))
+    timestamps.get[Long]("date_start_estimated") match {
+      case Some(phaseStartDate) =>
+        traverseAllTrees(timezone, phaseStartDate, activities, deliverables, deliverablesByOid,
+            constraints, constraintsByOwnerOid, procurementsByOid, keyDataByOid, verbose)
       case None =>
         BWLogger.log(getClass.getName, request.getMethod, "WARN: phase start-date undefined", request)
     }

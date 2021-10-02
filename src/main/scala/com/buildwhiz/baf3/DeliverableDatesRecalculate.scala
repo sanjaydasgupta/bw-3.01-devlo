@@ -5,13 +5,17 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
+import com.mongodb.client.model.UpdateOneModel
 import org.bson.types.ObjectId
 import org.bson.Document
 
+import scala.collection.mutable
+import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
-  
+
+  private val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
   private val margin = "|&nbsp;&nbsp;&nbsp;"
 
   case class Globals(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc], deliverables: Seq[DynDoc],
@@ -108,12 +112,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       g.respond(margin * level +
         s"ENTRY EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
     def setEndDate(deliverable: DynDoc, date: Long): Unit = {
-      val updateResult = BWMongoDB3.deliverables.updateOne(Map("_id" -> deliverable._id[ObjectId]),
-          Map($set -> Map("date_end_estimated" -> date)))
-      if (updateResult.getMatchedCount == 0) {
-        g.respond("""<font color="red">""" + margin * (level + 1) +
-            s"FAILED MongoDB update for ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
-      }
+      bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
+          new Document($set, new Document("date_end_estimated", date))))
     }
     val dateEnd = deliverable.get[Long]("date_end_actual") match {
       case Some(dateEndActual) =>
@@ -153,12 +153,25 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private def traverseAllTrees(verbose: Boolean, g: Globals): Unit = {
     val constraintsByConstraintOid = g.constraints.groupBy(_.constraint_id[ObjectId])
     val endDeliverables = g.deliverables.filter(d => !constraintsByConstraintOid.contains(d._id[ObjectId]))
-    if (verbose)
+    if (verbose) {
       g.respond(s"""${endDeliverables.length} End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
+    }
+    bulkWriteBuffer.clear()
     for (endDeliverable <- endDeliverables) {
       endDate(endDeliverable, 0, verbose, g)
       if (verbose)
         g.respond("<br/>")
+    }
+    if (bulkWriteBuffer.nonEmpty) {
+      g.respond(s"MongoDB Bulk-Write: will attempt ${bulkWriteBuffer.length} updates<br/>")
+      val bulkWriteResult = BWMongoDB3.deliverables.bulkWrite(bulkWriteBuffer.asJava)
+      if (bulkWriteResult.getModifiedCount == 0) {
+        g.respond("""<font color="red">MongoDB Bulk-Write: FAILED<font/><br/>""")
+      } else {
+        g.respond(s"""<font color="green">MongoDB Bulk-Write: updated ${bulkWriteResult.getModifiedCount} records<font/><br/>""")
+      }
+    } else {
+      g.respond(s"""<font color="green">MongoDB Bulk-Write: NO updates needed<font/><br/>""")
     }
   }
 

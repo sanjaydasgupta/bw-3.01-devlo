@@ -9,6 +9,7 @@ import com.mongodb.client.model.UpdateOneModel
 import org.bson.types.ObjectId
 import org.bson.Document
 
+import java.io.{ByteArrayOutputStream, PrintWriter}
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -216,7 +217,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
             constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
         traverseAllTrees(verbose, globals)
       case None =>
-        BWLogger.log(getClass.getName, request.getMethod, "WARN: phase start-date undefined", request)
+        BWLogger.log(getClass.getName, request.getMethod, "WARN: phase start-date undefined. Dates NOT calculated", request)
     }
     response.setStatus(HttpServletResponse.SC_OK)
     val delay = System.currentTimeMillis - t0
@@ -249,14 +250,19 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
     try {
+      val  printByteStream = new ByteArrayOutputStream()
+      val writer = new PrintWriter(printByteStream)
+      val delay = processDeliverables(msg => writer.print(msg), request, response, verbose = false)
+      writer.flush()
+      val messages = printByteStream.toString.replaceAll("[<][^>]+[>]", "").trim()
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) messages: $messages", request)
       response.setContentType("application/json")
-      processDeliverables(msg => writer.print(msg), request, response, verbose = false)
+      response.getWriter.print(successJson(fields = Map("messages" -> messages, "delay" -> delay)))
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace(writer)
+        t.printStackTrace(response.getWriter)
       //throw t
     }
   }

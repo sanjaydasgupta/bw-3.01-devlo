@@ -21,9 +21,12 @@ class ProjectList extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val scope = parameters.getOrElse("scope", "all")
-      parameters.get("reset_persona").map(_.toBoolean) match {
-        case Some(true) => resetPersona(request)
-        case _ => // do nothing (default project list call)
+      val isPageDisplayRequest = parameters.get("reset_persona").map(_.toBoolean) match {
+        case Some(true) =>
+          resetPersona(request)
+          true
+        case _ => // for context-management popup
+          false
       }
       val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
@@ -33,7 +36,9 @@ class ProjectList extends HttpServlet with HttpUtils {
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
           append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), starting = true))
-      uiContextSelectedManaged(request, Some((false, false)))
+      if (isPageDisplayRequest) {
+        uiContextSelectedManaged(request, Some((false, false)))
+      }
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

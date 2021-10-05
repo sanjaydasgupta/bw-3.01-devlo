@@ -37,7 +37,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
   }
 
   private def executeNodeRequest(request: HttpServletRequest, response: HttpServletResponse,
-      nodeRequest: HttpRequestBase): Unit = {
+      nodeRequest: HttpRequestBase, t0: Long): Unit = {
     def exitStatus(httpResponse: HttpResponse): String = {
       if (httpResponse.getStatusLine.getStatusCode == 200) {
         "OK"
@@ -45,7 +45,9 @@ object NodeConnector extends HttpServlet with HttpUtils {
         s"WARN ${httpResponse.getStatusLine.getStatusCode} (${httpResponse.getStatusLine.getReasonPhrase})"
       }
     }
+    val t1 = System.currentTimeMillis()
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
+    val delay1 = System.currentTimeMillis() - t1
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
     response.setStatus(nodeResponse.getStatusLine.getStatusCode)
     val nodeEntity = nodeResponse.getEntity
@@ -77,15 +79,17 @@ object NodeConnector extends HttpServlet with HttpUtils {
       exitStatus(nodeResponse)
     }
     nodeRequest.releaseConnection()
-    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-$message", request)
+    val delay = System.currentTimeMillis() - t0
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT (total-time: $delay ms, node-time: $delay1 ms) - $message", request)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val t0 = System.currentTimeMillis()
     try {
       val httpGet = new HttpGet(nodeUri(request))
       request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
-      executeNodeRequest(request, response, httpGet)
+      executeNodeRequest(request, response, httpGet, t0)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -96,6 +100,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val t0 = System.currentTimeMillis()
     try {
       val httpPost = new HttpPost(nodeUri(request))
       request.getHeaderNames.asScala.filterNot(_ == "Content-Length").
@@ -124,7 +129,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException(s"unknown contentType: '$contentType'")
       }
       httpPost.removeHeaders("Content-Length")
-      executeNodeRequest(request, response, httpPost)
+      executeNodeRequest(request, response, httpPost, t0)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

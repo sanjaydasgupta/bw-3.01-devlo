@@ -13,6 +13,7 @@ class PersonList2 extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val t0 = System.currentTimeMillis()
     val parameters = getParameterMap(request)
     try {
       val skillOption: Option[String] = parameters.get("skill")
@@ -38,7 +39,8 @@ class PersonList2 extends HttpServlet with HttpUtils {
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${persons.length})", request)
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${persons.length}, time: $delay ms)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

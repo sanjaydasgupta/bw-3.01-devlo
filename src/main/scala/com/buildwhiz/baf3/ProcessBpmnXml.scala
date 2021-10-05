@@ -260,6 +260,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
+    val t0 = System.currentTimeMillis()
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getPersona(request)
@@ -334,7 +335,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

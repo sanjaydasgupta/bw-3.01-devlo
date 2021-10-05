@@ -16,6 +16,7 @@ class PartnerInfo extends HttpServlet with HttpUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
 
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val t0 = System.currentTimeMillis()
     val parameters = getParameterMap(request)
     try {
       val organizationOid = new ObjectId(parameters("organization_id"))
@@ -23,7 +24,8 @@ class PartnerInfo extends HttpServlet with HttpUtils {
       response.getWriter.print(PartnerInfo.partner2Document(orgRecord, getPersona(request)).toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

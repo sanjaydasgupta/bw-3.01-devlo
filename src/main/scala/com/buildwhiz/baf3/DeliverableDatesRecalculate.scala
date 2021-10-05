@@ -255,7 +255,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       val writer = new PrintWriter(printByteStream)
       val delay = processDeliverables(msg => writer.print(msg), request, response, verbose = false)
       writer.flush()
-      val messages = printByteStream.toString.replaceAll("[<][^>]+[>]", "").trim()
+      val messages = printByteStream.toString.replaceAll("[&][^;]+[;]", "").replaceAll("[<]br/[>]", "\n").
+          replaceAll("[<][^>]+[>]", "").trim()
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) messages: $messages", request)
       response.setContentType("application/json")
       response.getWriter.print(successJson(fields = Map("messages" -> messages, "delay" -> delay)))

@@ -182,7 +182,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     val phaseOid = new ObjectId(parameters("phase_id"))
     val phaseRecord = PhaseApi.phaseById(phaseOid)
     val timezone = PhaseApi.timeZone(phaseRecord)
-    val activities = PhaseApi.allActivities(phaseRecord._id[ObjectId])
+    val activities = PhaseApi.allActivities30(Right(phaseRecord))
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
     val deliverableOids = deliverables.map(_._id[ObjectId])
     val deliverablesByOid: Map[ObjectId, DynDoc] = deliverableOids.zip(deliverables).toMap

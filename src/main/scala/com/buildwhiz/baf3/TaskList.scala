@@ -16,7 +16,7 @@ class TaskList extends HttpServlet with HttpUtils {
     val phaseOid = new ObjectId(parameters("phase_id"))
     try {
 
-      val activities: Seq[Document] = PhaseApi.allActivities(phaseOid).map(activity => {
+      val activities: Seq[Document] = PhaseApi.allActivities30(Left(phaseOid)).map(activity => {
         val fullPathName = activity.get[String]("full_path_name") match {
           case Some(fpn) => fpn
           case None => activity.name[String]

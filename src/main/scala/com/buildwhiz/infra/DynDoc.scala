@@ -36,6 +36,8 @@ object DynDoc {
 
   implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala
 
+  implicit def seq2many[T](seq: Seq[T]): Many[T] = seq.asJava
+
   implicit def javaDocList2DynDocSeq(ds: Many[Document]): Seq[DynDoc] = {
 
     import org.bson.Document

@@ -33,9 +33,10 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   }
 
   private def startDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
-    if (verbose)
+    if (verbose) {
       g.respond(margin * level +
           s"ENTRY StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+    }
     if (g.constraintsByOwnerOid.contains(deliverable._id[ObjectId])) {
       val constraints = g.constraintsByOwnerOid(deliverable._id[ObjectId])
       val constraintEndDates: Seq[Long] = constraints.map(constraint => {
@@ -51,7 +52,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               deliverableDate
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
-                  s"MISSING constraint-deliverable: $constraintOid</font><br/>")
+                  s"ERROR: MISSING constraint-deliverable: $constraintOid</font><br/>")
               -1
             }
           case "Material" | "Labor" | "Equipment" =>
@@ -67,7 +68,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               procurementDate
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
-                  s"MISSING procurement: $constraintOid</font><br/>")
+                  s"ERROR: MISSING procurement: $constraintOid</font><br/>")
               -1
             }
           case "Data" =>
@@ -77,13 +78,14 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
                 case Some(d) => addDaysToDate(g.phaseStartDate, d)
                 case None => g.phaseStartDate
               }
-              if (verbose)
+              if (verbose) {
                 g.respond(margin * (level + 1) +
                   s"DATA End-Date: ${keyDataRecord.name[String]} ($constraintOid) = ${msToDate(keyDataDate, g.timezone)}<br/>")
+              }
               keyDataDate
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
-                  s"MISSING data: $constraintOid</font><br/>")
+                  s"ERROR: MISSING data: $constraintOid</font><br/>")
               -1
             }
         }
@@ -93,25 +95,27 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       } else {
         g.phaseStartDate
       }
-      if (verbose)
+      if (verbose) {
         g.respond(margin * level +
           s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart, g.timezone)}<br/>")
+      }
       dateStart
     } else {
-      if (verbose)
+      if (verbose) {
         g.respond("""<font color="blue">""" + margin * (level + 1) +
           s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
-      if (verbose)
         g.respond(margin * level +
           s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(g.phaseStartDate, g.timezone)}<br/>")
+      }
       g.phaseStartDate
     }
   }
 
   private def endDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
-    if (verbose)
+    if (verbose) {
       g.respond(margin * level +
         s"ENTRY EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+    }
     def setEndDate(deliverable: DynDoc, date: Long): Unit = {
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
           new Document($set, new Document("date_end_estimated", date))))
@@ -145,13 +149,14 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         }
         estimatedEndDate
     }
-    if (verbose)
+    if (verbose) {
       g.respond(margin * level +
         s"EXIT EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd, g.timezone)}<br/>")
+    }
     dateEnd
   }
 
-  private def traverseAllTrees(verbose: Boolean, g: Globals): Unit = {
+  private def traverseAllTrees(verbose: Boolean, g: Globals, request: HttpServletRequest): Unit = {
     val constraintsByConstraintOid = g.constraints.groupBy(_.constraint_id[ObjectId])
     val endDeliverables = g.deliverables.filter(d => !constraintsByConstraintOid.contains(d._id[ObjectId]))
     if (verbose) {
@@ -160,19 +165,24 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     bulkWriteBuffer.clear()
     for (endDeliverable <- endDeliverables) {
       endDate(endDeliverable, 0, verbose, g)
-      if (verbose)
+      if (verbose) {
         g.respond("<br/>")
+      }
     }
     if (bulkWriteBuffer.nonEmpty) {
-      g.respond(s"MongoDB Bulk-Write: will attempt ${bulkWriteBuffer.length} updates<br/>")
+      BWLogger.log(getClass.getName, request.getMethod,
+          s"traverseAllTrees() - MongoDB Bulk-Write: will attempt ${bulkWriteBuffer.length} updates", request)
       val bulkWriteResult = BWMongoDB3.deliverables.bulkWrite(bulkWriteBuffer.asJava)
       if (bulkWriteResult.getModifiedCount == 0) {
-        g.respond("""<font color="red">MongoDB Bulk-Write: FAILED<font/><br/>""")
+        BWLogger.log(getClass.getName, request.getMethod, "ERROR: MongoDB Bulk-Write FAILED", request)
+        g.respond("""<font color="red">ERROR: MongoDB Bulk-Write FAILED<font/><br/>""")
       } else {
-        g.respond(s"""<font color="green">MongoDB Bulk-Write: updated ${bulkWriteResult.getModifiedCount} records<font/><br/>""")
+        BWLogger.log(getClass.getName, request.getMethod,
+          s"traverseAllTrees() - MongoDB Bulk-Write: updated ${bulkWriteResult.getModifiedCount} records", request)
       }
     } else {
-      g.respond(s"""<font color="green">MongoDB Bulk-Write: NO updates needed<font/><br/>""")
+      BWLogger.log(getClass.getName, request.getMethod,
+        "traverseAllTrees() - MongoDB Bulk-Write: NO updates needed", request)
     }
   }
 
@@ -215,7 +225,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case Some(phaseStartDate) =>
         val globals = Globals(timezone, phaseStartDate, activities, deliverables, constraints, deliverablesByOid,
             constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
-        traverseAllTrees(verbose, globals)
+        traverseAllTrees(verbose, globals, request)
       case None =>
         BWLogger.log(getClass.getName, request.getMethod, "WARN: phase start-date undefined. Dates NOT calculated", request)
     }
@@ -255,9 +265,14 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       val writer = new PrintWriter(printByteStream)
       val delay = processDeliverables(msg => writer.print(msg), request, response, verbose = false)
       writer.flush()
-      val messages = printByteStream.toString.replaceAll("[&][^;]+[;]", "").replaceAll("[<]br/[>]", "\n").
+      val cleanMessages = printByteStream.toString.replaceAll("[&][^;]+[;]", "").replaceAll("[<]br/[>]", ", ").
           replaceAll("[<][^>]+[>]", "").trim()
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) messages: $messages", request)
+      val messages = if (cleanMessages.contains("ERROR")) {
+        cleanMessages
+      } else {
+        ""
+      }
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) messages: $cleanMessages", request)
       response.setContentType("application/json")
       response.getWriter.print(successJson(fields = Map("messages" -> messages, "delay" -> delay)))
     } catch {

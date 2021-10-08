@@ -11,6 +11,7 @@ import org.camunda.bpm.model.bpmn.instance._
 
 import javax.servlet.http.HttpServletRequest
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
@@ -89,7 +90,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], activitiesByBpmnNameAndId: Map[(String, String), DynDoc],
-      request: HttpServletRequest): Long = {
+      buffer: mutable.Buffer[String], request: HttpServletRequest): Long = {
     activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
       case Some(theActivity) =>
         val activityDurations = durations.filter(_._1 == "A").map(t => (new ObjectId(t._2), t._3)).toMap
@@ -103,7 +104,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
         }
       case None =>
         val message = s"id: $bpmnId, process: ${process.name[String]}, bpmnName: $bpmnName"
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getActivityDuration() cant find $message", request)
+        buffer.append(message)
         0
     }
   }
@@ -135,6 +136,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val activities = ProcessApi.allActivities(process)
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id), a)).toMap
+    val messages = mutable.ListBuffer[String]()
 
     def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {
 
@@ -163,7 +165,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           val offset = maxPredecessorOffset(aTask, startOffset)
           if (durations.nonEmpty)
             setUserTaskOffset(aTask, process, bpmnName, offset, request)
-          offset + getActivityDuration(aTask.getId, process, bpmnName, durations, activitiesByBpmnNameAndId, request)
+          offset + getActivityDuration(aTask.getId, process, bpmnName, durations, activitiesByBpmnNameAndId,
+              messages, request)
         case _: StartEvent =>
           startOffset
         case parallelGateway: ParallelGateway =>
@@ -178,7 +181,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
         case callActivity: CallActivity =>
           val calledElement = callActivity.getCalledElement
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
-            getActivityDuration(callActivity.getId, process, bpmnName, durations, activitiesByBpmnNameAndId, request)
+            getActivityDuration(callActivity.getId, process, bpmnName, durations, activitiesByBpmnNameAndId,
+                messages, request)
           } else {
             val callOffset = maxPredecessorOffset(callActivity, startOffset)
             val bpmnModel2 = bpmnModelInstance(calledElement)
@@ -212,6 +216,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val domPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, domPrefix/*, Set.empty[FlowNode]*/)).max
+    if (messages.nonEmpty) {
+      BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
+    }
     offset
   }
 

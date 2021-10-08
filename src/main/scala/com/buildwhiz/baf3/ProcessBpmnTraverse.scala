@@ -1,10 +1,10 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.{ActivityApi, PhaseApi}
+import com.buildwhiz.baf2.{ActivityApi, PhaseApi, ProcessApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils._
+import com.buildwhiz.utils.{BpmnUtils, BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance._
@@ -12,7 +12,7 @@ import org.camunda.bpm.model.bpmn.instance._
 import javax.servlet.http.HttpServletRequest
 import scala.collection.JavaConverters._
 
-object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtils with BpmnUtils {
+object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
@@ -88,10 +88,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   }
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
-      durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
-    val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId)
-    BWMongoDB3.activities.find(query).headOption match {
+      durations: Seq[(String, String, Int)], activitiesByBpmnNameAndId: Map[(String, String), DynDoc],
+      request: HttpServletRequest): Long = {
+    activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
       case Some(theActivity) =>
         val activityDurations = durations.filter(_._1 == "A").map(t => (new ObjectId(t._2), t._3)).toMap
         if (activityDurations.contains(theActivity._id[ObjectId])) {
@@ -133,6 +132,10 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
       request: HttpServletRequest): Long = {
 
+    val activities = ProcessApi.allActivities(process)
+    val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
+        activities.map(a => ((a.bpmn_name[String], a.bpmn_id), a)).toMap
+
     def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {
 
       def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
@@ -160,7 +163,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
           val offset = maxPredecessorOffset(aTask, startOffset)
           if (durations.nonEmpty)
             setUserTaskOffset(aTask, process, bpmnName, offset, request)
-          offset + getActivityDuration(aTask.getId, process, bpmnName, durations, request)
+          offset + getActivityDuration(aTask.getId, process, bpmnName, durations, activitiesByBpmnNameAndId, request)
         case _: StartEvent =>
           startOffset
         case parallelGateway: ParallelGateway =>
@@ -175,7 +178,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with ProjectUtil
         case callActivity: CallActivity =>
           val calledElement = callActivity.getCalledElement
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
-            getActivityDuration(callActivity.getId, process, bpmnName, durations, request)
+            getActivityDuration(callActivity.getId, process, bpmnName, durations, activitiesByBpmnNameAndId, request)
           } else {
             val callOffset = maxPredecessorOffset(callActivity, startOffset)
             val bpmnModel2 = bpmnModelInstance(calledElement)

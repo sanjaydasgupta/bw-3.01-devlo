@@ -21,6 +21,8 @@ object DeliverableApi {
   def deliverablesByActivityOids(activityOids: Seq[ObjectId]): Seq[DynDoc] =
       BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> activityOids)))
 
+  def parentActivityOid(deliverable: DynDoc): ObjectId = deliverable.activity_id[ObjectId]
+
   private val rawExternalStatusMap: Map[String, String] = Map(
     "Not-Started" -> "Not-Started", "Pre-Approved" -> "Not-Started", "Deliverable-Started" -> "Active",
     "Deliverable-Started And Pre-Approved" -> "Active", "Deliverable-Completed" -> "Review",

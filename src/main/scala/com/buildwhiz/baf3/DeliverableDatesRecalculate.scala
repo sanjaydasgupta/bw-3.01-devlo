@@ -35,7 +35,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private def startDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
       g.respond(margin * level +
-          s"ENTRY StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
     }
     if (g.constraintsByOwnerOid.contains(deliverable._id[ObjectId])) {
       val constraints = g.constraintsByOwnerOid(deliverable._id[ObjectId])
@@ -97,7 +97,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       }
       if (verbose) {
         g.respond(margin * level +
-          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart, g.timezone)}<br/>")
+          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart, g.timezone)}<br/>")
       }
       dateStart
     } else {
@@ -105,7 +105,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         g.respond("""<font color="blue">""" + margin * (level + 1) +
           s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
         g.respond(margin * level +
-          s"EXIT StartDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(g.phaseStartDate, g.timezone)}<br/>")
+          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(g.phaseStartDate, g.timezone)}<br/>")
       }
       g.phaseStartDate
     }
@@ -114,15 +114,17 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private def endDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
       g.respond(margin * level +
-        s"ENTRY EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+        s"EndDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
     }
     def setEndDate(deliverable: DynDoc, date: Long): Unit = {
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
           new Document($set, new Document("date_end_estimated", date))))
     }
-    val dateEnd = deliverable.get[Long]("date_end_actual") match {
-      case Some(dateEndActual) =>
+    val dateEnd = Seq("date_end_actual", "commit_date").map(deliverable.get[Long]) match {
+      case Seq(Some(dateEndActual), _) =>
         dateEndActual
+      case Seq(None, Some(commitDate)) =>
+        commitDate
       case _ =>
         val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
         val estimatedEndDate = addDaysToDate(estimatedStartDate, deliverable.duration[Int])
@@ -151,7 +153,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
     if (verbose) {
       g.respond(margin * level +
-        s"EXIT EndDate(${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd, g.timezone)}<br/>")
+        s"EndDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd, g.timezone)}<br/>")
     }
     dateEnd
   }

@@ -47,7 +47,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     PhaseApi.canManage(userOid, phase)
   }
 
-  private def getDeliverables(phase: DynDoc, user: DynDoc): Seq[DynDoc] = {
+  private def getDeliverables(phase: DynDoc, user: DynDoc, request: HttpServletRequest): Seq[DynDoc] = {
+    val t0 = System.currentTimeMillis()
     val phaseTeamOids = PhaseApi.allTeamOids30(phase).toSet
     val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
     val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
@@ -55,11 +56,15 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case Some(process) => ProcessApi.allActivities(process).map(_._id[ObjectId])
       case None => Seq.empty
     }
-    BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> phaseActivityOids),
+    val deliverables = BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> phaseActivityOids),
       "team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> myPhaseTeams.map(_._id[ObjectId]))))))
+    val delay = System.currentTimeMillis() - t0
+    BWLogger.log(getClass.getName, request.getMethod, s"getDeliverables() time: $delay ms", request)
+    deliverables
   }
 
-  private def deliverableInformation(deliverables: Seq[DynDoc], user: DynDoc): Many[Document] = {
+  private def deliverableInformation(deliverables: Seq[DynDoc], user: DynDoc, request: HttpServletRequest): Many[Document] = {
+    val t0 = System.currentTimeMillis()
     val deliverableRecords: Seq[Document] = deliverables.map(deliverable => {
       val status = deliverable.status[String]
       val scope = status match {
@@ -94,12 +99,14 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
           "scope" -> scope, "team_name" -> teamName, "team_role" -> teamRole, "week_offset" -> weekOffset,
           "commit_date" -> commitDate)
     })
+    val delay = System.currentTimeMillis() - t0
+    BWLogger.log(getClass.getName, request.getMethod, s"deliverableInformation() time: $delay ms", request)
     deliverableRecords.asJava
   }
 
   private def taskInformation(deliverables: Seq[DynDoc], phase: DynDoc, request: HttpServletRequest): Many[Document] = {
     val taskStatusValues = DeliverableApi.taskStatusMap(deliverables)
-    val activityOids = deliverables.map(_.activity_id[ObjectId])
+    val activityOids = deliverables.map(_.activity_id[ObjectId]).distinct
     val tasks = ActivityApi.activitiesByIds(activityOids)
     val taskRecords: Seq[Document] = tasks.map(task => {
       val rawEndDate = task.bpmn_scheduled_end_date[Long]
@@ -128,6 +135,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
 
   private def phaseDatesAndDurations(phase: DynDoc, editable: Boolean, status: String, request: HttpServletRequest):
       Seq[(String, Any)] = {
+    val t0 = System.currentTimeMillis()
     val timestamps: DynDoc = phase.timestamps[Document]
     val timezone = PhaseApi.timeZone(phase, Some(request))
     val estimatedStartDate = timestamps.get[Long]("date_start_estimated") match {
@@ -153,6 +161,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case None => "NA"
     }
     val estimatedDatesEditable = editable && status == "Planning"
+    val delay = System.currentTimeMillis() - t0
+    BWLogger.log(getClass.getName, request.getMethod, s"phaseDatesAndDurations() time: $delay ms", request)
     Seq(
       ("date_start_estimated", new Document("editable", estimatedDatesEditable).append("value", estimatedStartDate)),
       ("date_end_estimated", new Document("editable", estimatedDatesEditable).append("value", estimatedEndDate)),
@@ -208,8 +218,8 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case None => "not-available"
     }
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-    val deliverables = getDeliverables(phase, user)
-    val deliverableInfo = deliverableInformation(deliverables, user)
+    val deliverables = getDeliverables(phase, user, request)
+    val deliverableInfo = deliverableInformation(deliverables, user, request)
     val counters: Document =
       Map[String, String]("alert_count" -> rint(), "rfi_count" -> rint(), "issue_count" -> rint())
     val timestamps: DynDoc = phase.timestamps[Document]

@@ -83,7 +83,7 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
             grouper,
             Map("$sort" -> Map("_id" -> -1))
           )
-          traceLogCollection.aggregate(pipeline.asJava)
+          traceLogCollection.aggregate(pipeline.asJava).allowDiskUse(true)
         case "days" =>
           val startMs = untilMs - 86400L * 1000L * duration
           val pipeline: Seq[Document] = Seq(
@@ -91,7 +91,7 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
             grouper,
             Map("$sort" -> Map("_id" -> -1))
           )
-          traceLogCollection.aggregate(pipeline.asJava)
+          traceLogCollection.aggregate(pipeline.asJava).allowDiskUse(true)
         case _ =>
           val pipeline: Seq[Document] = Seq(
             Map("$match" -> (typeQuery ++ Map("milliseconds" -> Map("$lte" -> untilMs)))),
@@ -99,7 +99,7 @@ class TraceLog2 extends HttpServlet with HttpUtils with DateTimeUtils {
             Map("$limit" -> 50),
             grouper
           )
-          traceLogCollection.aggregate(pipeline.asJava)
+          traceLogCollection.aggregate(pipeline.asJava).allowDiskUse(true)
       }
 
       val user: DynDoc = getUser(request)

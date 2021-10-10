@@ -1,11 +1,12 @@
 package com.buildwhiz.baf2
 
 import java.io.{File, FileOutputStream, InputStream}
-
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
 import BWMongoDB3._
 import DynDoc._
+import com.buildwhiz.baf3.DeliverableApi
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
+
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -115,34 +116,43 @@ object DocumentApi extends HttpUtils {
 
   def documentList30(request: HttpServletRequest): Seq[DynDoc] = {
     val parameters = getParameterMap(request)
-    val Seq(optProjectOid, optPhaseOid) = Seq("project_id", "phase_id").
-        map(n => parameters.get(n).map(id => new ObjectId(id)))
+    val Seq(optProjectOid, optPhaseOid, optActivityOid, optDeliverableOid) =
+      Seq("project_id", "phase_id", "activity_id", "deliverable_id").map(n => parameters.get(n).
+        map(id => new ObjectId(id)))
     val user: DynDoc = getUser(request)
-    val managed = optProjectOid.map(ProjectApi.projectById).map(ProjectApi.canManage(user._id[ObjectId], _)) match {
-      case Some(true) => true
+    val managed = (optProjectOid, optPhaseOid, optActivityOid, optDeliverableOid) match {
+      case (Some(projectOid), None, _, _) => ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid))
+      case (Some(projectOid), Some(phaseOid), _, _) =>
+        ProjectApi.canManage(user._id[ObjectId], ProjectApi.projectById(projectOid)) ||
+          PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
+      case (None, Some(phaseOid), _, _) => PhaseApi.canManage(user._id[ObjectId], PhaseApi.phaseById(phaseOid))
+      case (None, None, Some(activityOid), _) =>
+        val parentPhase = ProcessApi.parentPhase(ActivityApi.parentProcess(activityOid)._id[ObjectId])
+        PhaseApi.canManage(user._id[ObjectId], parentPhase)
+      case (None, None, None, Some(deliverableOid)) =>
+        val activityOid = DeliverableApi.parentActivityOid(DeliverableApi.deliverableById(deliverableOid))
+        val parentPhase = ProcessApi.parentPhase(ActivityApi.parentProcess(activityOid)._id[ObjectId])
+        PhaseApi.canManage(user._id[ObjectId], parentPhase)
       case _ => false
     }
-    if (PersonApi.isBuildWhizAdmin(Right(user)) || managed) {
-      val query: Map[String, Any] = (optProjectOid, optPhaseOid) match {
-        case (_, Some(phaseOid)) => Map("phase_id" -> phaseOid)
-        case (Some(projectOid), _) => Map("project_id" -> projectOid)
+    val myTeamOids: Seq[ObjectId] = PersonApi.allTeams30(user._id[ObjectId]).map(_._id[ObjectId])
+    if (myTeamOids.nonEmpty || managed) {
+      val queryBase: Map[String, Any] = (optProjectOid, optPhaseOid, optActivityOid, optDeliverableOid) match {
+        case (_, _, _, Some(deliverableOid)) => Map("deliverable_id" -> deliverableOid)
+        case (_, _, Some(activityOid), None) => Map("activity_id" -> activityOid)
+        case (_, Some(phaseOid), None, None) => Map("phase_id" -> phaseOid)
+        case (Some(projectOid), None, None, None) => Map("project_id" -> projectOid)
         case _ => throw new IllegalArgumentException("No parameters found")
       }
-      BWMongoDB3.document_master.find(query)
-    } else {
-      val myTeamOids: Seq[ObjectId] = PersonApi.allTeams30(user._id[ObjectId]).map(_._id[ObjectId])
-      if (myTeamOids.nonEmpty) {
-        val query: Map[String, Any] = (optProjectOid, optPhaseOid) match {
-          case (_, Some(phaseOid)) =>
-            Map("phase_id" -> phaseOid, "team_id" -> Map($in -> myTeamOids))
-          case (Some(projectOid), _) =>
-            Map("project_id" -> projectOid, "team_id" -> Map($in -> myTeamOids))
-          case _ => throw new IllegalArgumentException("No parameters found")
-        }
-        BWMongoDB3.document_master.find(query)
+      val query: Document = if (managed) {
+        queryBase
       } else {
-        Seq.empty[DynDoc]
+        queryBase ++ Map("team_id" -> Map($in -> myTeamOids))
       }
+      val docs = BWMongoDB3.document_master.find(query)
+      docs
+    } else {
+      Seq.empty[DynDoc]
     }
   }
 

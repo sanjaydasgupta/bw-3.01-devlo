@@ -78,7 +78,8 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
         "display_status" -> PhaseApi.displayStatus31(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
         "end_date" -> endDate, "start_date" -> startDate,
         "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
-    }).sortBy(phase => (phase("end_date"), phase("start_date")))
+    }).sortBy(phase => (PhaseApi.displayStatusOrdering31(phase("display_status")), phase("end_date"),
+        phase("start_date")))
     val address: DynDoc = project.address[Document]
     val customerName = project.get[ObjectId]("customer_organization_id") match {
       case None => "Not available"

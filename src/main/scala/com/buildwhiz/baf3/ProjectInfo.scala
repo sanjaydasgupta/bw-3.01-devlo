@@ -86,8 +86,8 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         "budget" -> f"$budget%5.2f", "expenditure" -> f"$expenditure%5.2f")
     })
     val phaseDocuments: Many[Document] = phaseRecords.
-        sortBy(phase => (phase.end_date[Document].y.value[String], phase.start_date[Document].y.value[String])).
-        map(_.asDoc).asJava
+        sortBy(phase => (PhaseApi.displayStatusOrdering31(phase.status[String]),
+        phase.end_date[Document].y.value[String], phase.start_date[Document].y.value[String])).map(_.asDoc).asJava
     phaseDocuments
   }
 

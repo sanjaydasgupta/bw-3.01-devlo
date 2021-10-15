@@ -157,6 +157,8 @@ object PhaseApi {
     displayStatus(phase)
   }
 
+  val displayStatusOrdering31 = new WithDefault(Map("Active" -> 10, "Planning" -> 20, "Ended" -> 30), (_: Any) => 100)
+
   def displayStatus31(phase: DynDoc): String = {
     (phase.get[Boolean]("started"), phase.get[Boolean]("ended")) match {
       case (None, _) | (Some(false), _) =>

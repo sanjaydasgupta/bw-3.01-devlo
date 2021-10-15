@@ -1,9 +1,8 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -57,10 +56,9 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
   }
 
   private def phaseInformation(project: DynDoc, user: DynDoc, request: HttpServletRequest): Many[Document] = {
-    val phaseOids: Seq[ObjectId] = project.phase_ids[Many[ObjectId]]
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
+    val phases: Seq[DynDoc] = ProjectApi.allPhases(project)
     val canManageProject = ProjectApi.canManage(user._id[ObjectId], project)
-    val returnValue: Seq[Document] = phases.map(phase => {
+    val phaseRecords: Seq[DynDoc] = phases.map(phase => {
       val phaseDisplayStatus = PhaseApi.displayStatus31(phase)
       val budget = (math.random() * 1000).toInt / 100.0
       val expenditure = budget * 0.5
@@ -87,7 +85,10 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         "duration" -> "NA", "_id" -> phase._id[ObjectId].toString,
         "budget" -> f"$budget%5.2f", "expenditure" -> f"$expenditure%5.2f")
     })
-    returnValue.asJava
+    val phaseDocuments: Many[Document] = phaseRecords.
+        sortBy(phase => (phase.end_date[Document].y.value[String], phase.start_date[Document].y.value[String])).
+        map(_.asDoc).asJava
+    phaseDocuments
   }
 
   private def fieldSpecification(project: DynDoc, structuredName: String, editable: Boolean, defaultValue: Any = ""):

@@ -3,7 +3,7 @@ package com.buildwhiz.baf3
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
@@ -14,7 +14,7 @@ import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 
 import math.random
 
-class ProjectList extends HttpServlet with HttpUtils {
+class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -33,7 +33,7 @@ class ProjectList extends HttpServlet with HttpUtils {
       val userOid = user._id[ObjectId]
       val optCustomerOid = parameters.get("customer_id").map(new ObjectId(_))
       val projects = ProjectList.getList(userOid, scope = scope, optCustomerOid = optCustomerOid, request = request)
-      val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user)).asJava
+      val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user, request)).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
           append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), starting = true))
@@ -55,13 +55,30 @@ class ProjectList extends HttpServlet with HttpUtils {
 
   private def rint(): String = (random() * 15).toInt.toString
 
-  private def projectInfo(project: DynDoc, user: DynDoc): Document = {
+  private def projectInfo(project: DynDoc, user: DynDoc, request: HttpServletRequest): Document = {
     val userIsAdmin = PersonApi.isBuildWhizAdmin(Right(user))
     val phases: Seq[DynDoc] = ProjectApi.allPhases(project).map(phase => {
+      val timestamps: DynDoc = phase.timestamps[Document]
+      val phaseTimezone = PhaseApi.timeZone(phase, Some(request))
+      val startDate = if (timestamps.has("date_start_actual")) {
+        dateString(timestamps.date_start_actual[Long], phaseTimezone)
+      } else if (timestamps.has("date_start_estimated")) {
+        dateString(timestamps.date_start_estimated[Long], phaseTimezone)
+      } else {
+        "NA"
+      }
+      val endDate = if (timestamps.has("date_end_actual")) {
+        dateString(timestamps.date_end_actual[Long], phaseTimezone)
+      } else if (timestamps.has("date_end_estimated")) {
+        dateString(timestamps.date_end_estimated[Long], phaseTimezone)
+      } else {
+        "NA"
+      }
       Map("name" -> phase.name[String], "_id" -> phase._id[ObjectId].toString,
-      "display_status" -> PhaseApi.displayStatus31(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
-      "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
-    })
+        "display_status" -> PhaseApi.displayStatus31(phase), "alert_count" -> rint(), "rfi_count" -> rint(),
+        "end_date" -> endDate, "start_date" -> startDate,
+        "issue_count" -> rint(), "discussion_count" -> rint(), "budget" -> "1.5 MM", "expenditure" -> "350,500")
+    }).sortBy(phase => (phase("end_date"), phase("start_date")))
     val address: DynDoc = project.address[Document]
     val customerName = project.get[ObjectId]("customer_organization_id") match {
       case None => "Not available"

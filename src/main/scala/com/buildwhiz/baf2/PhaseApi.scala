@@ -43,26 +43,33 @@ object PhaseApi {
   def allActivities(phaseOid: ObjectId): Seq[DynDoc] = allActivities(phaseById(phaseOid))
 
   def allActivities30(phaseIn: Either[ObjectId, DynDoc]): Seq[DynDoc] = {
-    val phaseOid: ObjectId = phaseIn match {
-      case Left(oid) => oid
-      case Right(doc) => doc._id[ObjectId]
+    phaseIn match {
+      case Left(phaseOid) =>
+        BWMongoDB3.phases.aggregate(Seq(
+          new Document("$match", new Document("_id", phaseOid)),
+          new Document("$unwind", new Document("path", "$process_ids").append("preserveNullAndEmptyArrays", false)),
+          new Document("$project", new Document("process_ids", 1)),
+          new Document("$lookup", new Document("from", "processes").append("localField", "process_ids").
+            append("foreignField", "_id").append("as", "processes")),
+          new Document("$project", new Document("processes", 1)),
+          new Document("$unwind", new Document("path", "$processes").append("preserveNullAndEmptyArrays", false)),
+          new Document("$set", new Document("activity_ids", "$processes.activity_ids")),
+          new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
+          new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
+            append("foreignField", "_id").append("as", "activity")),
+          new Document("$unwind", new Document("path", "$activity").append("preserveNullAndEmptyArrays", false)),
+          new Document("$replaceRoot", new Document("newRoot", "$activity"))
+        ))
+      case Right(phaseRecord) =>
+        BWMongoDB3.processes.aggregate(Seq(
+          new Document("$match", new Document("_id", new Document($in, phaseRecord.process_ids[Many[ObjectId]]))),
+          new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
+          new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
+            append("foreignField", "_id").append("as", "activity")),
+          new Document("$unwind", new Document("path", "$activity").append("preserveNullAndEmptyArrays", false)),
+          new Document("$replaceRoot", new Document("newRoot", "$activity"))
+        ))
     }
-    BWMongoDB3.phases.aggregate(Seq(
-      new Document("$match", new Document("_id", phaseOid)),
-      new Document("$unwind", new Document("path", "$process_ids").append("preserveNullAndEmptyArrays", false)),
-      new Document("$project", new Document("process_ids", 1)),
-      new Document("$lookup", new Document("from", "processes").append("localField", "process_ids").
-          append("foreignField", "_id").append("as", "processes")),
-      new Document("$project", new Document("processes", 1)),
-      new Document("$unwind", new Document("path", "$processes").append("preserveNullAndEmptyArrays", false)),
-      new Document("$set", new Document("activity_ids", "$processes.activity_ids")),
-      new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
-      new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
-        append("foreignField", "_id").append("as", "activity")),
-      //new Document("$project", new Document("activity", 1).append("_id", 0)),
-      new Document("$unwind", new Document("path", "$activity").append("preserveNullAndEmptyArrays", false)),
-      new Document("$replaceRoot", new Document("newRoot", "$activity"))
-    ))
   }
 
   def isActive(phase: DynDoc): Boolean = allProcesses(phase).exists(process => ProcessApi.isActive(process))

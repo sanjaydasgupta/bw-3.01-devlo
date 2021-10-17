@@ -48,6 +48,7 @@ object PhaseApi {
         BWMongoDB3.phases.aggregate(Seq(
           new Document("$match", new Document("_id", phaseOid)),
           new Document("$unwind", new Document("path", "$process_ids").append("preserveNullAndEmptyArrays", false)),
+          new Document("$limit", 1),
           new Document("$project", new Document("process_ids", 1)),
           new Document("$lookup", new Document("from", "processes").append("localField", "process_ids").
             append("foreignField", "_id").append("as", "processes")),
@@ -63,6 +64,7 @@ object PhaseApi {
       case Right(phaseRecord) =>
         BWMongoDB3.processes.aggregate(Seq(
           new Document("$match", new Document("_id", new Document($in, phaseRecord.process_ids[Many[ObjectId]]))),
+          new Document("$limit", 1),
           new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
           new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
             append("foreignField", "_id").append("as", "activity")),

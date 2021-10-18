@@ -37,20 +37,20 @@ object TimerModule extends HttpUtils {
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "issueTaskStatusUpdateReminders",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (issueTaskStatusUpdateReminders): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
   private def fridayMorning(ms: Long, project: DynDoc): Unit = {
     try {
-      BWLogger.log(getClass.getName, "fridayMorning", s"Friday for project ${project.name[String]}")
+      BWLogger.log(getClass.getName, "LOCAL", s"fridayMorning (Project '${project.name[String]}')")
       // Perform any project-specific end-of-week activities here
       issueTaskStatusUpdateReminders(ms, project)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "fridayMorning",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (fridayMorning): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
@@ -71,15 +71,15 @@ object TimerModule extends HttpUtils {
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "issueTaskDurationReminders",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (issueTaskDurationReminders): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
   private def newDay(ms: Long, project: DynDoc, calendar: Calendar): Unit = {
     try {
-      BWLogger.log(getClass.getName, "newDay",
-        s"Midnight for project '${project.name[String]}' (${ProjectApi.timeZone(project)})")
+      BWLogger.log(getClass.getName, "LOCAL",
+        s"newDay (Project: '${project.name[String]}' TZ: '${ProjectApi.timeZone(project)}')")
       val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
       if (dayOfWeek == Calendar.FRIDAY)
         fridayMorning(ms, project)
@@ -87,8 +87,8 @@ object TimerModule extends HttpUtils {
       //issueTaskDurationReminders(ms, project)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "newDay",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (newDay): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
@@ -103,8 +103,9 @@ object TimerModule extends HttpUtils {
           case None => 0
         }
         val delayed: Boolean = ms > scheduledEndDatetimeMs
-        BWLogger.log(getClass.getName, "activityDelayedCheck",
-          s"project: ${project.name[String]}, activity: ${activity.name[String]}, delayed: $delayed")
+        BWLogger.log(getClass.getName, "LOCAL",
+            "activityDelayedCheck (Project: '%s', Activity: '%s', Delayed: %b)".
+            format(project.name[String], activity.name[String], delayed))
         if (delayed) {
           ActivityApi.setDelayed(activity, delayed = true)
           val stillActiveAssignees = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
@@ -116,8 +117,8 @@ object TimerModule extends HttpUtils {
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "activityDelayedCheck",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (activityDelayedCheck): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
@@ -136,17 +137,16 @@ object TimerModule extends HttpUtils {
         for (admin <- PersonApi.listAdmins) {
           SlackApi.sendToUser(Left(s"Process killed: $processIdentity"), Left(admin))
         }
-        BWLogger.log(getClass.getName, "processHealthCheck", s"INFO: Process killed: $processIdentity")
+        BWLogger.log(getClass.getName, "LOCAL", s"INFO: processHealthCheck (Process killed: $processIdentity)")
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "processHealthCheck",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (processHealthCheck): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
-  private def archiveDatabases(calendar: Calendar): Unit = {
-    BWLogger.log(getClass.getName, "saveDatabases", "ENTRY")
+  private def saveDatabases(calendar: Calendar): Unit = {
     val dbDirectoryName = s"camunda-h2-dbs"
     calendar.setTimeZone(TimeZone.getTimeZone("GMT"))
     val dbArchiveName = "%d-%02d-%02d-%s.zip".format(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH) + 1,
@@ -161,15 +161,16 @@ object TimerModule extends HttpUtils {
         val outdatedArchives = archivesSortedByDate.take(archiveFiles.length - NBR_OF_ARCHIVES_TO_KEEP)
         for (archive <- outdatedArchives) {
           val deleteStatus = archive.delete()
-          BWLogger.log(getClass.getName, "saveDatabases", s"Delete outdated (${archive.getName}, status: $deleteStatus)")
+          BWLogger.log(getClass.getName, "LOCAL", "saveDatabases (Delete outdated %s, status: %s)".
+              format(archive.getName, deleteStatus))
         }
       }
     }
     val logMessage = if (status == 0)
-      s"EXIT-OK (Created archive $dbArchiveName)"
+      s"saveDatabases (Created archive: $dbArchiveName)"
     else
-      s"EXIT-ERROR (FAILED to create archive $dbArchiveName, status: $status)"
-    BWLogger.log(getClass.getName, "saveDatabases", logMessage)
+      s"saveDatabases (ERROR failed to create archive $dbArchiveName, status: $status)"
+    BWLogger.log(getClass.getName, "LOCAL", logMessage)
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
@@ -196,15 +197,15 @@ object TimerModule extends HttpUtils {
         val minutes = calendarPST.get(Calendar.MINUTE)
         if (minutes == 0) {
           // at midnight of PST timezone
-          Future {archiveDatabases(calendarPST)}
+          Future {saveDatabases(calendarPST)}
         }
       }
       // Perform any global quarter-hourly activities here
       processHealthCheck(ms)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "fifteenMinutes",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (fifteenMinutes): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 
@@ -227,8 +228,8 @@ object TimerModule extends HttpUtils {
       // perform scheduled tasks
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "timerTicks",
-          s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (timerTicks): ${t.getClass.getSimpleName}(${t.getMessage})")
     }
   }
 

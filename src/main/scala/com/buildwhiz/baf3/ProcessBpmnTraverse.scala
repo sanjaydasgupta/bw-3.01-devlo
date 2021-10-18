@@ -132,7 +132,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
       request: HttpServletRequest): Long = {
-
+    val t0 = System.currentTimeMillis()
     val activities = ProcessApi.allActivities(process)
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id), a)).toMap
@@ -219,6 +219,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     if (messages.nonEmpty) {
       BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
     }
+    val delay = System.currentTimeMillis() - t0
+    BWLogger.log(getClass.getName, request.getMethod, s"processDurationRecalculate() time: $delay ms", request)
     offset
   }
 

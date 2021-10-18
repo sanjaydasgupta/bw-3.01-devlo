@@ -82,8 +82,20 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       }
+      val personalEmailIndex = person.emails[Many[Document]].indexWhere(_.`type`[String] == "personal") match {
+        case -1 => person.emails[Many[Document]].length
+        case idx => idx
+      }
+      if (personalEmailIndex == person.emails[Many[Document]].length) {
+        val updateResult = BWMongoDB3.persons.updateOne(Map("_id" -> personOid),
+          Map($push -> Map("emails" -> Map("type" -> "personal", "email" -> ""))))
+        if (updateResult.getMatchedCount == 0)
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      }
 
       val parameterConverters: Map[String, (String => Any, String)] = Map(
+        ("slack_id", (_.trim, "slack_id")),
+        ("linkedin_id", (_.trim, "linkedin_id")),
         ("position", (_.trim, "position")),
         ("first_name", (_.trim, "first_name")),
         ("last_name", (_.trim, "last_name")),
@@ -94,6 +106,7 @@ class PersonInfoSet extends HttpServlet with HttpUtils {
         ("years_experience", (_.toDouble, "years_experience")),
         ("active", (_.toBoolean, "enabled")),
         ("work_email", (_.trim, s"emails.$workEmailIndex.email")),
+        ("personal_email", (_.trim, s"emails.$personalEmailIndex.email")),
         ("work_phone", (_.trim, s"phones.$workPhoneIndex.phone")),
         ("mobile_phone", (_.trim, s"phones.$mobilePhoneIndex.phone")),
         ("phone_can_text", (_.toBoolean, "phone_can_text")),

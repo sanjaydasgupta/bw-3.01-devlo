@@ -18,41 +18,48 @@ class PersonInfo extends HttpServlet with HttpUtils {
   }
 
   private def person2json(person: DynDoc, userIsAdmin: Boolean, userOwnsRecord: Boolean): String = {
-    val firstName = new Document("editable", userOwnsRecord).append("value", person.first_name[String])
-    val lastName = new Document("editable", userOwnsRecord).append("value", person.last_name[String])
+    val editable = userIsAdmin || userOwnsRecord
+    val firstName = new Document("editable", editable).append("value", person.first_name[String])
+    val lastName = new Document("editable", editable).append("value", person.last_name[String])
 
-    val yearsExperience = wrap(person.years_experience[Double], userOwnsRecord)
+    val yearsExperience = wrap(person.years_experience[Double], editable)
+    val slackId = wrap(person.get[String]("slack_id") match {case Some(sid) => sid; case None => ""}, userIsAdmin)
+    val linkedInId = wrap(person.get[String]("linkedin_id") match {case Some(lid) => lid; case None => ""}, userIsAdmin)
     val rating = wrap(person.rating[Int], userIsAdmin)
     val position = person.get[String]("position") match {
-      case Some(pos) => wrap(pos, userOwnsRecord)
-      case None => wrap("", userOwnsRecord)
+      case Some(pos) => wrap(pos, editable)
+      case None => wrap("", editable)
     }
-    val skills = wrap(person.skills[Many[String]], userOwnsRecord)
+    val skills = wrap(person.skills[Many[String]], editable)
     val active = wrap(if (person.has("enabled")) person.enabled[Boolean] else false, userIsAdmin)
     val emails: Seq[DynDoc] = person.emails[Many[Document]]
     val workEmail = wrap(emails.find(_.`type`[String] == "work").get.email[String], userIsAdmin)
+    val personalEmail = wrap(emails.find(_.`type`[String] == "personal") match {
+      case Some(peml) => peml.email[String]
+      case None => ""
+    }, editable)
     val phones: Seq[DynDoc] = person.phones[Many[Document]]
-    val phoneCanText = wrap(if(person.has("phone_can_text")) person.phone_can_text[Boolean] else false, userOwnsRecord)
+    val phoneCanText = wrap(if(person.has("phone_can_text")) person.phone_can_text[Boolean] else false, editable)
     val bareWorkPhone = phones.find(_.`type`[String] == "work") match {
       case None => ""
       case Some(workPhoneRecord) => workPhoneRecord.phone[String]
     }
-    val workPhone = wrap(bareWorkPhone, userOwnsRecord)
+    val workPhone = wrap(bareWorkPhone, editable)
     val bareMobilePhone = phones.find(_.`type`[String] == "mobile") match {
       case None => ""
       case Some(mobilePhoneRecord) => mobilePhoneRecord.phone[String]
     }
-    val mobilePhone = wrap(bareMobilePhone, userOwnsRecord)
+    val mobilePhone = wrap(bareMobilePhone, editable)
     val workAddress = wrap(if (person.has("work_address"))
       person.work_address[String]
     else
-      "", userOwnsRecord)
+      "", editable)
     val rawIndividualRoles: java.util.Collection[String] =
       if (person.has("individual_roles"))
         person.individual_roles[Many[String]]
       else
         Seq.empty[String].asJava
-    val individualRoles = wrap(rawIndividualRoles, userOwnsRecord)
+    val individualRoles = wrap(rawIndividualRoles, editable)
     val canDelete = !PersonApi.isBusy30(person._id[ObjectId])
 
     val personDoc = new Document("first_name", firstName).append("last_name", lastName).append("rating", rating).
@@ -61,7 +68,8 @@ class PersonInfo extends HttpServlet with HttpUtils {
         append("phone_can_text", phoneCanText).append("individual_roles", individualRoles).
         append("project_log", Seq.empty[Document].asJava).append("review_log", Seq.empty[Document].asJava).
         append("mobile_phone", mobilePhone).append("position", position).append("can_delete", canDelete).
-        append("display_edit_buttons", userIsAdmin || userOwnsRecord)
+        append("display_edit_buttons", userIsAdmin || userOwnsRecord).
+        append("personal_email", personalEmail).append("slack_id", slackId).append("linkedin_id", linkedInId)
     bson2json(personDoc)
   }
 

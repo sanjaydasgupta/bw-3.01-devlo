@@ -122,6 +122,19 @@ object TimerModule extends HttpUtils {
     }
   }
 
+  private def trimTraceLogCollection(ms: Long): Unit = {
+    try {
+      val sixMonthsAgo = ms - 86400000L * 183
+      val deleteResult = BWMongoDB3.trace_log.deleteMany(Map("milliseconds" -> Map($lt -> sixMonthsAgo)))
+      val deletedCount = deleteResult.getDeletedCount
+      BWLogger.log(getClass.getName, "LOCAL", s"trimTraceLogCollection ($deletedCount records deleted)")
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "LOCAL",
+          s"ERROR (trimTraceLogCollection): ${t.getClass.getSimpleName}(${t.getMessage})")
+    }
+  }
+
   private def processHealthCheck(ms: Long): Unit = {
     try {
       val allProcesses = ProcessApi.listProcesses()
@@ -197,7 +210,10 @@ object TimerModule extends HttpUtils {
         val minutes = calendarPST.get(Calendar.MINUTE)
         if (minutes == 0) {
           // at midnight of PST timezone
-          Future {saveDatabases(calendarPST)}
+          Future {
+            saveDatabases(calendarPST)
+            trimTraceLogCollection(ms)
+          }
         }
       }
       // Perform any global quarter-hourly activities here

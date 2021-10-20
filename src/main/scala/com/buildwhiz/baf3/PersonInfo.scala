@@ -70,7 +70,7 @@ class PersonInfo extends HttpServlet with HttpUtils {
         append("mobile_phone", mobilePhone).append("position", position).append("can_delete", canDelete).
         append("display_edit_buttons", userIsAdmin || userOwnsRecord).
         append("personal_email", personalEmail).append("slack_id", slackId).append("linkedin_id", linkedInId)
-    bson2json(personDoc)
+    personDoc.toJson
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -148,9 +148,17 @@ object TimerModule extends HttpUtils {
         "process_ids" -> Map($push -> "$process_id")
       ))
       val errors: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(Seq(matcher.asDoc, grouper.asDoc))
+      def nameFromId(id: String): String = {
+        val endOffset = id.indexOf("(")
+        if (endOffset == -1) {
+          id
+        } else {
+          id.substring(0, endOffset)
+        }
+      }
       if (errors.nonEmpty) {
-        val errorString = "ERRORS: " + errors.map(e => s"${e._id[String]}: " +
-          s"""${e.process_ids[Many[String]].map(_.replaceAll("baf[23./]*", "")).distinct.mkString(", ")}""").
+        val errorString = "Events: " + errors.map(e => s"${nameFromId(e._id[String])}->" +
+          s"""${e.process_ids[Many[String]].map(_.replaceAll("baf[23./]*", "")).distinct.mkString("[", ", ", "]")}""").
           mkString("\n")
         adminRecord match {
           case Some(ar) =>

@@ -149,11 +149,15 @@ object TimerModule extends HttpUtils {
       ))
       val errors: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(Seq(matcher.asDoc, grouper.asDoc))
       def nameFromId(id: String): String = {
-        val endOffset = id.indexOf("(")
-        if (endOffset == -1) {
+        if (id == null) {
           id
         } else {
-          id.substring(0, endOffset)
+          val endOffset = id.indexOf("(")
+          if (endOffset == -1) {
+            id
+          } else {
+            id.substring(0, endOffset)
+          }
         }
       }
       if (errors.nonEmpty) {

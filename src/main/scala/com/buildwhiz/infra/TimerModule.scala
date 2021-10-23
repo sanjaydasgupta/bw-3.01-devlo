@@ -3,7 +3,6 @@ package com.buildwhiz.infra
 import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 import java.io.File
-
 import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
@@ -13,10 +12,12 @@ import com.buildwhiz.slack.SlackApi
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.sys.process._
 
 object TimerModule extends HttpUtils {
+
+  private lazy val adminRecord: Option[DynDoc] =
+    BWMongoDB3.persons.find(Map("first_name" -> "Sanjay", "last_name" -> "Admin")).headOption
 
   val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
 
@@ -135,6 +136,35 @@ object TimerModule extends HttpUtils {
     }
   }
 
+  private def notifyLogEvents(ms: Long): Unit = {
+    try {
+      val startTimestamp = ms - 15 * 60 * 1000
+      val matcher: DynDoc = Map("$match" -> Map($and -> Seq(
+        Map("milliseconds" -> Map($gte -> startTimestamp)),
+        Map("event_name" -> Map($regex -> "(?i)Error"))
+      )))
+      val grouper: DynDoc = Map("$group" -> Map(
+        "_id" -> "$variables.u$nm",
+        "process_ids" -> Map($push -> "$process_id")
+      ))
+      val errors: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(Seq(matcher.asDoc, grouper.asDoc))
+      if (errors.nonEmpty) {
+        val errorString = "ERRORS: " + errors.map(e => s"${e._id[String]}: " +
+          s"""${e.process_ids[Many[String]].map(_.replaceAll("baf[23./]*", "")).distinct.mkString(", ")}""").
+          mkString("\n")
+        adminRecord match {
+          case Some(ar) =>
+            SlackApi.sendNotification(errorString, Left(ar))
+          case None =>
+            BWLogger.log(getClass.getName, "LOCAL", "ERROR (notifyLogEvents): user 'Sanjay Admin' not found")
+        }
+      }
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "LOCAL", s"ERROR (notifyLogEvents): ${t.getClass.getSimpleName}(${t.getMessage})")
+    }
+  }
+
   private def processHealthCheck(ms: Long): Unit = {
     try {
       val allProcesses = ProcessApi.listProcesses()
@@ -218,6 +248,7 @@ object TimerModule extends HttpUtils {
       }
       // Perform any global quarter-hourly activities here
       processHealthCheck(ms)
+      notifyLogEvents(ms)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "LOCAL",

@@ -53,19 +53,32 @@ object PersonApi {
         Map("organization_id" -> organizationOid, "skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
       case (None, Some(organizationOid), None, _, _) =>
         Map("organization_id" -> organizationOid)
-      case (None, None, Some(skill), _, _) =>
+      case (None, None, Some(skill), None, None) =>
         Map("skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
-      case (None, None, None, Some(phaseOid), _) =>
+      case (None, None, Some(skill), Some(phaseOid), None) =>
         val allTeamOids = PhaseApi.allTeamOids30(PhaseApi.phaseById(phaseOid))
         val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
-        val managers: Seq[ObjectId] = PhaseApi.managers(Left(phaseOid))
-        Map("_id" -> Map($in -> (allMemberOids ++ managers).distinct))
+        val managerOids: Seq[ObjectId] = PhaseApi.managers(Left(phaseOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managerOids).distinct),
+          "skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
+      case (None, None, None, Some(phaseOid), None) =>
+        val allTeamOids = PhaseApi.allTeamOids30(PhaseApi.phaseById(phaseOid))
+        val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
+        val managerOids: Seq[ObjectId] = PhaseApi.managers(Left(phaseOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managerOids).distinct))
+      case (None, None, Some(skill), _, Some(projectOid)) =>
+        val allPhases: Seq[DynDoc] = ProjectApi.allPhases(projectOid)
+        val allTeamOids: Seq[ObjectId] = allPhases.flatMap(PhaseApi.allTeamOids30)
+        val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
+        val managerOids: Seq[ObjectId] = ProjectApi.managers(Left(projectOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managerOids).distinct),
+          "skills" -> Map($regex -> s"(?i)^$skill\\s*(\\([^)]+\\))?$$"))
       case (None, None, None, _, Some(projectOid)) =>
         val allPhases: Seq[DynDoc] = ProjectApi.allPhases(projectOid)
         val allTeamOids: Seq[ObjectId] = allPhases.flatMap(PhaseApi.allTeamOids30)
         val allMemberOids: Seq[ObjectId] = allTeamOids.flatMap(TeamApi.memberOids)
-        val managers: Seq[ObjectId] = ProjectApi.managers(Left(projectOid))
-        Map("_id" -> Map($in -> (allMemberOids ++ managers).distinct))
+        val managerOids: Seq[ObjectId] = ProjectApi.managers(Left(projectOid))
+        Map("_id" -> Map($in -> (allMemberOids ++ managerOids).distinct))
       case _ => Map.empty
     }
 

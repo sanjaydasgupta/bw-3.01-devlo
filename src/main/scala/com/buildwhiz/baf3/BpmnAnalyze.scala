@@ -1,7 +1,6 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
-import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.w3c.dom
@@ -22,58 +21,6 @@ class BpmnAnalyze extends HttpServlet with HttpUtils with BpmnUtils {
       filter(_.getAttributes.getNamedItem("name").getTextContent == name)
 
   private def cleanText(txt: String): String = txt.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
-
-  private def validateProcess(namesAndDoms: Seq[CallerBpmnDom]): Seq[String] = {
-
-    def validateBpmn(bpmnName: String, processDom: dom.Document): Seq[String] = {
-      val prefix = processDom.getDocumentElement.getTagName.split(":")(0)
-
-      def executionListeners(e: Element): Seq[Element] = e.getElementsByTagName(s"$prefix:extensionElements").
-        flatMap(_.asInstanceOf[Element].getElementsByTagName("camunda:executionListener")).
-        map(_.asInstanceOf[Element])
-
-      val startEvents: Seq[Element] = processDom.getElementsByTagName(s"$prefix:startEvent").map(_.asInstanceOf[Element])
-      val startExecutionListeners = startEvents.flatMap(executionListeners)
-      val startOk = startExecutionListeners.exists(listener => (listener.hasAttribute("class") &&
-        listener.getAttribute("class") == "com.buildwhiz.jelly.BpmnStart") && (listener.hasAttribute("event") &&
-        listener.getAttribute("event") == "end") && startEvents.length == 1 &&
-        startExecutionListeners.length == 1)
-
-      val endEvents: Seq[Element] = processDom.getElementsByTagName(s"$prefix:endEvent").map(_.asInstanceOf[Element])
-      val endExecutionListeners = endEvents.flatMap(executionListeners)
-      val endOk = endExecutionListeners.exists(listener => (listener.hasAttribute("class") &&
-        listener.getAttribute("class") == "com.buildwhiz.jelly.BpmnEnd") && (listener.hasAttribute("event") &&
-        listener.getAttribute("event") == "start") && endEvents.length == 1 &&
-        endExecutionListeners.length == 1)
-
-      val userTasks: Seq[Element] =
-          processDom.getElementsByTagName(s"$prefix:userTask").map(_.asInstanceOf[Element]) ++
-          processDom.getElementsByTagName(s"$prefix:task").map(_.asInstanceOf[Element])
-      val userTaskStartListeners = userTasks.flatMap(executionListeners)
-      val userTaskOk = userTaskStartListeners.forall(listener => (listener.hasAttribute("class") &&
-        listener.getAttribute("class") == "com.buildwhiz.jelly.ActivityHandlerStart") &&
-        (listener.hasAttribute("event") && listener.getAttribute("event") == "start"))
-
-      val timerNodes: Seq[Element] = processDom.getElementsByTagName(s"$prefix:intermediateCatchEvent").
-        filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
-      val timerOk = timerNodes.isEmpty || timerNodes.forall(timerNode => {
-        val extensionElements: Seq[Element] = timerNode.getElementsByTagName(s"$prefix:extensionElements").
-          map(_.asInstanceOf[Element])
-        val executionListeners = extensionElements.flatMap(_.getElementsByTagName("camunda:executionListener")).
-          map(_.asInstanceOf[Element])
-        executionListeners.exists(listener => {
-          (listener.hasAttribute("class") && listener.getAttribute("class") == "com.buildwhiz.jelly.TimerTransitions") &&
-            (listener.hasAttribute("event") && listener.getAttribute("event") == "start")
-        }) && executionListeners.exists(listener => {
-          (listener.hasAttribute("class") && listener.getAttribute("class") == "com.buildwhiz.jelly.TimerTransitions") &&
-            (listener.hasAttribute("event") && listener.getAttribute("event") == "end")
-        }) && extensionElements.length == 1 && executionListeners.length == 2
-      })
-      Seq(startOk, endOk, timerOk, userTaskOk).zip(Seq("start", "end", "timer", "userTask")).
-        filter(!_._1).map(pair => s"$bpmnName: ${pair._2}")
-    }
-    namesAndDoms.flatMap(nd => validateBpmn(nd.bpmnName, nd.theDom))
-  }
 
   private def getAttribute(node: Node, attributeName: String): String = {
     node.getAttributes match {
@@ -260,7 +207,7 @@ class BpmnAnalyze extends HttpServlet with HttpUtils with BpmnUtils {
         val callerElementName = call.getAttributes.getNamedItem("name").getTextContent
         val callerElementId = call.getAttributes.getNamedItem("id").getTextContent
         val newNamePath = s"$namePath/${cleanText(callerElementName)}"
-        val newIdPath = s"$idPath/${callerElementId}"
+        val newIdPath = s"$idPath/$callerElementId"
         analyzeBpmn(calledBpmnName, newNamePath, newIdPath, responseWriter, activityBuffer, timerBuffer,
           milestoneBuffer, endNodeBuffer)
       }
@@ -280,10 +227,22 @@ class BpmnAnalyze extends HttpServlet with HttpUtils with BpmnUtils {
       val endNodeBuffer = mutable.Buffer[Document]()
       analyzeBpmn(bpmnName, ".", ".", responseWriter, activityBuffer, timerBuffer,
         milestoneBuffer, endNodeBuffer)
-      responseWriter.println(s"Total activities: ${activityBuffer.length}<br/>")
-      responseWriter.println(s"Total timers: ${timerBuffer.length}<br/>")
-      responseWriter.println(s"Total milestones: ${milestoneBuffer.length}<br/>")
-      responseWriter.println(s"Total end-nodes: ${endNodeBuffer.length}<br/>")
+      responseWriter.println(s"<b>Total activities: ${activityBuffer.length}</b><br/>")
+      for (activity <- activityBuffer) {
+        responseWriter.println(s"${activity.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total timers: ${timerBuffer.length}</b><br/>")
+      for (timer <- timerBuffer) {
+        responseWriter.println(s"${timer.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total milestones: ${milestoneBuffer.length}</b><br/>")
+      for (milestone <- milestoneBuffer) {
+        responseWriter.println(s"${milestone.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total end-nodes: ${endNodeBuffer.length}</b><br/>")
+      for (endNode <- endNodeBuffer) {
+        responseWriter.println(s"${endNode.toJson}<br/>")
+      }
     } catch {
       case t: Throwable =>
         t.printStackTrace(responseWriter)

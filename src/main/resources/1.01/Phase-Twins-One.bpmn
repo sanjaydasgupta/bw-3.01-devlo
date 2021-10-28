@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_14hmd7s" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Phase-Twins-One" name="Phase Twins One" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_1vii804</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_1sqck2z</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1vii804" sourceRef="Start" targetRef="Gateway_0alhija" />
+    <bpmn:sequenceFlow id="Flow_14l8a62" sourceRef="Phase-Durations-Test-Caller-01" targetRef="Phase-Double-Caller-01" />
+    <bpmn:sequenceFlow id="Flow_1551js6" sourceRef="Phase-Double-Caller-01" targetRef="Gateway_1qhmthc" />
+    <bpmn:sequenceFlow id="Flow_0ahhy7r" sourceRef="Gateway_0alhija" targetRef="Phase-Durations-Test-Caller-01" />
+    <bpmn:parallelGateway id="Gateway_0alhija">
+      <bpmn:incoming>Flow_1vii804</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ahhy7r</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1slfz56</bpmn:outgoing>
+      <bpmn:outgoing>Flow_06tbho9</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_1sqck2z" sourceRef="Gateway_1qhmthc" targetRef="End" />
+    <bpmn:parallelGateway id="Gateway_1qhmthc">
+      <bpmn:incoming>Flow_1551js6</bpmn:incoming>
+      <bpmn:incoming>Flow_10187n9</bpmn:incoming>
+      <bpmn:incoming>Flow_1dzn4ce</bpmn:incoming>
+      <bpmn:outgoing>Flow_1sqck2z</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_10187n9" sourceRef="Phase-Double-Caller-02" targetRef="Gateway_1qhmthc" />
+    <bpmn:sequenceFlow id="Flow_0w1r18g" sourceRef="Phase-Durations-Test-Caller-02" targetRef="Phase-Double-Caller-02" />
+    <bpmn:sequenceFlow id="Flow_1slfz56" sourceRef="Gateway_0alhija" targetRef="Phase-Durations-Test-Caller-02" />
+    <bpmn:callActivity id="Phase-Durations-Test-Caller-01" name="Phase Durations Test Caller 01" calledElement="Phase-Durations-Test">
+      <bpmn:incoming>Flow_0ahhy7r</bpmn:incoming>
+      <bpmn:outgoing>Flow_14l8a62</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Phase-Double-Caller-01" name="Phase Double Caller 01" calledElement="Phase-Double">
+      <bpmn:incoming>Flow_14l8a62</bpmn:incoming>
+      <bpmn:outgoing>Flow_1551js6</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Phase-Double-Caller-02" name="Phase Double Caller 02" calledElement="Phase-Double">
+      <bpmn:incoming>Flow_0w1r18g</bpmn:incoming>
+      <bpmn:outgoing>Flow_10187n9</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:callActivity id="Phase-Durations-Test-Caller-02" name="Phase Durations Test Caller 02" calledElement="Phase-Durations-Test">
+      <bpmn:incoming>Flow_1slfz56</bpmn:incoming>
+      <bpmn:outgoing>Flow_0w1r18g</bpmn:outgoing>
+    </bpmn:callActivity>
+    <bpmn:task id="Twin-Apex-One" name="Twin Apex One">
+      <bpmn:incoming>Flow_1og0kz8</bpmn:incoming>
+      <bpmn:outgoing>Flow_13bur9o</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_06tbho9" sourceRef="Gateway_0alhija" targetRef="Timer-Apex" />
+    <bpmn:sequenceFlow id="Flow_13bur9o" sourceRef="Twin-Apex-One" targetRef="Milestone-Apex" />
+    <bpmn:intermediateThrowEvent id="Milestone-Apex" name="Milestone Apex">
+      <bpmn:incoming>Flow_13bur9o</bpmn:incoming>
+      <bpmn:outgoing>Flow_1dzn4ce</bpmn:outgoing>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_1dzn4ce" sourceRef="Milestone-Apex" targetRef="Gateway_1qhmthc" />
+    <bpmn:sequenceFlow id="Flow_1og0kz8" sourceRef="Timer-Apex" targetRef="Twin-Apex-One" />
+    <bpmn:intermediateCatchEvent id="Timer-Apex" name="Timer Apex">
+      <bpmn:incoming>Flow_06tbho9</bpmn:incoming>
+      <bpmn:outgoing>Flow_1og0kz8</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0vcgow2">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${timer_apex}</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Phase-Twins-One">
+      <bpmndi:BPMNEdge id="Flow_1551js6_di" bpmnElement="Flow_1551js6">
+        <di:waypoint x="600" y="120" />
+        <di:waypoint x="670" y="120" />
+        <di:waypoint x="670" y="205" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vii804_di" bpmnElement="Flow_1vii804">
+        <di:waypoint x="188" y="230" />
+        <di:waypoint x="235" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ahhy7r_di" bpmnElement="Flow_0ahhy7r">
+        <di:waypoint x="260" y="205" />
+        <di:waypoint x="260" y="120" />
+        <di:waypoint x="340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10187n9_di" bpmnElement="Flow_10187n9">
+        <di:waypoint x="600" y="340" />
+        <di:waypoint x="670" y="340" />
+        <di:waypoint x="670" y="255" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1slfz56_di" bpmnElement="Flow_1slfz56">
+        <di:waypoint x="260" y="255" />
+        <di:waypoint x="260" y="340" />
+        <di:waypoint x="340" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06tbho9_di" bpmnElement="Flow_06tbho9">
+        <di:waypoint x="285" y="230" />
+        <di:waypoint x="322" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13bur9o_di" bpmnElement="Flow_13bur9o">
+        <di:waypoint x="500" y="230" />
+        <di:waypoint x="562" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1sqck2z_di" bpmnElement="Flow_1sqck2z">
+        <di:waypoint x="695" y="230" />
+        <di:waypoint x="752" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dzn4ce_di" bpmnElement="Flow_1dzn4ce">
+        <di:waypoint x="598" y="230" />
+        <di:waypoint x="645" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14l8a62_di" bpmnElement="Flow_14l8a62">
+        <di:waypoint x="440" y="120" />
+        <di:waypoint x="500" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0w1r18g_di" bpmnElement="Flow_0w1r18g">
+        <di:waypoint x="440" y="340" />
+        <di:waypoint x="500" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1og0kz8_di" bpmnElement="Flow_1og0kz8">
+        <di:waypoint x="358" y="230" />
+        <di:waypoint x="400" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Gateway_1ikslwv_di" bpmnElement="Gateway_0alhija">
+        <dc:Bounds x="235" y="205" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="152" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="255" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02ogzbo_di" bpmnElement="Twin-Apex-One">
+        <dc:Bounds x="400" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_15hi7kh_di" bpmnElement="Gateway_1qhmthc">
+        <dc:Bounds x="645" y="205" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1utcbuh_di" bpmnElement="End">
+        <dc:Bounds x="752" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="760" y="255" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0llhme8_di" bpmnElement="Milestone-Apex">
+        <dc:Bounds x="562" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="543" y="255" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xmny4s_di" bpmnElement="Phase-Durations-Test-Caller-01">
+        <dc:Bounds x="340" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vyjt2p_di" bpmnElement="Phase-Double-Caller-01">
+        <dc:Bounds x="500" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1erjj7g_di" bpmnElement="Phase-Durations-Test-Caller-02">
+        <dc:Bounds x="340" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0bg4uo8_di" bpmnElement="Phase-Double-Caller-02">
+        <dc:Bounds x="500" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1s74mu3_di" bpmnElement="Timer-Apex">
+        <dc:Bounds x="322" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="313" y="255" width="57" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

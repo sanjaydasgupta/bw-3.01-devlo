@@ -107,7 +107,7 @@ package object baf3 {
         "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification"
       , "Submittals", "Task-Specs", "Work-Scope"),
     "Docs__file_format" -> Seq("PDF", "DOC", "DOCX", "XLS", "XLSX", "GIF", "JPEG", "JPG", "PPT", "PPTX", "TXT",
-        "RVT", "RFA", "RTE", "RFT", "SVG", "DGN", "DWF", "DWG", "DXF", "IFC", "SAT", "SKP", "HTML", "gbXML",
+        "BLD", "RVT", "RFA", "RTE", "RFT", "SVG", "DGN", "DWF", "DWG", "DXF", "IFC", "SAT", "SKP", "HTML", "gbXML",
         "PNG", "TIF", "TIFF", "TXT", "XML", "ZIP", "JSON", "BMP"),
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
       "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",

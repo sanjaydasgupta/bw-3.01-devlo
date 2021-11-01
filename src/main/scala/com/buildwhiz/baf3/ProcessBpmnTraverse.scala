@@ -135,7 +135,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val t0 = System.currentTimeMillis()
     val activities = ProcessApi.allActivities(process)
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
-        activities.map(a => ((a.bpmn_name[String], a.bpmn_id), a)).toMap
+        activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
     val messages = mutable.ListBuffer[String]()
 
     def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {

@@ -225,7 +225,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("status", status).append("duration_is_editable", status != "Completed").
-        append("duration", getActivityDuration(activity)).append("elementType", "activity").
+        append("duration", theDuration).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
         append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).

@@ -18,7 +18,7 @@ import scala.collection.JavaConverters._
 import org.bson.Document
 import org.bson.types.ObjectId
 
-class BpmnAnalyze extends HttpServlet with HttpUtils with BpmnUtils {
+class PhaseAdd2 extends HttpServlet with HttpUtils with BpmnUtils {
   private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
   private def extensionProperties(e: Element, name: String): Seq[Node] = e.getElementsByTagName("camunda:property").
@@ -344,7 +344,7 @@ class BpmnAnalyze extends HttpServlet with HttpUtils with BpmnUtils {
       callElementBuffer, phaseTimezone)
 
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
-      "activity_ids" -> Seq.empty[ObjectId], "admin_person_id" -> user._id[ObjectId],
+      "activity_ids" -> activityBuffer.asJava, "admin_person_id" -> user._id[ObjectId],
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
       "variables" -> variableBuffer.asJava,
       "bpmn_timestamps" -> callElementBuffer, "start" -> "00:00:00", "end" -> "00:00:00",

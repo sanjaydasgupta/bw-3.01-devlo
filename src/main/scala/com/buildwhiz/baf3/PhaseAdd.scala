@@ -191,8 +191,6 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   private def addCallElement(callElementNode: Element, bpmnName: String, namePath: String, idPath: String,
       prefix: String, callElementBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(callElementNode.getAttributes.getNamedItem("name").getTextContent)
-    val bpmnId = callElementNode.getAttributes.getNamedItem("id").getTextContent
     val isTakt = callElementNode.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
     val callee = callElementNode.getAttributes.getNamedItem("calledElement").getTextContent
     val callerElementId = callElementNode.getAttributes.getNamedItem("id").getTextContent
@@ -202,7 +200,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } else {
       idPath.substring(2) + "/" + bpmnName
     }
-    val callDetails: Document = Map("name" -> callee, "parent_name" -> bpmnName,
+    val callDetails: Document = Map("name" -> callee, "bpmn_name_full" -> fullBpmnName, "parent_name" -> bpmnName,
       "parent_activity_id" -> callerElementId, "offset" -> Map("start" -> "00:00:00", "end" -> "00:00:00"),
       "status" -> "defined", "is_takt" -> isTakt, "parent_activity_name" -> callerElementName)
     callElementBuffer.append(callDetails)

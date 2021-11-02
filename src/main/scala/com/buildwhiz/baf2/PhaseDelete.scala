@@ -14,8 +14,11 @@ class PhaseDelete extends HttpServlet with HttpUtils {
     val parameters = getParameterMap(request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase: DynDoc = BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
-      PhaseApi.delete(thePhase, request)
+      BWMongoDB3.phases.find(Map("_id" -> phaseOid)).headOption match {
+        case Some(thePhase) =>
+          PhaseApi.delete(thePhase, request)
+        case None => // No phase to delete!
+      }
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

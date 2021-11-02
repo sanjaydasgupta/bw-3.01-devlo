@@ -22,7 +22,10 @@ object ProcessApi {
 
   def exists(processOid: ObjectId): Boolean = BWMongoDB3.processes.find(Map("_id" -> processOid)).nonEmpty
 
-  def allActivityOids(process: DynDoc): Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
+  def allActivityOids(process: DynDoc): Seq[ObjectId] = process.get[Many[ObjectId]]("activity_ids") match {
+    case Some(activityOids) => activityOids
+    case None => Seq.empty
+  }
 
   def allActivities(process: DynDoc): Seq[DynDoc] = {
     val activityOids = allActivityOids(process)

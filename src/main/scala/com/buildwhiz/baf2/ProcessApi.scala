@@ -53,10 +53,14 @@ object ProcessApi {
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
     else
       0
+    val deliverableDeleteCount = if (activityOids.nonEmpty)
+      BWMongoDB3.deliverables.deleteMany(Map("activity_id" -> Map("$in" -> activityOids))).getDeletedCount
+    else
+      0
 
     val message = s"Deleted process '${process.name[String]}' (${process._id[ObjectId]}). " +
       s"Also updated ${phaseUpdateResult.getModifiedCount} phase records, " +
-      s"and deleted $activityDeleteCount activities"
+      s"and deleted $activityDeleteCount activities, $deliverableDeleteCount deliverables"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 

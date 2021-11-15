@@ -46,9 +46,9 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
     ProjectApi.canManage(userOid, project) || PersonApi.isBuildWhizAdmin(Right(user))
   }
 
-  private def phaseInformation2(project: DynDoc): Many[Document] = {
+  private def phaseInformation2(project: DynDoc, user: DynDoc): Many[Document] = {
     def rint(): String = (random() * 15).toInt.toString
-    ProjectApi.allPhases(project).map(phase => {
+    ProjectApi.phasesByUser(user._id[ObjectId], project).map(phase => {
       new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
           append("display_status", PhaseApi.displayStatus31(phase)).append("alert_count", rint()).
           append("rfi_count", rint()).append("issue_count", rint())
@@ -56,8 +56,9 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
   }
 
   private def phaseInformation(project: DynDoc, user: DynDoc, request: HttpServletRequest): Many[Document] = {
-    val phases: Seq[DynDoc] = ProjectApi.allPhases(project)
-    val canManageProject = ProjectApi.canManage(user._id[ObjectId], project)
+    val userOid = user._id[ObjectId]
+    val phases: Seq[DynDoc] = ProjectApi.phasesByUser(userOid, project)
+    val canManageProject = ProjectApi.canManage(userOid, project)
     val phaseRecords: Seq[DynDoc] = phases.map(phase => {
       val phaseDisplayStatus = PhaseApi.displayStatus31(phase)
       val budget = (math.random() * 1000).toInt / 100.0
@@ -166,7 +167,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
       case _ => "Active"
     }
     val displayStatus3 = new Document("editable", false).append("value", rawDisplayStatus3)
-    val phaseInfo2 = phaseInformation2(project)
+    val phaseInfo2 = phaseInformation2(project, user)
     val userCanManageProject = ProjectApi.canManage(user._id[ObjectId], project)
     val canCreatePhase = PersonApi.fullName(user).matches("Prabhas Admin|Sanjay Admin")
     val projectDoc = new Document("name", name).append("summary", summary).append("description", description).

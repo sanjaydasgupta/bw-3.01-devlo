@@ -8,7 +8,8 @@ class ServletContextListener extends JavaxSCL {
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     TimerModule.scheduleTimer()
-    SlackApi.pushHomePages()
+    // Temporarily disabled pushing Slack home pages ...
+    //SlackApi.pushHomePages()
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {

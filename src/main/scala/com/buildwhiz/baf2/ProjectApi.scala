@@ -45,8 +45,14 @@ object ProjectApi extends HttpUtils {
 
   def allProcesses(parentProjectOid: ObjectId): Seq[DynDoc] = allProcesses(projectById(parentProjectOid))
 
-  def phasesByUser(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] =
-    allPhases(parentProject).filter(phase => PhaseApi.hasRole(userOid, phase))
+  def phasesByUser(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] = {
+    val allProjectPhases = allPhases(parentProject)
+    if (PersonApi.isBuildWhizAdmin(Left(userOid))) {
+      allProjectPhases
+    } else {
+      allProjectPhases.filter(phase => PhaseApi.hasRole(userOid, phase))
+    }
+  }
 
   def allActivities(project: DynDoc): Seq[DynDoc] = allProcesses(project).
       flatMap(phase => ProcessApi.allActivities(phase))

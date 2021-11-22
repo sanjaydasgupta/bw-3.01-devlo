@@ -125,8 +125,8 @@ object TimerModule extends HttpUtils {
 
   private def trimTraceLogCollection(ms: Long): Unit = {
     try {
-      val sixMonthsAgo = ms - 86400000L * 183
-      val deleteResult = BWMongoDB3.trace_log.deleteMany(Map("milliseconds" -> Map($lt -> sixMonthsAgo)))
+      val threeMonthsAgo = ms - 86400000L * 92
+      val deleteResult = BWMongoDB3.trace_log.deleteMany(Map("milliseconds" -> Map($lt -> threeMonthsAgo)))
       val deletedCount = deleteResult.getDeletedCount
       BWLogger.log(getClass.getName, "LOCAL", s"trimTraceLogCollection ($deletedCount records deleted)")
     } catch {
@@ -244,11 +244,11 @@ object TimerModule extends HttpUtils {
             newDay(ms, project, calendar)
         }
       }
-      // Database archival etc (at midnight PST)
+      // Database archival etc (at 3 AM PST)
       val calendarPST = Calendar.getInstance(TimeZone.getTimeZone("PST"))
       calendarPST.setTimeInMillis(ms)
       val hours = calendarPST.get(Calendar.HOUR_OF_DAY)
-      if (hours == 0) {
+      if (hours == 3) {
         val minutes = calendarPST.get(Calendar.MINUTE)
         if (minutes == 0) {
           // at midnight of PST timezone

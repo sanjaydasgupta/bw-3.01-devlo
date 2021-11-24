@@ -23,6 +23,11 @@ class DynDoc(d: Document) extends Dynamic {
     Some(d.get(fieldName).asInstanceOf[T])
   else
     None
+
+  def getOrElse[T](fieldName: String, default: T): T = if (d.containsKey(fieldName))
+    d.get(fieldName).asInstanceOf[T]
+  else
+    default
 }
 
 object DynDoc {

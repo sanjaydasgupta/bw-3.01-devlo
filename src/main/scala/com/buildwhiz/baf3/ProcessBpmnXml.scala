@@ -332,7 +332,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
-          append("repetition_count", 10).append("cycle_time", "7").append("menu_items", menuItems)
+          append("repetition_count", 10).append("cycle_time", "7").append("menu_items", menuItems).
+          append("bpmn_name_full", parameters.getOrElse("bpmn_name_full", bpmnFileName))
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)

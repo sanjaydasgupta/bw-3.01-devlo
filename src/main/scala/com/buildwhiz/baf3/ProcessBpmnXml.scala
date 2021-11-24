@@ -138,7 +138,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
         append("duration_likely", theDuration).append("is_takt", isTakt).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
-        append("on_critical_path", false).append("deliverable_count", deliverableCount)
+        append("on_critical_path", false).append("deliverable_count", deliverableCount).
+        append("bpmn_name_full", stamp.getOrElse[String]("bpmn_name_full", ""))
     })
   }
 

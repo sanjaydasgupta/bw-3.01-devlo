@@ -198,9 +198,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val callerElementId = callElementNode.getAttributes.getNamedItem("id").getTextContent
     val callerElementName = cleanText(nameAttribute(callElementNode))
     val fullBpmnName = if (idPath == ".") {
-      callee
+      callerElementId + "/" + callee
     } else {
-      idPath.substring(2) + "/" + callee
+      idPath.substring(2) + "/" + callerElementId + "/" + callee
     }
     val callDetails: Document = Map("name" -> callee, "bpmn_name_full" -> fullBpmnName, "parent_name" -> bpmnName,
       "parent_activity_id" -> callerElementId, "offset" -> Map("start" -> "00:00:00", "end" -> "00:00:00"),

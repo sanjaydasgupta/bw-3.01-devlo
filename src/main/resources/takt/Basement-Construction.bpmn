@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1xtrut4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Basement-Construction" name="Basement Construction" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_0mc6ytk</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Waterproof-Basement-Walls" name="Waterproof Basement Walls">
+      <bpmn:incoming>Flow_0mc6ytk</bpmn:incoming>
+      <bpmn:outgoing>Flow_1k45z40</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0mc6ytk" sourceRef="Start" targetRef="Waterproof-Basement-Walls" />
+    <bpmn:task id="F-R-P-Core-Walls" name="F-R-P Core Walls">
+      <bpmn:incoming>Flow_1k45z40</bpmn:incoming>
+      <bpmn:outgoing>Flow_0cg0900</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1k45z40" sourceRef="Waterproof-Basement-Walls" targetRef="F-R-P-Core-Walls" />
+    <bpmn:task id="Form-Rebar-Shotcrete-Basement-Walls" name="Form, Rebar, Shotcrete Basement Walls">
+      <bpmn:incoming>Flow_0cg0900</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oeu1yp</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0cg0900" sourceRef="F-R-P-Core-Walls" targetRef="Form-Rebar-Shotcrete-Basement-Walls" />
+    <bpmn:task id="F-R-P-Walls-and-Columns" name="F-R-P Walls and Columns">
+      <bpmn:incoming>Flow_1oeu1yp</bpmn:incoming>
+      <bpmn:outgoing>Flow_1em3evk</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1oeu1yp" sourceRef="Form-Rebar-Shotcrete-Basement-Walls" targetRef="F-R-P-Walls-and-Columns" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_1em3evk</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1em3evk" sourceRef="F-R-P-Walls-and-Columns" targetRef="End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Basement-Construction">
+      <bpmndi:BPMNEdge id="Flow_1em3evk_di" bpmnElement="Flow_1em3evk">
+        <di:waypoint x="850" y="117" />
+        <di:waypoint x="912" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oeu1yp_di" bpmnElement="Flow_1oeu1yp">
+        <di:waypoint x="690" y="117" />
+        <di:waypoint x="750" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cg0900_di" bpmnElement="Flow_0cg0900">
+        <di:waypoint x="530" y="117" />
+        <di:waypoint x="590" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k45z40_di" bpmnElement="Flow_1k45z40">
+        <di:waypoint x="370" y="117" />
+        <di:waypoint x="430" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mc6ytk_di" bpmnElement="Flow_0mc6ytk">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="270" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="185" y="142" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_081u9zj_di" bpmnElement="Waterproof-Basement-Walls">
+        <dc:Bounds x="270" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0fzp3ak_di" bpmnElement="F-R-P-Core-Walls">
+        <dc:Bounds x="430" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1c4kicn_di" bpmnElement="Form-Rebar-Shotcrete-Basement-Walls">
+        <dc:Bounds x="590" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oa38ym_di" bpmnElement="F-R-P-Walls-and-Columns">
+        <dc:Bounds x="750" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ygstvr_di" bpmnElement="End">
+        <dc:Bounds x="912" y="99" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="920" y="142" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

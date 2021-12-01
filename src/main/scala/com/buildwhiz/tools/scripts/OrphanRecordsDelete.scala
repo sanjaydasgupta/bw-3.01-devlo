@@ -1,6 +1,6 @@
 package com.buildwhiz.tools.scripts
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -22,6 +22,11 @@ object OrphanRecordsDelete extends HttpUtils {
     val orphanedPhaseOids: Seq[ObjectId] = existingPhaseOids.filterNot(expectedPhaseOids.toSet.contains)
     response.getWriter.println(s"\tOrphaned phase Oids (${orphanedPhaseOids.length}): " +
       orphanedPhaseOids.mkString(", "))
+    if (go && orphanedPhaseOids.nonEmpty) {
+      response.getWriter.println(s"\tDeleting ${orphanedPhaseOids.length} orphaned phases")
+      val phaseByOid = existingPhases.map(p => (p._id[ObjectId], p)).toMap
+      orphanedPhaseOids.foreach(oid => PhaseApi.delete(phaseByOid(oid), request))
+    }
     val missingPhaseOids: Seq[ObjectId] = expectedPhaseOids.filterNot(existingPhaseOids.toSet.contains)
     response.getWriter.println(s"\tMissing phase Oids (${missingPhaseOids.length}): " +
       missingPhaseOids.mkString(", "))
@@ -40,6 +45,11 @@ object OrphanRecordsDelete extends HttpUtils {
     val orphanedProcessOids: Seq[ObjectId] = existingProcessOids.filterNot(expectedProcessOids.toSet.contains)
     response.getWriter.println(s"\tOrphaned process Oids (${orphanedProcessOids.length}): " +
       orphanedProcessOids.mkString(", "))
+    if (go && orphanedProcessOids.nonEmpty) {
+      response.getWriter.println(s"\tDeleting ${orphanedProcessOids.length} orphaned processes")
+      val processByOid = existingProcesses.map(p => (p._id[ObjectId], p)).toMap
+      orphanedProcessOids.foreach(oid => ProcessApi.delete(processByOid(oid), request))
+    }
     val missingProcessOids: Seq[ObjectId] = expectedProcessOids.filterNot(existingProcessOids.toSet.contains)
     response.getWriter.println(s"\tMissing process Oids (${missingProcessOids.length}): " +
       missingProcessOids.mkString(", "))
@@ -58,6 +68,14 @@ object OrphanRecordsDelete extends HttpUtils {
     val orphanedActivityOids: Seq[ObjectId] = existingActivityOids.filterNot(expectedActivityOids.toSet.contains)
     response.getWriter.println(s"\tOrphaned activity Oids (${orphanedActivityOids.length}): " +
         orphanedActivityOids.mkString(", "))
+    if (go && orphanedActivityOids.nonEmpty) {
+      response.getWriter.println(s"\tDeleting ${orphanedActivityOids.length} orphaned activities")
+      val activityByOid = existingActivities.map(a => (a._id[ObjectId], a)).toMap
+      val deleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> orphanedActivityOids)))
+      if (deleteResult.getDeletedCount != orphanedActivityOids.length) {
+        response.getWriter.println(s"\tDeleted only ${deleteResult.getDeletedCount} orphaned activities")
+      }
+    }
     val missingActivityOids: Seq[ObjectId] = expectedActivityOids.filterNot(existingActivityOids.toSet.contains)
     response.getWriter.println(s"\tMissing activity Oids (${missingActivityOids.length}): " +
       missingActivityOids.mkString(", "))

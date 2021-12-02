@@ -85,7 +85,23 @@ object OrphanRecordsDelete extends HttpUtils {
   private def deleteOrphanedDeliverables(request: HttpServletRequest, response: HttpServletResponse, go: Boolean):
       Unit = {
     response.getWriter.println(s"ENTRY deleteOrphanedDeliverables()")
-    response.getWriter.println(s"EXIT deleteOrphanedDeliverables()\t\t")
+    val existingDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
+    val parentActivityOids: Seq[ObjectId] = existingDeliverables.map(_.activity_id[ObjectId]).distinct
+    val existingParentActivities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map($in -> parentActivityOids)))
+    val existingParentActivityOids: Set[ObjectId] = existingParentActivities.map(_._id[ObjectId]).toSet
+    val orphanedDeliverables = existingDeliverables.
+        filterNot(d => existingParentActivityOids.contains(d.activity_id[ObjectId]))
+    val orphanedDeliverableOids: Seq[ObjectId] = orphanedDeliverables.map(_._id[ObjectId])
+    response.getWriter.println(s"\tOrphaned deliverable Oids (${orphanedDeliverableOids.length}): " +
+      orphanedDeliverableOids.mkString(", "))
+    if (go && orphanedDeliverables.nonEmpty) {
+      response.getWriter.println(s"\tDeleting ${orphanedDeliverables.length} orphaned deliverables")
+      val deleteResult = BWMongoDB3.deliverables.deleteMany(Map("_id" -> Map("$in" -> orphanedDeliverableOids)))
+      if (deleteResult.getDeletedCount != orphanedDeliverableOids.length) {
+        response.getWriter.println(s"\tDeleted only ${deleteResult.getDeletedCount} orphaned deliverables")
+      }
+    }
+    response.getWriter.println(s"EXIT deleteOrphanedDeliverables()\n\n")
   }
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {

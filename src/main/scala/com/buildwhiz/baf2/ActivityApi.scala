@@ -74,7 +74,7 @@ object ActivityApi extends DateTimeUtils {
       val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
       val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
       val activityOffset: Option[Long] = activity.get[Long]("offset")
-      phaseStartDate.flatMap(psd => activityOffset.map(_ * 86400 * 1000 + psd))
+      phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off)))
     } catch {
       case _: Throwable => None
     }
@@ -83,13 +83,13 @@ object ActivityApi extends DateTimeUtils {
   def scheduledEnd31(phase: DynDoc, activity: DynDoc): Option[Long] = {
     val activityDurations: Option[DynDoc] = activity.get[Document]("durations")
     val activityLikelyDuration: Option[Long] =
-        activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d * 86400L * 1000L)})
-    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.map(_ + startDate))
+        activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d)})
+    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.map(dur => addWeekdays(startDate, dur)))
   }
 
   def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
     (process.get[Long]("estimated_start_date"), activity.get[Long]("offset")) match {
-      case (Some(processStartDate), Some(offset)) => Some(processStartDate + offset * 86400 * 1000)
+      case (Some(processStartDate), Some(offset)) => Some(addWeekdays(processStartDate, offset))
       case _ => None
     }
   }
@@ -107,7 +107,7 @@ object ActivityApi extends DateTimeUtils {
 
   def scheduledEnd3(process: DynDoc, activity: DynDoc): Option[Long] = {
     (scheduledStart3(process, activity), activity.get[Long]("duration")) match {
-      case (Some(scheduledStartDate), Some(offset)) => Some(scheduledStartDate + offset * 86400 * 1000)
+      case (Some(scheduledStartDate), Some(offset)) => Some(addWeekdays(scheduledStartDate, offset))
       case _ => None
     }
   }

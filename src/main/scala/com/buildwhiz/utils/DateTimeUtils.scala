@@ -50,6 +50,20 @@ trait DateTimeUtils {
     s"P${days}DT${hours}H${minutes}M"
   }
 
+  def addWeekdays(baseDateMs: Long, days: Long): Long = {
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+    calendar.setTimeInMillis(baseDateMs)
+    var daysLeft = days
+    while (daysLeft > 0) {
+      calendar.add(Calendar.DATE, 1)
+      val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+      if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
+        daysLeft -= 1
+      }
+    }
+    calendar.getTimeInMillis
+  }
+
 }
 
 object DateTimeUtilsTest extends App with DateTimeUtils {

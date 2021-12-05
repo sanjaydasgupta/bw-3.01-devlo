@@ -214,11 +214,12 @@ object ActivityApi extends DateTimeUtils {
   }
 
   def percentComplete(theActivity: DynDoc): String = {
-    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
+    val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log")) {
       theActivity.change_log[Many[Document]]
-    else
+    } else {
       Seq.empty[DynDoc]
-    changeLogEntries.reverse.find(_.has("percent_complete")) match {
+    }
+    changeLogEntries.filter(_.has("percent_complete")).lastOption match {
       case Some(logEntry) => logEntry.percent_complete[Any].toString
       case None => "0"
     }

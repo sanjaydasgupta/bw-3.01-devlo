@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0e33k9c" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0e33k9c" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.11.1" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
   <bpmn:process id="Site-Work-Prep-Excavation" name="Site Work Prep Excavation" isExecutable="true">
     <bpmn:startEvent id="Start" name="Start">
       <bpmn:outgoing>Flow_1ynmwvs</bpmn:outgoing>
@@ -21,75 +21,44 @@
     <bpmn:sequenceFlow id="Flow_0cw681j" sourceRef="Isolate-and-Brace-Existing-Facade" targetRef="Abate-Existing-Building" />
     <bpmn:task id="Demo-Existing-Building" name="Demo Existing Building">
       <bpmn:incoming>Flow_0eeoc0k</bpmn:incoming>
-      <bpmn:outgoing>Flow_0h7rxkx</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0uw2pu8</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_0eeoc0k" sourceRef="Abate-Existing-Building" targetRef="Demo-Existing-Building" />
     <bpmn:task id="Install-Shoring-Mass-Excavation" name="Install Shoring Mass Excavation">
-      <bpmn:incoming>Flow_0h7rxkx</bpmn:incoming>
+      <bpmn:incoming>Flow_0uw2pu8</bpmn:incoming>
       <bpmn:outgoing>Flow_0fqsyxl</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:task id="Install-Certify-Tower-Crane" name="Install Certify Tower Crane">
-      <bpmn:incoming>Flow_0vc9q3a</bpmn:incoming>
-      <bpmn:outgoing>Flow_0fpjmkz</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0fqsyxl" sourceRef="Install-Shoring-Mass-Excavation" targetRef="Excavate-F-R-P-Crane-Footing" />
-    <bpmn:task id="Excavate-F-R-P-Crane-Footing" name="Excavate-F-R-P Crane Footing">
-      <bpmn:incoming>Flow_0fqsyxl</bpmn:incoming>
-      <bpmn:outgoing>Flow_0vc9q3a</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0vc9q3a" sourceRef="Excavate-F-R-P-Crane-Footing" targetRef="Install-Certify-Tower-Crane" />
-    <bpmn:task id="Install-Certify-Manhoist" name="Install Certify Manhoist">
-      <bpmn:incoming>Flow_0fpjmkz</bpmn:incoming>
-      <bpmn:outgoing>Flow_0vvm37z</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0fpjmkz" sourceRef="Install-Certify-Tower-Crane" targetRef="Install-Certify-Manhoist" />
+    <bpmn:sequenceFlow id="Flow_0fqsyxl" sourceRef="Install-Shoring-Mass-Excavation" targetRef="End" />
     <bpmn:endEvent id="End" name="End">
-      <bpmn:incoming>Flow_0vvm37z</bpmn:incoming>
+      <bpmn:incoming>Flow_0fqsyxl</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0vvm37z" sourceRef="Install-Certify-Manhoist" targetRef="End" />
-    <bpmn:sequenceFlow id="Flow_0h7rxkx" sourceRef="Demo-Existing-Building" targetRef="Install-Shoring-Mass-Excavation" />
+    <bpmn:sequenceFlow id="Flow_0uw2pu8" sourceRef="Demo-Existing-Building" targetRef="Install-Shoring-Mass-Excavation" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Site-Work-Prep-Excavation">
+      <bpmndi:BPMNEdge id="Flow_0fqsyxl_di" bpmnElement="Flow_0fqsyxl">
+        <di:waypoint x="1000" y="117" />
+        <di:waypoint x="1062" y="117" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0eeoc0k_di" bpmnElement="Flow_0eeoc0k">
-        <di:waypoint x="693" y="117" />
-        <di:waypoint x="750" y="117" />
+        <di:waypoint x="684" y="117" />
+        <di:waypoint x="742" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0cw681j_di" bpmnElement="Flow_0cw681j">
-        <di:waypoint x="532" y="117" />
-        <di:waypoint x="593" y="117" />
+        <di:waypoint x="526" y="117" />
+        <di:waypoint x="584" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0p44jpj_di" bpmnElement="Flow_0p44jpj">
-        <di:waypoint x="371" y="117" />
-        <di:waypoint x="432" y="117" />
+        <di:waypoint x="368" y="117" />
+        <di:waypoint x="426" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ynmwvs_di" bpmnElement="Flow_1ynmwvs">
         <di:waypoint x="215" y="117" />
-        <di:waypoint x="271" y="117" />
+        <di:waypoint x="268" y="117" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0fqsyxl_di" bpmnElement="Flow_0fqsyxl">
-        <di:waypoint x="371" y="310" />
-        <di:waypoint x="432" y="310" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0vc9q3a_di" bpmnElement="Flow_0vc9q3a">
-        <di:waypoint x="532" y="310" />
-        <di:waypoint x="593" y="310" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0fpjmkz_di" bpmnElement="Flow_0fpjmkz">
-        <di:waypoint x="693" y="310" />
-        <di:waypoint x="750" y="310" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0vvm37z_di" bpmnElement="Flow_0vvm37z">
-        <di:waypoint x="850" y="310" />
-        <di:waypoint x="902" y="310" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0h7rxkx_di" bpmnElement="Flow_0h7rxkx">
-        <di:waypoint x="850" y="117" />
-        <di:waypoint x="920" y="117" />
-        <di:waypoint x="920" y="210" />
-        <di:waypoint x="190" y="210" />
-        <di:waypoint x="190" y="310" />
-        <di:waypoint x="271" y="310" />
+      <bpmndi:BPMNEdge id="Flow_0uw2pu8_di" bpmnElement="Flow_0uw2pu8">
+        <di:waypoint x="842" y="117" />
+        <di:waypoint x="900" y="117" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
         <dc:Bounds x="179" y="99" width="36" height="36" />
@@ -97,34 +66,25 @@
           <dc:Bounds x="185" y="142" width="24" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0vkxdkz_di" bpmnElement="Demo-Existing-Building">
-        <dc:Bounds x="750" y="77" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1t8v6ut_di" bpmnElement="Mobilize-Site-Install-Fencing">
-        <dc:Bounds x="271" y="77" width="100" height="80" />
+        <dc:Bounds x="268" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_09ml46r_di" bpmnElement="Isolate-and-Brace-Existing-Facade">
-        <dc:Bounds x="432" y="77" width="100" height="80" />
+        <dc:Bounds x="426" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0e1kwza_di" bpmnElement="Abate-Existing-Building">
-        <dc:Bounds x="593" y="77" width="100" height="80" />
+        <dc:Bounds x="584" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vkxdkz_di" bpmnElement="Demo-Existing-Building">
+        <dc:Bounds x="742" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_01o3s5p_di" bpmnElement="Install-Shoring-Mass-Excavation">
-        <dc:Bounds x="271" y="270" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1a4zzix_di" bpmnElement="Install-Certify-Manhoist">
-        <dc:Bounds x="750" y="270" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_09awvhm_di" bpmnElement="Install-Certify-Tower-Crane">
-        <dc:Bounds x="593" y="270" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0x5yotl_di" bpmnElement="Excavate-F-R-P-Crane-Footing">
-        <dc:Bounds x="432" y="270" width="100" height="80" />
+        <dc:Bounds x="900" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1g90j8x_di" bpmnElement="End">
-        <dc:Bounds x="902" y="292" width="36" height="36" />
+        <dc:Bounds x="1062" y="99" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="910" y="335" width="20" height="14" />
+          <dc:Bounds x="1070" y="142" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

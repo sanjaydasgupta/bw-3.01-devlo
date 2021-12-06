@@ -127,8 +127,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => false
       }
 
-      val theDuration = if (isTakt) 70 else durationLikely
-
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
         append("start", startDate).append("end", endDate).append("status", aggregatedStatus).
@@ -136,7 +134,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).
         append("duration_optimistic", "NA").append("duration_pessimistic", "NA").
-        append("duration_likely", theDuration).append("is_takt", isTakt).
+        append("duration_likely", durationLikely).append("is_takt", isTakt).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount).
         append("bpmn_name_full", stamp.getOrElse[String]("bpmn_name_full", ""))
@@ -214,8 +212,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "NA"
       }
 
-      val theDuration: String = if (globalTakt) (5 + index % 3).toString else durationLikely
-
       val description = activity.get[String]("description") match {
         case Some(d) => new Document("editable", canManage).append("value", d)
         case None => new Document("editable", canManage).append("value", "")
@@ -226,11 +222,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
         append("status", status).append("duration_is_editable", status != "Completed").
-        append("duration", theDuration).append("elementType", "activity").
+        append("duration", durationLikely).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
         append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
-        append("duration_likely", theDuration).append("duration_actual", "NA").
+        append("duration_likely", durationLikely).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).

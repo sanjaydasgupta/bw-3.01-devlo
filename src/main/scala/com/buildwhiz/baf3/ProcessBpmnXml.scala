@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils._
 import org.bson.Document
@@ -10,7 +10,6 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.annotation.tailrec
 import scala.collection.mutable
-
 import com.buildwhiz.baf2.{ActivityApi, OrganizationApi, PersonApi, PhaseApi}
 
 class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTimeUtils with ProjectUtils {
@@ -322,14 +321,24 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => displayedMenuItems(isAdmin, starting = true)
         case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
       }
+      val bpmnNameFull = parameters.getOrElse("bpmn_name_full", "")
+      // BEGIN Takt simplified approach
+      val taktTempActivitiesCount =
+          BWMongoDB3.takt_temp_activities.countDocuments(Map("phase_id" -> phaseOid, "bpmn_name_full" -> bpmnNameFull))
+      val repetitionCount = if (taktTempActivitiesCount == 0) {
+        0
+      } else {
+        taktTempActivitiesCount / processActivities.length
+      }
+      // END Takt simplified approach
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
-          append("repetition_count", 10).append("cycle_time", "7").append("menu_items", menuItems).
-          append("bpmn_name_full", parameters.getOrElse("bpmn_name_full", "")).
+          append("repetition_count", repetitionCount).append("cycle_time", "7").append("menu_items", menuItems).
+          append("bpmn_name_full", bpmnNameFull).
           append("activity_count", processActivities.length)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")

@@ -110,7 +110,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   }
 
   def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, durations: Seq[(String, String, Int)],
-      request: HttpServletRequest): Long = {
+      repetitionCount: Int, request: HttpServletRequest): Long = {
 
     val process = PhaseApi.allProcesses(phaseOid) match {
       case Seq(soloProcess) => soloProcess
@@ -118,25 +118,31 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     }
 
     val duration = if (durations.isEmpty) {
-      processDurationRecalculate(bpmnName, process, Seq.empty, request)
+      processDurationRecalculate(bpmnName, process, Seq.empty, repetitionCount, request)
     } else {
       if (bpmnName != process.bpmn_name[String]) {
-        processDurationRecalculate(process.bpmn_name[String], process, durations, request)
-        processDurationRecalculate(bpmnName, process, Seq.empty, request)
+        processDurationRecalculate(process.bpmn_name[String], process, durations, repetitionCount, request)
+        processDurationRecalculate(bpmnName, process, Seq.empty, repetitionCount, request)
       } else {
-        processDurationRecalculate(bpmnName, process, durations, request)
+        processDurationRecalculate(bpmnName, process, durations, repetitionCount, request)
       }
     }
     duration
   }
 
   def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
-      request: HttpServletRequest): Long = {
+      repetitionCount: Int, request: HttpServletRequest): Long = {
     val t0 = System.currentTimeMillis()
     val activities = ProcessApi.allActivities(process)
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
     val messages = mutable.ListBuffer[String]()
+
+    def getFirstTaskDuration(startNode: FlowNode, bpmnName: String): Long = {
+      val firstTask = startNode.getSucceedingNodes.list().asScala.head
+      getActivityDuration(firstTask.getId, process, bpmnName, Seq.empty, activitiesByBpmnNameAndId,
+        messages, request)
+    }
 
     def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {
 
@@ -187,11 +193,12 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
             val callOffset = maxPredecessorOffset(callActivity, startOffset)
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
+            val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
             val isTakt = callActivity.getLoopCharacteristics != null
             val duration = endEvents.map(endEvent =>
                 getTimeOffset(endEvent, callOffset, calledElement, prefix/*, seenNodes + endEvent*/)).max
             if (isTakt) {
-              70 // ToDo: Hardwired value for TAKT mockup
+              duration + getFirstTaskDuration(startEvent, calledElement) * repetitionCount
             } else {
               duration
             }

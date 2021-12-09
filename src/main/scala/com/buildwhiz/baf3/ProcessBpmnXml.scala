@@ -92,11 +92,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
   }
 
   private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
-      repetitionCount: Int, request: HttpServletRequest): Seq[Document] = {
+      request: HttpServletRequest): Seq[Document] = {
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
-      val bpmnActivities = processActivities.filter(_.bpmn_name[String] == calledBpmnName)
+      val bpmnNameFull = stamp.getOrElse("bpmn_name_full", "")
+      val bpmnActivities = if (bpmnNameFull.isEmpty) {
+        processActivities.filter(_.bpmn_name[String] == calledBpmnName)
+      } else {
+        processActivities.filter(_.bpmn_name_full[String] == bpmnNameFull)
+      }
       val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId]))
       val deliverableCount = deliverables.length
       val uniqueStatusValues = DeliverableApi.taskStatusMap(deliverables).values.toSet
@@ -119,8 +124,25 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
+      val taktTempActivitiesCount = BWMongoDB3.takt_temp_activities.
+          countDocuments(Map("phase_id" -> phase._id[ObjectId], "bpmn_name_full" -> bpmnNameFull))
+      val repetitionCount = if (taktTempActivitiesCount == 0) {
+        0
+      } else {
+        (taktTempActivitiesCount / bpmnActivities.length).asInstanceOf[Int]
+      }
+      val firstActivityDuration: Int = bpmnActivities.sortBy(_.getOrElse[Long]("offset", Long.MaxValue)).headOption match {
+        case Some(a) => a.get[Document]("durations") match {
+          case Some(dur) => dur.getInteger("likely")
+          case _ => 0
+        }
+        case _ => 0
+      }
       val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process,
-          Seq.empty[(String, String, Int)], repetitionCount, request)
+          Seq.empty[(String, String, Int)], repetitionCount, request) + firstActivityDuration * repetitionCount
+      val msg = s"calledBpmn: $calledBpmnName, bpmnNameFull: $bpmnNameFull, repetitionCount: $repetitionCount, " +
+        s"firstActivityDuration: $firstActivityDuration, durationLikely: $durationLikely"
+      BWLogger.log(getClass.getName, request.getMethod, s"getSubProcessCalls(): $msg", request)
       val isTakt = stamp.get[Boolean]("is_takt") match {
         case Some(taktValue) => taktValue
         case None => false
@@ -310,7 +332,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         (taktTempActivitiesCount / processActivities.length).asInstanceOf[Int]
       }
       // END Takt simplified approach
-      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, repetitionCount, request)
+      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

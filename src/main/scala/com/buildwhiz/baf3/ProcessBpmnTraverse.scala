@@ -194,9 +194,10 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
             val bpmnModel2 = bpmnModelInstance(calledElement)
             val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
             val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
+            val prefix2 = bpmnModel2.getDocument.getRootElement.getPrefix
             val isTakt = callActivity.getLoopCharacteristics != null
             val duration = endEvents.map(endEvent =>
-                getTimeOffset(endEvent, callOffset, calledElement, prefix/*, seenNodes + endEvent*/)).max
+                getTimeOffset(endEvent, callOffset, calledElement, prefix2/*, seenNodes + endEvent*/)).max
             if (isTakt) {
               duration + getFirstTaskDuration(startEvent, calledElement) * repetitionCount
             } else {

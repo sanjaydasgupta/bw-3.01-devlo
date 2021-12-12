@@ -572,7 +572,7 @@
         <di:waypoint x="630" y="1007" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0gq853q_di" bpmnElement="Flow_0gq853q">
-        <di:waypoint x="299" y="1042" />
+        <di:waypoint x="299" y="1037" />
         <di:waypoint x="299" y="1062" />
         <di:waypoint x="460" y="1062" />
       </bpmndi:BPMNEdge>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1cr2hmi" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Basement-Finish" name="Basement Finish" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_1hnbt5n</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="MEPF-Rough-In" name="MEPF Rough-In">
+      <bpmn:incoming>Flow_1hnbt5n</bpmn:incoming>
+      <bpmn:outgoing>Flow_1abviqb</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1hnbt5n" sourceRef="Start" targetRef="MEPF-Rough-In" />
+    <bpmn:task id="Frame-Walls-and-Ceilings" name="Frame Walls and Ceilings">
+      <bpmn:incoming>Flow_1abviqb</bpmn:incoming>
+      <bpmn:outgoing>Flow_1i07k4z</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1abviqb" sourceRef="MEPF-Rough-In" targetRef="Frame-Walls-and-Ceilings" />
+    <bpmn:task id="Install-Electrical-Switchgear" name="Install Electrical Switchgear">
+      <bpmn:incoming>Flow_1i07k4z</bpmn:incoming>
+      <bpmn:outgoing>Flow_0z6tlf2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1i07k4z" sourceRef="Frame-Walls-and-Ceilings" targetRef="Install-Electrical-Switchgear" />
+    <bpmn:task id="Install-Mech-Plumbing-Fire-Equipment" name="Install Mech, Plumbing, Fire Equipment">
+      <bpmn:incoming>Flow_0z6tlf2</bpmn:incoming>
+      <bpmn:outgoing>Flow_1y48zig</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0z6tlf2" sourceRef="Install-Electrical-Switchgear" targetRef="Install-Mech-Plumbing-Fire-Equipment" />
+    <bpmn:task id="Scope-Completion-List" name="Scope Completion List">
+      <bpmn:incoming>Flow_1y48zig</bpmn:incoming>
+      <bpmn:outgoing>Flow_07aodpr</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1y48zig" sourceRef="Install-Mech-Plumbing-Fire-Equipment" targetRef="Scope-Completion-List" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_07aodpr</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_07aodpr" sourceRef="Scope-Completion-List" targetRef="End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Basement-Finish">
+      <bpmndi:BPMNEdge id="Flow_07aodpr_di" bpmnElement="Flow_07aodpr">
+        <di:waypoint x="1010" y="120" />
+        <di:waypoint x="1072" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1y48zig_di" bpmnElement="Flow_1y48zig">
+        <di:waypoint x="850" y="120" />
+        <di:waypoint x="910" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0z6tlf2_di" bpmnElement="Flow_0z6tlf2">
+        <di:waypoint x="690" y="120" />
+        <di:waypoint x="750" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1i07k4z_di" bpmnElement="Flow_1i07k4z">
+        <di:waypoint x="530" y="120" />
+        <di:waypoint x="590" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1abviqb_di" bpmnElement="Flow_1abviqb">
+        <di:waypoint x="370" y="120" />
+        <di:waypoint x="430" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hnbt5n_di" bpmnElement="Flow_1hnbt5n">
+        <di:waypoint x="215" y="120" />
+        <di:waypoint x="270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="179" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="186" y="145" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0qpqxq4_di" bpmnElement="MEPF-Rough-In">
+        <dc:Bounds x="270" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1y2vf9l_di" bpmnElement="Frame-Walls-and-Ceilings">
+        <dc:Bounds x="430" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16yjilf_di" bpmnElement="Install-Electrical-Switchgear">
+        <dc:Bounds x="590" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1i4ulcy_di" bpmnElement="Install-Mech-Plumbing-Fire-Equipment">
+        <dc:Bounds x="750" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_03yixxf_di" bpmnElement="Scope-Completion-List">
+        <dc:Bounds x="910" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0v89cw8_di" bpmnElement="End">
+        <dc:Bounds x="1072" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1080" y="145" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

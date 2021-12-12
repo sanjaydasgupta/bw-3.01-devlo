@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1xtrut4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Basement-Construction-2" name="Basement Construction" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_0mc6ytk</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Waterproof-Basement-Walls" name="Waterproof Basement Walls">
+      <bpmn:incoming>Flow_1u7dpz8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1n4qklo</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0mc6ytk" sourceRef="Start" targetRef="Gateway_1q4k35x" />
+    <bpmn:task id="F-R-P-Core-Walls" name="F-R-P Core Walls">
+      <bpmn:incoming>Flow_1805dn5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yv4mdu</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="F-R-P-Basement-Walls" name="F-R-P Basement Walls">
+      <bpmn:incoming>Flow_0ojfzpl</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ihc5sf</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="F-R-P-Columns" name="F-R-P Columns">
+      <bpmn:incoming>Flow_13tyxh6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1s4zm88</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_0uwb4q1</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1u7dpz8" sourceRef="Gateway_1q4k35x" targetRef="Waterproof-Basement-Walls" />
+    <bpmn:parallelGateway id="Gateway_1q4k35x">
+      <bpmn:incoming>Flow_0mc6ytk</bpmn:incoming>
+      <bpmn:outgoing>Flow_1u7dpz8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1805dn5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ojfzpl</bpmn:outgoing>
+      <bpmn:outgoing>Flow_13tyxh6</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_1805dn5" sourceRef="Gateway_1q4k35x" targetRef="F-R-P-Core-Walls" />
+    <bpmn:sequenceFlow id="Flow_0ojfzpl" sourceRef="Gateway_1q4k35x" targetRef="F-R-P-Basement-Walls" />
+    <bpmn:sequenceFlow id="Flow_13tyxh6" sourceRef="Gateway_1q4k35x" targetRef="F-R-P-Columns" />
+    <bpmn:sequenceFlow id="Flow_1n4qklo" sourceRef="Waterproof-Basement-Walls" targetRef="Gateway_0bf6r43" />
+    <bpmn:sequenceFlow id="Flow_0yv4mdu" sourceRef="F-R-P-Core-Walls" targetRef="Gateway_0bf6r43" />
+    <bpmn:sequenceFlow id="Flow_1ihc5sf" sourceRef="F-R-P-Basement-Walls" targetRef="Gateway_0bf6r43" />
+    <bpmn:sequenceFlow id="Flow_1s4zm88" sourceRef="F-R-P-Columns" targetRef="Gateway_0bf6r43" />
+    <bpmn:parallelGateway id="Gateway_0bf6r43">
+      <bpmn:incoming>Flow_1n4qklo</bpmn:incoming>
+      <bpmn:incoming>Flow_0yv4mdu</bpmn:incoming>
+      <bpmn:incoming>Flow_1ihc5sf</bpmn:incoming>
+      <bpmn:incoming>Flow_1s4zm88</bpmn:incoming>
+      <bpmn:outgoing>Flow_0uwb4q1</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0uwb4q1" sourceRef="Gateway_0bf6r43" targetRef="End" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Basement-Construction-2">
+      <bpmndi:BPMNEdge id="Flow_0uwb4q1_di" bpmnElement="Flow_0uwb4q1">
+        <di:waypoint x="535" y="290" />
+        <di:waypoint x="572" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1s4zm88_di" bpmnElement="Flow_1s4zm88">
+        <di:waypoint x="440" y="460" />
+        <di:waypoint x="510" y="460" />
+        <di:waypoint x="510" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ihc5sf_di" bpmnElement="Flow_1ihc5sf">
+        <di:waypoint x="440" y="340" />
+        <di:waypoint x="510" y="340" />
+        <di:waypoint x="510" y="315" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yv4mdu_di" bpmnElement="Flow_0yv4mdu">
+        <di:waypoint x="440" y="230" />
+        <di:waypoint x="510" y="230" />
+        <di:waypoint x="510" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1n4qklo_di" bpmnElement="Flow_1n4qklo">
+        <di:waypoint x="440" y="117" />
+        <di:waypoint x="510" y="117" />
+        <di:waypoint x="510" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13tyxh6_di" bpmnElement="Flow_13tyxh6">
+        <di:waypoint x="260" y="315" />
+        <di:waypoint x="260" y="460" />
+        <di:waypoint x="340" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ojfzpl_di" bpmnElement="Flow_0ojfzpl">
+        <di:waypoint x="260" y="315" />
+        <di:waypoint x="260" y="340" />
+        <di:waypoint x="340" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1805dn5_di" bpmnElement="Flow_1805dn5">
+        <di:waypoint x="260" y="265" />
+        <di:waypoint x="260" y="230" />
+        <di:waypoint x="340" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1u7dpz8_di" bpmnElement="Flow_1u7dpz8">
+        <di:waypoint x="260" y="265" />
+        <di:waypoint x="260" y="117" />
+        <di:waypoint x="340" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0mc6ytk_di" bpmnElement="Flow_0mc6ytk">
+        <di:waypoint x="188" y="290" />
+        <di:waypoint x="235" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="152" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="315" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_081u9zj_di" bpmnElement="Waterproof-Basement-Walls">
+        <dc:Bounds x="340" y="77" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0fzp3ak_di" bpmnElement="F-R-P-Core-Walls">
+        <dc:Bounds x="340" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1c4kicn_di" bpmnElement="F-R-P-Basement-Walls">
+        <dc:Bounds x="340" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1oa38ym_di" bpmnElement="F-R-P-Columns">
+        <dc:Bounds x="340" y="420" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ygstvr_di" bpmnElement="End">
+        <dc:Bounds x="572" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="580" y="315" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_02lf683_di" bpmnElement="Gateway_1q4k35x">
+        <dc:Bounds x="235" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0vlugg6_di" bpmnElement="Gateway_0bf6r43">
+        <dc:Bounds x="485" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

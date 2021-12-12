@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1ju6r8n" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Work-on-Roof-2" name="Work on Roof" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_0sguc0z</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="F-R-P-Roof-Curbs-Pads-and-Planter-Walls" name="F-R-P Roof Curbs, Pads and Planter Walls">
+      <bpmn:incoming>Flow_00fg4ei</bpmn:incoming>
+      <bpmn:outgoing>Flow_1byol5h</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0sguc0z" sourceRef="Start" targetRef="Gateway_1jd3f5u" />
+    <bpmn:task id="Construct-Penthouse-Structures" name="Construct Penthouse Structures">
+      <bpmn:incoming>Flow_0zmvb9c</bpmn:incoming>
+      <bpmn:outgoing>Flow_0xg40fw</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Roofing-and-Deck-Waterproofing" name="Install Roofing and Deck Waterproofing">
+      <bpmn:incoming>Flow_0cwkuis</bpmn:incoming>
+      <bpmn:outgoing>Flow_15l7ygt</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Trellis" name="Install Rooftop Trellis">
+      <bpmn:incoming>Flow_04iv2j6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1dbk27n</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Mech-Elect-Equipment" name="Install Rooftop MEP Equipment">
+      <bpmn:incoming>Flow_1tljuzy</bpmn:incoming>
+      <bpmn:outgoing>Flow_0n5rrvq</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Irrigation" name="Install Rooftop Irrigation">
+      <bpmn:incoming>Flow_1dbk27n</bpmn:incoming>
+      <bpmn:outgoing>Flow_0re5uyz</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Planter-Soil-and-Plantings" name="Install Rooftop Planter Soil and Plantings">
+      <bpmn:incoming>Flow_0re5uyz</bpmn:incoming>
+      <bpmn:outgoing>Flow_11nearw</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Mechanical-Screen-Metal-Panels" name="Install Mechanical Screen Metal Panels">
+      <bpmn:incoming>Flow_0n5rrvq</bpmn:incoming>
+      <bpmn:outgoing>Flow_0n4gk93</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Pavers" name="Install Rooftop Pavers">
+      <bpmn:incoming>Flow_11nearw</bpmn:incoming>
+      <bpmn:outgoing>Flow_1f56lo6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Rooftop-Railings-Lighting-and-Amenities" name="Install Rooftop Railings, Lighting and Amenities">
+      <bpmn:incoming>Flow_1f56lo6</bpmn:incoming>
+      <bpmn:outgoing>Flow_1whcnim</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_1rpuhu9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_00fg4ei" sourceRef="Gateway_1jd3f5u" targetRef="F-R-P-Roof-Curbs-Pads-and-Planter-Walls" />
+    <bpmn:parallelGateway id="Gateway_1jd3f5u">
+      <bpmn:incoming>Flow_0sguc0z</bpmn:incoming>
+      <bpmn:outgoing>Flow_00fg4ei</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0zmvb9c</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0zmvb9c" sourceRef="Gateway_1jd3f5u" targetRef="Construct-Penthouse-Structures" />
+    <bpmn:sequenceFlow id="Flow_1byol5h" sourceRef="F-R-P-Roof-Curbs-Pads-and-Planter-Walls" targetRef="Gateway_1e7us1o" />
+    <bpmn:parallelGateway id="Gateway_1e7us1o">
+      <bpmn:incoming>Flow_1byol5h</bpmn:incoming>
+      <bpmn:incoming>Flow_0xg40fw</bpmn:incoming>
+      <bpmn:outgoing>Flow_0cwkuis</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0xg40fw" sourceRef="Construct-Penthouse-Structures" targetRef="Gateway_1e7us1o" />
+    <bpmn:sequenceFlow id="Flow_0cwkuis" sourceRef="Gateway_1e7us1o" targetRef="Install-Roofing-and-Deck-Waterproofing" />
+    <bpmn:parallelGateway id="Gateway_07kcr3a">
+      <bpmn:incoming>Flow_15l7ygt</bpmn:incoming>
+      <bpmn:outgoing>Flow_04iv2j6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1tljuzy</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_04iv2j6" sourceRef="Gateway_07kcr3a" targetRef="Install-Rooftop-Trellis" />
+    <bpmn:sequenceFlow id="Flow_1tljuzy" sourceRef="Gateway_07kcr3a" targetRef="Install-Rooftop-Mech-Elect-Equipment" />
+    <bpmn:sequenceFlow id="Flow_15l7ygt" sourceRef="Install-Roofing-and-Deck-Waterproofing" targetRef="Gateway_07kcr3a" />
+    <bpmn:sequenceFlow id="Flow_0re5uyz" sourceRef="Install-Rooftop-Irrigation" targetRef="Install-Rooftop-Planter-Soil-and-Plantings" />
+    <bpmn:sequenceFlow id="Flow_11nearw" sourceRef="Install-Rooftop-Planter-Soil-and-Plantings" targetRef="Install-Rooftop-Pavers" />
+    <bpmn:sequenceFlow id="Flow_1f56lo6" sourceRef="Install-Rooftop-Pavers" targetRef="Install-Rooftop-Railings-Lighting-and-Amenities" />
+    <bpmn:sequenceFlow id="Flow_1whcnim" sourceRef="Install-Rooftop-Railings-Lighting-and-Amenities" targetRef="Gateway_1xxb11r" />
+    <bpmn:sequenceFlow id="Flow_1u7gcgb" sourceRef="Gateway_1xxb11r" targetRef="Scope-Completion-List" />
+    <bpmn:parallelGateway id="Gateway_1xxb11r">
+      <bpmn:incoming>Flow_1whcnim</bpmn:incoming>
+      <bpmn:incoming>Flow_0n4gk93</bpmn:incoming>
+      <bpmn:outgoing>Flow_1u7gcgb</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_0n5rrvq" sourceRef="Install-Rooftop-Mech-Elect-Equipment" targetRef="Install-Mechanical-Screen-Metal-Panels" />
+    <bpmn:sequenceFlow id="Flow_0n4gk93" sourceRef="Install-Mechanical-Screen-Metal-Panels" targetRef="Gateway_1xxb11r" />
+    <bpmn:sequenceFlow id="Flow_1dbk27n" sourceRef="Install-Rooftop-Trellis" targetRef="Install-Rooftop-Irrigation" />
+    <bpmn:task id="Scope-Completion-List" name="Scope Completion List">
+      <bpmn:incoming>Flow_1u7gcgb</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rpuhu9</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1rpuhu9" sourceRef="Scope-Completion-List" targetRef="End" />
+    <bpmn:textAnnotation id="TextAnnotation_097gvrs">
+      <bpmn:text>13th floor Patio</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0jqto0l" sourceRef="Install-Rooftop-Trellis" targetRef="TextAnnotation_097gvrs" />
+    <bpmn:textAnnotation id="TextAnnotation_1iu4foo">
+      <bpmn:text>14th Floor Roof</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1bm4xns" sourceRef="Install-Rooftop-Mech-Elect-Equipment" targetRef="TextAnnotation_1iu4foo" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Work-on-Roof-2">
+      <bpmndi:BPMNEdge id="Flow_1rpuhu9_di" bpmnElement="Flow_1rpuhu9">
+        <di:waypoint x="1680" y="187" />
+        <di:waypoint x="1722" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dbk27n_di" bpmnElement="Flow_1dbk27n">
+        <di:waypoint x="850" y="120" />
+        <di:waypoint x="910" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0n4gk93_di" bpmnElement="Flow_0n4gk93">
+        <di:waypoint x="1010" y="270" />
+        <di:waypoint x="1530" y="270" />
+        <di:waypoint x="1530" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0n5rrvq_di" bpmnElement="Flow_0n5rrvq">
+        <di:waypoint x="850" y="270" />
+        <di:waypoint x="910" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1u7gcgb_di" bpmnElement="Flow_1u7gcgb">
+        <di:waypoint x="1555" y="187" />
+        <di:waypoint x="1580" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1whcnim_di" bpmnElement="Flow_1whcnim">
+        <di:waypoint x="1470" y="120" />
+        <di:waypoint x="1530" y="120" />
+        <di:waypoint x="1530" y="162" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1f56lo6_di" bpmnElement="Flow_1f56lo6">
+        <di:waypoint x="1310" y="120" />
+        <di:waypoint x="1370" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11nearw_di" bpmnElement="Flow_11nearw">
+        <di:waypoint x="1160" y="120" />
+        <di:waypoint x="1210" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0re5uyz_di" bpmnElement="Flow_0re5uyz">
+        <di:waypoint x="1010" y="120" />
+        <di:waypoint x="1060" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15l7ygt_di" bpmnElement="Flow_15l7ygt">
+        <di:waypoint x="630" y="187" />
+        <di:waypoint x="675" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1tljuzy_di" bpmnElement="Flow_1tljuzy">
+        <di:waypoint x="700" y="212" />
+        <di:waypoint x="700" y="270" />
+        <di:waypoint x="750" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04iv2j6_di" bpmnElement="Flow_04iv2j6">
+        <di:waypoint x="700" y="162" />
+        <di:waypoint x="700" y="120" />
+        <di:waypoint x="750" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cwkuis_di" bpmnElement="Flow_0cwkuis">
+        <di:waypoint x="485" y="187" />
+        <di:waypoint x="530" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xg40fw_di" bpmnElement="Flow_0xg40fw">
+        <di:waypoint x="400" y="270" />
+        <di:waypoint x="460" y="270" />
+        <di:waypoint x="460" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1byol5h_di" bpmnElement="Flow_1byol5h">
+        <di:waypoint x="400" y="120" />
+        <di:waypoint x="460" y="120" />
+        <di:waypoint x="460" y="162" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zmvb9c_di" bpmnElement="Flow_0zmvb9c">
+        <di:waypoint x="250" y="212" />
+        <di:waypoint x="250" y="270" />
+        <di:waypoint x="300" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_00fg4ei_di" bpmnElement="Flow_00fg4ei">
+        <di:waypoint x="250" y="162" />
+        <di:waypoint x="250" y="120" />
+        <di:waypoint x="300" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sguc0z_di" bpmnElement="Flow_0sguc0z">
+        <di:waypoint x="188" y="187" />
+        <di:waypoint x="225" y="187" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="152" y="169" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="212" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1j7h4l6_di" bpmnElement="F-R-P-Roof-Curbs-Pads-and-Planter-Walls">
+        <dc:Bounds x="300" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12akjci_di" bpmnElement="Construct-Penthouse-Structures">
+        <dc:Bounds x="300" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_025aei7_di" bpmnElement="Install-Roofing-and-Deck-Waterproofing">
+        <dc:Bounds x="530" y="147" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0dg1j52_di" bpmnElement="Install-Rooftop-Trellis">
+        <dc:Bounds x="750" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1s48dzv_di" bpmnElement="Install-Rooftop-Mech-Elect-Equipment">
+        <dc:Bounds x="750" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vlfmrm_di" bpmnElement="Install-Rooftop-Irrigation">
+        <dc:Bounds x="910" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1q1w8us_di" bpmnElement="Install-Rooftop-Planter-Soil-and-Plantings">
+        <dc:Bounds x="1060" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0syp3gk_di" bpmnElement="Install-Mechanical-Screen-Metal-Panels">
+        <dc:Bounds x="910" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hm76g8_di" bpmnElement="Install-Rooftop-Pavers">
+        <dc:Bounds x="1210" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0nnkpxk_di" bpmnElement="Install-Rooftop-Railings-Lighting-and-Amenities">
+        <dc:Bounds x="1370" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1y8bnp0_di" bpmnElement="End">
+        <dc:Bounds x="1722" y="169" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1730" y="212" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01fbnr3_di" bpmnElement="Gateway_1jd3f5u">
+        <dc:Bounds x="225" y="162" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0erskdh_di" bpmnElement="Gateway_1e7us1o">
+        <dc:Bounds x="435" y="162" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_09ccjjd_di" bpmnElement="Gateway_07kcr3a">
+        <dc:Bounds x="675" y="162" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_18qn6wj_di" bpmnElement="Gateway_1xxb11r">
+        <dc:Bounds x="1505" y="162" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1tdgfni_di" bpmnElement="Scope-Completion-List">
+        <dc:Bounds x="1580" y="147" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_097gvrs_di" bpmnElement="TextAnnotation_097gvrs">
+        <dc:Bounds x="740" y="40" width="100" height="30" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1iu4foo_di" bpmnElement="TextAnnotation_1iu4foo">
+        <dc:Bounds x="750" y="190" width="100" height="26" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0jqto0l_di" bpmnElement="Association_0jqto0l">
+        <di:waypoint x="794" y="80" />
+        <di:waypoint x="792" y="70" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1bm4xns_di" bpmnElement="Association_1bm4xns">
+        <di:waypoint x="800" y="230" />
+        <di:waypoint x="800" y="216" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

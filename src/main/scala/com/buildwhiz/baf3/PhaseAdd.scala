@@ -73,7 +73,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
     val timerVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
       find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
-        n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${}]", "")).head
+        n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${}]", "")) match {
+      case Some(tvn) => tvn
+      case None => throw new IllegalArgumentException(s"Bad timer ($bpmnName, '$name', $bpmnId)")
+    }
     val duration = extensionProperties(timerNode, "bw-duration") match {
       case dur +: _ => valueAttribute(dur)
       case Nil => "00:00:00"

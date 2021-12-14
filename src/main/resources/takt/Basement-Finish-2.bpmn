@@ -8,7 +8,7 @@
       <bpmn:incoming>Flow_1q0u60u</bpmn:incoming>
       <bpmn:outgoing>Flow_1abviqb</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_1hnbt5n" sourceRef="Start" targetRef="Delay-Timer" />
+    <bpmn:sequenceFlow id="Flow_1hnbt5n" sourceRef="Start" targetRef="MEPF-Delay-Timer" />
     <bpmn:task id="Frame-Walls-and-Ceilings" name="Frame Walls and Ceilings">
       <bpmn:incoming>Flow_1abviqb</bpmn:incoming>
       <bpmn:outgoing>Flow_1i07k4z</bpmn:outgoing>
@@ -56,17 +56,55 @@
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_0p1u55u" sourceRef="Interior-Finishes-Drywall-thru-Paint-B1" targetRef="Gateway_0d78isf" />
     <bpmn:sequenceFlow id="Flow_0v7jksd" sourceRef="Gateway_0e26320" targetRef="Interior-Finishes-Drywall-thru-Paint-B1" />
-    <bpmn:sequenceFlow id="Flow_1q0u60u" sourceRef="Delay-Timer" targetRef="MEPF-Rough-In" />
-    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+    <bpmn:sequenceFlow id="Flow_1q0u60u" sourceRef="MEPF-Delay-Timer" targetRef="MEPF-Rough-In" />
+    <bpmn:intermediateCatchEvent id="MEPF-Delay-Timer" name="MEPF Delay Timer">
       <bpmn:incoming>Flow_1hnbt5n</bpmn:incoming>
       <bpmn:outgoing>Flow_1q0u60u</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1b7fiy1">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${mepf_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Basement-Finish-2">
+      <bpmndi:BPMNEdge id="Flow_1q0u60u_di" bpmnElement="Flow_1q0u60u">
+        <di:waypoint x="278" y="120" />
+        <di:waypoint x="340" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0v7jksd_di" bpmnElement="Flow_0v7jksd">
+        <di:waypoint x="670" y="145" />
+        <di:waypoint x="670" y="250" />
+        <di:waypoint x="740" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0p1u55u_di" bpmnElement="Flow_0p1u55u">
+        <di:waypoint x="840" y="250" />
+        <di:waypoint x="1060" y="250" />
+        <di:waypoint x="1060" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xxulg3_di" bpmnElement="Flow_1xxulg3">
+        <di:waypoint x="1085" y="120" />
+        <di:waypoint x="1120" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0madink_di" bpmnElement="Flow_0madink">
+        <di:waypoint x="840" y="120" />
+        <di:waypoint x="900" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05la2yn_di" bpmnElement="Flow_05la2yn">
+        <di:waypoint x="695" y="120" />
+        <di:waypoint x="740" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07aodpr_di" bpmnElement="Flow_07aodpr">
+        <di:waypoint x="1380" y="120" />
+        <di:waypoint x="1442" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1y48zig_di" bpmnElement="Flow_1y48zig">
+        <di:waypoint x="1220" y="120" />
+        <di:waypoint x="1280" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0z6tlf2_di" bpmnElement="Flow_0z6tlf2">
+        <di:waypoint x="1000" y="120" />
+        <di:waypoint x="1035" y="120" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1i07k4z_di" bpmnElement="Flow_1i07k4z">
         <di:waypoint x="600" y="120" />
         <di:waypoint x="645" y="120" />
@@ -79,58 +117,20 @@
         <di:waypoint x="188" y="120" />
         <di:waypoint x="242" y="120" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0z6tlf2_di" bpmnElement="Flow_0z6tlf2">
-        <di:waypoint x="1000" y="120" />
-        <di:waypoint x="1035" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_05la2yn_di" bpmnElement="Flow_05la2yn">
-        <di:waypoint x="695" y="120" />
-        <di:waypoint x="740" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0madink_di" bpmnElement="Flow_0madink">
-        <di:waypoint x="840" y="120" />
-        <di:waypoint x="900" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1y48zig_di" bpmnElement="Flow_1y48zig">
-        <di:waypoint x="1220" y="120" />
-        <di:waypoint x="1280" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_07aodpr_di" bpmnElement="Flow_07aodpr">
-        <di:waypoint x="1380" y="120" />
-        <di:waypoint x="1442" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1xxulg3_di" bpmnElement="Flow_1xxulg3">
-        <di:waypoint x="1085" y="120" />
-        <di:waypoint x="1120" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0p1u55u_di" bpmnElement="Flow_0p1u55u">
-        <di:waypoint x="840" y="250" />
-        <di:waypoint x="1060" y="250" />
-        <di:waypoint x="1060" y="145" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0v7jksd_di" bpmnElement="Flow_0v7jksd">
-        <di:waypoint x="670" y="145" />
-        <di:waypoint x="670" y="250" />
-        <di:waypoint x="740" y="250" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1q0u60u_di" bpmnElement="Flow_1q0u60u">
-        <di:waypoint x="278" y="120" />
-        <di:waypoint x="340" y="120" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="145" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0qpqxq4_di" bpmnElement="MEPF-Rough-In">
         <dc:Bounds x="340" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1y2vf9l_di" bpmnElement="Frame-Walls-and-Ceilings">
         <dc:Bounds x="500" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1pqtpu9_di" bpmnElement="Gateway_0e26320">
-        <dc:Bounds x="645" y="95" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_16yjilf_di" bpmnElement="Install-Electrical-Switchgear">
         <dc:Bounds x="900" y="80" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1mxitxs_di" bpmnElement="Complete-Electrical-Rooms">
-        <dc:Bounds x="740" y="80" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1i4ulcy_di" bpmnElement="Install-Mech-Plumbing-Fire-Equipment">
         <dc:Bounds x="1120" y="80" width="100" height="80" />
@@ -144,22 +144,22 @@
           <dc:Bounds x="1450" y="145" width="20" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1pqtpu9_di" bpmnElement="Gateway_0e26320">
+        <dc:Bounds x="645" y="95" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mxitxs_di" bpmnElement="Complete-Electrical-Rooms">
+        <dc:Bounds x="740" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1nen33u_di" bpmnElement="Gateway_0d78isf">
         <dc:Bounds x="1035" y="95" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0sp6nef_di" bpmnElement="Interior-Finishes-Drywall-thru-Paint-B1">
         <dc:Bounds x="740" y="210" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
-        <dc:Bounds x="152" y="102" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="159" y="145" width="24" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0vlyhme_di" bpmnElement="Delay-Timer">
+      <bpmndi:BPMNShape id="Event_0vlyhme_di" bpmnElement="MEPF-Delay-Timer">
         <dc:Bounds x="242" y="102" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="231" y="145" width="60" height="14" />
+          <dc:Bounds x="230" y="145" width="63" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

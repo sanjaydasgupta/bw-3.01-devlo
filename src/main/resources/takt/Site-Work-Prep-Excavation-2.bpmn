@@ -32,18 +32,18 @@
       <bpmn:incoming>Flow_0fqsyxl</bpmn:incoming>
       <bpmn:outgoing>Flow_12a6rjy</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_12a6rjy" sourceRef="Install-Certify-Tower-Crane" targetRef="Delay-Timer" />
+    <bpmn:sequenceFlow id="Flow_12a6rjy" sourceRef="Install-Certify-Tower-Crane" targetRef="Manhoist-Delay-Timer" />
     <bpmn:task id="Install-Certify-Manhoist" name="Install Certify Manhoist">
       <bpmn:incoming>Flow_0qaih07</bpmn:incoming>
       <bpmn:outgoing>Flow_1pbc2fq</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_1pbc2fq" sourceRef="Install-Certify-Manhoist" targetRef="End" />
-    <bpmn:sequenceFlow id="Flow_0qaih07" sourceRef="Delay-Timer" targetRef="Install-Certify-Manhoist" />
-    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+    <bpmn:sequenceFlow id="Flow_0qaih07" sourceRef="Manhoist-Delay-Timer" targetRef="Install-Certify-Manhoist" />
+    <bpmn:intermediateCatchEvent id="Manhoist-Delay-Timer" name="Manhoist Delay Timer">
       <bpmn:incoming>Flow_12a6rjy</bpmn:incoming>
       <bpmn:outgoing>Flow_0qaih07</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_00gwdri">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${manhoist_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
   </bpmn:process>
@@ -111,10 +111,10 @@
       <bpmndi:BPMNShape id="Activity_0ndd077_di" bpmnElement="Install-Certify-Manhoist">
         <dc:Bounds x="1160" y="77" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_086by2e_di" bpmnElement="Delay-Timer">
+      <bpmndi:BPMNShape id="Event_086by2e_di" bpmnElement="Manhoist-Delay-Timer">
         <dc:Bounds x="1062" y="99" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1051" y="142" width="60" height="14" />
+          <dc:Bounds x="1043" y="142" width="77" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

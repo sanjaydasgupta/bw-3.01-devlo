@@ -9,7 +9,7 @@
       <bpmn:outgoing>Flow_1mdpop6</bpmn:outgoing>
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_1hla6yf" sourceRef="Start" targetRef="F-R-P-Slab-Walls-and-Columns" />
-    <bpmn:sequenceFlow id="Flow_1mdpop6" sourceRef="F-R-P-Slab-Walls-and-Columns" targetRef="Delay-Timer" />
+    <bpmn:sequenceFlow id="Flow_1mdpop6" sourceRef="F-R-P-Slab-Walls-and-Columns" targetRef="Precast-Delay-Timer" />
     <bpmn:task id="Install-Walls-top-track" name="Install Walls top track">
       <bpmn:incoming>Flow_04g6wcd</bpmn:incoming>
       <bpmn:outgoing>Flow_0tdopee</bpmn:outgoing>
@@ -167,14 +167,14 @@
     </bpmn:task>
     <bpmn:sequenceFlow id="Flow_04g6wcd" sourceRef="Install-Precast" targetRef="Install-Walls-top-track" />
     <bpmn:sequenceFlow id="Flow_1eguskz" sourceRef="Rough-in-Electrical-at-Ceilings" targetRef="Drywall-Ceilings-and-2nd-Side-Walls" />
-    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+    <bpmn:intermediateCatchEvent id="Precast-Delay-Timer" name="Precast Delay Timer">
       <bpmn:incoming>Flow_1mdpop6</bpmn:incoming>
       <bpmn:outgoing>Flow_1uht0ly</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0kah1uz">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${precast_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
-    <bpmn:sequenceFlow id="Flow_1uht0ly" sourceRef="Delay-Timer" targetRef="Install-Precast" />
+    <bpmn:sequenceFlow id="Flow_1uht0ly" sourceRef="Precast-Delay-Timer" targetRef="Install-Precast" />
     <bpmn:task id="Frame-Ceilings" name="Frame Ceilings">
       <bpmn:incoming>Flow_0cw3zhi</bpmn:incoming>
       <bpmn:outgoing>Flow_060nv4x</bpmn:outgoing>
@@ -235,6 +235,26 @@
         <di:waypoint x="160" y="530" />
         <di:waypoint x="160" y="720" />
         <di:waypoint x="240" y="720" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0f7z9tv_di" bpmnElement="Flow_0f7z9tv">
+        <di:waypoint x="2080" y="300" />
+        <di:waypoint x="2150" y="300" />
+        <di:waypoint x="2150" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0fzs095_di" bpmnElement="Flow_0fzs095">
+        <di:waypoint x="1920" y="265" />
+        <di:waypoint x="1920" y="300" />
+        <di:waypoint x="1980" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_060nv4x_di" bpmnElement="Flow_060nv4x">
+        <di:waypoint x="2080" y="170" />
+        <di:waypoint x="2150" y="170" />
+        <di:waypoint x="2150" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cw3zhi_di" bpmnElement="Flow_0cw3zhi">
+        <di:waypoint x="1920" y="215" />
+        <di:waypoint x="1920" y="170" />
+        <di:waypoint x="1980" y="170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1uht0ly_di" bpmnElement="Flow_1uht0ly">
         <di:waypoint x="678" y="240" />
@@ -404,26 +424,6 @@
         <di:waypoint x="418" y="240" />
         <di:waypoint x="480" y="240" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0cw3zhi_di" bpmnElement="Flow_0cw3zhi">
-        <di:waypoint x="1920" y="215" />
-        <di:waypoint x="1920" y="170" />
-        <di:waypoint x="1980" y="170" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_060nv4x_di" bpmnElement="Flow_060nv4x">
-        <di:waypoint x="2080" y="170" />
-        <di:waypoint x="2150" y="170" />
-        <di:waypoint x="2150" y="215" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0fzs095_di" bpmnElement="Flow_0fzs095">
-        <di:waypoint x="1920" y="265" />
-        <di:waypoint x="1920" y="300" />
-        <di:waypoint x="1980" y="300" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0f7z9tv_di" bpmnElement="Flow_0f7z9tv">
-        <di:waypoint x="2080" y="300" />
-        <di:waypoint x="2150" y="300" />
-        <di:waypoint x="2150" y="265" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
         <dc:Bounds x="382" y="222" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -436,6 +436,9 @@
       <bpmndi:BPMNShape id="Activity_05jwsvi_di" bpmnElement="Install-Walls-top-track">
         <dc:Bounds x="880" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02046rg_di" bpmnElement="Frame-Door-Frames">
+        <dc:Bounds x="1592" y="90" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1jqlvom_di" bpmnElement="Rough-In-Fire-Sprinkler" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="1120" y="40" width="100" height="80" />
       </bpmndi:BPMNShape>
@@ -447,6 +450,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1kjiz3r_di" bpmnElement="Rough-In-Electrical-Feeders" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="1120" y="370" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16f5i39_di" bpmnElement="Rough-In-Plumbing-at-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="1592" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tqsgzm_di" bpmnElement="Rough-In-Electrical-at-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="1592" y="310" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_02wv91y_di" bpmnElement="Gateway_18d68wr">
         <dc:Bounds x="1025" y="215" width="50" height="50" />
@@ -462,6 +471,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1atvrd7_di" bpmnElement="Gateway_1dezg7f">
         <dc:Bounds x="1745" y="215" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0pj3id2_di" bpmnElement="Rough-in-Electrical-at-Ceilings">
+        <dc:Bounds x="240" y="680" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_10gimwh_di" bpmnElement="Gateway_00i23ta">
         <dc:Bounds x="875" y="695" width="50" height="50" />
@@ -484,11 +496,17 @@
       <bpmndi:BPMNShape id="Gateway_13ayepr_di" bpmnElement="Gateway_0layi6w">
         <dc:Bounds x="1245" y="695" width="50" height="50" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12dvxo5_di" bpmnElement="Install-MEPF-Finish-Fixtures">
+        <dc:Bounds x="1640" y="680" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1qqmpsp_di" bpmnElement="Install-Appliances">
         <dc:Bounds x="1340" y="760" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1c7j17n_di" bpmnElement="Gateway_0whqfvy">
         <dc:Bounds x="1475" y="695" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_05ielic_di" bpmnElement="Scope-Completion-List">
+        <dc:Bounds x="1820" y="680" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0azo69e_di" bpmnElement="End">
         <dc:Bounds x="2042" y="702" width="36" height="36" />
@@ -499,23 +517,11 @@
       <bpmndi:BPMNShape id="Activity_0p2yfp0_di" bpmnElement="Install-Precast">
         <dc:Bounds x="730" y="200" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0to4x2p_di" bpmnElement="Delay-Timer" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
+      <bpmndi:BPMNShape id="Event_0to4x2p_di" bpmnElement="Precast-Delay-Timer" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="642" y="222" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="631" y="265" width="60" height="14" />
+          <dc:Bounds x="627" y="265" width="69" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1uxfwy2_di" bpmnElement="Prime-and-Paint" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
-        <dc:Bounds x="730" y="680" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0tqsgzm_di" bpmnElement="Rough-In-Electrical-at-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
-        <dc:Bounds x="1592" y="310" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_16f5i39_di" bpmnElement="Rough-In-Plumbing-at-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
-        <dc:Bounds x="1592" y="200" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_02046rg_di" bpmnElement="Frame-Door-Frames">
-        <dc:Bounds x="1592" y="90" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0auelk4_di" bpmnElement="Frame-Ceilings" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="1980" y="130" width="100" height="80" />
@@ -529,20 +535,14 @@
       <bpmndi:BPMNShape id="Activity_0pd5426_di" bpmnElement="Insulate-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="1980" y="260" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_12dvxo5_di" bpmnElement="Install-MEPF-Finish-Fixtures">
-        <dc:Bounds x="1640" y="680" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_05ielic_di" bpmnElement="Scope-Completion-List">
-        <dc:Bounds x="1820" y="680" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0pj3id2_di" bpmnElement="Rough-in-Electrical-at-Ceilings">
-        <dc:Bounds x="240" y="680" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_14lvrll_di" bpmnElement="Drywall-Ceilings-and-2nd-Side-Walls" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="410" y="680" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0pi0y0q_di" bpmnElement="Tape-Finish-Walls-and-Ceilings" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
         <dc:Bounds x="570" y="680" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uxfwy2_di" bpmnElement="Prime-and-Paint" bioc:stroke="#000000" bioc:fill="#ffffff" color:background-color="#ffffff" color:border-color="#000000">
+        <dc:Bounds x="730" y="680" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

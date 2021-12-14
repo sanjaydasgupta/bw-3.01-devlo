@@ -8,7 +8,7 @@
       <bpmn:incoming>Flow_06u7rcl</bpmn:incoming>
       <bpmn:outgoing>Flow_13q7sz6</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0dcgy1c" sourceRef="Start" targetRef="Delay-Timer" />
+    <bpmn:sequenceFlow id="Flow_0dcgy1c" sourceRef="Start" targetRef="Planters-Delay-Timer" />
     <bpmn:task id="Install-Fences-and-Gates" name="Install Fences &#38; Gates">
       <bpmn:incoming>Flow_1r8q91e</bpmn:incoming>
       <bpmn:outgoing>Flow_0vynr8d</bpmn:outgoing>
@@ -59,12 +59,12 @@
     <bpmn:sequenceFlow id="Flow_1r8q91e" sourceRef="Gateway_01kfm5o" targetRef="Install-Fences-and-Gates" />
     <bpmn:sequenceFlow id="Flow_0vynr8d" sourceRef="Install-Fences-and-Gates" targetRef="Gateway_15rry98" />
     <bpmn:sequenceFlow id="Flow_0o9e4u7" sourceRef="Install-Irrigation-at-Patios" targetRef="Gateway_15rry98" />
-    <bpmn:sequenceFlow id="Flow_06u7rcl" sourceRef="Delay-Timer" targetRef="F-R-P-Planters" />
-    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+    <bpmn:sequenceFlow id="Flow_06u7rcl" sourceRef="Planters-Delay-Timer" targetRef="F-R-P-Planters" />
+    <bpmn:intermediateCatchEvent id="Planters-Delay-Timer" name="Planters Delay Timer">
       <bpmn:incoming>Flow_0dcgy1c</bpmn:incoming>
       <bpmn:outgoing>Flow_06u7rcl</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1n6ysxj">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${planters_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
   </bpmn:process>
@@ -165,10 +165,10 @@
       <bpmndi:BPMNShape id="Gateway_1foe7e9_di" bpmnElement="Gateway_01kfm5o">
         <dc:Bounds x="475" y="202" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1n6g073_di" bpmnElement="Delay-Timer">
+      <bpmndi:BPMNShape id="Event_1n6g073_di" bpmnElement="Planters-Delay-Timer">
         <dc:Bounds x="242" y="209" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="231" y="252" width="60" height="14" />
+          <dc:Bounds x="225" y="252" width="73" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>

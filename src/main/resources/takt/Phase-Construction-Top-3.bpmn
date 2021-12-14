@@ -45,21 +45,21 @@
       <bpmn:incoming>Flow_1mfcw7u</bpmn:incoming>
       <bpmn:outgoing>Flow_1ny57nh</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0c55b1z">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${sewer_water_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateCatchEvent id="Tower-Crane-Delay-Timer" name="Tower Crane Delay Timer">
       <bpmn:incoming>Flow_0zitmsp</bpmn:incoming>
       <bpmn:outgoing>Flow_1qsgsih</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1b5kqyf">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${tower_crane_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateCatchEvent id="Work-and-Vaults-Delay-Timer" name="Work and Vaults Delay Timer">
       <bpmn:incoming>Flow_00xslpn</bpmn:incoming>
       <bpmn:outgoing>Flow_1k7jgof</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_10evq2b">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${work_and_vaults_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:task id="Electrical-Utility-Engineering" name="Electrical Utility Engineering">
@@ -199,7 +199,7 @@
       <bpmn:incoming>Flow_0a9qcev</bpmn:incoming>
       <bpmn:outgoing>Flow_1ffjhv1</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1f8h6wp">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${hardscape_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="Flow_0a9qcev" sourceRef="Hardscape-Landscape-Start" targetRef="Hardscape-Landscape-Delay-Timer" />
@@ -210,7 +210,7 @@
     <bpmn:sequenceFlow id="Flow_1gqublr" sourceRef="Gateway_17hh75x" targetRef="Hardscape-Landscape-End" />
     <bpmn:sequenceFlow id="Flow_1ffjhv1" sourceRef="Hardscape-Landscape-Delay-Timer" targetRef="Gateway_1lxnnpf" />
   </bpmn:process>
-  <bpmn:process id="Punch-Lists-3" name="Punch Lists" isExecutable="false">
+  <bpmn:process id="Punch-Lists-3" name="Punch Lists" isExecutable="true">
     <bpmn:task id="Interior-Finishes" name="Interior Finishes">
       <bpmn:incoming>Flow_06ppyxm</bpmn:incoming>
       <bpmn:outgoing>Flow_0spmqgg</bpmn:outgoing>
@@ -243,7 +243,7 @@
       <bpmn:incoming>Flow_17t3268</bpmn:incoming>
       <bpmn:outgoing>Flow_16rzabb</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0fvsl0b">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${punch_lists_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:startEvent id="Punch-Lists-Start" name="Start">
@@ -274,7 +274,7 @@
     <bpmn:sequenceFlow id="Flow_1utpae5" sourceRef="Gateway_19k5oxe" targetRef="Hoist-Units" />
     <bpmn:sequenceFlow id="Flow_0tg6o9k" sourceRef="Gateway_0zyv35w" targetRef="Punch-Lists-End" />
   </bpmn:process>
-  <bpmn:process id="Commissioning-3" name="Commissioning" isExecutable="false">
+  <bpmn:process id="Commissioning-3" name="Commissioning" isExecutable="true">
     <bpmn:startEvent id="Commissioning-Start" name="Start">
       <bpmn:outgoing>Flow_19lzxx9</bpmn:outgoing>
     </bpmn:startEvent>
@@ -315,7 +315,7 @@
       <bpmn:incoming>Flow_19lzxx9</bpmn:incoming>
       <bpmn:outgoing>Flow_1cf7lct</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1wjsp6a">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${commissioning_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="Flow_19lzxx9" sourceRef="Commissioning-Start" targetRef="Commissioning-Delay-Timer" />
@@ -330,7 +330,7 @@
     <bpmn:sequenceFlow id="Flow_0snatbh" sourceRef="Plumbing" targetRef="Gateway_0t8pc86" />
     <bpmn:sequenceFlow id="Flow_1cf7lct" sourceRef="Commissioning-Delay-Timer" targetRef="Gateway_1gxnny6" />
   </bpmn:process>
-  <bpmn:process id="Final-Jurisdictional-Inspections-3" name="Final Jurisdictional Inspections" isExecutable="false">
+  <bpmn:process id="Final-Jurisdictional-Inspections-3" name="Final Jurisdictional Inspections" isExecutable="true">
     <bpmn:startEvent id="Final-Jurisdictional-Inspections-Start" name="Start">
       <bpmn:outgoing>Flow_0xxakws</bpmn:outgoing>
     </bpmn:startEvent>
@@ -353,7 +353,7 @@
       <bpmn:incoming>Flow_0xxakws</bpmn:incoming>
       <bpmn:outgoing>Flow_0mn0sn9</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_110mpuq">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${jurisdictional_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:sequenceFlow id="Flow_0xxakws" sourceRef="Final-Jurisdictional-Inspections-Start" targetRef="Jurisdictional-Delay-Timer" />
@@ -362,7 +362,7 @@
     <bpmn:sequenceFlow id="Flow_1cspjcz" sourceRef="Final-City-Inspections" targetRef="Final-Jurisdictional-Inspections-End" />
     <bpmn:sequenceFlow id="Flow_0mn0sn9" sourceRef="Jurisdictional-Delay-Timer" targetRef="State-Elevator-Inspection" />
   </bpmn:process>
-  <bpmn:process id="Documentation-and-Owner-Training-3" name="Documentation and Owner Training" isExecutable="false">
+  <bpmn:process id="Documentation-and-Owner-Training-3" name="Documentation and Owner Training" isExecutable="true">
     <bpmn:startEvent id="Documentation-and-Owner-Training-Start" name="Start">
       <bpmn:outgoing>Flow_1kw3pnb</bpmn:outgoing>
     </bpmn:startEvent>
@@ -383,7 +383,7 @@
       <bpmn:incoming>Flow_1kw3pnb</bpmn:incoming>
       <bpmn:outgoing>Flow_13g8j23</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_14fd5xn">
-        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">${documentation_delay_duration}</bpmn:timeDuration>
       </bpmn:timerEventDefinition>
     </bpmn:intermediateCatchEvent>
     <bpmn:parallelGateway id="Gateway_0eh9f3w">

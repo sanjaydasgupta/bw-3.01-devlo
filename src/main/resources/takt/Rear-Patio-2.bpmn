@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0uz37gd" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="Rear-Patio-2" name="Rear Patio" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_0dcgy1c</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="F-R-P-Planters" name="F-R-P Planters">
+      <bpmn:incoming>Flow_06u7rcl</bpmn:incoming>
+      <bpmn:outgoing>Flow_13q7sz6</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0dcgy1c" sourceRef="Start" targetRef="Delay-Timer" />
+    <bpmn:task id="Install-Fences-and-Gates" name="Install Fences &#38; Gates">
+      <bpmn:incoming>Flow_1r8q91e</bpmn:incoming>
+      <bpmn:outgoing>Flow_0vynr8d</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Rough-In-Site-Electrical" name="Rough-In Site Electrical">
+      <bpmn:incoming>Flow_02vrinc</bpmn:incoming>
+      <bpmn:outgoing>Flow_0np6tjh</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Irrigation-at-Patios" name="Install Irrigation at Patios">
+      <bpmn:incoming>Flow_10iwak6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0o9e4u7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Pavers" name="Install Pavers">
+      <bpmn:incoming>Flow_1xeptcv</bpmn:incoming>
+      <bpmn:outgoing>Flow_077zkdj</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-Soil-and-Planting-at-Patios" name="Install Soil &#38; Planting at Patios">
+      <bpmn:incoming>Flow_077zkdj</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wm7tj1</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_077zkdj" sourceRef="Install-Pavers" targetRef="Install-Soil-and-Planting-at-Patios" />
+    <bpmn:task id="Install-Site-Lighting-at-Patios" name="Install Site Lighting at Patios">
+      <bpmn:incoming>Flow_1wm7tj1</bpmn:incoming>
+      <bpmn:outgoing>Flow_06nlms4</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1wm7tj1" sourceRef="Install-Soil-and-Planting-at-Patios" targetRef="Install-Site-Lighting-at-Patios" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_06nlms4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_06nlms4" sourceRef="Install-Site-Lighting-at-Patios" targetRef="End" />
+    <bpmn:sequenceFlow id="Flow_0np6tjh" sourceRef="Rough-In-Site-Electrical" targetRef="Gateway_15rry98" />
+    <bpmn:sequenceFlow id="Flow_13q7sz6" sourceRef="F-R-P-Planters" targetRef="Gateway_01kfm5o" />
+    <bpmn:sequenceFlow id="Flow_1xeptcv" sourceRef="Gateway_15rry98" targetRef="Install-Pavers" />
+    <bpmn:parallelGateway id="Gateway_15rry98">
+      <bpmn:incoming>Flow_0np6tjh</bpmn:incoming>
+      <bpmn:incoming>Flow_0vynr8d</bpmn:incoming>
+      <bpmn:incoming>Flow_0o9e4u7</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xeptcv</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_02vrinc" sourceRef="Gateway_01kfm5o" targetRef="Rough-In-Site-Electrical" />
+    <bpmn:parallelGateway id="Gateway_01kfm5o">
+      <bpmn:incoming>Flow_13q7sz6</bpmn:incoming>
+      <bpmn:outgoing>Flow_02vrinc</bpmn:outgoing>
+      <bpmn:outgoing>Flow_10iwak6</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1r8q91e</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_10iwak6" sourceRef="Gateway_01kfm5o" targetRef="Install-Irrigation-at-Patios" />
+    <bpmn:sequenceFlow id="Flow_1r8q91e" sourceRef="Gateway_01kfm5o" targetRef="Install-Fences-and-Gates" />
+    <bpmn:sequenceFlow id="Flow_0vynr8d" sourceRef="Install-Fences-and-Gates" targetRef="Gateway_15rry98" />
+    <bpmn:sequenceFlow id="Flow_0o9e4u7" sourceRef="Install-Irrigation-at-Patios" targetRef="Gateway_15rry98" />
+    <bpmn:sequenceFlow id="Flow_06u7rcl" sourceRef="Delay-Timer" targetRef="F-R-P-Planters" />
+    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+      <bpmn:incoming>Flow_0dcgy1c</bpmn:incoming>
+      <bpmn:outgoing>Flow_06u7rcl</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1n6ysxj">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Rear-Patio-2">
+      <bpmndi:BPMNEdge id="Flow_06u7rcl_di" bpmnElement="Flow_06u7rcl">
+        <di:waypoint x="278" y="227" />
+        <di:waypoint x="330" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0o9e4u7_di" bpmnElement="Flow_0o9e4u7">
+        <di:waypoint x="670" y="340" />
+        <di:waypoint x="740" y="340" />
+        <di:waypoint x="740" y="252" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0vynr8d_di" bpmnElement="Flow_0vynr8d">
+        <di:waypoint x="670" y="120" />
+        <di:waypoint x="740" y="120" />
+        <di:waypoint x="740" y="202" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r8q91e_di" bpmnElement="Flow_1r8q91e">
+        <di:waypoint x="500" y="202" />
+        <di:waypoint x="500" y="120" />
+        <di:waypoint x="570" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10iwak6_di" bpmnElement="Flow_10iwak6">
+        <di:waypoint x="500" y="252" />
+        <di:waypoint x="500" y="340" />
+        <di:waypoint x="570" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02vrinc_di" bpmnElement="Flow_02vrinc">
+        <di:waypoint x="525" y="227" />
+        <di:waypoint x="570" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xeptcv_di" bpmnElement="Flow_1xeptcv">
+        <di:waypoint x="765" y="227" />
+        <di:waypoint x="820" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13q7sz6_di" bpmnElement="Flow_13q7sz6">
+        <di:waypoint x="430" y="227" />
+        <di:waypoint x="475" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0np6tjh_di" bpmnElement="Flow_0np6tjh">
+        <di:waypoint x="670" y="227" />
+        <di:waypoint x="715" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06nlms4_di" bpmnElement="Flow_06nlms4">
+        <di:waypoint x="1240" y="227" />
+        <di:waypoint x="1302" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wm7tj1_di" bpmnElement="Flow_1wm7tj1">
+        <di:waypoint x="1080" y="227" />
+        <di:waypoint x="1140" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_077zkdj_di" bpmnElement="Flow_077zkdj">
+        <di:waypoint x="920" y="227" />
+        <di:waypoint x="980" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0dcgy1c_di" bpmnElement="Flow_0dcgy1c">
+        <di:waypoint x="188" y="227" />
+        <di:waypoint x="242" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="152" y="209" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="252" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02g93nf_di" bpmnElement="F-R-P-Planters">
+        <dc:Bounds x="330" y="187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1h4ddqf_di" bpmnElement="Install-Fences-and-Gates">
+        <dc:Bounds x="570" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0od582j_di" bpmnElement="Rough-In-Site-Electrical">
+        <dc:Bounds x="570" y="187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_102x34b_di" bpmnElement="Install-Irrigation-at-Patios">
+        <dc:Bounds x="570" y="300" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xwjw8y_di" bpmnElement="Install-Pavers">
+        <dc:Bounds x="820" y="187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ocd00j_di" bpmnElement="Install-Soil-and-Planting-at-Patios">
+        <dc:Bounds x="980" y="187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0p6ennq_di" bpmnElement="Install-Site-Lighting-at-Patios">
+        <dc:Bounds x="1140" y="187" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0dcj6z5_di" bpmnElement="End">
+        <dc:Bounds x="1302" y="209" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1310" y="252" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0b9twed_di" bpmnElement="Gateway_15rry98">
+        <dc:Bounds x="715" y="202" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1foe7e9_di" bpmnElement="Gateway_01kfm5o">
+        <dc:Bounds x="475" y="202" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1n6g073_di" bpmnElement="Delay-Timer">
+        <dc:Bounds x="242" y="209" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="231" y="252" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

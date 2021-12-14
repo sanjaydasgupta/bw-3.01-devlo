@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1j9dsj4" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.10.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="OFarrell-St-Sidewalk-2" name="OFarrell St Sidewalk" isExecutable="true">
+    <bpmn:startEvent id="Start" name="Start">
+      <bpmn:outgoing>Flow_0snunr8</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="F-R-P-Curb-and-Gutter" name="F-R-P Curb &#38; Gutter">
+      <bpmn:incoming>Flow_04g120h</bpmn:incoming>
+      <bpmn:outgoing>Flow_13lx743</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0snunr8" sourceRef="Start" targetRef="Delay-Timer" />
+    <bpmn:task id="Install-Irrigation-at-Sidewalk" name="Install Irrigation at Sidewalk">
+      <bpmn:incoming>Flow_0v9mj75</bpmn:incoming>
+      <bpmn:outgoing>Flow_04a7f91</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_13lx743" sourceRef="F-R-P-Curb-and-Gutter" targetRef="Gateway_1w5tp28" />
+    <bpmn:task id="Rough-In-Electrical-at-Sidewalk" name="Rough-In Electrical at Sidewalk">
+      <bpmn:incoming>Flow_1grhgs3</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ebwc74</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Install-City-Sidewalk-and-Pavement" name="Install City Sidewalk &#38; Pavement">
+      <bpmn:incoming>Flow_1yikwd8</bpmn:incoming>
+      <bpmn:outgoing>Flow_1g943ri</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1ebwc74" sourceRef="Rough-In-Electrical-at-Sidewalk" targetRef="Gateway_01herhb" />
+    <bpmn:task id="Install-Site-Lighting-at-Sidewalk" name="Install Site Lighting at Sidewalk">
+      <bpmn:incoming>Flow_1g943ri</bpmn:incoming>
+      <bpmn:outgoing>Flow_16ts8nr</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1g943ri" sourceRef="Install-City-Sidewalk-and-Pavement" targetRef="Install-Site-Lighting-at-Sidewalk" />
+    <bpmn:task id="Install-Soil-and-Street-Trees" name="Install Soil &#38; Street Trees">
+      <bpmn:incoming>Flow_16ts8nr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wuclv7</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_16ts8nr" sourceRef="Install-Site-Lighting-at-Sidewalk" targetRef="Install-Soil-and-Street-Trees" />
+    <bpmn:endEvent id="End" name="End">
+      <bpmn:incoming>Flow_0wuclv7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0wuclv7" sourceRef="Install-Soil-and-Street-Trees" targetRef="End" />
+    <bpmn:sequenceFlow id="Flow_1grhgs3" sourceRef="Gateway_1w5tp28" targetRef="Rough-In-Electrical-at-Sidewalk" />
+    <bpmn:sequenceFlow id="Flow_1yikwd8" sourceRef="Gateway_01herhb" targetRef="Install-City-Sidewalk-and-Pavement" />
+    <bpmn:parallelGateway id="Gateway_01herhb">
+      <bpmn:incoming>Flow_1ebwc74</bpmn:incoming>
+      <bpmn:incoming>Flow_04a7f91</bpmn:incoming>
+      <bpmn:outgoing>Flow_1yikwd8</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:parallelGateway id="Gateway_1w5tp28">
+      <bpmn:incoming>Flow_13lx743</bpmn:incoming>
+      <bpmn:outgoing>Flow_1grhgs3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0v9mj75</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="Flow_04a7f91" sourceRef="Install-Irrigation-at-Sidewalk" targetRef="Gateway_01herhb" />
+    <bpmn:sequenceFlow id="Flow_0v9mj75" sourceRef="Gateway_1w5tp28" targetRef="Install-Irrigation-at-Sidewalk" />
+    <bpmn:sequenceFlow id="Flow_04g120h" sourceRef="Delay-Timer" targetRef="F-R-P-Curb-and-Gutter" />
+    <bpmn:intermediateCatchEvent id="Delay-Timer" name="Delay Timer">
+      <bpmn:incoming>Flow_0snunr8</bpmn:incoming>
+      <bpmn:outgoing>Flow_04g120h</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_0gawd1e">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P10D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="OFarrell-St-Sidewalk-2">
+      <bpmndi:BPMNEdge id="Flow_04g120h_di" bpmnElement="Flow_04g120h">
+        <di:waypoint x="238" y="207" />
+        <di:waypoint x="300" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0v9mj75_di" bpmnElement="Flow_0v9mj75">
+        <di:waypoint x="480" y="232" />
+        <di:waypoint x="480" y="290" />
+        <di:waypoint x="530" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04a7f91_di" bpmnElement="Flow_04a7f91">
+        <di:waypoint x="630" y="290" />
+        <di:waypoint x="670" y="290" />
+        <di:waypoint x="670" y="232" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1yikwd8_di" bpmnElement="Flow_1yikwd8">
+        <di:waypoint x="695" y="207" />
+        <di:waypoint x="750" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1grhgs3_di" bpmnElement="Flow_1grhgs3">
+        <di:waypoint x="480" y="182" />
+        <di:waypoint x="480" y="120" />
+        <di:waypoint x="530" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wuclv7_di" bpmnElement="Flow_0wuclv7">
+        <di:waypoint x="1170" y="207" />
+        <di:waypoint x="1232" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16ts8nr_di" bpmnElement="Flow_16ts8nr">
+        <di:waypoint x="1010" y="207" />
+        <di:waypoint x="1070" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1g943ri_di" bpmnElement="Flow_1g943ri">
+        <di:waypoint x="850" y="207" />
+        <di:waypoint x="910" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ebwc74_di" bpmnElement="Flow_1ebwc74">
+        <di:waypoint x="630" y="120" />
+        <di:waypoint x="670" y="120" />
+        <di:waypoint x="670" y="182" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13lx743_di" bpmnElement="Flow_13lx743">
+        <di:waypoint x="400" y="207" />
+        <di:waypoint x="455" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0snunr8_di" bpmnElement="Flow_0snunr8">
+        <di:waypoint x="158" y="207" />
+        <di:waypoint x="202" y="207" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="122" y="189" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="128" y="232" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0kwx2vq_di" bpmnElement="F-R-P-Curb-and-Gutter">
+        <dc:Bounds x="300" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0zlyj5s_di" bpmnElement="Install-Irrigation-at-Sidewalk">
+        <dc:Bounds x="530" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0jw59nj_di" bpmnElement="Rough-In-Electrical-at-Sidewalk">
+        <dc:Bounds x="530" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1h81ekh_di" bpmnElement="Install-City-Sidewalk-and-Pavement">
+        <dc:Bounds x="750" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_10yqzf5_di" bpmnElement="Install-Site-Lighting-at-Sidewalk">
+        <dc:Bounds x="910" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xm2wfx_di" bpmnElement="Install-Soil-and-Street-Trees">
+        <dc:Bounds x="1070" y="167" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1xjzcj8_di" bpmnElement="End">
+        <dc:Bounds x="1232" y="189" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1240" y="232" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0uv8sj0_di" bpmnElement="Gateway_01herhb">
+        <dc:Bounds x="645" y="182" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0z08yzz_di" bpmnElement="Gateway_1w5tp28">
+        <dc:Bounds x="455" y="182" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1hz0014_di" bpmnElement="Delay-Timer">
+        <dc:Bounds x="202" y="189" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="191" y="232" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

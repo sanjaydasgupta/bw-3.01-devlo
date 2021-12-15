@@ -3,7 +3,7 @@
   <bpmn:collaboration id="Phase-Construction-Top-Pools">
     <bpmn:documentation>Construction Top Complete</bpmn:documentation>
     <bpmn:participant id="Participant-Site-Utilities-3" name="Site Utilities" processRef="Site-Utilities-3" />
-    <bpmn:participant id="Participant-Construction-Top-3" name="Phase Construction Top" processRef="Phase-Construction-Top-3" />
+    <bpmn:participant id="Participant-Construction-Top-3" name="Phase Construction Top 3" processRef="Phase-Construction-Top-3" />
     <bpmn:participant id="Participant-Hardscape-Landscape-3" name="Hardscape Landscape" processRef="Hardscape-Landscape-3" />
     <bpmn:participant id="Participant-Punch-Lists-3" name="Punch Lists" processRef="Punch-Lists-3" />
     <bpmn:participant id="Participant-Commissioning-3" name="Commissioning" processRef="Commissioning-3" />
@@ -99,7 +99,7 @@
     <bpmn:sequenceFlow id="Flow_1k7jgof" sourceRef="Work-and-Vaults-Delay-Timer" targetRef="Underground-Work-and-Vaults" />
     <bpmn:sequenceFlow id="Flow_1g9av9d" sourceRef="Refurbish-Historic-Storefront" targetRef="Gateway_1t9t7mb" />
   </bpmn:process>
-  <bpmn:process id="Phase-Construction-Top-3" name="Phase Construction Top" isExecutable="true">
+  <bpmn:process id="Phase-Construction-Top-3" name="Phase Construction Top 3" isExecutable="true">
     <bpmn:task id="Roof-Structure" name="Roof Structure">
       <bpmn:incoming>Flow_18jxkif</bpmn:incoming>
       <bpmn:outgoing>Flow_0mxjbad</bpmn:outgoing>

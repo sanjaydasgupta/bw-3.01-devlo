@@ -131,12 +131,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } else {
         (taktTempActivitiesCount / bpmnActivities.length).asInstanceOf[Int]
       }
-      val firstActivityDuration: Int = bpmnActivities.sortBy(_.getOrElse[Long]("offset", Long.MaxValue)).headOption match {
-        case Some(a) => a.get[Document]("durations") match {
-          case Some(dur) => dur.getInteger("likely")
+      val firstActivityDuration: Int = try {
+        bpmnActivities.sortBy(_.getOrElse[Long]("offset", Long.MaxValue)).headOption match {
+          case Some(a) => a.get[Document]("durations") match {
+            case Some(dur) => dur.getInteger("likely")
+            case _ => 0
+          }
           case _ => 0
         }
-        case _ => 0
+      } catch {
+        case _: Throwable => 0
       }
       val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process,
           Seq.empty[(String, String, Int)], repetitionCount, request) + firstActivityDuration * repetitionCount

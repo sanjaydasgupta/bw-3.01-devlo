@@ -231,7 +231,9 @@ object PhaseApi {
     } else {
       val parent = parentProject(phase._id[ObjectId])
       if (parent.has("tz")) {
-        parent.tz[String]
+        val tz = parent.tz[String]
+        BWMongoDB3.phases.updateOne(Map("_id" -> phase._id[ObjectId]), Map($set -> Map("tz" -> tz)))
+        tz
       } else {
         val method = optRequest match {
           case None => "LOCAL"

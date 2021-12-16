@@ -74,7 +74,7 @@ object ActivityApi extends DateTimeUtils {
       val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
       val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
       val activityOffset: Option[Long] = activity.get[Long]("offset")
-      phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off)))
+      phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off, PhaseApi.timeZone(phase))))
     } catch {
       case _: Throwable => None
     }
@@ -84,12 +84,15 @@ object ActivityApi extends DateTimeUtils {
     val activityDurations: Option[DynDoc] = activity.get[Document]("durations")
     val activityLikelyDuration: Option[Long] =
         activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d)})
-    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.map(dur => addWeekdays(startDate, dur)))
+    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.
+        map(dur => addWeekdays(startDate, dur, PhaseApi.timeZone(phase))))
   }
 
   def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
     (process.get[Long]("estimated_start_date"), activity.get[Long]("offset")) match {
-      case (Some(processStartDate), Some(offset)) => Some(addWeekdays(processStartDate, offset))
+      case (Some(processStartDate), Some(offset)) =>
+        val phase = ProcessApi.parentPhase(process._id[ObjectId])
+        Some(addWeekdays(processStartDate, offset, PhaseApi.timeZone(phase)))
       case _ => None
     }
   }
@@ -107,7 +110,9 @@ object ActivityApi extends DateTimeUtils {
 
   def scheduledEnd3(process: DynDoc, activity: DynDoc): Option[Long] = {
     (scheduledStart3(process, activity), activity.get[Long]("duration")) match {
-      case (Some(scheduledStartDate), Some(offset)) => Some(addWeekdays(scheduledStartDate, offset))
+      case (Some(scheduledStartDate), Some(offset)) =>
+        val phase = ProcessApi.parentPhase(process._id[ObjectId])
+        Some(addWeekdays(scheduledStartDate, offset, PhaseApi.timeZone(phase)))
       case _ => None
     }
   }

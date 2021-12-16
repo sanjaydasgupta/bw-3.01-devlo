@@ -50,8 +50,8 @@ trait DateTimeUtils {
     s"P${days}DT${hours}H${minutes}M"
   }
 
-  def addWeekdays(baseDateMs: Long, days: Long): Long = {
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+  def addWeekdays(baseDateMs: Long, days: Long, tz: String): Long = {
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone(tz))
     calendar.setTimeInMillis(baseDateMs)
     var daysLeft = days
     while (daysLeft > 0) {

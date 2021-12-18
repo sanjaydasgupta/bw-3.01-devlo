@@ -26,7 +26,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       val phases: Seq[DynDoc] = if (isAdmin) {
         ProjectApi.allPhases(parentProject)
       } else {
-        val allPhases = ProjectApi.phasesByUser(personOid, parentProject)
+        val allPhases = ProjectApi.phasesByUser30(personOid, parentProject)
         allPhases.filter(p => PhaseApi.allProcesses(p).nonEmpty)
       }
       val phaseInfoList: Many[Document] = phases.map(phase2json).map(_.asDoc).asJava

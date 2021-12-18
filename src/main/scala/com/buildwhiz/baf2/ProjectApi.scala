@@ -54,6 +54,14 @@ object ProjectApi extends HttpUtils {
     }
   }
 
+  def phasesByUser30(userOid: ObjectId, parentProject: DynDoc): Seq[DynDoc] = {
+    if (PersonApi.isBuildWhizAdmin(Left(userOid)) || ProjectApi.canManage(userOid, parentProject)) {
+      allPhases(parentProject)
+    } else {
+      TeamApi.phasesByMemberOid(userOid)
+    }
+  }
+
   def allActivities(project: DynDoc): Seq[DynDoc] = allProcesses(project).
       flatMap(phase => ProcessApi.allActivities(phase))
 

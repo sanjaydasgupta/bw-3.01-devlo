@@ -48,7 +48,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
 
   private def phaseInformation2(project: DynDoc, user: DynDoc): Many[Document] = {
     def rint(): String = (random() * 15).toInt.toString
-    ProjectApi.phasesByUser(user._id[ObjectId], project).map(phase => {
+    ProjectApi.phasesByUser30(user._id[ObjectId], project).map(phase => {
       new Document("name", phase.name[String]).append("_id", phase._id[ObjectId].toString).
           append("display_status", PhaseApi.displayStatus31(phase)).append("alert_count", rint()).
           append("rfi_count", rint()).append("issue_count", rint())
@@ -57,7 +57,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
 
   private def phaseInformation(project: DynDoc, user: DynDoc, request: HttpServletRequest): Many[Document] = {
     val userOid = user._id[ObjectId]
-    val phases: Seq[DynDoc] = ProjectApi.phasesByUser(userOid, project)
+    val phases: Seq[DynDoc] = ProjectApi.phasesByUser30(userOid, project)
     val canManageProject = ProjectApi.canManage(userOid, project)
     val phaseRecords: Seq[DynDoc] = phases.map(phase => {
       val phaseDisplayStatus = PhaseApi.displayStatus31(phase)

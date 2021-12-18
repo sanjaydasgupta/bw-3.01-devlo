@@ -56,7 +56,7 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
   private def rint(): String = (random() * 15).toInt.toString
 
   private def projectInfo(project: DynDoc, user: DynDoc, request: HttpServletRequest): Document = {
-    val phases: Seq[DynDoc] = ProjectApi.phasesByUser(user._id[ObjectId], project).map(phase => {
+    val phases: Seq[DynDoc] = ProjectApi.phasesByUser30(user._id[ObjectId], project).map(phase => {
       val timestamps: DynDoc = phase.timestamps[Document]
       val phaseTimezone = PhaseApi.timeZone(phase, Some(request))
       val startDate = if (timestamps.has("date_start_actual")) {

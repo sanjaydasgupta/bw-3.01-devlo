@@ -63,7 +63,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("start", timer.start[String]).append("end", timer.end[String]).
         append("status", timer.status[String]).append("elementType", "timer").
         //append("on_critical_path", if (timer.has("on_critical_path")) timer.on_critical_path[Boolean] else false).
-        append("on_critical_path", false)
+        append("on_critical_path", false).append("bpmn_name", timer.bpmn_name[String])
     })
   }
 

@@ -1,7 +1,6 @@
 package com.buildwhiz.infra
 
-import com.mongodb.MongoClient
-import com.mongodb.client.MongoCollection
+import com.mongodb.client.{MongoClients, MongoCollection}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -23,5 +22,5 @@ object BWMongoLocal extends Dynamic {
 
   def collectionNames: Seq[String] = db.listCollectionNames().asScala.toSeq
 
-  private lazy val mongoClient = new MongoClient()
+  private lazy val mongoClient = MongoClients.create()
 }

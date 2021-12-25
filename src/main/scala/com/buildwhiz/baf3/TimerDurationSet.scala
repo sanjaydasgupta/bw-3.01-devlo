@@ -62,7 +62,7 @@ object TimerDurationSet extends DateTimeUtils {
           t.bpmn_name[String] == bpmnName)
       case _ => throw new IllegalArgumentException("Timer id or name not provided")
     }
-    if (!inDuration.matches("(?:(?:\\d{1,2}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
+    if (!inDuration.matches("(?:(?:\\d{1,4}\\:)?\\d{1,2}\\:)?\\d{1,2}"))
       throw new IllegalArgumentException("Bad duration format")
     val duration = formatDuration(inDuration)
     if (theProcess.status[String] != "ended") {

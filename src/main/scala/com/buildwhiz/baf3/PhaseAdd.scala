@@ -329,9 +329,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val callerElementId = call.getAttributes.getNamedItem("id").getTextContent
       val newNamePath = s"$namePath/${cleanText(callerElementName)}"
       val newIdPath = s"$idPath/$callerElementId"
-      val isTakt = call.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
+      val isTakt2 = isTakt || call.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
       analyzeBpmn(calledBpmnName, newNamePath, newIdPath, responseWriter, activityBuffer, timerBuffer,
-          milestoneBuffer, endNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt)
+          milestoneBuffer, endNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt2)
     }
   }
 

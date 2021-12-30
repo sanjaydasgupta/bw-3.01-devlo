@@ -170,7 +170,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> bpmnDuration, "durations" -> durations,
         "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
         "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
-        "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone),
+        "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone), "takt_unit_no" -> 1,
         "bpmn_actual_end_date" -> date2long(bpmnActualEnd, timeZone), "on_critical_path" -> false)
     activityBuffer.append(activity)
   }

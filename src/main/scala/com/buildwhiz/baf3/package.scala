@@ -199,12 +199,17 @@ package object baf3 {
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
   )
 
-  def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false):
-      Many[Document] = {
-    val menuItemsList2 = if (starting) {
-      menuItemsList.filter(_.getString("access").contains("I"))
-    } else {
+  def displayedMenuItems(userIsAdmin: Boolean, userIsManager: Boolean = false, starting: Boolean = false,
+      includeHome: Boolean = true): Many[Document] = {
+    val menuItemsList0 = if (includeHome) {
       menuItemsList
+    } else {
+      menuItemsList.filterNot(_.getString("navLabel") == "Home")
+    }
+    val menuItemsList2 = if (starting) {
+      menuItemsList0.filter(_.getString("access").contains("I"))
+    } else {
+      menuItemsList0
     }
     val filteredMenuItems = if (userIsAdmin) {
       menuItemsList2

@@ -113,6 +113,12 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Google-OK but no work-email: $email", request)
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
+              val singleProjectIndicator = ProjectApi.projectsByUser30(personRecord.getObjectId("_id")) match {
+                case Seq(project) =>
+                  new Document("project_id", project._id[ObjectId].toString).append("project_name", project.name[String])
+                case _ => new Document()
+              }
+              personRecord.put("single_project_indicator", singleProjectIndicator)
               cookieSessionSet(email, personRecord, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
               personRecord.put("menu_items", displayedMenuItems(personIsAdmin, starting = true))
@@ -129,19 +135,14 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               }
               val resultFields = Seq("_id", "first_name", "last_name", "organization_id", "dummies",
                 "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items", "font_size",
-                "selected_project_id", "selected_phase_id").filter(f => personRecord.containsKey(f))
+                "selected_project_id", "selected_phase_id", "single_project_indicator").
+                filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
                  dates(request))
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
-              val singleProjectIndicator = ProjectApi.projectsByUser30(personRecord.getObjectId("_id")) match {
-                case Seq(project) =>
-                  new Document("project_id", project._id[ObjectId].toString).append("project_name", project.name[String])
-                case _ => new Document()
-              }
-              resultPerson.append("single_project_indicator", singleProjectIndicator)
               recordLoginTime(personRecord)
               val message = s"Login OK. SPI=${singleProjectIndicator.toJson}"
               BWLogger.audit(getClass.getName, request.getMethod, message, request)

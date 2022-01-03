@@ -205,9 +205,15 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } else {
       idPath.substring(2) + "/" + callerElementId + "/" + callee
     }
+    val fullBpmnName2 = if (idPath == ".") {
+      bpmnName
+    } else {
+      idPath.substring(2) + "/" + bpmnName
+    }
     val callDetails: Document = Map("name" -> callee, "bpmn_name_full" -> fullBpmnName, "parent_name" -> bpmnName,
       "parent_activity_id" -> callerElementId, "offset" -> Map("start" -> "00:00:00", "end" -> "00:00:00"),
-      "status" -> "defined", "is_takt" -> isTakt, "parent_activity_name" -> callerElementName)
+      "status" -> "defined", "is_takt" -> isTakt, "parent_activity_name" -> callerElementName,
+      "bpmn_name_full2" -> fullBpmnName2)
     callElementBuffer.append(callDetails)
   }
 

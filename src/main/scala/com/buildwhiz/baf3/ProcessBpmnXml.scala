@@ -128,8 +128,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
   }
 
   private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
-      request: HttpServletRequest): Seq[Document] = {
-    val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(_.parent_name[String] == processName)
+      bpmnNameFull: String, request: HttpServletRequest): Seq[Document] = {
+    val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(
+      stamp => if (stamp.has("bpmn_name_full2")) {
+        stamp.bpmn_name_full2[String] == bpmnNameFull
+      } else {
+        stamp.parent_name[String] == processName
+      }
+    )
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
       val bpmnNameFull = stamp.getOrElse("bpmn_name_full", "")
@@ -364,7 +370,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = getRepetitionCount(phaseOid, bpmnNameFull, processActivities.length)
-      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, request)
+      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

@@ -11,8 +11,8 @@ import scala.annotation.tailrec
 
 object ActivityApi extends DateTimeUtils {
 
-  def activitiesByIds(activityOids: Seq[ObjectId]): Seq[DynDoc] =
-    BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
+  def activitiesByIds(activityOids: Seq[ObjectId], filter: Map[String, Any] = Map.empty): Seq[DynDoc] =
+    BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)) ++ filter)
 
   def activityById(activityOid: ObjectId): DynDoc = {
     BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {

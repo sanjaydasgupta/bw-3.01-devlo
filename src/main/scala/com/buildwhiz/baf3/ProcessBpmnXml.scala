@@ -391,13 +391,18 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => displayedMenuItems(isAdmin, starting = true)
         case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
       }
+      val cycleTime = if (globalTakt) {
+        processActivities.head.getString("duration")
+      } else {
+        ""
+      }
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
-          append("repetition_count", repetitionCount).append("cycle_time", "7").append("menu_items", menuItems).
+          append("repetition_count", repetitionCount).append("cycle_time", cycleTime).append("menu_items", menuItems).
           append("bpmn_name_full", bpmnNameFull).
           append("activity_count", processActivities.length)
       response.getWriter.println(bson2json(returnValue))

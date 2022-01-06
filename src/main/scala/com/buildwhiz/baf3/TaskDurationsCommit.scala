@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.ActivityApi
+import com.buildwhiz.baf2.{ActivityApi, PhaseApi}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -23,20 +23,29 @@ class TaskDurationsCommit extends HttpServlet with HttpUtils {
       val badDurations = durationValues.filter(dv => !(dv.has("activity_id") && dv.has("duration_likely")) &&
           !(dv.has("timer_id") && dv.has("duration")))
       if (badDurations.nonEmpty)
-        throw new IllegalArgumentException(s"found duration_values without expected fields")
+        throw new IllegalArgumentException("found duration_values without expected fields")
       for (durationValue <- durationValues) {
         if (durationValue.has("activity_id")) {
           ActivityApi.durationsSet3(new ObjectId(durationValue.activity_id[String]),
             durationValue.get[String]("duration_optimistic").map(_.toInt),
             durationValue.get[String]("duration_pessimistic").map(_.toInt),
             durationValue.get[String]("duration_likely").map(_.toInt))
+        } else if (durationValue.has("timer_id")) {
+          val bpmnName = postData.bpmn_name[String]
+          val phaseOid = new ObjectId(postData.phase_id[String])
+          val theProcess = PhaseApi.allProcesses(phaseOid).headOption match {
+            case Some(proc) => proc
+            case None => throw new IllegalArgumentException(s"Bad phase: $phaseOid")
+          }
+          TimerDurationSet.set(request, theProcess, Some(durationValue.timer_id[String]), None, bpmnName,
+              durationValue.duration[String])
         } else {
-          // commit timer duration
+          throw new IllegalArgumentException("\"found duration_values without expected fields\"")
         }
       }
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      val message = s"changed durations of ${durationValues.length} tasks"
+      val message = s"changed duration of ${durationValues.length} task and/or timer element(s)"
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

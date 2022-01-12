@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils._
 import org.bson.Document
@@ -115,18 +115,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     (startAndLabel, endAndLabel)
   }
 
-  private def getRepetitionCount(phaseOid: ObjectId, bpmnNameFull: String, activityCount: Int): Int = {
-    // BEGIN Takt simplified approach
-    val taktTempActivitiesCount =
-      BWMongoDB3.takt_temp_activities.countDocuments(Map("phase_id" -> phaseOid, "bpmn_name_full" -> bpmnNameFull))
-    if (taktTempActivitiesCount == 0) {
-      0
-    } else {
-      (taktTempActivitiesCount / activityCount).asInstanceOf[Int]
-    }
-    // END Takt simplified approach
-  }
-
   private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
       bpmnNameFull: String, request: HttpServletRequest): Seq[Document] = {
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(
@@ -166,7 +154,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
-      val repetitionCount = getRepetitionCount(phase._id[ObjectId], bpmnNameFull, bpmnActivities.length)
+      val repetitionCount = PhaseApi.getTaktUnitCount(phase._id[ObjectId], bpmnNameFull, bpmnActivities.length)
       val firstActivityDuration: Int = try {
         bpmnActivities.sortBy(_.getOrElse[Long]("offset", Long.MaxValue)).headOption match {
           case Some(a) => a.get[Document]("durations") match {
@@ -178,7 +166,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } catch {
         case _: Throwable => 0
       }
-      val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process,
+      val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process, 0, bpmnNameFull,
           Seq.empty[(String, String, Int)], repetitionCount, request) + firstActivityDuration * repetitionCount
       val msg = s"calledBpmn: $calledBpmnName, bpmnNameFull: $bpmnNameFull, repetitionCount: $repetitionCount, " +
         s"firstActivityDuration: $firstActivityDuration, durationLikely: $durationLikely"
@@ -213,17 +201,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     )
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
-    val returnActivities = activities.zipWithIndex.map(activityAndIndex => {
-      val (activity, index) = activityAndIndex
+    val returnActivities = activities.map(activity => {
       val activityOid = activity._id[ObjectId]
       val deliverableCount = deliverables.count(_.activity_id[ObjectId] == activityOid)
-      val tasks = Seq.empty[Document]
-//      val status = if (tasks.exists(_.get("status") == "waiting"))
-//        "waiting"
-//      else if (tasks.exists(_.get("status") == "waiting2"))
-//        "waiting2"
-//      else
-//        activity.status[String]
 
       val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity, request)
 
@@ -287,7 +267,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val status = activityStatusValues(activityOid)
 
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
-        append("tasks", tasks).append("start", activityStart).append("end", activityEnd).
+        append("tasks", Seq.empty[Document]).append("start", activityStart).append("end", activityEnd).
         append("status", status).append("duration_is_editable", status != "Completed").
         append("duration", durationLikely).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
@@ -369,7 +349,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val endNodes = getEndNodes(process, bpmnFileName, bpmnNameFull)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
-      val repetitionCount = getRepetitionCount(phaseOid, bpmnNameFull, processActivities.length)
+      val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
       val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull, request)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
@@ -384,7 +364,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => ""
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
-      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, process,
+      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, process, 0, bpmnNameFull,
         Seq.empty[(String, String, Int)], repetitionCount, request)
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val menuItems = uiContextSelectedManaged(request) match {

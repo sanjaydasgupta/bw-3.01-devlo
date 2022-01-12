@@ -17,7 +17,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = ted.getAttributeValue("name")
     val id = ted.getAttributeValue("id")
@@ -35,7 +35,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def setEndEventOffset(endEvent: EndEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = endEvent.getAttributeValue("name")
     val id = endEvent.getAttributeValue("id")
@@ -51,21 +51,27 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     //  s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
-  private def getTimerDuration(ted: TimerEventDefinition, process: DynDoc, bpmnName: String,
+  private def getTimerDuration(ice: IntermediateCatchEvent, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
+    val timerId = ice.getAttributeValue("id")
+    BWLogger.log(getClass.getName, request.getMethod,
+      s"""getTimerDuration(timer-id:$timerId, durations:${durations.map(d => s"(${d._1},${d._2},${d._3})").mkString(", ")})""", request)
     val timerDurations = durations.filter(_._1 == "T").map(t => (t._2, t._3)).toMap
-    process.timers[Many[Document]].filter(_.bpmn_name[String] == bpmnName).
-        find(_.bpmn_id[String] == ted.getParentElement.getAttributeValue("id")) match {
+    process.timers[Many[Document]].find(p => p.bpmn_name[String] == bpmnName && p.bpmn_id[String] == timerId) match {
       case Some(theTimer) =>
         if (timerDurations.contains(theTimer.bpmn_id[String])) {
-          duration2ms(theTimer.duration[String]) / 86400000L
+          BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(found: $timerId)", request)
+          timerDurations(theTimer.bpmn_id[String])
         } else {
+          BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found1: $timerId)", request)
           theTimer.get[String]("duration") match {
             case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt
             case None => 0
           }
         }
       case None =>
+        BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found2: $timerId)", request)
+        val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
         val timer = s"ted: ${ted.getAttributeValue("name")}, process: ${process.name[String]}, bpmnName: $bpmnName"
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getTimerDuration() cant find $timer", request)
         0
@@ -75,7 +81,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   private def setUserTaskOffset(ut: Task, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
     val id = ut.getAttributeValue("id")
-    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setUserTaskOffset(id=$id, bpmnName=$bpmnName, offset=$offset)", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setUserTaskOffset(id=$id, bpmnName=$bpmnName, offset=$offset)", request)
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     //val name = ut.getAttributeValue("name")
     val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id)
@@ -109,8 +115,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     }
   }
 
-  def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, durations: Seq[(String, String, Int)],
-      repetitionCount: Int, request: HttpServletRequest): Long = {
+  def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, bpmnNameFull: String,
+      durations: Seq[(String, String, Int)], repetitionCount: Int, request: HttpServletRequest): Long = {
 
     val process = PhaseApi.allProcesses(phaseOid) match {
       case Seq(soloProcess) => soloProcess
@@ -118,20 +124,21 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     }
 
     val duration = if (durations.isEmpty) {
-      processDurationRecalculate(bpmnName, process, Seq.empty, repetitionCount, request)
+      processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, Seq.empty, repetitionCount, request)
     } else {
       if (bpmnName != process.bpmn_name[String]) {
-        processDurationRecalculate(process.bpmn_name[String], process, durations, repetitionCount, request)
-        processDurationRecalculate(bpmnName, process, Seq.empty, repetitionCount, request)
+        processDurationRecalculate(process.bpmn_name[String], process, 0, process.bpmn_name[String], durations,
+            repetitionCount, request)
+        processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, Seq.empty, repetitionCount, request)
       } else {
-        processDurationRecalculate(bpmnName, process, durations, repetitionCount, request)
+        processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, durations, repetitionCount, request)
       }
     }
     duration
   }
 
-  def processDurationRecalculate(bpmnName: String, process: DynDoc, durations: Seq[(String, String, Int)],
-      repetitionCount: Int, request: HttpServletRequest): Long = {
+  def processDurationRecalculate(bpmnName: String, process: DynDoc, processOffset: Long, bpmnNameFull: String,
+      durations: Seq[(String, String, Int)], repetitionCount: Int, request: HttpServletRequest): Long = {
     val t0 = System.currentTimeMillis()
     val activities = ProcessApi.allActivities(process)
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
@@ -160,9 +167,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           stOffset
       }
 
-      def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
-          map(n => getTimeOffset(n, stOffset, bpmnName, prefix/*, seenNodes + n*/)).min
-
+//      def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
+//          map(n => getTimeOffset(n, stOffset, bpmnName, prefix/*, seenNodes + n*/)).min
+//
       //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY getTimeOffset(bpmnName=$bpmnName, startOffset=$startOffset)", request)
       val timeOffset = node match {
         case serviceTask: ServiceTask =>
@@ -177,8 +184,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           startOffset
         case parallelGateway: ParallelGateway =>
           maxPredecessorOffset(parallelGateway, startOffset)
-        case exclusiveGateway: ExclusiveGateway =>
-          minPredecessorOffset(exclusiveGateway, startOffset)
+//        case exclusiveGateway: ExclusiveGateway =>
+//          minPredecessorOffset(exclusiveGateway, startOffset)
         case endEvent: EndEvent =>
           val endOffset = maxPredecessorOffset(endEvent, startOffset)
           if (durations.nonEmpty)
@@ -186,22 +193,27 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           endOffset
         case callActivity: CallActivity =>
           val calledElement = callActivity.getCalledElement
+          val callActivityId = callActivity.getId
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
-            getActivityDuration(callActivity.getId, process, bpmnName, durations, activitiesByBpmnNameAndId,
+            getActivityDuration(callActivityId, process, bpmnName, durations, activitiesByBpmnNameAndId,
                 messages, request)
           } else {
             val callOffset = maxPredecessorOffset(callActivity, startOffset)
-            val bpmnModel2 = bpmnModelInstance(calledElement)
-            val endEvents: Seq[EndEvent] = bpmnModel2.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-            val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
-            val prefix2 = bpmnModel2.getDocument.getRootElement.getPrefix
+            val bpmnNameFull2 = (bpmnNameFull.split("/").init ++ Seq(callActivityId, calledElement)).mkString("/")
             val isTakt = callActivity.getLoopCharacteristics != null
-            val duration = endEvents.map(endEvent =>
-                getTimeOffset(endEvent, callOffset, calledElement, prefix2/*, seenNodes + endEvent*/)).max
             if (isTakt) {
-              duration + getFirstTaskDuration(startEvent, calledElement) * repetitionCount
+              val bpmnModel2 = bpmnModelInstance(calledElement)
+              val phaseOid: ObjectId = ProcessApi.parentPhase(process._id)._id
+              val activityCount = bpmnModel2.getModelElementsByType(classOf[Task]).asScala.size
+              val repetitionCount2: Int = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull2, activityCount)
+              val duration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
+                  repetitionCount2, request)
+              val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
+              callOffset + duration + getFirstTaskDuration(startEvent, calledElement) * repetitionCount
             } else {
-              duration
+              val duration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
+                  repetitionCount, request)
+              callOffset + duration
             }
           }
           /*maxPredecessorOffset(callActivity, startOffset) + */calledBpmnDuration
@@ -211,9 +223,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
             setMilestoneOffset(ite, process, bpmnName, milestoneOffset, request)
           milestoneOffset
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
-          val delay = getTimerDuration(ted, process, bpmnName, durations, request)
-          maxPredecessorOffset(ice, startOffset) + delay
+          val offset = maxPredecessorOffset(ice, startOffset)
+          val delay = getTimerDuration(ice, process, bpmnName, durations, request)
+          offset + delay
         case anyOtherNode: FlowNode =>
           maxPredecessorOffset(anyOtherNode, startOffset)
       }
@@ -223,7 +235,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val bpmnModel = bpmnModelInstance(bpmnName)
     val domPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = endEvents.map(ee => getTimeOffset(ee, 0, bpmnName, domPrefix/*, Set.empty[FlowNode]*/)).max
+    val offset = endEvents.map(ee => getTimeOffset(ee, processOffset, bpmnName, domPrefix/*, Set.empty[FlowNode]*/)).max
     if (messages.nonEmpty) {
       BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
     }

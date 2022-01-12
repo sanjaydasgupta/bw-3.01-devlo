@@ -245,6 +245,18 @@ object PhaseApi {
     }
   }
 
+  def getTaktUnitCount(phaseOid: ObjectId, bpmnNameFull: String, activityCount: Int): Int = {
+    // BEGIN Takt simplified approach
+    val taktTempActivitiesCount =
+      BWMongoDB3.takt_temp_activities.countDocuments(Map("phase_id" -> phaseOid, "bpmn_name_full" -> bpmnNameFull))
+    if (taktTempActivitiesCount == 0) {
+      0
+    } else {
+      (taktTempActivitiesCount / activityCount).asInstanceOf[Int]
+    }
+    // END Takt simplified approach
+  }
+
   def phaseDocumentTagName(phaseName: String): String = s"@phase($phaseName)"
 
 }

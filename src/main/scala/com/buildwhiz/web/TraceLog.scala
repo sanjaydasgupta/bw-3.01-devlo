@@ -42,11 +42,17 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         case ip => ip
       }
       val logType = parameters.getOrElse("type", "full")
+      val user: DynDoc = getUser(request)
+      val isAnalytics = (user.first_name == "Analytics") && (user.last_name == "Analytics")
       val (typeQuery, logTypeName) = logType.toLowerCase match {
-        case "error" => (Map("event_name" -> Map("$regex" -> ".*ERROR.+")), "Error")
-        case "audit" => (Map("event_name" -> Map("$regex" -> ".*AUDIT.+")), "Audit")
-        case "check" => (Map("event_name" -> Map("$regex" -> ".*(AUDIT|ERROR).+")), "Check")
-        case _ => (Map.empty[String, AnyRef], "Full")
+        case "error" => (Map("event_name" -> Map($regex -> "^ERROR.+")), "Error")
+        case "audit" => (Map("event_name" -> Map($regex -> "^AUDIT.+")), "Audit")
+        case "check" => (Map("event_name" -> Map($regex -> "^(AUDIT|ERROR).+")), "Check")
+        case _ =>
+          if (isAnalytics)
+            (Map("event_name" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+")), "Full")
+          else
+            (Map.empty[String, AnyRef], "Full")
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
@@ -102,7 +108,6 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           traceLogCollection.aggregate(pipeline.asJava).allowDiskUse(true)
       }
 
-      val user: DynDoc = getUser(request)
       val fullName = PersonApi.fullName(user)
       val details: Seq[DynDoc] = traceLogDocs.flatMap(_.details[Many[Document]])
       details.sortBy(_.milliseconds[String]).reverse.foreach(detail => {

@@ -17,7 +17,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setMilestoneOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = ted.getAttributeValue("name")
     val id = ted.getAttributeValue("id")
@@ -35,7 +35,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def setEndEventOffset(endEvent: EndEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
     val processOid = process._id[ObjectId]
     //val name = endEvent.getAttributeValue("name")
     val id = endEvent.getAttributeValue("id")
@@ -54,23 +54,23 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   private def getTimerDuration(ice: IntermediateCatchEvent, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val timerId = ice.getAttributeValue("id")
-    BWLogger.log(getClass.getName, request.getMethod,
-      s"""getTimerDuration(timer-id:$timerId, durations:${durations.map(d => s"(${d._1},${d._2},${d._3})").mkString(", ")})""", request)
+    //BWLogger.log(getClass.getName, request.getMethod,
+    //  s"""getTimerDuration(timer-id:$timerId, durations:${durations.map(d => s"(${d._1},${d._2},${d._3})").mkString(", ")})""", request)
     val timerDurations = durations.filter(_._1 == "T").map(t => (t._2, t._3)).toMap
     process.timers[Many[Document]].find(p => p.bpmn_name[String] == bpmnName && p.bpmn_id[String] == timerId) match {
       case Some(theTimer) =>
         if (timerDurations.contains(theTimer.bpmn_id[String])) {
-          BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(found: $timerId)", request)
+          //BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(found: $timerId)", request)
           timerDurations(theTimer.bpmn_id[String])
         } else {
-          BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found1: $timerId)", request)
+          //BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found1: $timerId)", request)
           theTimer.get[String]("duration") match {
             case Some(duration) => duration.substring(0, duration.indexOf(':')).toInt
             case None => 0
           }
         }
       case None =>
-        BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found2: $timerId)", request)
+        //BWLogger.log(getClass.getName, request.getMethod, s"getTimerDuration(Not-Found2: $timerId)", request)
         val ted = ice.getChildElementsByType(classOf[TimerEventDefinition]).asScala.head
         val timer = s"ted: ${ted.getAttributeValue("name")}, process: ${process.name[String]}, bpmnName: $bpmnName"
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: getTimerDuration() cant find $timer", request)
@@ -81,7 +81,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   private def setUserTaskOffset(ut: Task, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {
     val id = ut.getAttributeValue("id")
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setUserTaskOffset(id=$id, bpmnName=$bpmnName, offset=$offset)", request)
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setUserTaskOffset(id=$id, bpmnName=$bpmnName, offset=$offset)", request)
     val activityOids: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
     //val name = ut.getAttributeValue("name")
     val query = Map("_id" -> Map("$in" -> activityOids), "bpmn_name" -> bpmnName, "bpmn_id" -> id)

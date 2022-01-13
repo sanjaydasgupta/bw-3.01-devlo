@@ -43,7 +43,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       val logType = parameters.getOrElse("type", "full")
       val user: DynDoc = getUser(request)
-      val isAnalytics = (user.first_name == "Analytics") && (user.last_name == "Analytics")
+      val isAnalytics = (user.first_name[String] == "Analytics") && (user.last_name[String] == "Analytics")
       val (typeQuery, logTypeName) = logType.toLowerCase match {
         case "error" => (Map("event_name" -> Map($regex -> "^ERROR.+")), "Error")
         case "audit" => (Map("event_name" -> Map($regex -> "^AUDIT.+")), "Audit")

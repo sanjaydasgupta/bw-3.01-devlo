@@ -125,8 +125,20 @@ object TimerModule extends HttpUtils {
 
   private def trimTraceLogCollection(ms: Long): Unit = {
     try {
-      val threeMonthsAgo = ms - 86400000L * 92
-      val deleteResult = BWMongoDB3.trace_log.deleteMany(Map("milliseconds" -> Map($lt -> threeMonthsAgo)))
+      val millisecondsOneDayAgo = ms - 86400000L
+      val millisecondsThreeMonthsAgo = ms - 86400000L * 92
+      val recordsToDeleteQuery = Map(
+        $or -> Seq(
+          Map("milliseconds" -> Map($lt -> millisecondsThreeMonthsAgo)),
+          Map(
+            $and -> Seq(
+              Map("milliseconds" -> Map($lt -> millisecondsOneDayAgo)),
+              Map("event_name" -> Map($not -> Map($regex -> "^(?:AUDIT|ENTRY|ERROR|EXIT).+")))
+            )
+          )
+        )
+      )
+      val deleteResult = BWMongoDB3.trace_log.deleteMany(recordsToDeleteQuery)
       val deletedCount = deleteResult.getDeletedCount
       BWLogger.log(getClass.getName, "LOCAL", s"trimTraceLogCollection ($deletedCount records deleted)")
     } catch {

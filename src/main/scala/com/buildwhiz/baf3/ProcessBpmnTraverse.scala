@@ -51,6 +51,21 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     //  s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
+  private def setCallActivitySchedule(process: DynDoc, bpmnName: String, offset: Long, duration: Long,
+      request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getName, request.getMethod,
+        s"setCallActivityDuration(bpmn_name: $bpmnName, duration: $duration)", request)
+    val processOid = process._id[ObjectId]
+    val query = Map("_id" -> processOid, "bpmn_timestamps" -> Map($elemMatch -> Map("name" -> bpmnName)))
+    val setter = Map($set -> Map("bpmn_timestamps.$.offset_scheduled" -> offset,
+        "bpmn_timestamps.$.duration_scheduled" -> duration))
+    val updateResult = BWMongoDB3.processes.updateOne(query, setter)
+    if (updateResult.getMatchedCount == 0) {
+      BWLogger.log(getClass.getName, request.getMethod, s"ERROR: setEndEventOffset:query=$query, " +
+        s"setter=$setter", request)
+    }
+  }
+
   private def getTimerDuration(ice: IntermediateCatchEvent, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val timerId = ice.getAttributeValue("id")
@@ -96,7 +111,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnName: String,
       durations: Seq[(String, String, Int)], activitiesByBpmnNameAndId: Map[(String, String), DynDoc],
-      buffer: mutable.Buffer[String], request: HttpServletRequest): Long = {
+      buffer: mutable.Buffer[String]): Long = {
     activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
       case Some(theActivity) =>
         val activityDurations = durations.filter(_._1 == "A").map(t => (new ObjectId(t._2), t._3)).toMap
@@ -144,50 +159,50 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
     val messages = mutable.ListBuffer[String]()
+    val offsetsCache = mutable.Map.empty[FlowNode, Long]
 
     def getFirstTaskDuration(startNode: FlowNode, bpmnName: String): Long = {
       val firstTask = startNode.getSucceedingNodes.list().asScala.head
       getActivityDuration(firstTask.getId, process, bpmnName, Seq.empty, activitiesByBpmnNameAndId,
-        messages, request)
+        messages)
     }
 
-    def getTimeOffset(node: FlowNode, startOffset: Long, bpmnName: String, prefix: String/*, seenNodes: Set[FlowNode]*/): Long = {
+    def getTimeOffset(node: FlowNode): Long = {
 
-      def predecessors(flowNode: FlowNode): Seq[FlowNode] = {
-        val previousNodes: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
-        val unseenPredecessors = previousNodes//.diff(seenNodes.toSeq)
-        unseenPredecessors
+      def maxPredecessorOffset(flowNode: FlowNode): Long = {
+        if (offsetsCache.contains(flowNode)) {
+          offsetsCache(flowNode)
+        } else {
+          val thePredecessors: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
+          val offset = if (thePredecessors.nonEmpty) {
+            thePredecessors.map(getTimeOffset).max
+          } else {
+            processOffset
+          }
+          offsetsCache(flowNode) = offset
+          offset
+        }
       }
 
-      def maxPredecessorOffset(flowNode: FlowNode, stOffset: Long): Long = {
-        val thePredecessors = predecessors(flowNode)
-        if (thePredecessors.nonEmpty) {
-          thePredecessors.map(predNode => getTimeOffset(predNode, stOffset, bpmnName, prefix/*, seenNodes + predNode*/)).max
-        } else
-          stOffset
-      }
-
-//      def minPredecessorOffset(flowNode: FlowNode, stOffset: Long) = predecessors(flowNode).
-//          map(n => getTimeOffset(n, stOffset, bpmnName, prefix/*, seenNodes + n*/)).min
 //
       //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY getTimeOffset(bpmnName=$bpmnName, startOffset=$startOffset)", request)
       val timeOffset = node match {
         case serviceTask: ServiceTask =>
-          maxPredecessorOffset(serviceTask, startOffset)
+          maxPredecessorOffset(serviceTask)
         case aTask: Task =>
-          val offset = maxPredecessorOffset(aTask, startOffset)
+          val offset = maxPredecessorOffset(aTask)
           if (durations.nonEmpty)
             setUserTaskOffset(aTask, process, bpmnName, offset, request)
           offset + getActivityDuration(aTask.getId, process, bpmnName, durations, activitiesByBpmnNameAndId,
-              messages, request)
+              messages)
         case _: StartEvent =>
-          startOffset
+          processOffset
         case parallelGateway: ParallelGateway =>
-          maxPredecessorOffset(parallelGateway, startOffset)
-//        case exclusiveGateway: ExclusiveGateway =>
-//          minPredecessorOffset(exclusiveGateway, startOffset)
+          maxPredecessorOffset(parallelGateway)
+        case exclusiveGateway: ExclusiveGateway =>
+          throw new IllegalArgumentException(s"Bad node (ExclusiveGateway): $exclusiveGateway")
         case endEvent: EndEvent =>
-          val endOffset = maxPredecessorOffset(endEvent, startOffset)
+          val endOffset = maxPredecessorOffset(endEvent)
           if (durations.nonEmpty)
             setEndEventOffset(endEvent, process, bpmnName, endOffset, request)
           endOffset
@@ -196,9 +211,9 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           val callActivityId = callActivity.getId
           val calledBpmnDuration = if (calledElement == "Infra-Activity-Handler") {
             getActivityDuration(callActivityId, process, bpmnName, durations, activitiesByBpmnNameAndId,
-                messages, request)
+                messages)
           } else {
-            val callOffset = maxPredecessorOffset(callActivity, startOffset)
+            val callOffset = maxPredecessorOffset(callActivity)
             val bpmnNameFull2 = (bpmnNameFull.split("/").init ++ Seq(callActivityId, calledElement)).mkString("/")
             val isTakt = callActivity.getLoopCharacteristics != null
             if (isTakt) {
@@ -213,35 +228,38 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
             } else {
               val duration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
                   repetitionCount, request)
+              if (durations.nonEmpty) {
+                setCallActivitySchedule(process, calledElement, callOffset, duration, request)
+              }
               callOffset + duration
             }
           }
           /*maxPredecessorOffset(callActivity, startOffset) + */calledBpmnDuration
         case ite: IntermediateThrowEvent => // Milestone
-          val milestoneOffset = maxPredecessorOffset(ite, startOffset)
+          val milestoneOffset = maxPredecessorOffset(ite)
           if (durations.nonEmpty)
             setMilestoneOffset(ite, process, bpmnName, milestoneOffset, request)
           milestoneOffset
         case ice: IntermediateCatchEvent if !ice.getChildElementsByType(classOf[TimerEventDefinition]).isEmpty =>
-          val offset = maxPredecessorOffset(ice, startOffset)
+          val offset = maxPredecessorOffset(ice)
           val delay = getTimerDuration(ice, process, bpmnName, durations, request)
           offset + delay
         case anyOtherNode: FlowNode =>
-          maxPredecessorOffset(anyOtherNode, startOffset)
+          maxPredecessorOffset(anyOtherNode)
       }
       timeOffset
     }
 
     val bpmnModel = bpmnModelInstance(bpmnName)
-    val domPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val offset = endEvents.map(ee => getTimeOffset(ee, processOffset, bpmnName, domPrefix/*, Set.empty[FlowNode]*/)).max
+    val maxEndOffset = endEvents.map(ee => getTimeOffset(ee)).max
     if (messages.nonEmpty) {
       BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
     }
     val delay = System.currentTimeMillis() - t0
-    BWLogger.log(getClass.getName, request.getMethod, s"processDurationRecalculate() time: $delay ms", request)
-    offset
+    val message = s"processDurationRecalculate(bpmnNameFull: $bpmnNameFull) time: $delay ms"
+    BWLogger.log(getClass.getName, request.getMethod, message, request)
+    maxEndOffset - processOffset
   }
 
 }

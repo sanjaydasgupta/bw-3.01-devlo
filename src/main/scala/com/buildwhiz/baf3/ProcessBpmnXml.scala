@@ -124,6 +124,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         stamp.parent_name[String] == processName
       }
     )
+    val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+    val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
     bpmnStamps.map(stamp => {
       val calledBpmnName = stamp.name[String]
       val bpmnNameFull = stamp.getOrElse("bpmn_name_full", "")
@@ -140,13 +142,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case 1 => uniqueStatusValues.head
         case _ => "Current"
       }
-      val startEndAndLabels = bpmnActivities.map(activity => activityStartEndAndLabel(phase, activity, request))
-      val startDatesAndLabels = startEndAndLabels.map(_._1).sortBy(_._1)
-      val startDate = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._1).head else "NA"
-      val startLabel = if (startDatesAndLabels.nonEmpty) startDatesAndLabels.map(_._2).head else "Scheduled Start Date"
-      val endDatesAndLabels = startEndAndLabels.map(_._2).sortBy(_._1)
-      val endDate = if (endDatesAndLabels.nonEmpty) endDatesAndLabels.map(_._1).last else "NA"
-      val endLabel = if (endDatesAndLabels.nonEmpty) endDatesAndLabels.map(_._2).last else "Scheduled End Date"
+      val startDate = "NA"
+      val startLabel = "Scheduled Start Date"
+      val endOffset: Option[Long] = stamp.get[Long]("offset_scheduled").
+          flatMap(os => stamp.get[Long]("duration_scheduled").map(os + _))
+      val endDate = phaseStartDate.flatMap(startDate => endOffset.map(dur =>
+        addWeekdays(startDate, dur, PhaseApi.timeZone(phase)))) match {
+        case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
+        case None => "__/__/____"
+      }
+      val endLabel = "Scheduled End Date"
       val offset: DynDoc = stamp.offset[Document]
       val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(

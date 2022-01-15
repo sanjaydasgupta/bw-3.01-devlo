@@ -161,12 +161,6 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
     val messages = mutable.ListBuffer[String]()
     val offsetsCache = mutable.Map.empty[FlowNode, Long]
 
-//    def getFirstTaskDuration(startNode: FlowNode, bpmnName: String): Long = {
-//      val firstTask = startNode.getSucceedingNodes.list().asScala.head
-//      getActivityDuration(firstTask.getId, process, bpmnName, Seq.empty, activitiesByBpmnNameAndId,
-//        messages)
-//    }
-//
     def getTimeOffset(node: FlowNode): Long = {
 
       def maxPredecessorOffset(flowNode: FlowNode): Long = {
@@ -223,8 +217,11 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
               val repetitionCount: Int = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull2, activityCount)
               val unitDuration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
                   request)
-              //val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
-              val fullDuration = unitDuration + (unitDuration / activityCount) * math.max(0, repetitionCount - 1)
+              val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
+              val firstTask = startEvent.getSucceedingNodes.list().asScala.head
+              val firstTaskDuration = getActivityDuration(firstTask.getId, process, calledElement, Seq.empty,
+                activitiesByBpmnNameAndId, messages)
+              val fullDuration = unitDuration + firstTaskDuration * math.max(0, repetitionCount - 1)
               val message = s"activity#: $activityCount, repetition#: $repetitionCount, " +
                   s"unitDuration: $unitDuration, fullDuration: $fullDuration"
               BWLogger.log(getClass.getName, request.getMethod, message, request)

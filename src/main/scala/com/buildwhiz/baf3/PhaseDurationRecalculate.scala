@@ -39,9 +39,9 @@ class PhaseDurationRecalculate extends HttpServlet with HttpUtils with DateTimeU
       val bpmnName = postData.bpmn_name[String]
       val bpmnNameFull = postData.getOrElse("bpmn_name_full", bpmnName)
       val phaseOid = new ObjectId(postData.phase_id[String])
-      val repetitionCount = postData.getOrElse("repetition_count", 0)
+      //val repetitionCount = postData.getOrElse("repetition_count", 0)
       val phaseDuration = ProcessBpmnTraverse.
-          processDurationRecalculate(bpmnName, phaseOid, bpmnNameFull, oidAndDurations, repetitionCount, request)
+          processDurationRecalculate(bpmnName, phaseOid, bpmnNameFull, oidAndDurations, request)
       val returnedValues = new Document("ok", 1).append("phase_duration_optimistic", "NA").
           append("phase_duration_pessimistic", "NA").append("phase_duration_likely", phaseDuration.toString)
       if (postData.has("selected_activity_id")) {

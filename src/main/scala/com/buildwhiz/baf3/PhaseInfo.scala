@@ -158,7 +158,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case Some(process) =>
         val bpmnName = process.bpmn_name[String]
         ProcessBpmnTraverse.processDurationRecalculate(bpmnName, process, 0, bpmnName, Seq.empty[(String, String, Int)],
-            0, request).toString
+            request).toString
       case None => "NA"
     }
     val estimatedDatesEditable = editable && status == "Planning"

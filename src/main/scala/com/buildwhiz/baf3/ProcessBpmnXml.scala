@@ -159,23 +159,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         new Document("name", "End").append("value", endDate),
         new Document("name", "Status").append("value", status),
       )
-      val repetitionCount = PhaseApi.getTaktUnitCount(phase._id[ObjectId], bpmnNameFull, bpmnActivities.length)
-      val firstActivityDuration: Int = try {
-        bpmnActivities.sortBy(_.getOrElse[Long]("offset", Long.MaxValue)).headOption match {
-          case Some(a) => a.get[Document]("durations") match {
-            case Some(dur) => dur.getInteger("likely")
-            case _ => 0
-          }
-          case _ => 0
-        }
-      } catch {
-        case _: Throwable => 0
+      val durationLikely = stamp.get[Long]("duration_scheduled") match {
+        case Some(d) => d.toString
+        case None => "NA"
       }
-      val durationLikely = ProcessBpmnTraverse.processDurationRecalculate(calledBpmnName, process, 0, bpmnNameFull,
-          Seq.empty[(String, String, Int)], repetitionCount, request) + firstActivityDuration * repetitionCount
-      val msg = s"calledBpmn: $calledBpmnName, bpmnNameFull: $bpmnNameFull, repetitionCount: $repetitionCount, " +
-        s"firstActivityDuration: $firstActivityDuration, durationLikely: $durationLikely"
-      BWLogger.log(getClass.getName, request.getMethod, s"getSubProcessCalls(): $msg", request)
       val isTakt = stamp.get[Boolean]("is_takt") match {
         case Some(taktValue) => taktValue
         case None => false
@@ -370,7 +357,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
       val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, process, 0, bpmnNameFull,
-        Seq.empty[(String, String, Int)], repetitionCount, request)
+        Seq.empty[(String, String, Int)], request)
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val menuItems = uiContextSelectedManaged(request) match {
         case None => displayedMenuItems(isAdmin, starting = true)

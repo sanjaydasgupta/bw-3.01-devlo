@@ -48,7 +48,7 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   def legacyUiProcess(process: DynDoc, phase: DynDoc, person: DynDoc): DynDoc = {
-    val activities = ProcessApi.allActivities(process)
+    val activities = ProcessApi.allActivities(Right(process))
     val personOid = person._id[ObjectId]
     val statusValues = activities.map(_.status[String])
     val displayStatus = if (statusValues.contains("running"))

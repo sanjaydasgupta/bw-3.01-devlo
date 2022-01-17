@@ -39,7 +39,7 @@ class PhaseList extends HttpServlet with HttpUtils {
 
   def phase2json(phase: DynDoc, project: DynDoc, personOid: ObjectId): String = {
     val processes: Seq[DynDoc] = PhaseApi.allProcesses(phase)
-    val activities: Seq[DynDoc] = processes.flatMap(process => ProcessApi.allActivities(process))
+    val activities: Seq[DynDoc] = processes.flatMap(process => ProcessApi.allActivities(Right(process)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     val isActive = PhaseApi.isActive(phase)
     val isManaged = phase.admin_person_id[ObjectId] == personOid

@@ -117,8 +117,8 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
           val thePhase = PhaseApi.phaseById(phaseOid)
           val processes = PhaseApi.allProcesses(phaseOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
-            processes.flatMap(p => ProcessApi.allActivities(p).map(a => (a._id[ObjectId], p))).toMap
-          val activities = PhaseApi.allActivities(phaseOid)
+            processes.flatMap(p => ProcessApi.allActivities(Right(p)).map(a => (a._id[ObjectId], p))).toMap
+          val activities = PhaseApi.allActivities(Left(phaseOid))
           val activityOid2Activity: Map[ObjectId, DynDoc] = activities.map(a => (a._id[ObjectId], a)).toMap
           val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("phase_id" -> phaseOid))
           activityAssignments.map(aa => (aa, parentProject, thePhase, activityOid2process(aa.activity_id[ObjectId]),
@@ -127,7 +127,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
           val theProject = ProjectApi.projectById(projectOid)
           val processes = ProjectApi.allProcesses(projectOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
-            processes.flatMap(p => ProcessApi.allActivities(p).map(a => (a._id[ObjectId], p))).toMap
+            processes.flatMap(p => ProcessApi.allActivities(Right(p)).map(a => (a._id[ObjectId], p))).toMap
           val activities = ProjectApi.allActivities(projectOid)
           val activityOid2Activity: Map[ObjectId, DynDoc] = activities.map(a => (a._id[ObjectId], a)).toMap
           val activityAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("project_id" -> projectOid))

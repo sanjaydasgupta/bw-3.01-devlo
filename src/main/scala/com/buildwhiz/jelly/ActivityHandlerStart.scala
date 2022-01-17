@@ -43,7 +43,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       setupEssentials(de)
       val processOid = new ObjectId(de.getVariable("process_id").asInstanceOf[String])
       val process: DynDoc = ProcessApi.processById(processOid)
-      val activityOids: Seq[ObjectId] = ProcessApi.allActivities(process).map(_._id[ObjectId])
+      val activityOids: Seq[ObjectId] = ProcessApi.allActivities(Right(process)).map(_._id[ObjectId])
       val activityName = de.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de)
       val query = Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)

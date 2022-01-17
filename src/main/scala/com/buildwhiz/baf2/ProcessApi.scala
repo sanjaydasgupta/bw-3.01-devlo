@@ -4,10 +4,13 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
+
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
+
+import scala.util.Either
 
 object ProcessApi {
 
@@ -27,12 +30,14 @@ object ProcessApi {
     case None => Seq.empty
   }
 
-  def allActivities(process: DynDoc): Seq[DynDoc] = {
+  def allActivities(processIn: Either[ObjectId, DynDoc], filter: Map[String, Any] = Map.empty): Seq[DynDoc] = {
+    val process = processIn match {
+      case Right(pr) => pr
+      case Left(oid) => processById(oid)
+    }
     val activityOids = allActivityOids(process)
-    ActivityApi.activitiesByIds(activityOids)
+    ActivityApi.activitiesByIds(activityOids, filter)
   }
-
-  def allActivities(pOid: ObjectId): Seq[DynDoc] = allActivities(processById(pOid))
 
   def delete(process: DynDoc, request: HttpServletRequest): Unit = {
     val processOid = process._id[ObjectId]
@@ -48,7 +53,7 @@ object ProcessApi {
     val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
       Map("$pull" -> Map("process_ids" -> processOid)))
 
-    val activityOids: Seq[ObjectId] = allActivities(process).map(_._id[ObjectId])
+    val activityOids: Seq[ObjectId] = allActivities(Right(process)).map(_._id[ObjectId])
     val activityDeleteCount = if (activityOids.nonEmpty)
       BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
     else
@@ -99,7 +104,7 @@ object ProcessApi {
   def isHealthy(process: DynDoc): Boolean = (process.status[String] == "running") == isActive(process)
 
   def hasRole(personOid: ObjectId, process: DynDoc): Boolean = {
-    isAdmin(personOid, process) || allActivities(process).exists(activity => ActivityApi.hasRole(personOid, activity))
+    isAdmin(personOid, process) || allActivities(Right(process)).exists(activity => ActivityApi.hasRole(personOid, activity))
   }
 
   def isAdmin(personOid: ObjectId, process: DynDoc): Boolean =

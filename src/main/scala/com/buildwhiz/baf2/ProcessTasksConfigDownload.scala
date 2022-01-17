@@ -132,7 +132,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
           append("constraints", constraints.asJava).append("team", "None")
     }
 
-    val activities: Seq[DynDoc] = ProcessApi.allActivities(process._id[ObjectId])
+    val activities: Seq[DynDoc] = ProcessApi.allActivities(Left(process._id[ObjectId]))
     val taskSheet = workbook.createSheet(process._id[ObjectId].toString)
     val headerInfo = Seq(("Task", 40), ("Deliverable", 60), ("Description", 100), ("Type", 20),
         ("Duration\n(days)", 20), ("Team", 40), ("Constraint", 60), ("Type", 20), ("Offset\n(days)", 20),

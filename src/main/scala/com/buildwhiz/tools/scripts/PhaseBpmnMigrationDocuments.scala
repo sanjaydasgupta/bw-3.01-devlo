@@ -17,7 +17,7 @@ object PhaseBpmnMigrationDocuments {
       val go: Boolean = args.length == 2 && args(1) == "GO"
       val phaseOid = new ObjectId(args(0))
       lazy val projectOid = PhaseApi.parentProject(phaseOid)._id[ObjectId]
-      val activities = PhaseApi.allActivities(phaseOid)
+      val activities = PhaseApi.allActivities(Left(phaseOid))
       response.getWriter.println(s"Activity count: ${activities.length}")
 
       for (activity <- activities) {

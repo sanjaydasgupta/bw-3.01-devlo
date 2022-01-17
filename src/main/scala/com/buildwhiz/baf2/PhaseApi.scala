@@ -35,12 +35,14 @@ object PhaseApi {
 
   def allProcesses(phaseOid: ObjectId): Seq[DynDoc] = allProcesses(phaseById(phaseOid))
 
-  def allActivities(phase: DynDoc): Seq[DynDoc] = {
+  def allActivities(phaseIn: Either[ObjectId, DynDoc], filter: Map[String, Any] = Map.empty): Seq[DynDoc] = {
+    val phase = phaseIn match {
+      case Right(ph) => ph
+      case Left(oid) => phaseById(oid)
+    }
     val activityOids: Seq[ObjectId] = allProcesses(phase).flatMap(_.activity_ids[Many[ObjectId]])
-    ActivityApi.activitiesByIds(activityOids)
+    ActivityApi.activitiesByIds(activityOids, filter)
   }
-
-  def allActivities(phaseOid: ObjectId): Seq[DynDoc] = allActivities(phaseById(phaseOid))
 
   def allActivities30(phaseIn: Either[ObjectId, DynDoc]): Seq[DynDoc] = {
     phaseIn match {
@@ -190,7 +192,7 @@ object PhaseApi {
     if (started) {
       PhaseApi.allProcesses(phase).headOption match {
         case Some(theProcess) =>
-          val activities = ProcessApi.allActivities(theProcess)
+          val activities = ProcessApi.allActivities(Right(theProcess))
           val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
           phaseStatusFromDeliverables(DeliverableApi.aggregateStatus(deliverables))
         case None => "Unknown"

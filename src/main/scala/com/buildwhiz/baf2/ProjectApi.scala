@@ -63,7 +63,7 @@ object ProjectApi extends HttpUtils {
   }
 
   def allActivities(project: DynDoc): Seq[DynDoc] = allProcesses(project).
-      flatMap(phase => ProcessApi.allActivities(phase))
+      flatMap(phase => ProcessApi.allActivities(Right(phase)))
 
   def allActivities(pOid: ObjectId): Seq[DynDoc] = allActivities(projectById(pOid))
 

@@ -155,7 +155,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   def processDurationRecalculate(bpmnName: String, process: DynDoc, processOffset: Long, bpmnNameFull: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val t0 = System.currentTimeMillis()
-    val activities = ProcessApi.allActivities(process)
+    val activities = ProcessApi.allActivities(Right(process))
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
     val messages = mutable.ListBuffer[String]()

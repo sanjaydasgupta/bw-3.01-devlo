@@ -14,8 +14,8 @@ object MigrateProcessData {
   def activityTranslationMap(request: HttpServletRequest, fromProcessOid: ObjectId, toProcessOid: ObjectId):
       Map[ObjectId, ObjectId] = {
 
-    val fromActivities = ProcessApi.allActivities(fromProcessOid).sortBy(_.name[String])
-    val toActivities = ProcessApi.allActivities(toProcessOid).sortBy(_.name[String])
+    val fromActivities = ProcessApi.allActivities(Left(fromProcessOid)).sortBy(_.name[String])
+    val toActivities = ProcessApi.allActivities(Left(toProcessOid)).sortBy(_.name[String])
 
     val fromActivityNames = fromActivities.map(_.name[String])
     val toActivityNames = toActivities.map(_.name[String])

@@ -53,7 +53,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val myTeams = TeamApi.teamsByMemberOid(user._id[ObjectId])
     val myPhaseTeams = myTeams.filter(team => phaseTeamOids.contains(team._id[ObjectId]))
     val phaseActivityOids: Seq[ObjectId] = PhaseApi.allProcesses(phase).headOption match {
-      case Some(process) => ProcessApi.allActivities(process).map(_._id[ObjectId])
+      case Some(process) => ProcessApi.allActivities(Right(process)).map(_._id[ObjectId])
       case None => Seq.empty
     }
     val deliverables = BWMongoDB3.deliverables.find(Map("activity_id" -> Map($in -> phaseActivityOids),

@@ -13,8 +13,8 @@ object MigrateProcess {
   def activityTranslationMap(request: HttpServletRequest, fromProcessOid: ObjectId, toProcessOid: ObjectId):
       Map[ObjectId, ObjectId] = {
 
-    val fromActivities = ProcessApi.allActivities(fromProcessOid).sortBy(_.name[String])
-    val toActivities = ProcessApi.allActivities(toProcessOid).sortBy(_.name[String])
+    val fromActivities = ProcessApi.allActivities(Left(fromProcessOid)).sortBy(_.name[String])
+    val toActivities = ProcessApi.allActivities(Left(toProcessOid)).sortBy(_.name[String])
 
     val fromActivityNames = fromActivities.map(_.name[String])
     val toActivityNames = toActivities.map(_.name[String])
@@ -37,7 +37,7 @@ object MigrateProcess {
     BWLogger.log(getClass.getName, "copyAssignments", "Calling: activityTranslations()", request)
     val activityTranslations = activityTranslationMap(request, fromProcessOid, toProcessOid)
 
-    val toActivityCount = ProcessApi.allActivities(toProcessOid).length
+    val toActivityCount = ProcessApi.allActivities(Left(toProcessOid)).length
     val toAssignments: Seq[DynDoc] = BWMongoDB3.activity_assignments.find(Map("process_id" -> toProcessOid))
     if (toAssignments.exists(_.has("organization_id")) || toAssignments.length > toActivityCount) {
       val errorMessage = "Assigned activities or additional supporting roles exist"

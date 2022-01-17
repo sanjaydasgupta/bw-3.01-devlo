@@ -15,8 +15,8 @@ object PhaseBpmnMigration {
       val go: Boolean = args.length == 3 && args(2) == "GO"
       val fromPhaseOid = new ObjectId(args(0))
       val toPhaseOid = new ObjectId(args(1))
-      val fromActivities = PhaseApi.allActivities(fromPhaseOid)
-      val toActivities = PhaseApi.allActivities(toPhaseOid)
+      val fromActivities = PhaseApi.allActivities(Left(fromPhaseOid))
+      val toActivities = PhaseApi.allActivities(Left(toPhaseOid))
       val toActivitiesFullPathNames = toActivities.map(_.full_path_name[String])
       val toActivitiesMap = toActivitiesFullPathNames.zip(toActivities).toMap
       response.getWriter.println(s"Activity counts: ${fromActivities.length}, ${toActivities.length}")

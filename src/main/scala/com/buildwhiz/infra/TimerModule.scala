@@ -24,7 +24,7 @@ object TimerModule extends HttpUtils {
   private def issueTaskStatusUpdateReminders(ms: Long, project: DynDoc): Unit = {
     try {
       val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
-      val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+      val runningActivities = activeProcesses.flatMap(pr => ProcessApi.allActivities(Right(pr))).filter(_.status[String] == "running")
       for (activity <- runningActivities) {
         val assignments = ActivityApi.teamAssignment.list(activity._id[ObjectId])
         val mainAssignment = assignments.find(a => a.role[String] == activity.role[String] &&
@@ -58,7 +58,7 @@ object TimerModule extends HttpUtils {
   private def issueTaskDurationReminders(ms: Long, project: DynDoc): Unit = {
     try {
       val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
-      val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+      val runningActivities = activeProcesses.flatMap(pr => ProcessApi.allActivities(Right(pr))).filter(_.status[String] == "running")
       for (activity <- runningActivities) {
         val assignments = ActivityApi.teamAssignment.list(activity._id[ObjectId])
         val mainAssignment = assignments.find(a => a.role[String] == activity.role[String] &&
@@ -97,7 +97,7 @@ object TimerModule extends HttpUtils {
     try {
       //BWLogger.log(getClass.getName, "activityDelayedCheck", s"project: ${project.name[String]}")
       val activeProcesses = ProjectApi.allProcesses(project).filter(ProcessApi.isActive)
-      val runningActivities = activeProcesses.flatMap(ProcessApi.allActivities).filter(_.status[String] == "running")
+      val runningActivities = activeProcesses.flatMap(pr => ProcessApi.allActivities(Right(pr))).filter(_.status[String] == "running")
       for (activity <- runningActivities if !ActivityApi.isDelayed(activity)) {
         val scheduledEndDatetimeMs = ActivityApi.scheduledEnd(activity) match {
           case Some(ms) => ms

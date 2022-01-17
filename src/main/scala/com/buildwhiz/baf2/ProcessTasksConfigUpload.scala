@@ -49,7 +49,7 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
       //throw new IllegalArgumentException(s"""Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
       errorList.append(s"""ERROR: Found duplicated task names: ${duplicatedTaskNames.mkString(", ")}""")
     }
-    val activities = ProcessApi.allActivities(processOid)
+    val activities = ProcessApi.allActivities(Left(processOid))
     if (activities.length != taskConfigurations.length) {
       //throw new IllegalArgumentException(s"Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")
       errorList.append(s"ERROR: Bad task count - expected ${activities.length}, found ${taskConfigurations.length}")

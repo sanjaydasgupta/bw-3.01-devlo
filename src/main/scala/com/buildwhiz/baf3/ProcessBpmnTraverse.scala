@@ -155,7 +155,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
   def processDurationRecalculate(bpmnName: String, process: DynDoc, processOffset: Long, bpmnNameFull: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val t0 = System.currentTimeMillis()
-    val activities = ProcessApi.allActivities(Right(process))
+    val activities = ProcessApi.allActivities(Right(process), Map("takt_unit_no" -> 1))
     val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
         activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
     val messages = mutable.ListBuffer[String]()
@@ -219,7 +219,7 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
                   request)
               val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
               val firstTask = startEvent.getSucceedingNodes.list().asScala.head
-              val firstTaskDuration = getActivityDuration(firstTask.getId, process, calledElement, Seq.empty,
+              val firstTaskDuration = getActivityDuration(firstTask.getId, process, calledElement, durations,
                 activitiesByBpmnNameAndId, messages)
               val fullDuration = unitDuration + firstTaskDuration * math.max(0, repetitionCount - 1)
               val message = s"activity#: $activityCount, repetition#: $repetitionCount, " +

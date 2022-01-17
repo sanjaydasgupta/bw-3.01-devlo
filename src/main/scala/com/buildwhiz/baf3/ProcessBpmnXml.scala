@@ -169,7 +169,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
 
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
-        append("duration", ms2duration(duration2ms(end) - duration2ms(start))).
+        append("duration", durationLikely).
         append("start", startDate).append("end", endDate).append("status", aggregatedStatus).
         append("hover_info", hoverInfo).append("name", stamp.name[String]).append("elementType", "subprocessCall").
         append("date_start", startDate).append("date_finish", endDate).append("date_late_start", "NA").
@@ -339,7 +339,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processTimers = getTimers(process, bpmnFileName, bpmnNameFull)
       val milestones = getMilestones(process, bpmnFileName, bpmnNameFull)
       val endNodes = getEndNodes(process, bpmnFileName, bpmnNameFull)
-      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]])
+      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]], Map("takt_unit_no" -> 1))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
       val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull, request)
@@ -363,13 +363,18 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => displayedMenuItems(isAdmin, starting = true)
         case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
       }
+      val cycleTime = if (globalTakt) {
+        processActivities.head.getString("duration")
+      } else {
+        ""
+      }
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
           append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
-          append("repetition_count", repetitionCount).append("cycle_time", "7").append("menu_items", menuItems).
+          append("repetition_count", repetitionCount).append("cycle_time", cycleTime).append("menu_items", menuItems).
           append("bpmn_name_full", bpmnNameFull).
           append("activity_count", processActivities.length)
       response.getWriter.println(bson2json(returnValue))

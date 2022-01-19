@@ -6,6 +6,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BpmnUtils, HttpUtils}
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
+import org.bson.Document
 import org.bson.types.ObjectId
 import org.w3c.dom
 import org.w3c.dom.{Element, NamedNodeMap, Node, NodeList}
@@ -45,6 +46,77 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     domParser.getDocument
   }
 
+  private def validateEndNode(margin: String, bpmnName: String, idPath: String, endNode: DynDoc,
+      responseWriter: PrintWriter, go: Boolean): Unit = {
+    val name = endNode.name[String]
+    val bpmnId = endNode.bpmn_id[String]
+    val expectedBpmnNameFull = if (idPath.isEmpty) {
+      bpmnName
+    } else {
+      s"$idPath/$bpmnName"
+    }
+    endNode.get[String]("bpmn_name_full") match {
+      case Some(bpmnNameFull) =>
+        if (bpmnNameFull == expectedBpmnNameFull) {
+          responseWriter.println(s"""$margin<font color="green">OK-EndNode:$name($bpmnId) >> """ +
+            s"""$bpmnNameFull</font><br/>""")
+        } else {
+          responseWriter.println(s"""$margin<font color="red">Bad-value-EndNode:$name($bpmnId) >> """ +
+            s"""$expectedBpmnNameFull!=$bpmnNameFull</font><br/>""".stripMargin)
+        }
+      case None =>
+        responseWriter.println(s"""$margin<font color="red">No-Value-EndNode:$name($bpmnId) >> """ +
+          s"""$expectedBpmnNameFull</font><br/>""")
+    }
+  }
+
+  private def validateTimer(margin: String, bpmnName: String, idPath: String, timer: DynDoc,
+      responseWriter: PrintWriter, go: Boolean): Unit = {
+    val name = timer.name[String]
+    val bpmnId = timer.bpmn_id[String]
+    val expectedBpmnNameFull = if (idPath.isEmpty) {
+      bpmnName
+    } else {
+      s"$idPath/$bpmnName"
+    }
+    timer.get[String]("bpmn_name_full") match {
+      case Some(bpmnNameFull) =>
+        if (bpmnNameFull == expectedBpmnNameFull) {
+          responseWriter.println(s"""$margin<font color="green">OK-Timer:$name($bpmnId) >> """ +
+            s"""$bpmnNameFull</font><br/>""")
+        } else {
+          responseWriter.println(s"""$margin<font color="red">Bad-value-Timer:$name($bpmnId) >> """ +
+            s"""$expectedBpmnNameFull!=$bpmnNameFull</font><br/>""".stripMargin)
+        }
+      case None =>
+        responseWriter.println(s"""$margin<font color="red">No-Value-Timer:$name($bpmnId) >> """ +
+          s"""$expectedBpmnNameFull</font><br/>""")
+    }
+  }
+
+  private def validateVariable(margin: String, bpmnName: String, idPath: String, variable: DynDoc,
+      responseWriter: PrintWriter, go: Boolean): Unit = {
+    val name = variable.name[String]
+    val expectedBpmnNameFull = if (idPath.isEmpty) {
+      bpmnName
+    } else {
+      s"$idPath/$bpmnName"
+    }
+    variable.get[String]("bpmn_name_full") match {
+      case Some(bpmnNameFull) =>
+        if (bpmnNameFull == expectedBpmnNameFull) {
+          responseWriter.println(s"""$margin<font color="green">OK-Variable:$name >> """ +
+            s"""$bpmnNameFull</font><br/>""")
+        } else {
+          responseWriter.println(s"""$margin<font color="red">Bad-value-Variable:$name >> """ +
+            s"""$expectedBpmnNameFull!=$bpmnNameFull</font><br/>""".stripMargin)
+        }
+      case None =>
+        responseWriter.println(s"""$margin<font color="red">No-Value-Variable:$name >> """ +
+          s"""$expectedBpmnNameFull</font><br/>""")
+    }
+  }
+
   private def validateActivity(margin: String, bpmnName: String, idPath: String, activity: DynDoc,
       responseWriter: PrintWriter, go: Boolean): Unit = {
     val name = activity.name[String]
@@ -57,20 +129,22 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     activity.get[String]("bpmn_name_full") match {
       case Some(bpmnNameFull) =>
         if (bpmnNameFull == expectedBpmnNameFull) {
-          responseWriter.println(s"""${margin}<font color="green">OK:$name($bpmnId) >> """ +
+          responseWriter.println(s"""$margin<font color="green">OK-Activity:$name($bpmnId) >> """ +
             s"""$bpmnNameFull (${activity._id[ObjectId]})</font><br/>""")
         } else {
-          responseWriter.println(s"""$margin<font color="red">Bad-value:$name($bpmnId) >> """ +
+          responseWriter.println(s"""$margin<font color="red">Bad-value-Activity:$name($bpmnId) >> """ +
                s"""$expectedBpmnNameFull!=$bpmnNameFull (${activity._id[ObjectId]})</font><br/>""".stripMargin)
         }
       case None =>
-        responseWriter.println(s"""$margin<font color="red">No-Value:$name($bpmnId) >> """ +
+        responseWriter.println(s"""$margin<font color="red">No-Value-Activity:$name($bpmnId) >> """ +
           s"""$expectedBpmnNameFull (${activity._id[ObjectId]})</font><br/>""")
     }
   }
 
   private def traverseBpmn(level: Int, bpmnName: String, idPath: String,
-      activitiesByBpmnNameAndId: Map[(String, String), DynDoc], responseWriter: PrintWriter, go: Boolean): Unit = {
+      activitiesByBpmnNameAndId: Map[(String, String), DynDoc], timersByBpmnNameAndId: Map[(String, String), DynDoc],
+      endNodesByBpmnNameAndId: Map[(String, String), DynDoc], variableNodesByBpmnNameAndName: Map[(String, String), DynDoc],
+      responseWriter: PrintWriter, go: Boolean): Unit = {
     val margin = "&nbsp;&nbsp;&nbsp;|" * level
     val fullBpmnName = if (idPath.isEmpty) {
       bpmnName
@@ -98,6 +172,55 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       responseWriter.println(s"""$margin<font color="red">NO-ACTIVITIES in $fullBpmnName</font><br/>""")
     }
 
+    val timerNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:intermediateCatchEvent").
+      filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
+    if (timerNodes.nonEmpty) {
+      for (timerNode <- timerNodes) {
+        val name = cleanText(nameAttribute(timerNode))
+        val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
+        timersByBpmnNameAndId.get((bpmnName, bpmnId)) match {
+          case Some(timer: DynDoc) =>
+            validateTimer(margin, bpmnName, idPath, timer, responseWriter, go)
+          case None =>
+            responseWriter.println(s"""$margin<font color="red">MISSING timer:$name[$bpmnId]</font><br/>""")
+        }
+      }
+    } else {
+      responseWriter.println(s"""$margin<font color="brown">NO-Timers in $fullBpmnName</font><br/>""")
+    }
+
+    val endNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:endEvent").map(_.asInstanceOf[Element])
+    if (endNodes.nonEmpty) {
+      for (endNode <- endNodes) {
+        val name = cleanText(nameAttribute(endNode))
+        val bpmnId = endNode.getAttributes.getNamedItem("id").getTextContent
+        endNodesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
+          case Some(endNode: DynDoc) =>
+            validateEndNode(margin, bpmnName, idPath, endNode, responseWriter, go)
+          case None =>
+            responseWriter.println(s"""$margin<font color="red">MISSING EndNode:$name[$bpmnId]</font><br/>""")
+        }
+      }
+    } else {
+      responseWriter.println(s"""$margin<font color="brown">NO-EndNodes in $fullBpmnName</font><br/>""")
+    }
+
+    val variableNodes: Seq[Element] = theDom.getElementsByTagName("camunda:property").
+        filter(nameAttribute(_) == "bw-variable").map(_.asInstanceOf[Element])
+    if (variableNodes.nonEmpty) {
+      for (variableNode <- variableNodes) {
+        val name = cleanText(getAttribute(variableNode, "value").split(":").head)
+        variableNodesByBpmnNameAndName.get((bpmnName, name)) match {
+          case Some(varNode: DynDoc) =>
+            validateVariable(margin, bpmnName, idPath, varNode, responseWriter, go)
+          case None =>
+            responseWriter.println(s"""$margin<font color="red">MISSING variable:$name</font><br/>""")
+        }
+      }
+    } else {
+      responseWriter.println(s"""$margin<font color="brown">NO-Variables in $fullBpmnName</font><br/>""")
+    }
+
     val callActivityNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:callActivity").
       filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler").
       map(_.asInstanceOf[Element])
@@ -109,7 +232,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       } else {
         s"$idPath/$callerElementId"
       }
-      traverseBpmn(level + 1, calledBpmnName, newIdPath, activitiesByBpmnNameAndId, responseWriter, go)
+      traverseBpmn(level + 1, calledBpmnName, newIdPath, activitiesByBpmnNameAndId, timersByBpmnNameAndId,
+        endNodesByBpmnNameAndId, variableNodesByBpmnNameAndName, responseWriter, go)
     }
 
     val breaks = if (level == 1) "<br/><br/>" else "<br/>"
@@ -133,8 +257,18 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
         val activityOids = process.activity_ids[Many[ObjectId]]
         val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
         val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
-          activities.map(a => ((a.bpmn_name[String], a.bpmn_id[String]), a)).toMap
-        traverseBpmn(1, bpmnName, "", activitiesByBpmnNameAndId, responseWriter, go)
+          activities.map(activity => ((activity.bpmn_name[String], activity.bpmn_id[String]), activity)).toMap
+        val timers: Seq[DynDoc] = process.timers[Many[Document]]
+        val timersByBpmnNameAndId: Map[(String, String), DynDoc] =
+          timers.map(timer => ((timer.bpmn_name[String], timer.bpmn_id[String]), timer)).toMap
+        val endNodes: Seq[DynDoc] = process.end_nodes[Many[Document]]
+        val endNodesByBpmnNameAndId: Map[(String, String), DynDoc] =
+          endNodes.map(endNode => ((endNode.bpmn_name[String], endNode.bpmn_id[String]), endNode)).toMap
+        val variableNodes: Seq[DynDoc] = process.variables[Many[Document]]
+        val variableNodesByBpmnNameAndName: Map[(String, String), DynDoc] = variableNodes.
+          map(variableNode => ((variableNode.bpmn_name[String], variableNode.name[String]), variableNode)).toMap
+        traverseBpmn(1, bpmnName, "", activitiesByBpmnNameAndId, timersByBpmnNameAndId, endNodesByBpmnNameAndId,
+          variableNodesByBpmnNameAndName, responseWriter, go)
       }
     }
     responseWriter.println(s"EXIT ${getClass.getName}:main()<br/>")

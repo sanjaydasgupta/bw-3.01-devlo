@@ -323,7 +323,11 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     if (callActivityNodes.nonEmpty) {
       val callBlockNodes: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]]
       val callNodesByBpmnNameAndId: Map[(String, String), DynDoc] = callBlockNodes.
+        filter(cn => cn.has("parent_name") && cn.has("parent_activity_id")).
         map(callNode => ((callNode.parent_name[String], callNode.parent_activity_id[String]), callNode)).toMap
+      if (callBlockNodes.length > callNodesByBpmnNameAndId.size) {
+        responseWriter.println(s"""$margin<font color="red">MISSING-CallBlock:Some CallBlocks not processed</font><br/>""")
+      }
       for (callElementNode <- callActivityNodes) {
         val name = cleanText(nameAttribute(callElementNode))
         val bpmnId = callElementNode.getAttributes.getNamedItem("id").getTextContent

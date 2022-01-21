@@ -158,7 +158,7 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
 
   private def validateCallBlock(margin: String, bpmnName: String, idPath: String, callBlockNode: DynDoc, process: DynDoc,
       responseWriter: PrintWriter, go: Boolean): Unit = {
-    val name = callBlockNode.parent_activity_name[String]
+    val name = callBlockNode.getOrElse[String]("parent_activity_name", "???")
     val bpmnId = callBlockNode.parent_activity_id[String]
     val expectedBpmnNameFull2 = if (idPath.isEmpty) {
       bpmnName

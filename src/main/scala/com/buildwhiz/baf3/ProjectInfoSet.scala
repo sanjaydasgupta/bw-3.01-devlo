@@ -1,10 +1,10 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.{PersonApi, ProjectApi}
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.slack.SlackApi
-import com.buildwhiz.utils.{BWLogger, HttpUtils, DateTimeUtils}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -91,11 +91,16 @@ object ProjectInfoSet extends DateTimeUtils {
       val phaseInfoArray: Seq[DynDoc] = phaseInfo.head._2.asInstanceOf[Many[Document]]
       for (phaseInfo <- phaseInfoArray) {
         val phaseOid = new ObjectId(phaseInfo._id[String])
+        val thePhase = PhaseApi.phaseById(phaseOid)
+        val phaseTimeZone = PhaseApi.timeZone(thePhase, Some(request))
         val mongoDbSetters: Document = (phaseInfo.get[String]("start_date"), phaseInfo.get[String]("end_date")) match {
-          case (Some(startDate), None) => Map("timestamps.date_start_estimated" -> milliseconds(startDate))
-          case (None, Some(endDate)) => Map("timestamps.date_end_estimated" -> milliseconds(endDate))
-          case (Some(startDate), Some(endDate)) => Map("timestamps.date_start_estimated" -> milliseconds(startDate),
-            "timestamps.date_end_estimated" -> milliseconds(endDate))
+          case (Some(startDate), None) =>
+              Map("timestamps.date_start_estimated" -> milliseconds(startDate, Some(phaseTimeZone)))
+          case (None, Some(endDate)) =>
+              Map("timestamps.date_end_estimated" -> milliseconds(endDate, Some(phaseTimeZone)))
+          case (Some(startDate), Some(endDate)) =>
+              Map("timestamps.date_start_estimated" -> milliseconds(startDate, Some(phaseTimeZone)),
+            "timestamps.date_end_estimated" -> milliseconds(endDate, Some(phaseTimeZone)))
           case (None, None) =>
             throw new IllegalArgumentException(s"No dates for phase: $phaseOid")
         }

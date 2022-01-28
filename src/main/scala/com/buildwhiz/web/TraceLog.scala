@@ -41,18 +41,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         case null => request.getRemoteAddr
         case ip => ip
       }
-      val logType = parameters.getOrElse("type", "full")
+      val logType = parameters.getOrElse("type", "any")
       val user: DynDoc = getUser(request)
-      val isAnalytics = (user.first_name[String] == "Analytics") && (user.last_name[String] == "Analytics")
       val (typeQuery, logTypeName) = logType.toLowerCase match {
         case "error" => (Map("event_name" -> Map($regex -> "^ERROR.+")), "Error")
         case "audit" => (Map("event_name" -> Map($regex -> "^AUDIT.+")), "Audit")
         case "check" => (Map("event_name" -> Map($regex -> "^(AUDIT|ERROR).+")), "Check")
-        case _ =>
-          if (isAnalytics)
-            (Map("event_name" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+")), "Full")
-          else
-            (Map.empty[String, AnyRef], "Full")
+        case "full" => (Map.empty[String, AnyRef], "Full")
+        case "any" | _ => (Map("event_name" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+")), "Any")
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
@@ -145,7 +141,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
                         |&nbsp;&nbsp;&nbsp;&nbsp;days: $dayCountLinks,
                         |&nbsp;&nbsp;&nbsp;&nbsp;rows: $rowCountLinks</h3>""".stripMargin)
 
-      val typeLinks = Seq("all", "audit", "error", "check").
+      val typeLinks = Seq("any", "audit", "error", "check", "full").
           map(t => if (logType == t) s"($t)" else t).
           map(t => s"""<a href="$urlName?count=$duration$durationUnit&type=$t&until=$untilStr">$t</a>""").
           mkString("&nbsp;&nbsp;")

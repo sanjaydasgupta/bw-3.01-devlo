@@ -45,10 +45,11 @@
               <tr>
                 <td>
                   Logs <a href="web/TraceLog?type=export" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">[Export]</a>
-                  <a href="web/TraceLog" target="_blank">All</a>
+                  <a href="web/TraceLog" target="_blank">Any</a>
                   <a href="web/TraceLog?type=audit" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">Audit</a>
                   <a href="web/TraceLog?type=error" target="_blank">Error</a>
                   <a href="web/TraceLog?type=check" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">Check</a>
+                  <a href="web/TraceLog?type=full" target="_blank" data-ng-if="mainCtrl.isAdmin() && !mainCtrl.isHidden()">Full</a>
                 </td>
               </tr>
             </table>

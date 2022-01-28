@@ -90,7 +90,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"Exit removeTaktUnits()", request)
   }
 
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val parameters = getParameterMap(request)
@@ -117,6 +117,8 @@ class TaktCountSet extends HttpServlet with HttpUtils {
           BWLogger.log(getClass.getName, request.getMethod, "Both counts equal, exiting", request)
         }
       })
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
@@ -126,8 +128,5 @@ class TaktCountSet extends HttpServlet with HttpUtils {
     }
   }
 
-  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    doGet(request, response)
-  }
 }
 

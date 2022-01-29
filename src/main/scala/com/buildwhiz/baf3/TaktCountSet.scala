@@ -8,14 +8,14 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import java.io.PrintWriter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 class TaktCountSet extends HttpServlet with HttpUtils {
 
-  private def taktCount(activities: Seq[DynDoc], writer: PrintWriter): Int = {
+  private def taktCount(activities: Seq[DynDoc], request: HttpServletRequest): Int = {
+    BWLogger.log(getClass.getName, request.getMethod, "Entry taktCount()", request)
     val isTakt: Boolean = activities.forall(_.is_takt[Boolean])
     if (!isTakt)
       throw new IllegalArgumentException("Not a takt block")
@@ -28,19 +28,20 @@ class TaktCountSet extends HttpServlet with HttpUtils {
     val allActivityCountsEqual = activityCounts.forall(_ == activityCounts.head)
     if (!allActivityCountsEqual)
       throw new IllegalArgumentException(s"Bad activity counts: $activityCounts")
-    writer.println(s"Current takt counts: ${currentTaktCounts.mkString(", ")}")
+    BWLogger.log(getClass.getName, request.getMethod, s"Exit taktCount(): ${currentTaktCounts.mkString(", ")}", request)
     currentTaktCounts.length
   }
 
   private def addTaktUnits(phaseOid: ObjectId, activities: Seq[DynDoc], currentCount: Int, newCount: Int,
-      writer: PrintWriter): Unit = {
+      request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getName, request.getMethod, s"Entry addTaktUnits($currentCount -> $newCount)", request)
     val fieldsToKeep = Set("duration", "bpmn_scheduled_end_date", "name", "full_path_name", "role", "description",
       "is_takt", "on_critical_path", "bpmn_actual_start_date", "durations", "bpmn_actual_end_date",
       "bpmn_name_full", "status", "bpmn_scheduled_start_date", "bpmn_id", "end", "start", "full_path_id",
       "bpmn_name", "offset")
     val templateDocs = activities.filter(_.takt_unit_no[Int] == 1).map(_.asDoc)
     templateDocs.foreach(templateDoc => {
-      val fields = templateDoc.keySet().asScala
+      val fields = templateDoc.keySet().asScala.toList
       for (field <- fields) {
         if (!fieldsToKeep.contains(field))
           templateDoc.remove(field)
@@ -49,7 +50,6 @@ class TaktCountSet extends HttpServlet with HttpUtils {
 
     val newActivityDocs = mutable.Buffer[Document]()
     val newTaktUnitNos = Seq.range(currentCount + 1, newCount + 1)
-    writer.println(s"""New takt_unit_no values: ${newTaktUnitNos.mkString(", ")}""")
     for (taktUnitNo <- newTaktUnitNos) {
       for (doc <- templateDocs) {
         val newActivityDoc = new Document(doc)
@@ -68,10 +68,13 @@ class TaktCountSet extends HttpServlet with HttpUtils {
       Map($addToSet -> Map("activity_ids" -> Map($each -> newOids))))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException("Failed to update activity_ids")
+    BWLogger.log(getClass.getName, request.getMethod,
+        s"""Exit addTaktUnits(): New 'takt_unit_no' values: ${newTaktUnitNos.mkString(", ")}""", request)
   }
 
   private def removeTaktUnits(phaseOid: ObjectId, activities: Seq[DynDoc], currentCount: Int, newCount: Int,
-      writer: PrintWriter): Unit = {
+      request: HttpServletRequest): Unit = {
+    BWLogger.log(getClass.getName, request.getMethod, s"Entry removeTaktUnits($currentCount -> $newCount)", request)
     val oidsToDelete: Many[ObjectId] = activities.filter(_.takt_unit_no[Int] > newCount).map(_._id[ObjectId])
     val processOid: ObjectId = PhaseApi.allProcesses(phaseOid).headOption match {
       case Some(procOid) => procOid._id
@@ -84,12 +87,11 @@ class TaktCountSet extends HttpServlet with HttpUtils {
     val deleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map($in -> oidsToDelete)))
     if (deleteResult.getDeletedCount != oidsToDelete.length)
       throw new IllegalArgumentException(s"Deleted only ${deleteResult.getDeletedCount} activities")
+    BWLogger.log(getClass.getName, request.getMethod, s"Exit removeTaktUnits()", request)
   }
 
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
-    val writer = response.getWriter
-    writer.println("Entry")
     try {
       val parameters = getParameterMap(request)
       val phaseOid = new ObjectId(parameters("phase_id"))
@@ -97,23 +99,27 @@ class TaktCountSet extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"Bad phase_id: $phaseOid")
       val bpmnNameFull = parameters("bpmn_name_full")
       val bpmnFullPrefix = bpmnNameFull.split("/").init.mkString("/")
+      BWLogger.log(getClass.getName, request.getMethod, s"bpmn_name_full prefix: $bpmnFullPrefix", request)
       val activities: Seq[DynDoc] = PhaseApi.allActivities30(Left(phaseOid)).
           filter(a => a.bpmn_name_full[String].startsWith(bpmnFullPrefix))
       if (activities.isEmpty)
         throw new IllegalArgumentException("Bad 'bpmn_name_full' - no activities found")
-      val currentTaktCount = taktCount(activities, writer)
+      val currentTaktCount = taktCount(activities, request)
       val newTaktCount = parameters("count").toInt
-      if (newTaktCount > currentTaktCount) {
-        addTaktUnits(phaseOid, activities, currentTaktCount, newTaktCount, writer)
-      } else if (newTaktCount < currentTaktCount) {
-        removeTaktUnits(phaseOid, activities, currentTaktCount, newTaktCount, writer)
-      }
-
-      //response.getWriter.print(activities.map(_.asDoc.toJson).mkString("[", ", ", "]"))
-      //response.setContentType("application/json")
-      //response.setStatus(HttpServletResponse.SC_OK)
-      writer.println("Exit")
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${activities.length})", request)
+      if (newTaktCount < 1)
+        throw new IllegalArgumentException(s"Bad count value: $newTaktCount")
+      BWMongoDB3.withTransaction({
+        if (newTaktCount > currentTaktCount) {
+          addTaktUnits(phaseOid, activities, currentTaktCount, newTaktCount, request)
+        } else if (newTaktCount < currentTaktCount) {
+          removeTaktUnits(phaseOid, activities, currentTaktCount, newTaktCount, request)
+        } else {
+          BWLogger.log(getClass.getName, request.getMethod, "Both counts equal, exiting", request)
+        }
+      })
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

@@ -178,8 +178,6 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
         }
       }
 
-//
-      //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY getTimeOffset(bpmnName=$bpmnName, startOffset=$startOffset)", request)
       val timeOffset = node match {
         case serviceTask: ServiceTask =>
           maxPredecessorOffset(serviceTask)
@@ -209,34 +207,12 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
           } else {
             val callOffset = maxPredecessorOffset(callActivity)
             val bpmnNameFull2 = (bpmnNameFull.split("/").init ++ Seq(callActivityId, calledElement)).mkString("/")
-            val isTakt = callActivity.getLoopCharacteristics != null
-            if (isTakt) {
-              val bpmnModel2 = bpmnModelInstance(calledElement)
-              val phaseOid: ObjectId = ProcessApi.parentPhase(process._id)._id
-              val activityCount = bpmnModel2.getModelElementsByType(classOf[Task]).asScala.size
-              val repetitionCount: Int = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull2, activityCount)
-              val unitDuration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
-                  request)
-              val startEvent: StartEvent = bpmnModel2.getModelElementsByType(classOf[StartEvent]).asScala.head
-              val firstTask = startEvent.getSucceedingNodes.list().asScala.head
-              val firstTaskDuration = getActivityDuration(firstTask.getId, process, calledElement, durations,
-                activitiesByBpmnNameAndId, messages)
-              val fullDuration = unitDuration + firstTaskDuration * math.max(0, repetitionCount - 1)
-              val message = s"activity#: $activityCount, repetition#: $repetitionCount, " +
-                  s"unitDuration: $unitDuration, fullDuration: $fullDuration"
-              BWLogger.log(getClass.getName, request.getMethod, message, request)
-              if (durations.nonEmpty) {
-                setCallActivitySchedule(process, calledElement, callOffset, fullDuration, request)
-              }
-              callOffset + fullDuration
-            } else {
-              val duration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
-                  request)
-              if (durations.nonEmpty) {
-                setCallActivitySchedule(process, calledElement, callOffset, duration, request)
-              }
-              callOffset + duration
+            val duration = processDurationRecalculate(calledElement, process, callOffset, bpmnNameFull2, durations,
+                request)
+            if (durations.nonEmpty) {
+              setCallActivitySchedule(process, calledElement, callOffset, duration, request)
             }
+            callOffset + duration
           }
         case ite: IntermediateThrowEvent => // Milestone
           val milestoneOffset = maxPredecessorOffset(ite)
@@ -255,14 +231,32 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
 
     val bpmnModel = bpmnModelInstance(bpmnName)
     val endEvents: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
-    val maxEndOffset = endEvents.map(ee => getTimeOffset(ee)).max
+    val maxEndOffset = endEvents.map(getTimeOffset).max
     if (messages.nonEmpty) {
       BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
     }
-    val delay = System.currentTimeMillis() - t0
-    val message = s"processDurationRecalculate(bpmnNameFull: $bpmnNameFull) time: $delay ms"
-    BWLogger.log(getClass.getName, request.getMethod, message, request)
-    maxEndOffset - processOffset
+    val unitDuration = maxEndOffset - processOffset
+    val isTakt = process.bpmn_timestamp[Many[Document]].
+      exists(ts => ts.bpmn_name[String] == bpmnName && ts.is_takt[Boolean])
+    if (isTakt) {
+      val activityCount = bpmnModel.getModelElementsByType(classOf[Task]).asScala.size
+      val phaseOid = ProcessApi.parentPhase(process._id)._id[ObjectId]
+      val repetitionCount: Int = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, activityCount)
+      val startEvent: StartEvent = bpmnModel.getModelElementsByType(classOf[StartEvent]).asScala.head
+      val firstTask = startEvent.getSucceedingNodes.list().asScala.head
+      val firstTaskDuration = getActivityDuration(firstTask.getId, process, bpmnName, durations,
+      activitiesByBpmnNameAndId, messages)
+      val fullDuration = unitDuration + firstTaskDuration * math.max(0, repetitionCount - 1)
+      val delay = System.currentTimeMillis() - t0
+      val message = s"processDurationRecalculate(bpmnNameFull: $bpmnNameFull) time: $delay ms"
+      BWLogger.log(getClass.getName, request.getMethod, message, request)
+      fullDuration
+    } else {
+      val delay = System.currentTimeMillis() - t0
+      val message = s"processDurationRecalculate(bpmnNameFull: $bpmnNameFull) time: $delay ms"
+      BWLogger.log(getClass.getName, request.getMethod, message, request)
+      unitDuration
+    }
   }
 
 }

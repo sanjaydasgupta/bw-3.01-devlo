@@ -4,7 +4,7 @@ import com.buildwhiz.baf2.{ActivityApi, PhaseApi, ProcessApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{BpmnUtils, BWLogger, DateTimeUtils, HttpUtils}
+import com.buildwhiz.utils.{BpmnUtils, BWLogger}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance._
@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
-object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
+object ProcessBpmnTraverse extends BpmnUtils {
 
   private def setMilestoneOffset(ted: IntermediateThrowEvent, process: DynDoc, bpmnName: String, offset: Long,
       request: HttpServletRequest): Unit = {

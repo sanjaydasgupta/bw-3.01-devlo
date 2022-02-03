@@ -236,8 +236,8 @@ object ProcessBpmnTraverse extends HttpUtils with DateTimeUtils with BpmnUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: ${messages.length} tasks not found""", request)
     }
     val unitDuration = maxEndOffset - processOffset
-    val isTakt = process.bpmn_timestamp[Many[Document]].
-      exists(ts => ts.bpmn_name[String] == bpmnName && ts.is_takt[Boolean])
+    val isTakt = process.bpmn_timestamps[Many[Document]].
+      exists(ts => ts.name[String] == bpmnName && ts.is_takt[Boolean])
     if (isTakt) {
       val activityCount = bpmnModel.getModelElementsByType(classOf[Task]).asScala.size
       val phaseOid = ProcessApi.parentPhase(process._id)._id[ObjectId]

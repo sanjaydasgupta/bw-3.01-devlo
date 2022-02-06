@@ -163,7 +163,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
     val t0 = System.currentTimeMillis()
     val isTakt = process.bpmn_timestamps[Many[Document]].
-      exists(ts => ts.name[String] == bpmnName && ts.is_takt[Boolean])
+      exists(ts => ts.name[String] == bpmnName && ts.get[Boolean]("is_takt").contains(true))
     val bpmnModel = bpmnModelInstance(bpmnName)
     val allActivities = ProcessApi.allActivities(Right(process), Map("bpmn_name_full" -> bpmnNameFull))
     val activitiesByBpmnNameIdAndTakt: Map[(String, String, Int), DynDoc] =

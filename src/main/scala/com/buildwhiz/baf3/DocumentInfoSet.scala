@@ -6,7 +6,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {

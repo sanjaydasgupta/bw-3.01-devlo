@@ -7,14 +7,14 @@ import org.camunda.bpm.engine.delegate.DelegateExecution
 import org.camunda.bpm.engine.repository.{ProcessDefinition, Resource}
 import org.camunda.bpm.model.bpmn.BpmnModelInstance
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 trait BpmnUtils {
 
   def getProcessDefinition(de: DelegateExecution): ProcessDefinition = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().list().asScala
+      repositoryService.createProcessDefinitionQuery().list().asScala.toSeq
     allProcessDefinitions.find(_.getId == de.getProcessDefinitionId).head
   }
 
@@ -23,7 +23,7 @@ trait BpmnUtils {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     //BWLogger.log(getClass.getName, "getProcessDefinition", "Got RepositoryService")
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().list().asScala.filter(_.getKey == bpmnName)
+      repositoryService.createProcessDefinitionQuery().list().asScala.filter(_.getKey == bpmnName).toSeq
     val expectedVersion = if (allProcessDefinitions.nonEmpty) {
       if (version == -1)
         allProcessDefinitions.map(_.getVersion).max

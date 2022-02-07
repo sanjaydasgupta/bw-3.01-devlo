@@ -8,12 +8,12 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 import org.bson.Document
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PersonInfoSet extends HttpServlet with HttpUtils {
 
   private def processIndividualRoles(individualRoles: String): Seq[String] = {
-    val theRoles = individualRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
+    val theRoles = individualRoles.split(",").map(_.trim).filter(_.trim.nonEmpty).toSeq
     theRoles.foreach(role =>
       if (!PersonApi.possibleIndividualRoles.contains(role))
         throw new IllegalArgumentException(s"Bad individual-role: '$role'")

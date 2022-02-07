@@ -14,7 +14,7 @@ import org.w3c.dom
 import org.w3c.dom.{Element, NamedNodeMap, Node, NodeList}
 import org.xml.sax.InputSource
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 import java.util.Calendar

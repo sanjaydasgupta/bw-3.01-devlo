@@ -9,7 +9,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProjectApi}
 
 import math.random

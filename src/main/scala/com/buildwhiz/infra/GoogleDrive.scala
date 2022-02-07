@@ -26,7 +26,7 @@ import java.util.Collections
 import com.google.api.client.http.FileContent
 import com.google.api.services.drive.model.File.ShortcutDetails
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
 
 object GoogleDrive {

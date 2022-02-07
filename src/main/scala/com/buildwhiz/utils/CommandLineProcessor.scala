@@ -259,7 +259,8 @@ object CommandLineProcessor extends DateTimeUtils {
     def cliProcessor(command: String, user: DynDoc, event: DynDoc, request: Option[HttpServletRequest]): ParserResult = {
       parseAll(allCommands, command) match {
         case Success(result, _) => result(user, event, request)
-        case NoSuccess(result, _) => Some(result)
+        case Failure(result, _) => Some(result)
+        case Error(result, _) => Some(result)
       }
     }
 
@@ -267,7 +268,8 @@ object CommandLineProcessor extends DateTimeUtils {
       val sanjay: DynDoc = BWMongoDB3.persons.find(Map("last_name" -> "Dasgupta")).head
       parseAll(allCommands, command) match {
         case Success(result, _) => result(sanjay, null, None)
-        case NoSuccess(result, _) => Some(result)
+        case Failure(result, _) => Some(result)
+        case Error(result, _) => Some(result)
       }
     }
 

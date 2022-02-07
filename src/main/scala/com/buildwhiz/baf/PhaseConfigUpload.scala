@@ -11,7 +11,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {

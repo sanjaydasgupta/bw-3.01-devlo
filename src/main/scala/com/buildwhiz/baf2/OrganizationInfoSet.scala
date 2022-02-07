@@ -6,7 +6,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class OrganizationInfoSet extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {

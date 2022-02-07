@@ -3,7 +3,7 @@ package com.buildwhiz.infra
 import org.bson.Document
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.dynamics
 import scala.language.implicitConversions
 
@@ -39,7 +39,7 @@ object DynDoc {
 
   implicit def documentSeq2DynDocSeq(ds: Seq[Document]): Seq[DynDoc] = ds.map(document2DynDoc)
 
-  implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala
+  implicit def many2seq[T](many: Many[T]): Seq[T] = many.asScala.toSeq
 
   implicit def seq2many[T](seq: Seq[T]): Many[T] = seq.asJava
 
@@ -47,7 +47,7 @@ object DynDoc {
 
     import org.bson.Document
 
-    val sd: Seq[Document] = ds.asScala
+    val sd: Seq[Document] = ds.asScala.toSeq
     sd.map(new DynDoc(_))
   }
 

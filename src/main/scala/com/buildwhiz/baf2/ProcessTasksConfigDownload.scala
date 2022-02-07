@@ -9,7 +9,7 @@ import org.apache.poi.xssf.usermodel.{XSSFCellStyle, XSSFSheet, XSSFWorkbook}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
 
@@ -29,7 +29,7 @@ class ProcessTasksConfigDownload extends HttpServlet with HttpUtils {
   private def addHeaderRow(taskSheet: XSSFSheet, headerInfo: Seq[(String, Int)]): Unit = {
     val headerRow = taskSheet.createRow(0)
     val rowHeight = if (headerInfo.exists(_._1.contains("\n"))) 36 else 18
-    headerRow.setHeightInPoints(rowHeight)
+    headerRow.setHeightInPoints(rowHeight.toFloat)
     for (hdrInfo <- headerInfo.zipWithIndex) {
       val cell = headerRow.createCell(hdrInfo._2)
       cell.setCellValue(hdrInfo._1._1)

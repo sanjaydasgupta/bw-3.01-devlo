@@ -4,7 +4,7 @@ import org.bson.Document
 import com.buildwhiz.infra.DynDoc._
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 package object baf3 {
 
@@ -77,7 +77,7 @@ package object baf3 {
     }
 
     private val oc33entries: Seq[OC33] = omniClass33text.split("\n").map(_.split(",").map(_.trim.replace("\"", ""))).
-        map(array => OC33(array(0), array(1)))
+        map(array => OC33(array(0), array(1))).toSeq
 
     def omniClass33groups(): Seq[String] = oc33entries.filter(_.isGroup).map(_.toStringWithoutCode)
     def omniClass33skills(): Seq[String] = oc33entries.filterNot(_.isGroup).map(_.toString)

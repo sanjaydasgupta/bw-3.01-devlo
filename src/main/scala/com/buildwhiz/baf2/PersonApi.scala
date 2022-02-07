@@ -9,8 +9,8 @@ import org.bson.Document
 import com.buildwhiz.infra.GoogleDrive
 import com.buildwhiz.utils.BWLogger
 
-import scala.collection.JavaConverters._
-import scala.compat.Platform.EOL
+import scala.jdk.CollectionConverters._
+import java.lang.System.lineSeparator
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -344,7 +344,7 @@ object PersonApi {
       }
     } catch {
       case throwable: Throwable =>
-        val stackTrace = throwable.getStackTrace.mkString("", EOL, EOL)
+        val stackTrace = throwable.getStackTrace.mkString("", lineSeparator(), lineSeparator())
         BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
             s"ERROR-Asynchronous ($stackTrace)")
     }

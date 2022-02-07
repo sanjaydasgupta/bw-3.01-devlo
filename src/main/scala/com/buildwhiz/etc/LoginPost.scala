@@ -9,7 +9,7 @@ import com.buildwhiz.utils.{BWLogger, CryptoUtils, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 

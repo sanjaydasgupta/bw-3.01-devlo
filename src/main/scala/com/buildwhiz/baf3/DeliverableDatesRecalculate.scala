@@ -11,7 +11,7 @@ import org.bson.Document
 
 import java.io.{ByteArrayOutputStream, PrintWriter}
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {

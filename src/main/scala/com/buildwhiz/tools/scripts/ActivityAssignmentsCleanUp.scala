@@ -6,7 +6,7 @@ import com.buildwhiz.infra.DynDoc._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object ActivityAssignmentsCleanUp {
 

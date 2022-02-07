@@ -60,7 +60,7 @@ class BrowseTomcatLog extends HttpServlet {
     var message: Option[String] = None
     val messageData = mutable.ListBuffer.empty[(Long, String)]
     var infoLine = ""
-    for (line <- logSource.getLines) {
+    for (line <- logSource.getLines()) {
       if (line.matches("[A-Z]+\\:.+")) {
         if (line.startsWith("SEVERE: ")) {
           lastErrorTime = Some(currentTime)

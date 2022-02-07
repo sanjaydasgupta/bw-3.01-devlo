@@ -29,7 +29,7 @@ class PhaseTeamsContactInfo extends HttpServlet with HttpUtils {
   private def addHeaderRow(teamsSheet: XSSFSheet, headerInfo: Seq[(String, Int)]): Unit = {
     val headerRow = teamsSheet.createRow(0)
     val rowHeight = if (headerInfo.exists(_._1.contains("\n"))) 36 else 18
-    headerRow.setHeightInPoints(rowHeight)
+    headerRow.setHeightInPoints(rowHeight.toFloat)
     for (hdrInfo <- headerInfo.zipWithIndex) {
       val cell = headerRow.createCell(hdrInfo._2)
       cell.setCellValue(hdrInfo._1._1)

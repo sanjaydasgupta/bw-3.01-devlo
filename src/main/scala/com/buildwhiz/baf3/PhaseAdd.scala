@@ -14,7 +14,7 @@ import java.util.TimeZone
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.language.implicitConversions
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -476,7 +476,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
       val phaseManagerOids: Seq[ObjectId] = parameters.get("manager_ids") match {
         case None => Seq(user._id[ObjectId])
-        case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_))
+        case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_)).toSeq
       }
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = s"$phaseName:$bpmnName"

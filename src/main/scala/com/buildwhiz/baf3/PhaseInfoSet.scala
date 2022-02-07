@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{PersonApi, PhaseApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -20,7 +20,7 @@ class PhaseInfoSet extends HttpServlet with HttpUtils with DateTimeUtils {
       def nop(input: String): Any = input
       def managers2roles(mids: String): Many[Document] = {
         val phaseManagerOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
-            distinct.map(new ObjectId(_))
+            distinct.map(new ObjectId(_)).toSeq
 
         val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)
         if (badManagerIds.nonEmpty)

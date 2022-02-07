@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class TaktCountSet extends HttpServlet with HttpUtils {
 
@@ -58,8 +58,8 @@ class TaktCountSet extends HttpServlet with HttpUtils {
       }
     }
 
-    BWMongoDB3.activities.insertMany(newActivityDocs)
-    val newOids: Many[ObjectId] = newActivityDocs.map(_.getObjectId("_id"))
+    BWMongoDB3.activities.insertMany(newActivityDocs.toSeq)
+    val newOids: Many[ObjectId] = newActivityDocs.map(_.getObjectId("_id")).toSeq
     val processOid: ObjectId = PhaseApi.allProcesses(phaseOid).headOption match {
       case Some(procOid) => procOid._id
       case _ => throw new IllegalArgumentException("Unable to find process-oid")

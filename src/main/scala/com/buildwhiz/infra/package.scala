@@ -1,7 +1,7 @@
 package com.buildwhiz
 
 import com.google.api.services.drive.model.File
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 package object infra {
   case class FileMetadata(key: String, size: Long, mimeType: String = null,

@@ -4,7 +4,7 @@ import com.mongodb.client.{MongoClients, MongoCollection}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.{dynamics, implicitConversions}
 
 object BWMongoLocal extends Dynamic {

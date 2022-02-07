@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance._
 
 import javax.servlet.http.HttpServletRequest
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 object ProcessBpmnTraverse extends BpmnUtils {
@@ -198,7 +198,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
         if (offsetsCache.contains(flowNode)) {
           offsetsCache(flowNode)
         } else {
-          val thePredecessors: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala
+          val thePredecessors: Seq[FlowNode] = flowNode.getPreviousNodes.list().asScala.toSeq
           val offset = if (thePredecessors.nonEmpty) {
             thePredecessors.map(getTimeOffset).max
           } else {

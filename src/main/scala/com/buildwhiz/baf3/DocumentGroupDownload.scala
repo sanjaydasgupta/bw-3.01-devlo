@@ -88,7 +88,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
       val projectIds = documentIds.indices.map(_ => projectId)
       val docAndProjTuples = documentIds.zip(projectIds).map(id => (id._1, id._2))
       val outputStream = response.getOutputStream
-      zipMultipleDocuments(docAndProjTuples, outputStream, request)
+      zipMultipleDocuments(docAndProjTuples.toSeq, outputStream, request)
       response.setContentType("application/zip")
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)

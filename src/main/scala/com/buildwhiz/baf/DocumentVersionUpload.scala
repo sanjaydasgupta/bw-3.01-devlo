@@ -12,7 +12,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 // {
 //    "_id":{"$oid":"5b84f6d957fbc004530e56ba"},

@@ -8,7 +8,7 @@ import com.mongodb.client.{AggregateIterable, FindIterable, MongoClients, MongoC
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.dynamics
 import scala.language.implicitConversions
 

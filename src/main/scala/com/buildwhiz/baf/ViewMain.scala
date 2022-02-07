@@ -10,7 +10,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -19,7 +19,7 @@ class ViewMain extends HttpServlet with HttpUtils {
   private def addEmbeddedObjects(personId: ObjectId)(proj: Document): Document = {
 
     def docId2Document(project: DynDoc, docIds: Many[ObjectId], createdAfter: Long): Many[Document] = {
-      val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
+      val docs: Seq[DynDoc] = docIds.asScala.toSeq.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
       for (doc <- docs) {
         val isReady = if (project has "documents") {
         //val isReady = if (action ? "uploaded_documents") {

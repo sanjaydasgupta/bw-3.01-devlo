@@ -22,7 +22,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
       val message = postDataObject.message[String]
       val optProjectOid = postDataObject.get[String]("project_id").map(new ObjectId(_))
       val userOids = postDataObject.user_ids[String].split(",").map(s => new ObjectId(s.trim))
-      NotificationSend.send(message, userOids, optProjectOid)
+      NotificationSend.send(message, userOids.toSeq, optProjectOid)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
     } catch {

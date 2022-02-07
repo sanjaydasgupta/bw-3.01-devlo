@@ -23,7 +23,7 @@ class ProcessConfigDownload extends HttpServlet with HttpUtils {
     val headerRow = taskSheet.createRow(0)
     headerRow.setRowStyle(cellStyle)
     val rowHeight = if (headerInfo.exists(_._1.contains("\n"))) 36 else 18
-    headerRow.setHeightInPoints(rowHeight)
+    headerRow.setHeightInPoints(rowHeight.toFloat)
     for (hdrInfo <- headerInfo.zipWithIndex) {
       val cell = headerRow.createCell(hdrInfo._2)
       cell.setCellValue(hdrInfo._1._1)

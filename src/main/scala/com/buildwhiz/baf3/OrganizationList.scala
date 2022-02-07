@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 
 import com.buildwhiz.baf2.{OrganizationApi, PersonApi, ProjectApi, RoleListSecondary}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class OrganizationList extends HttpServlet with HttpUtils with DateTimeUtils {
 

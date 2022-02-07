@@ -11,7 +11,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 class BrowseActions extends HttpServlet with HttpUtils {
@@ -105,7 +105,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
     } else {
       val groupedActions = actionData.groupBy(a => (a.project_name[String], a.phase_name[String], a.bpmn_name[String]))
       text += "<table border=\"1\" width=\"100%\">"
-      for ((group, theActions) <- groupedActions.toSeq.sortBy(p => sortKey(p._2))) {
+      for ((group, theActions) <- groupedActions.toSeq.sortBy(p => sortKey(p._2.toSeq))) {
         text +=
           s"""<tr><td style="font-weight: bold; text-align: center; color: white; background-color: blue;" colspan="2">
               |${group._1}:${group._2}&nbsp;&nbsp;&nbsp;&nbsp;${group._3}</td></tr>""".stripMargin
@@ -130,7 +130,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
   private def actionPanel(activityOid: ObjectId, actionName: String, personOid: ObjectId): String = {
 
     def docId2Document(project: DynDoc, docIds: Many[ObjectId], createdAfter: Long): Many[Document] = {
-      val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head)
+      val docs: Seq[DynDoc] = docIds.asScala.map(id =>BWMongoDB3.document_master.find(Map("_id" -> id)).head).toSeq
       for (doc <- docs) {
         val isReady = if (project has "documents") {
           project.documents[Many[Document]].exists(d => d.document_id[ObjectId] == doc._id[ObjectId] &&

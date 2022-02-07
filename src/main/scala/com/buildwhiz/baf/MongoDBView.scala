@@ -12,7 +12,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import com.mongodb.client.FindIterable
 import org.bson.Document
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.languageFeature.{implicitConversions, postfixOps}
 import scala.sys.process._
@@ -78,8 +78,11 @@ class MongoDBView extends HttpServlet with HttpUtils {
           val fieldsToKeep: Set[String] = Document.parse(s"{$fields}").asScala.toSeq.
             filter(p => p._2.toString == "true").map(_._1).toSet
           val docs: Seq[DynDoc] = BWMongoDB3(collection).find(Document.parse(s"{$query}")).limit(100)
-          val trimmedDocs = docs.
-            map(d => {val keys = d.asDoc.keySet().asScala -- fieldsToKeep; keys.foreach(k => d.remove(k)); d})
+          val trimmedDocs = docs.map(doc => {
+              val keys = Set.from(doc.asDoc.keySet().asScala) -- fieldsToKeep
+              keys.foreach(k => doc.remove(k))
+              doc
+          })
           val jsonStrings: Seq[String] = trimmedDocs.map(d => d.asDoc.toJson)
           writer.print(jsonStrings.mkString("[", ", ", "]"))
         case (Some(collection), Some(query), None, None) =>

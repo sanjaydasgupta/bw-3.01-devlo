@@ -8,7 +8,7 @@ import com.buildwhiz.infra.BWMongoDB3
 import com.mongodb.client.FindIterable
 import org.bson.Document
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 class BrowseMongoDB extends HttpServlet {

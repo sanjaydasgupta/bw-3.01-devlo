@@ -9,7 +9,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ProjectInfoSet extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -41,7 +41,7 @@ object ProjectInfoSet extends DateTimeUtils {
 
   def managers2roles(projectOid: ObjectId, mids: String): Many[Document] = {
     val projMgrOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
-        distinct.map(new ObjectId(_))
+        distinct.map(new ObjectId(_)).toSeq
     val badManagerIds = projMgrOids.filterNot(PersonApi.exists)
     if (badManagerIds.nonEmpty)
       throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")

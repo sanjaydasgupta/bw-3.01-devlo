@@ -32,7 +32,7 @@ class DocumentGroupFilterLabelsFetch extends HttpServlet with HttpUtils {
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
 
       val docIds: Seq[String] = if (request.getMethod == "GET") {
-        parameters("document_ids").split(",")
+        parameters("document_ids").split(",").toSeq
       } else {
         val postData: DynDoc = Document.parse(getStreamData(request))
         val ids: Seq[String] = postData.document_ids[Many[String]]

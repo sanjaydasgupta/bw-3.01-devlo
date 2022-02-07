@@ -28,7 +28,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
     @tailrec def copyBuffer(): Unit = {
       val len = inputStream.read(blockBuffer)
       if (len > 0) {
-        byteBuffer.append(blockBuffer.take(len): _*)
+        byteBuffer.appendAll(blockBuffer.take(len))
         copyBuffer()
       }
     }

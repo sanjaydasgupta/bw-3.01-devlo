@@ -54,7 +54,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     } else {
       Seq.empty[DynDoc]
     }
-    rawComments.reverseMap(comment => {
+    rawComments.reverse.map(comment => {
       val authorName = if (comment.has("author_person_id")) {
         val authorOid = comment.author_person_id[ObjectId]
         val author: DynDoc = BWMongoDB3.persons.find(Map("_id" -> authorOid)).head

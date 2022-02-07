@@ -11,7 +11,7 @@ import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.ProcessDefinition
 import org.camunda.bpm.engine.runtime.ProcessInstance
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
 
 class BrowseOrphans extends HttpServlet with HttpUtils {
@@ -19,14 +19,14 @@ class BrowseOrphans extends HttpServlet with HttpUtils {
   private def orphanProcesses(): Unit = {
     val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
     val allProcessDefinitions: Seq[ProcessDefinition] =
-      repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala
+      repositoryService.createProcessDefinitionQuery().latestVersion().list().asScala.toSeq
 
     val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     val projectIds = projects.map(_._id[ObjectId].toString)
     val query = rts.createProcessInstanceQuery()
     val instances: Seq[ProcessInstance] =
-      projectIds.foldLeft(query)((q, id) => q.variableValueNotEquals("project_id", id)).list().asScala
+      projectIds.foldLeft(query)((q, id) => q.variableValueNotEquals("project_id", id)).list().asScala.toSeq
     val definitions: Seq[ProcessDefinition] = instances.map(_.getProcessDefinitionId).
       map(did => allProcessDefinitions.find(_.getId == did)).flatMap(_.toSeq)
   }

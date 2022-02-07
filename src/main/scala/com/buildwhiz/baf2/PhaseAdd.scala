@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PhaseAdd extends HttpServlet with HttpUtils {
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -34,7 +34,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
 
       val phaseManagerOids: Seq[ObjectId] = parameters.get("manager_ids") match {
         case None => Seq.empty[ObjectId]
-        case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_))
+        case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_)).toSeq
       }
 
       val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)

@@ -134,7 +134,7 @@ class PhaseBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTi
       def copyModelToOutput(): Unit = {
         val len = processModelStream.read(blockBuffer)
         if (len > 0) {
-          byteBuffer.append(blockBuffer.take(len): _*)
+          byteBuffer.appendAll(blockBuffer.take(len))
           copyModelToOutput()
         }
       }

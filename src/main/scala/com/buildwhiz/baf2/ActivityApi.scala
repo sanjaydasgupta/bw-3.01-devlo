@@ -119,7 +119,7 @@ object ActivityApi extends DateTimeUtils {
 
   def scheduledDuration(activity: DynDoc): Float = {
     (scheduledStart(activity), scheduledEnd(activity)) match {
-      case (Some(start), Some(end)) => (end - start) / 86400000L
+      case (Some(start), Some(end)) => (end - start).toFloat / 86400000L
       case _ => -1
     }
   }
@@ -194,7 +194,7 @@ object ActivityApi extends DateTimeUtils {
 
   def actualDuration(activity: DynDoc): Float = {
     (actualStart(activity), actualEnd(activity)) match {
-      case (Some(start), Some(end)) => (end - start) / 86400000L
+      case (Some(start), Some(end)) => (end - start).toFloat / 86400000L
       case _ => -1
     }
   }

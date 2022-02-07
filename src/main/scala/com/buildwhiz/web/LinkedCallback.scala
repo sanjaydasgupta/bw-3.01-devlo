@@ -5,7 +5,7 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.script.ScriptEngineManager
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 class LinkedCallback extends HttpServlet {

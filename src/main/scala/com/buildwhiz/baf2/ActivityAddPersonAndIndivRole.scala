@@ -40,8 +40,8 @@ class ActivityAddPersonAndIndivRole extends HttpServlet with HttpUtils {
       val documentAccess = parameters("document_access").split(",").map(_.trim).filter(_.nonEmpty)
 
       activityOids.foreach(
-        ActivityApi.teamAssignment.personAdd(_, theRole, organizationOid, personOid, individualRole,
-            documentAccess, userOid)
+        ActivityApi.teamAssignment.personAdd(_, theRole, organizationOid, personOid, individualRole.toSeq,
+            documentAccess.toSeq, userOid)
       )
 
       val message = s"""Added person $personOid in role '$theRole' to activities ${activityOids.mkString(", ")}"""

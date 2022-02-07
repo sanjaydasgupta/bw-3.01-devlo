@@ -7,7 +7,7 @@ import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletR
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class Login extends HttpServlet with HttpUtils with CryptoUtils {
 

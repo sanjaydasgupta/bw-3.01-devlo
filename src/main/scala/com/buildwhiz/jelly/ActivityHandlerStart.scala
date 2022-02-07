@@ -11,7 +11,7 @@ import com.buildwhiz.utils.{BWLogger, BpmnUtils}
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
 

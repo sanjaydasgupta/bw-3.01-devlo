@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{OrganizationApi, PersonApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -59,7 +59,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       }
 
       val skillsValue: Seq[String] = parameters.get("skills") match {
-        case Some(skills) => skills.split(",").map(_.trim).filter(_.trim.nonEmpty)
+        case Some(skills) => skills.split(",").map(_.trim).filter(_.trim.nonEmpty).toSeq
         case None => Seq.empty[String]
       }
 
@@ -70,7 +70,7 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
             if (!PersonApi.possibleIndividualRoles.contains(role))
               throw new IllegalArgumentException(s"Bad individual-role: '$role'")
           )
-          theRoles
+          theRoles.toSeq
         case None => Seq.empty[String]
       }
 

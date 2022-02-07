@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class OrganizationCreate extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -46,7 +46,7 @@ class OrganizationCreate extends HttpServlet with HttpUtils {
       }
 
       val skillsValue: Seq[String] = parameters.get("skills") match {
-        case Some(skills) => skills.split(",").map(_.trim)
+        case Some(skills) => skills.split(",").map(_.trim).toSeq
         case None => Seq.empty[String]
       }
 

@@ -15,7 +15,7 @@ class ZoneAddActivity extends HttpServlet with HttpUtils {
       val parameters = getParameterMap(request)
 
       val zoneOids: Seq[ObjectId] = parameters("zone_ids").split(",").map(_.trim).filter(_.nonEmpty)
-          .map(new ObjectId(_))
+          .map(new ObjectId(_)).toSeq
       val badZoneOids = zoneOids.filterNot(ZoneApi.exists)
       if (badZoneOids.nonEmpty)
         throw new IllegalArgumentException(s"""Bad zone_ids '${badZoneOids.mkString(", ")}'""")

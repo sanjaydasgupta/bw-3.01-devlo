@@ -2,11 +2,11 @@ package com.buildwhiz.infra
 
 import com.buildwhiz.infra.DynDoc._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object BWMongoCloudTest extends App {
 
-  private def copyRecords(collectionName: String) {
+  private def copyRecords(collectionName: String): Unit = {
     val records: Seq[DynDoc] = BWMongoLocal(collectionName).find().asScala.toSeq
     println(f"Copying ${records.length}%d records of $collectionName")
     for (record <- records) {
@@ -17,7 +17,7 @@ object BWMongoCloudTest extends App {
     println(f"Stored ${personsInCloud.length}%d in $collectionName")
   }
 
-  private def reportPersons() {
+  private def reportPersons(): Unit = {
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find().asScala.toSeq
     for (person <- persons) {
       println(person.asDoc)
@@ -25,7 +25,7 @@ object BWMongoCloudTest extends App {
     println(f"Person count: ${persons.length}%d")
   }
 
-  private def reportCollections() {
+  private def reportCollections(): Unit = {
     val collectionNames = BWMongoDB3.collectionNames
     for (collName <- collectionNames) {
       val records: Seq[DynDoc] = BWMongoDB3(collName).find().asScala.toSeq

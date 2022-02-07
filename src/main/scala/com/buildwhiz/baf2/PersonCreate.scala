@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -57,13 +57,13 @@ class PersonCreate extends HttpServlet with HttpUtils with CryptoUtils {
       }
 
       val skillsValue: Seq[String] = parameters.get("skills") match {
-        case Some(skills) => skills.split(",").map(_.trim).filter(_.trim.nonEmpty)
+        case Some(skills) => skills.split(",").map(_.trim).filter(_.trim.nonEmpty).toSeq
         case None => Seq.empty[String]
       }
 
       val individualRoles: Seq[String] = parameters.get("individual_roles") match {
         case Some(indRoles) =>
-          val theRoles = indRoles.split(",").map(_.trim).filter(_.trim.nonEmpty)
+          val theRoles = indRoles.split(",").map(_.trim).filter(_.trim.nonEmpty).toSeq
           theRoles.foreach(role =>
             if (!PersonApi.possibleIndividualRoles.contains(role))
               throw new IllegalArgumentException(s"Bad individual-role: '$role'")

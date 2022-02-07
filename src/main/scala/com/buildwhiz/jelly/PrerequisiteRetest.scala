@@ -9,7 +9,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PrerequisiteRetest extends JavaDelegate {
 
@@ -32,6 +32,7 @@ class PrerequisiteRetest extends JavaDelegate {
         case Some(awi) =>
           BWLogger.log(getClass.getName, "execute()",
             s"Prerequisite '$prerequisiteName' status: ${awi._1.asScala("status")}, taking no action", de)
+        case None => // Not possible, prevents compiler warning
       }
       BWLogger.log(getClass.getName, "execute()", "EXIT-OK", de)
     } catch {

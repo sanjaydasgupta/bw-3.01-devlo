@@ -5,7 +5,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3
 import org.bson.types.ObjectId
 import org.bson.Document
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object GenerateMongoDbIds extends App {
   println(s"Count=${BWMongoDB3.id_generation.countDocuments()}")

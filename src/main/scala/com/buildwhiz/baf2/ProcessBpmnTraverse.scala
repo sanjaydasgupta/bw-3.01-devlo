@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.BpmnModelInstance
 import org.camunda.bpm.model.bpmn.instance._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class ProcessBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
 

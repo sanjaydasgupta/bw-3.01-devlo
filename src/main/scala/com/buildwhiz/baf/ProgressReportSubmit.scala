@@ -10,7 +10,7 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.io.Source
 
@@ -42,7 +42,7 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
     try {
       val parts: Iterable[Part] = request.getParts.asScala
       val dataPart = parts.head
-      val json = Source.fromInputStream(dataPart.getInputStream).getLines.mkString("\n")
+      val json = Source.fromInputStream(dataPart.getInputStream).getLines().mkString("\n")
       val data: DynDoc = Document.parse(json)
       val personOid = new ObjectId(data.person_id[String])
       val projectOid = project430ForestOid

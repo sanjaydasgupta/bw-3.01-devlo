@@ -8,7 +8,7 @@ import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{DocumentApi, PersonApi, PhaseApi, ProjectApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
 

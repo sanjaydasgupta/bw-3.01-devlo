@@ -10,7 +10,7 @@ import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
@@ -20,7 +20,7 @@ class RFIMessagesFetch extends HttpServlet with HttpUtils with MailUtils with Da
     memberOids.asScala.map(oid => {
       val member: DynDoc = BWMongoDB3.persons.find(Map("_id" -> oid)).head
       PersonApi.fullName(member)
-    })
+    }).toSeq
   }
 
   private def documentInfo(rfiDocRef: DynDoc): Map[String, String] = {

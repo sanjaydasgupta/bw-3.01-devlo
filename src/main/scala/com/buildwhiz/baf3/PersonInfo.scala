@@ -9,7 +9,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class PersonInfo extends HttpServlet with HttpUtils {
 

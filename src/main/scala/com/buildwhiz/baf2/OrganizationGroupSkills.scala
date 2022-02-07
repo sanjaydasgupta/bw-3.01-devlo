@@ -30,7 +30,7 @@ class OrganizationGroupSkills extends HttpServlet with HttpUtils {
         parameters("organization_ids")
       } else {
         getStreamData(request)
-      }).split(",").map(_.trim).filter(_.nonEmpty)
+      }).split(",").map(_.trim).filter(_.nonEmpty).toSeq
 
       val organizationOids: Seq[ObjectId] = orgIds.map(id => new ObjectId(id.trim))
 

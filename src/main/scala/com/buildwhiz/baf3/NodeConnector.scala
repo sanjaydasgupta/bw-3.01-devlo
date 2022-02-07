@@ -13,7 +13,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.io.Source
 
 object NodeConnector extends HttpServlet with HttpUtils {
@@ -55,7 +55,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
       val nodeEntityContentType = nodeEntity.getContentType.getValue
       BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():contentType=$nodeEntityContentType", request)
       if (nodeEntityContentType.startsWith("application/json")) {
-        val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines.mkString("\n")
+        val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
         val nodeEntityDocument = Document.parse(nodeEntityString)
         val user: DynDoc = getPersona(request)
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))

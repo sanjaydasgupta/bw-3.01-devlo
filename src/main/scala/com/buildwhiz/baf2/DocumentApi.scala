@@ -12,7 +12,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import com.buildwhiz.utils.TagLogicProcessor
 
 object DocumentApi extends HttpUtils {

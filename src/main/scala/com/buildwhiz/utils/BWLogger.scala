@@ -13,7 +13,7 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.DelegateExecution
 
 import scala.annotation.tailrec
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object BWLogger extends HttpUtils {
 

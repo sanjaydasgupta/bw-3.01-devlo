@@ -6,7 +6,7 @@ import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import org.camunda.bpm.engine.ProcessEngines
 import org.camunda.bpm.engine.repository.{Deployment, ProcessDefinition}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try}
 
 class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
@@ -18,7 +18,7 @@ class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
 
-      val allProcDefs: Seq[ProcessDefinition] = repositoryService.createProcessDefinitionQuery().list().asScala
+      val allProcDefs: Seq[ProcessDefinition] = repositoryService.createProcessDefinitionQuery().list().asScala.toSeq
       BWLogger.log(getClass.getName, "doGet", s"""allProcessDefinitions: ${allProcDefs.mkString(", ")}""", request)
       val processDefinitions = allProcDefs.filter(_.getResourceName.contains(bpmnFileName))
       BWLogger.log(getClass.getName, "doGet", s"""processDefinitions: ${processDefinitions.mkString(", ")}""", request)

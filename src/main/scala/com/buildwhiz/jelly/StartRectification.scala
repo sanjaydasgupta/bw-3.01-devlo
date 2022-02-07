@@ -11,7 +11,7 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.delegate.{DelegateExecution, JavaDelegate}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class StartRectification extends JavaDelegate {
 

@@ -349,16 +349,17 @@ object ActivityApi extends DateTimeUtils {
     durations.flatMap(_.get[Int]("likely") match {case Some(-1) => None; case someOtherD => someOtherD})
   }
 
-  def durationsSet3(activityOid: ObjectId, optDurationOptimistic: Option[Int] = None,
+  def durationsSet3(activityOids: Seq[ObjectId], optDurationOptimistic: Option[Int] = None,
       optDurationPessimistic: Option[Int] = None, optDurationLikely: Option[Int] = None): Unit = {
     val setters: Seq[(String, Int)] = Seq(("duration_optimistic", optDurationOptimistic),
         ("duration_pessimistic", optDurationPessimistic), ("duration_likely", optDurationLikely)).flatMap {
       case (fieldName, Some(duration)) => Some((fieldName.replace("duration_", "durations."), duration))
       case (_, None) => None
     }
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> setters.toMap))
-    if (updateResult.getMatchedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    val updateResult = BWMongoDB3.activities.updateMany(Map("_id" -> Map($in -> activityOids)),
+        Map($set -> setters.toMap))
+    if (updateResult.getMatchedCount != activityOids.length)
+      throw new IllegalArgumentException(s"MongoDB failed to match ${activityOids.length} Oid(s): $updateResult")
   }
 
   object teamAssignment {

@@ -24,15 +24,25 @@ class PhaseDurationCommit extends HttpServlet with HttpUtils {
           !(dv.has("timer_id") && dv.has("duration")))
       if (badDurations.nonEmpty)
         throw new IllegalArgumentException("found duration_values without expected fields")
+      val phaseOid = new ObjectId(postData.phase_id[String])
+      val bpmnName = postData.bpmn_name[String]
+      val activities = PhaseApi.allActivities(Left(phaseOid), Map("bpmn_name" -> bpmnName))
+      val activityByOid = activities.map(a => (a._id[ObjectId], a)).toMap
+      val activitiesByBpmnNameFullAndId = activities.groupBy(a => (a.bpmn_name_full[String], a.bpmn_id[String]))
+      val groupLengths = activitiesByBpmnNameFullAndId.values.map(_.length).toSeq
+      BWLogger.log(getClass.getName, request.getMethod, s"""takt-unit-counts: ${groupLengths.mkString(", ")}""", request)
       for (durationValue <- durationValues) {
         if (durationValue.has("activity_id")) {
-          ActivityApi.durationsSet3(new ObjectId(durationValue.activity_id[String]),
+          val activityOid = new ObjectId(durationValue.activity_id[String])
+          val theActivity = activityByOid(activityOid)
+          val partnerActivityOids: Seq[ObjectId] = // multiple takt-partner activities may be found
+              activitiesByBpmnNameFullAndId((theActivity.bpmn_name_full[String], theActivity.bpmn_id[String])).
+              map(_._id[ObjectId])
+          ActivityApi.durationsSet3(partnerActivityOids,
             durationValue.get[String]("duration_optimistic").map(_.toInt),
             durationValue.get[String]("duration_pessimistic").map(_.toInt),
             durationValue.get[String]("duration_likely").map(_.toInt))
         } else if (durationValue.has("timer_id")) {
-          val bpmnName = postData.bpmn_name[String]
-          val phaseOid = new ObjectId(postData.phase_id[String])
           val theProcess = PhaseApi.allProcesses(phaseOid).headOption match {
             case Some(proc) => proc
             case None => throw new IllegalArgumentException(s"Bad phase: $phaseOid")

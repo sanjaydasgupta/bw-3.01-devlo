@@ -49,9 +49,9 @@ class Logout extends HttpServlet with HttpUtils {
         val user: DynDoc = getUser(request)
         getSessionAlternatives(request).removeAttribute("bw-user")
         val userNameAndId = f"${user.first_name[String]}%s ${user.last_name[String]}%s (${user._id[ObjectId]}%s)"
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT (Logout $userNameAndId)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (Logout $userNameAndId)", request)
       } else {
-        BWLogger.log(getClass.getName, request.getMethod, "EXIT (Logout unknown user)", request)
+        BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK (Logout unknown user)", request)
       }
       request.getSession.invalidate()
     } catch {

@@ -97,7 +97,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
   private def setUserTaskOffset(ut: Task, process: DynDoc, bpmnNameFull: String, offset: Long,
       taktUnitCount: Int, firstTaktTaskDuration: Long, request: HttpServletRequest): Unit = {
     val id = ut.getAttributeValue("id")
-    val inMessage = s"ENTRY: setUserTaskOffset(id=$id, bpmnNameFull=$bpmnNameFull, taktUnitCount=$taktUnitCount, offset=$offset)"
+    val inMessage = s"setUserTaskOffset(id=$id, bpmnNameFull=$bpmnNameFull, taktUnitCount=$taktUnitCount, offset=$offset)"
     BWLogger.log(getClass.getName, request.getMethod, inMessage, request)
     val activityOids = process.activity_ids[Many[ObjectId]]
     val bulkWriteBuffer = new java.util.ArrayList[UpdateOneModel[Document]]()
@@ -108,12 +108,9 @@ object ProcessBpmnTraverse extends BpmnUtils {
       bulkWriteBuffer.add(new UpdateOneModel(query, new Document($set, new Document("offset", taktOffset))))
     }
     val bulkWriteResult = BWMongoDB3.activities.bulkWrite(bulkWriteBuffer)
-    if (bulkWriteResult.getMatchedCount == 0) {
-      BWLogger.log(getClass.getName, request.getMethod, s"ERROR:setUserTaskOffset:no-matches", request)
+    if (bulkWriteResult.getMatchedCount != bulkWriteBuffer.length) {
       throw new IllegalArgumentException(s"MongoDB update failed: $bulkWriteResult")
     }
-    val outMessage = s"ENTRY: setUserTaskOffset(id=$id, bpmnNameFull=$bpmnNameFull, taktUnitCount=$taktUnitCount, offset=$offset)"
-    BWLogger.log(getClass.getName, request.getMethod, outMessage, request)
   }
 
   private def getActivityDuration(bpmnId: String, process: DynDoc, bpmnNameFull: String,

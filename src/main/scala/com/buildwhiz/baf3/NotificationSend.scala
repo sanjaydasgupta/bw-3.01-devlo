@@ -25,6 +25,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
       NotificationSend.send(message, userOids.toSeq, optProjectOid)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

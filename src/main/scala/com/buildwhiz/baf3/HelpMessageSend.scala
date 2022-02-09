@@ -32,7 +32,7 @@ class HelpMessageSend extends HttpServlet with HttpUtils with MailUtils3 {
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       val message = s"$fullName sent help-message with subject '$subject'"
-      BWLogger.log(getClass.getName, request.getMethod, message, request)
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

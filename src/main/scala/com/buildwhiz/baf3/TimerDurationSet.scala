@@ -30,6 +30,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
       TimerDurationSet.set(request, theProcess, timerId, timerName, bpmnName, duration)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

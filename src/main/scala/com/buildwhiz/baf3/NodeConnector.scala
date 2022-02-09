@@ -80,7 +80,8 @@ object NodeConnector extends HttpServlet with HttpUtils {
     }
     nodeRequest.releaseConnection()
     val delay = System.currentTimeMillis() - t0
-    BWLogger.log(getClass.getName, request.getMethod, s"EXIT (total-time: $delay ms, node-time: $delay1 ms) - $message", request)
+    BWLogger.log(getClass.getName, request.getMethod,
+        s"executeNodeRequest(total-time: $delay ms, node-time: $delay1 ms) - $message", request)
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -90,6 +91,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
       val httpGet = new HttpGet(nodeUri(request))
       request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
       executeNodeRequest(request, response, httpGet, t0)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -130,6 +132,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
       }
       httpPost.removeHeaders("Content-Length")
       executeNodeRequest(request, response, httpPost, t0)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

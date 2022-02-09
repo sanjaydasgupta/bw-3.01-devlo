@@ -13,7 +13,7 @@ import com.buildwhiz.baf2.{OrganizationApi, PersonApi, ProjectApi}
 class ProjectCreate extends HttpServlet with HttpUtils {
 
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val loggedInUser = getUser(request)
@@ -68,7 +68,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
       BWLogger.audit(getClass.getName, request.getMethod, s"Created Project '$projectName'", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

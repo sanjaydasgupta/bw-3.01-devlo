@@ -42,7 +42,7 @@ object SlackApi extends DateTimeUtils {
   }
 
   def pushHomePages(): Unit = {
-    BWLogger.log(getClass.getName, "pushHomePages", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: ENTRY")
     try {
       val slackUsers: Seq[DynDoc] = BWMongoDB3.persons.find(Map("slack_id" -> Map($exists -> true)))
       for (slackUser <- slackUsers) {
@@ -51,14 +51,15 @@ object SlackApi extends DateTimeUtils {
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "pushHomePages", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, "LOCAL",
+            s"pushHomePages: ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
     }
-    BWLogger.log(getClass.getName, "pushHomePages", "EXIT-OK")
+    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: EXIT-OK")
   }
 
   def sendToUser(stringOrBlocks: Either[String, Seq[DynDoc]], user: Either[DynDoc, ObjectId],
       optProjectOid: Option[ObjectId] = None, optRequest: Option[HttpServletRequest] = None): Unit = {
-    BWLogger.log(getClass.getName, "sendToUser", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "sendToUser: ENTRY")
     val personRecord: DynDoc = user match {
       case Left(dd) => dd
       case Right(oid) => PersonApi.personById(oid)
@@ -75,14 +76,14 @@ object SlackApi extends DateTimeUtils {
       for (slackChannel <- slackIdValues) {
         sendToChannel(stringOrBlocks, slackChannel, request=optRequest)
       }
-      BWLogger.log(getClass.getName, "sendToUser", "EXIT-OK", optRequest)
+      BWLogger.log(getClass.getName, "LOCAL", "sendToUser: EXIT-OK", optRequest)
     } else {
       val message = optProjectOid match {
         case None => s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack. Message dropped: '$stringOrBlocks'"
         case Some(prOid) => s"EXIT-ERROR: User ${PersonApi.fullName(personRecord)} not on Slack for project $prOid." +
           s"Message dropped: '$stringOrBlocks'"
       }
-      BWLogger.log(getClass.getName, "sendToUser", message)
+      BWLogger.log(getClass.getName, "LOCAL", s"sendToUser: $message")
     }
   }
 
@@ -98,7 +99,7 @@ object SlackApi extends DateTimeUtils {
     // https://api.slack.com/messaging/sending
     // https://api.slack.com/messaging/retrieving#finding_threads
     // https://api.slack.com/messaging/managing#threading
-    BWLogger.log(getClass.getName, "sendToChannel", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "sendToChannel: ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/chat.postMessage")
     post.setHeader("Authorization",
@@ -114,7 +115,7 @@ object SlackApi extends DateTimeUtils {
         val blocksText = blocks.map(_.asDoc.toJson).mkString(",")
         s"""{"blocks": [$blocksText], "channel": "$channel", "thread_ts": "$threadTs"}"""
     }
-    BWLogger.log(getClass.getName, "sendToChannel", s"Message: $bodyText")
+    BWLogger.log(getClass.getName, "LOCAL", s"sendToChannel: $bodyText")
     post.setEntity(new StringEntity(bodyText, ContentType.create("plain/text", Consts.UTF_8)))
     val response = httpClient.execute(post)
     val responseContent = new ByteArrayOutputStream()
@@ -123,7 +124,7 @@ object SlackApi extends DateTimeUtils {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad chat.postMessage status: $contentString")
-    BWLogger.log(getClass.getName, "sendToChannel", s"EXIT-OK ($contentString)")
+    BWLogger.log(getClass.getName, "LOCAL", s"sendToChannel: EXIT-OK ($contentString)")
   }
 
   // https://api.slack.com/messaging/interactivity
@@ -294,7 +295,7 @@ object SlackApi extends DateTimeUtils {
   }
 
   def viewOpen(viewText: String, triggerId: String): Unit = {
-    BWLogger.log(getClass.getName, "openView", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "openView: ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.open")
     post.setHeader("Authorization",
@@ -309,11 +310,11 @@ object SlackApi extends DateTimeUtils {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad views.open status: $contentString")
-    BWLogger.log(getClass.getName, "openView", s"EXIT-OK ($contentString)")
+    BWLogger.log(getClass.getName, "LOCAL", s"openView: EXIT-OK ($contentString)")
   }
 
   def viewPush(viewText: String, triggerId: String): Unit = {
-    BWLogger.log(getClass.getName, "pushView", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "pushView: ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.push")
     post.setHeader("Authorization",
@@ -328,11 +329,11 @@ object SlackApi extends DateTimeUtils {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad views.open status: $contentString")
-    BWLogger.log(getClass.getName, "pushView", s"EXIT-OK ($contentString)")
+    BWLogger.log(getClass.getName, "LOCAL", s"pushView: EXIT-OK ($contentString)")
   }
 
   def viewPublish(optViewText: Option[String] = None, slackUserId: String, optHash: Option[String] = None): Unit = {
-    BWLogger.log(getClass.getName, "viewPublish", "ENTRY")
+    BWLogger.log(getClass.getName, "LOCAL", "viewPublish: ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.publish")
     post.setHeader("Authorization",
@@ -356,7 +357,7 @@ object SlackApi extends DateTimeUtils {
     val statusLine = response.getStatusLine
     if (statusLine.getStatusCode != 200)
       throw new IllegalArgumentException(s"Bad views.open status: $contentString")
-    BWLogger.log(getClass.getName, "viewPublish", s"EXIT-OK ($contentString)")
+    BWLogger.log(getClass.getName, "LOCAL", s"viewPublish: EXIT-OK ($contentString)")
   }
 
   def main(args: Array[String]): Unit = {

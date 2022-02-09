@@ -30,6 +30,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
       VariableValueSet.set(request, response, theProcess, label, bpmnName, value)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

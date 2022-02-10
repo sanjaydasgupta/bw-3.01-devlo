@@ -52,7 +52,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(10, 10, 10, 35, 35)
+      val widths = Seq(10, 10, 2, 39, 39)
       writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
           map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
@@ -108,7 +108,10 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val details: Seq[DynDoc] = traceLogDocs.flatMap(_.details[Many[Document]])
       details.sortBy(_.milliseconds[String]).reverse.foreach(detail => {
         val activity = detail.activity[String]
-        val variables = detail.variables[Document].asScala.toSeq.map(pair => s"${pair._1}: ${pair._2}").mkString(", ")
+        val variables = detail.get[Document]("variables") match {
+          case Some(doc) => doc.asScala.toSeq.map(pair => s"${pair._1}: ${pair._2}").mkString(", ")
+          case None => ""
+        }
         val process = detail.process[String]
         val event = addSpaces(detail.event[String])
         val timestamp = dateTimeString(detail.milliseconds[String].toLong, parameters.get("tz").orElse(Some("Asia/Calcutta")))
@@ -166,8 +169,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
     }
   }
 
-  private def prettyPrint(d: Document): String = {
-    d.asScala.map(p => s"${p._1}: ${p._2}").mkString(", ")
-  }
-
+//  private def prettyPrint(d: Document): String = {
+//    d.asScala.map(p => s"${p._1}: ${p._2}").mkString(", ")
+//  }
+//
 }

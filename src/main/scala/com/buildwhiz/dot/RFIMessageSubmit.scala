@@ -19,20 +19,21 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
       |This email was sent as you are either a manager or an author.""".stripMargin
 
   private def sendRFIMail(members: Seq[ObjectId], subject: String, uri: String, request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, s"sendMail($members)", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"sendMail($members) ENTRY", request)
     try {
       sendMail(members, s"RFI for '$subject'", messageBody(subject, uri), Some(request))
     } catch {
       case t: Throwable =>
         //t.printStackTrace()
-        BWLogger.log(getClass.getName, "sendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod,
+            s"sendMail() ERROR ${t.getClass.getName}(${t.getMessage})", request)
         throw t
     }
-    BWLogger.log(getClass.getName, "sendMail()", "EXIT-OK", request)
+    BWLogger.log(getClass.getName, request.getMethod, "sendMail() EXIT-OK", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val postData: DynDoc = Document.parse(getStreamData(request))
       val timestamp = System.currentTimeMillis
@@ -69,10 +70,10 @@ class RFIMessageSubmit extends HttpServlet with HttpUtils with MailUtils with Da
       sendRFIMail(members.filterNot(_ == senderOid), subject, url, request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

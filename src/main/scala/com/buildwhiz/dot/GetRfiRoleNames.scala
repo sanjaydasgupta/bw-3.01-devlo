@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 class GetRfiRoleNames extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     val user: DynDoc = getUser(request)
     val projectOid = new ObjectId(parameters("project_id"))
@@ -24,7 +24,7 @@ class GetRfiRoleNames extends HttpServlet with RestUtils {
     response.setContentType("application/json")
     response.setStatus(HttpServletResponse.SC_OK)
 
-    BWLogger.log(getClass.getName, "doGet", s"EXIT-OK ($rfiRoleNames)", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($rfiRoleNames)", request)
   }
 
 }

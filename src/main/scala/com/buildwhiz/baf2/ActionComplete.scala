@@ -25,7 +25,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
           val hasId = action has "camunda_execution_id"
           if (hasId) {
             val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-            BWLogger.log(getClass.getName, "doPost", "calling messageEventReceived()", request)
+            BWLogger.log(getClass.getName, request.getMethod, "calling messageEventReceived()", request)
             rts.messageEventReceived("Action-Complete", action.camunda_execution_id[String])
           }
           val completionMessage = s"actions.$idx.completion_message" ->

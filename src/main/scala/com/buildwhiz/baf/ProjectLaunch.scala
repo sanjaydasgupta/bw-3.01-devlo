@@ -13,7 +13,7 @@ class ProjectLaunch extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val projectOid = new ObjectId(parameters("project_id"))
@@ -26,10 +26,10 @@ class ProjectLaunch extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       val logMessage = s"Launched project '${theProject.name[String]}' (${theProject._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", logMessage, request)
+      BWLogger.audit(getClass.getName, request.getMethod, logMessage, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

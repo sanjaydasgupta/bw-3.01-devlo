@@ -228,7 +228,7 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val phase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
@@ -252,13 +252,13 @@ class PhaseConfigUpload extends HttpServlet with HttpUtils with MailUtils {
         case ("Observers", sheet) => processObserverRoles(request, response, sheet, phaseOid, bpmnName)
         case (other, _) => throw new IllegalArgumentException(s"unexpected sheet (name=$other)")
       }).mkString(", ")
-      BWLogger.audit(getClass.getName, "doPost", s"Uploaded phase configuration Excel ($nbrOfSheets sheets: $itemsUploaded)", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Uploaded phase configuration Excel ($nbrOfSheets sheets: $itemsUploaded)", request)
       response.getWriter.print(s"""{"nbrOfSheets": "$nbrOfSheets", "items": "$itemsUploaded"}""")
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

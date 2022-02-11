@@ -21,7 +21,7 @@ class ProcessBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
 
   private def doGetTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val bpmnModel = bpmnModelInstance(bpmnFileName)
@@ -32,10 +32,10 @@ class ProcessBpmnTraverse extends HttpServlet with HttpUtils with BpmnUtils {
         append("max", ms2duration(offset._2))))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

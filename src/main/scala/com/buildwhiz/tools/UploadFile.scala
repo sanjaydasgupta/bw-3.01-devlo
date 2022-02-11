@@ -52,16 +52,17 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         val path = file.getAbsolutePath
         val status = s"""mv "$path" server/$tomcatDirName/backups""".!
         if (status != 0) {
-          BWLogger.log(getClass.getName, "purgeOldFiles()", s"ERROR: backup $status $path", request)
+          BWLogger.log(getClass.getName, request.getMethod, s"purgeOldFiles() ERROR: backup $status $path", request)
         }
       }
-      BWLogger.audit(getClass.getName, "purgeOldFiles()", s"""Files-Purged: ${files.length - 1}""", request)
+      BWLogger.audit(getClass.getName, request.getMethod,
+          s"purgeOldFiles() Files-Purged: ${files.length - 1}", request)
     }
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val rawRoles: Seq[String] = user.roles[Many[String]]
@@ -99,15 +100,15 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
         archiveOldFiles(directory, fileName, tomcatDirName, request)
         response.getWriter.println(s"Received $length bytes for '$relativeFileName' from ${request.getRemoteAddr}")
         response.setContentType("text/html")
-        BWLogger.audit(getClass.getName, "doPost()", s"File-Loaded '$fileLocation/$fileName' ($length)", request)
+        BWLogger.audit(getClass.getName, request.getMethod, s"File-Loaded '$fileLocation/$fileName' ($length)", request)
       } else {
         val files = uploadsDirectory.listFiles.map(_.getPath)
         val status = s"""cp -fr ${files.mkString(" ")} server/$tomcatDirName/webapps/bw-3.01""".!
         val statusMsg = if (status == 0) {
-          BWLogger.audit(getClass.getName, "doPost()", s"""File-Committed: ${files.mkString(", ")}""", request)
+          BWLogger.audit(getClass.getName, request.getMethod, s"""File-Committed: ${files.mkString(", ")}""", request)
           "OK"
         } else {
-          BWLogger.log(getClass.getName, "doPost()", s"""ERROR: Upload failure status: $status""", request)
+          BWLogger.log(getClass.getName, request.getMethod, s"""ERROR: Upload failure status: $status""", request)
           s"ERROR [$status]"
         }
         response.getWriter.println(s"""Update status: $statusMsg, files: ${files.mkString(", ")}""")
@@ -115,7 +116,7 @@ class UploadFile extends HttpServlet with HttpUtils with DateTimeUtils {
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

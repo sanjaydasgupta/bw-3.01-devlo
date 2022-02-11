@@ -16,7 +16,7 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val tz = getUser(request).get("tz").asInstanceOf[String]
       val properties = Seq("category", "subcategory", "content", "name", "description")
@@ -50,10 +50,10 @@ class DocumentRecordFind extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getOutputStream.println(jsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

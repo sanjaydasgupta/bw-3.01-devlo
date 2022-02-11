@@ -16,7 +16,7 @@ class ProgressReportList extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val timezone = parameters("timezone")
@@ -42,10 +42,10 @@ class ProgressReportList extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.println(outputRecords.map(b => bson2json(b.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         throw t
     }
   }

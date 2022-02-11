@@ -23,7 +23,7 @@ class Logout extends HttpServlet with HttpUtils {
     } catch {
       case t: Throwable =>
         val parameters = getParameterMap(request)
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
         //t.printStackTrace()
         throw t
     }

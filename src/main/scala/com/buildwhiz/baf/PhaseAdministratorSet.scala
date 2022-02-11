@@ -37,7 +37,7 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val assignedPersonOid = new ObjectId(parameters("person_id"))
       val phaseOid = new ObjectId(parameters("phase_id"))
@@ -58,10 +58,10 @@ class PhaseAdministratorSet extends HttpServlet with HttpUtils with MailUtils {
           thePhase.name[String])
       response.setStatus(HttpServletResponse.SC_OK)
       val phaseLog = s"'${thePhase.name[String]}' ($phaseOid)"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set manager of phase $phaseLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Set manager of phase $phaseLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

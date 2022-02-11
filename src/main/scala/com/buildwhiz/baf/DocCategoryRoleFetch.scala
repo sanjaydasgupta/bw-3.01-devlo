@@ -13,7 +13,7 @@ class DocCategoryRoleFetch extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val roleOid = new ObjectId(parameters("role_id"))
       val allCategories: Seq[DynDoc] = BWMongoDB3.document_category_master.find()
@@ -26,10 +26,10 @@ class DocCategoryRoleFetch extends HttpServlet with HttpUtils {
       response.getWriter.println(categoriesWithPermissions.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

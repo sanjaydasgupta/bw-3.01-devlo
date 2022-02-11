@@ -14,7 +14,7 @@ class ActionAdd extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val activityOid = new ObjectId(parameters("activity_id"))
       val actionName = parameters("action_name")
@@ -27,7 +27,7 @@ class ActionAdd extends HttpServlet with HttpUtils {
       ActionAdd.add(request, activityOid, actionName, actionDescription, typ, bpmnName, assigneeOid, duration, optionalRole)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -75,6 +75,6 @@ object ActionAdd {
     val (processOid, topLevelBpmn) = (theProcess._id[ObjectId], theProcess.bpmn_name[String])
     ProcessBpmnTraverse.scheduleBpmnElements(topLevelBpmn, processOid, request)
     val actionNameType = s"'${action.y.name[String]}' (${action.y.`type`[String]})"
-    BWLogger.audit(getClass.getName, "add", s"Added action $actionNameType", request)
+    BWLogger.audit(getClass.getName, request.getMethod, s"add(): Added action $actionNameType", request)
   }
 }

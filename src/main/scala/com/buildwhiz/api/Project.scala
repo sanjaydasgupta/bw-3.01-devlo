@@ -16,10 +16,10 @@ import org.bson.types.ObjectId
 class Project extends HttpServlet with RestUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val postData = getStreamData(request)
-      BWLogger.log(getClass.getName, "doPost(): postData", postData)
+      BWLogger.log(getClass.getName, request.getMethod, s"postData: $postData", request)
       val project: DynDoc = Document.parse(postData)
       if (!(project has "name"))
         throw new IllegalArgumentException("No 'name' found")
@@ -49,10 +49,10 @@ class Project extends HttpServlet with RestUtils {
       response.getWriter.println(bson2json(OwnedProjects.processProject(project, adminPersonOid).asDoc))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.audit(getClass.getName, "doPost", s"""Added Project '${project.name[String]}'""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Added Project '${project.name[String]}'""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -63,7 +63,7 @@ class Project extends HttpServlet with RestUtils {
   }
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doDelete()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val uriParts = new URI(request.getRequestURI.replace("[", "%5B").replace("]", "%5D")).getPath.split("/").toSeq.reverse
       val projectOid = uriParts match {
@@ -87,10 +87,10 @@ class Project extends HttpServlet with RestUtils {
         GoogleDrive.deleteObject(summary.key)
       }
       val projectNameAndId = s"""${theProject.name[String]} (${theProject._id[ObjectId]})"""
-      BWLogger.audit(getClass.getName, "doDelete", s"""Deleted Project '$projectNameAndId'""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Deleted Project '$projectNameAndId'""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doDelete()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -148,7 +148,7 @@ object Project {
           PersonApi.fullName(user)
         })
         val message = s"""Project '${project.name[String]}' linked to users ${userNames.mkString(",")}"""
-        BWLogger.audit(getClass.getName, "renewUserAssociation", message, request)
+        BWLogger.audit(getClass.getName, request.getMethod, s"renewUserAssociation: $message", request)
     }
 
   }

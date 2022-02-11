@@ -12,10 +12,10 @@ class RoleList extends HttpServlet with HttpUtils {
       response.getWriter.println(omniClass33rows.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", s"EXIT-OK (${omniClass33rows.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${omniClass33rows.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

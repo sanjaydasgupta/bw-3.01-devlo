@@ -14,7 +14,7 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val phaseId = parameters("phase_id")
@@ -34,10 +34,10 @@ class PhaseLaunch extends HttpServlet with HttpUtils {
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val phaseLogMessage = s"Launched phase '${thePhase.name[String]}' ($phaseId)"
-      BWLogger.audit(getClass.getName, "doPost", phaseLogMessage, request)
+      BWLogger.audit(getClass.getName, request.getMethod, phaseLogMessage, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

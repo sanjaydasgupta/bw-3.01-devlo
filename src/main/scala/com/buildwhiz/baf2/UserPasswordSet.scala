@@ -12,7 +12,7 @@ import org.bson.types.ObjectId
 class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
@@ -35,10 +35,10 @@ class UserPasswordSet extends HttpServlet with HttpUtils with CryptoUtils with M
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> userOid)).head
       val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set password for $personLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Set password for $personLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

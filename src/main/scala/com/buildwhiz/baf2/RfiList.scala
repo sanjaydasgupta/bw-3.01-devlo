@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 class RfiList extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val parameters = getParameterMap(request)
       val params: Seq[Option[String]] =
@@ -22,10 +22,10 @@ class RfiList extends HttpServlet with HttpUtils {
       response.getWriter.print(rfiJsons.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiJsons.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${rfiJsons.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -40,7 +40,7 @@ object RfiList extends DateTimeUtils with HttpUtils {
       optProjectId: Option[String] = None, doLog: Boolean = false): Seq[Document] = {
     (doLog, optRequest) match {
       case (true, Some(request)) =>
-        BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
       case _ =>
     }
     val userOid = user._id[ObjectId]
@@ -103,7 +103,7 @@ object RfiList extends DateTimeUtils with HttpUtils {
     })
     (doLog, optRequest) match {
       case (true, Some(request)) =>
-        BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${rfiProperties.length})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${rfiProperties.length})", request)
       case _ =>
     }
     rfiProperties

@@ -12,7 +12,7 @@ class ProcessLaunch extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val processId = parameters("process_id")
@@ -40,10 +40,10 @@ class ProcessLaunch extends HttpServlet with HttpUtils {
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val processLogMessage = s"Launched process '${theProcess.name[String]}' ($processId)"
-      BWLogger.audit(getClass.getName, "doPost", processLogMessage, request)
+      BWLogger.audit(getClass.getName, request.getMethod, processLogMessage, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

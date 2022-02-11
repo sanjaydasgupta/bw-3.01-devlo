@@ -13,7 +13,7 @@ import org.bson.types.ObjectId
 class DocumentLabelManage extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
@@ -37,12 +37,12 @@ class DocumentLabelManage extends HttpServlet with HttpUtils {
       }
       response.setStatus(HttpServletResponse.SC_OK)
       if (modifiedCount > 0)
-        BWLogger.audit(getClass.getName, "doPost", s"$operation document '$documentOid' to label '$labelName'", request)
+        BWLogger.audit(getClass.getName, request.getMethod, s"$operation document '$documentOid' to label '$labelName'", request)
       else
-        BWLogger.log(getClass.getName, "doPost", "EXIT-OK (without changes)", request)
+        BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK (without changes)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         throw t
     }
   }

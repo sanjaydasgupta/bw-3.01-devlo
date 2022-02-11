@@ -23,7 +23,7 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val parameters = getParameterMap(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> new ObjectId(parameters("person_id")))).head
@@ -40,10 +40,10 @@ class AmazonS3Docs extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.print(byProject.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${namesAndSizes.length} objects)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${namesAndSizes.length} objects)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

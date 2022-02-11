@@ -27,7 +27,7 @@ class CountryStateNames extends HttpServlet with HttpUtils {
   )
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val countryCode = parameters("country_code")
@@ -37,10 +37,10 @@ class CountryStateNames extends HttpServlet with HttpUtils {
       response.getWriter.print(stateNameList.sorted.mkString("[\"", "\", \"", "\"]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${stateNameList.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${stateNameList.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

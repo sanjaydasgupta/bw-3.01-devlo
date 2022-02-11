@@ -7,7 +7,7 @@ import com.buildwhiz.utils.{BWLogger, BpmnUtils}
 class PhaseBpmnNamesFetch extends HttpServlet with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val prefix = ".+/Phase-"
       val phaseNames: Seq[String] = getDeployedResources.map(_.getName).filter(_.matches(s"$prefix.+\\.bpmn")).
@@ -20,10 +20,10 @@ class PhaseBpmnNamesFetch extends HttpServlet with BpmnUtils {
       response.getWriter.print(phaseNames.sorted.mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${phaseNames.length})", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${phaseNames.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

@@ -13,7 +13,7 @@ import org.bson.types.ObjectId
 class DocumentLabelsFetch extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val person: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
@@ -26,10 +26,10 @@ class DocumentLabelsFetch extends HttpServlet with HttpUtils {
       response.getWriter.println(sortedLabelObjects.map(d => bson2json(d)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", s"EXIT-OK (${labelObjects.length} labels)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${labelObjects.length} labels)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         throw t
     }
   }

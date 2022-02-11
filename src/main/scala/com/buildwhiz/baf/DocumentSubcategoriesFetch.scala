@@ -12,7 +12,7 @@ class DocumentSubcategoriesFetch extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val category = parameters("category")
       val records: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("category" -> category))
@@ -22,10 +22,10 @@ class DocumentSubcategoriesFetch extends HttpServlet with HttpUtils {
       response.getOutputStream.println(jsonArrayString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

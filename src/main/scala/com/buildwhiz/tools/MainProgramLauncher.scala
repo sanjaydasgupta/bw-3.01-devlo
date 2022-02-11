@@ -11,7 +11,7 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val parameters = getParameterMap(request)
       val args: Array[String] = if (parameters.contains("args")) parameters("args").split("\\s+") else Array.empty
@@ -25,10 +25,11 @@ class MainProgramLauncher extends HttpServlet with HttpUtils {
       else if (mainMethod._2 == 3)
         clazz.getMethod("main", classOf[HttpServletRequest], classOf[HttpServletResponse], classOf[Array[String]]).
           invoke(null, request, response, args)
-      BWLogger.log(getClass.getName, "doPost/Get", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost/Get", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod,
+            s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

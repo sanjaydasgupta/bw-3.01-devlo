@@ -10,7 +10,7 @@ import org.bson.types.ObjectId
 class DocumentVersionDelete extends HttpServlet with HttpUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val documentOid = new ObjectId(parameters("document_id"))
@@ -22,11 +22,11 @@ class DocumentVersionDelete extends HttpServlet with HttpUtils with MailUtils {
       val deleteResult = BWMongoDB3.document_master.
         deleteOne(Map("$and" -> Seq(Map("$where" -> "this.versions.length == 0"), Map("_id" -> documentOid))))
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost",
+      BWLogger.log(getClass.getName, request.getMethod,
         s"EXIT-OK (deleted ${updateResult.getModifiedCount} versions, ${deleteResult.getDeletedCount} classes)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

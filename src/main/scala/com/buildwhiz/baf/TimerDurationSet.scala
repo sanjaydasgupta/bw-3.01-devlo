@@ -15,7 +15,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))
@@ -23,7 +23,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
       TimerDurationSet.set(request, phaseOid, timerId, timerName, bpmnName, duration)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -71,8 +71,8 @@ object TimerDurationSet extends DateTimeUtils {
         PhaseBpmnTraverse.scheduleBpmnElements(topLevelBpmn, phaseOid, request)
       }
       val timerLog = s"'${timers(timerIdx).name[String]}'"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set duration of timer '$timerLog' to '$duration'""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Set duration of timer '$timerLog' to '$duration'""", request)
     } else
-      BWLogger.log(getClass.getName, "doPost", "EXIT-OK (Process already ended, no changes)", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK (Process already ended, no changes)", request)
   }
 }

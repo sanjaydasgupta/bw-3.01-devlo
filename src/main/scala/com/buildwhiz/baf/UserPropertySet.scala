@@ -58,7 +58,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val userRecord: DynDoc = getUser(request)
       val personOid: ObjectId = parameters.get("person_id") match {
@@ -75,10 +75,10 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set property for $personLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Set property for $personLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

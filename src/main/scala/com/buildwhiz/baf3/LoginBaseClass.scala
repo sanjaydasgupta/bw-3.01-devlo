@@ -97,9 +97,9 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 //        request.getCookies.map(c => s"[name:'${c.getName}' domain:'${c.getDomain}' path:'${c.getPath}' value:'${c.getValue}']").
 //            mkString("; ")
 //      }
-//      BWLogger.log(getClass.getName, "doPost", s"SESSIONID: $sessionId, COOKIES: $cookies", request, isLogin = true)
+//      BWLogger.log(getClass.getName, request.getMethod, s"SESSIONID: $sessionId, COOKIES: $cookies", request, isLogin = true)
       val postData = getStreamData(request)
-      //BWLogger.log(getClass.getName, "doPost", s"POST-data: '$postData'", request, isLogin = true)
+      //BWLogger.log(getClass.getName, request.getMethod, s"POST-data: '$postData'", request, isLogin = true)
       val parameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
       if (parameters.has("idtoken") && parameters.has("email")) {
         val idToken = parameters.idtoken[String]
@@ -161,7 +161,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 //        val workEmail: String = emails.find(_.`type`[String] == "work").head.email[String]
 //        request.getSession.removeAttribute("bw-user")
 //        request.getSession.invalidate()
-//        BWLogger.log(getClass.getName, "doPost", s"Logout ($workEmail)", request)
+//        BWLogger.log(getClass.getName, request.getMethod, s"Logout ($workEmail)", request)
       } else {
         val result = """{"_id": "", "first_name": "", "last_name": ""}"""
         response.getWriter.print(result)

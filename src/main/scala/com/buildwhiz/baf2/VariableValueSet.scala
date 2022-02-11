@@ -12,14 +12,14 @@ class VariableValueSet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
       val (label, bpmnName, value) = (parameters("label"), parameters("bpmn_name"), parameters("value"))
       VariableValueSet.set(request, response, processOid, label, bpmnName, value)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -69,7 +69,7 @@ object VariableValueSet extends HttpUtils {
 //      response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
       val message = s"Set value of variable '${variables(variableIdx).label[String]}' to '$value'"
-      BWLogger.audit(getClass.getName, "doPost", message, request)
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
     }
   }
 }

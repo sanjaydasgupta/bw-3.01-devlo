@@ -13,7 +13,7 @@ class ProjectEnd extends HttpServlet with HttpUtils with BpmnUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       //
       //ToDo: Need to check the status of child objects (phases, ... actions)
@@ -32,10 +32,10 @@ class ProjectEnd extends HttpServlet with HttpUtils with BpmnUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       response.setStatus(HttpServletResponse.SC_OK)
       val projectLog = s"'${theProject.name[String]}' (${theProject._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", s"""Ended project $projectLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Ended project $projectLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

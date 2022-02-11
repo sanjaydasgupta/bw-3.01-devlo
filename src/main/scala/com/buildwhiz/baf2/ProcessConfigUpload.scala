@@ -38,7 +38,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       }
     }
 
-    BWLogger.log(getClass.getName, "processTasks", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "processTasks() ENTRY", request)
     val rows: Iterator[Row] = taskSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val taskHeaderCellCount = header.getPhysicalNumberOfCells
@@ -97,7 +97,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       }
     }
 
-    BWLogger.log(getClass.getName, "processDocuments", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "processDocuments() ENTRY", request)
     val rows: Iterator[Row] = documentSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val documentHeaderCellCount = header.getPhysicalNumberOfCells
@@ -130,7 +130,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       VariableValueSet.set(request, response, processOid, name, bpmnName, value)
     }
 
-    BWLogger.log(getClass.getName, "processVariables", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "processVariables(); ENTRY", request)
     val rows: Iterator[Row] = variableSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val variableHeaderCellCount = header.getPhysicalNumberOfCells
@@ -159,7 +159,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
       TimerDurationSet.set(request, processOid, None, Some(name), bpmnName, duration)
     }
 
-    BWLogger.log(getClass.getName, "processTimers", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "processTimers() ENTRY", request)
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val timerHeaderCellCount = header.getPhysicalNumberOfCells
@@ -207,7 +207,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     }
 
-    BWLogger.log(getClass.getName, "processRoles", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "processRoles() ENTRY", request)
     val rows: Iterator[Row] = timersSheet.rowIterator.asScala
     val header = rows.take(1).toSeq.head
     val roleHeaderCellCount = header.getPhysicalNumberOfCells
@@ -227,7 +227,7 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
 
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val processOid = new ObjectId(parameters("process_id"))
       val process: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
@@ -251,13 +251,13 @@ class ProcessConfigUpload extends HttpServlet with HttpUtils with MailUtils {
         case ("Observers", sheet) => processObserverRoles(request, response, sheet, processOid, bpmnName)
         case (other, _) => throw new IllegalArgumentException(s"unexpected sheet (name=$other)")
       }).mkString(", ")
-      BWLogger.audit(getClass.getName, "doPost", s"Uploaded process configuration Excel ($nbrOfSheets sheets: $itemsUploaded)", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Uploaded process configuration Excel ($nbrOfSheets sheets: $itemsUploaded)", request)
       response.getWriter.print(s"""{"nbrOfSheets": "$nbrOfSheets", "items": "$itemsUploaded"}""")
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

@@ -44,7 +44,7 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val activityOid = new ObjectId(parameters("activity_id"))
@@ -61,10 +61,10 @@ class RfiDocuments extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.print(docsWithText.map(activity => bson2json(activity.asDoc)).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK (${docsWithText.length} objects)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${docsWithText.length} objects)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

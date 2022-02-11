@@ -103,7 +103,7 @@ object AddDocMetadataTrial extends HttpUtils with DateTimeUtils {
       case t: Throwable =>
         t.printStackTrace(respWriter)
         //respWriter.println(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-        //BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        //BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

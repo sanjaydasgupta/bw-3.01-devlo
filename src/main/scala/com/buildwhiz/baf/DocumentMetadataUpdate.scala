@@ -43,17 +43,17 @@ class DocumentMetadataUpdate extends HttpServlet with HttpUtils with DateTimeUti
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val jsonArray = getStreamData(request)
       val arrayElements: Array[String] = jsonArray.substring(jsonArray.indexOf("{") + 1, jsonArray.lastIndexOf("}")).
           split("\\}\\s*,\\s*\\{")
       val documents = arrayElements.map(json => Document.parse(s"{$json}"))
       documents.foreach(update)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK (${documents.length} items)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${documents.length} items)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

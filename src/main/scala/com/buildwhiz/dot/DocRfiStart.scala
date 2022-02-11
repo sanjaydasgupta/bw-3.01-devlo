@@ -12,7 +12,7 @@ class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
 
   private def sendMail(projectOid: ObjectId, activityOid: ObjectId, action: DynDoc, isRequest: Boolean,
         request: HttpServletRequest): Unit = {
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "ENTRY")
+    BWLogger.log(getClass.getName, request.getMethod, "saveAndSendMail() ENTRY", request)
     try {
       val reqOrResp = if (isRequest) "request" else "response"
       val subject = s"RFI $reqOrResp received"
@@ -29,15 +29,16 @@ class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
     } catch {
       case t: Throwable =>
         //t.printStackTrace()
-        BWLogger.log(getClass.getName, "saveAndSendMail()", s"ERROR ${t.getClass.getName}(${t.getMessage})")
+        BWLogger.log(getClass.getName, request.getMethod,
+            s"saveAndSendMail ERROR ${t.getClass.getName}(${t.getMessage})", request)
         throw t
     }
-    BWLogger.log(getClass.getName, "saveAndSendMail()", "EXIT-OK")
+    BWLogger.log(getClass.getName, request.getMethod, "saveAndSendMail() EXIT-OK", request)
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getUser(request)
       val documentOid = new ObjectId(parameters("document_id"))
@@ -55,10 +56,10 @@ class DocRfiStart extends HttpServlet with HttpUtils with MailUtils {
       //saveAndSendMail(projectOid, activityOid, theAction, isRequest, request)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

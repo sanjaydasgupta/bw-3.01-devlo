@@ -13,7 +13,7 @@ import org.bson.Document
 class DocumentLabelDelete extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val labelName: String = parameters("label_name")
@@ -31,10 +31,10 @@ class DocumentLabelDelete extends HttpServlet with HttpUtils {
         "document_filter_labels" -> Map("$exists" -> true)),
         Map("$pull" -> Map("document_filter_labels" -> labelName)))
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.audit(getClass.getName, "doPost", s"Deleted document-label '$labelName'", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Deleted document-label '$labelName'", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         throw t
     }
   }

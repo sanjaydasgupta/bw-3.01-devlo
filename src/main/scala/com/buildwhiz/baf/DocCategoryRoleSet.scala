@@ -11,7 +11,7 @@ class DocCategoryRoleSet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val categoryOid = new ObjectId(parameters("category_id"))
       val roleOid = new ObjectId(parameters("role_id"))
@@ -24,10 +24,10 @@ class DocCategoryRoleSet extends HttpServlet with HttpUtils {
       }
       val status = if (matchCount == 0) "inserted" else "updated"
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK (record $status)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (record $status)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

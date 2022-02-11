@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters._
 class Phase extends HttpServlet with RestUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       //val phasesCollection = BWMongoDB3.phases
       val postData = getStreamData(request)
@@ -36,10 +36,10 @@ class Phase extends HttpServlet with RestUtils {
       response.setContentType("text/plain")
       response.getWriter.print(s"${request.getRequestURI}/${phaseDocument.getObjectId("_id")}")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.audit(getClass.getName, "doPost", s"""Added Phase '${phaseDocument.get("name")}'""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Added Phase '${phaseDocument.get("name")}'""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

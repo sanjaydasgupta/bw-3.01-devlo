@@ -15,7 +15,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val activityQuery = Map("_id" -> new ObjectId(parameters("activity_id")))
       val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
@@ -27,7 +27,7 @@ class ActionComplete extends HttpServlet with HttpUtils {
           val hasId = action has "camunda_execution_id"
           if (hasId) {
             val rts = ProcessEngines.getDefaultProcessEngine.getRuntimeService
-            BWLogger.log(getClass.getName, "doPost", "calling messageEventReceived()", request)
+            BWLogger.log(getClass.getName, request.getMethod, "calling messageEventReceived()", request)
             rts.messageEventReceived("Action-Complete", action.camunda_execution_id[String])
           }
           val completionMessage = s"actions.$idx.completion_message" ->
@@ -74,10 +74,10 @@ class ActionComplete extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException(s"Action '$actionName' NOT found")
       }
       val actionLog = s"'$actionName'"
-      BWLogger.audit(getClass.getName, "doPost", s"""Completed action $actionLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Completed action $actionLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

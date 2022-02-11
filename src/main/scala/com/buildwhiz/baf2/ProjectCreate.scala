@@ -11,7 +11,7 @@ import org.bson.types.ObjectId
 class ProjectCreate extends HttpServlet with HttpUtils {
 
   private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost()", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
       val user: DynDoc = getUser(request)
@@ -56,10 +56,10 @@ class ProjectCreate extends HttpServlet with HttpUtils {
       response.getWriter.print(bson2json(projectDocument))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.audit(getClass.getName, "doPost", s"Created Project '$projectName'", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"Created Project '$projectName'", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

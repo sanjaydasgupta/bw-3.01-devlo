@@ -10,14 +10,14 @@ import org.bson.Document
 class GetAlerts extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
 
     val user: DynDoc = getUser(request)
     response.getWriter.println("""{"tasks": "2", "docs": "0", "rfis": "3"}""")
     response.setContentType("application/json")
     response.setStatus(HttpServletResponse.SC_OK)
 
-    BWLogger.log(getClass.getName, "doGet", s"EXIT-OK", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
   }
 
 }

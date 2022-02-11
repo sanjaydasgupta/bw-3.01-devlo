@@ -14,7 +14,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val documentOid = new ObjectId(parameters("document_id"))
@@ -34,10 +34,10 @@ class DocumentDownload extends HttpServlet with HttpUtils {
       val document: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
       response.setContentType(document.content_type[String])
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

@@ -13,7 +13,7 @@ class UserSkillsSet extends HttpServlet with HttpUtils with CryptoUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val personOid = new ObjectId(parameters("person_id"))
       val setAdmin = parameters("BW-Admin").toBoolean match {
@@ -33,10 +33,10 @@ class UserSkillsSet extends HttpServlet with HttpUtils with CryptoUtils {
       response.setStatus(HttpServletResponse.SC_OK)
       val thePerson: DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
       val personLog = s"'${PersonApi.fullName(thePerson)}' (${thePerson._id[ObjectId]})"
-      BWLogger.audit(getClass.getName, "doPost", s"""Set skills for $personLog""", request)
+      BWLogger.audit(getClass.getName, request.getMethod, s"""Set skills for $personLog""", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

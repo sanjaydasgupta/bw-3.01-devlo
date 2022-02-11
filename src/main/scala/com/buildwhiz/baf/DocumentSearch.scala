@@ -16,7 +16,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val cachedUser: DynDoc = getUser(request)
     val user: DynDoc = BWMongoDB3.persons.find(Map("_id" -> cachedUser._id[ObjectId])).head
 
@@ -49,7 +49,7 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       } else
         query
 
-      BWLogger.log(getClass.getName, "doGet", s"query: ${fullQuery.toSeq}", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"query: ${fullQuery.toSeq}", request)
       val allRecords: Seq[DynDoc] = BWMongoDB3.document_master.find(fullQuery)
 
       val docRecords = allRecords.filter(rec => !rec.has("category") || rec.category[String] != "SYSTEM")
@@ -97,10 +97,10 @@ class DocumentSearch extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getOutputStream.println(jsonString)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

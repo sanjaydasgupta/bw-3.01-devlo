@@ -105,7 +105,7 @@ class UserPropertySet extends HttpServlet with HttpUtils {
       BWLogger.audit(getClass.getName, request.getMethod, logMessage, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

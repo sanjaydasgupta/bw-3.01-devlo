@@ -14,7 +14,7 @@ class TimerDurationFetch extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase: DynDoc = BWMongoDB3.processes.find(Map("_id" -> phaseOid)).head
@@ -31,10 +31,10 @@ class TimerDurationFetch extends HttpServlet with HttpUtils {
       response.flushBuffer()
       response.setContentType("text/plain")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", s"EXIT-OK ($duration)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($duration)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

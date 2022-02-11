@@ -59,7 +59,7 @@ class Environment extends HttpServlet with RestUtils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "handleGet", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
 
     val parameterMap = getParameterMap(request)
     if (parameterMap.contains("minutes")) {
@@ -69,7 +69,7 @@ class Environment extends HttpServlet with RestUtils {
     } else {
       doCookies(request, response)
     }
-    BWLogger.log(getClass.getName, "handleGet", s"EXIT-OK", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
   }
 
 }

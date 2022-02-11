@@ -21,7 +21,7 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val parts = request.getParts.asScala.toList
       if (parts.length > 1 && parameters.contains("document_master_id"))
@@ -63,10 +63,10 @@ class DocumentPreload extends HttpServlet with HttpUtils with MailUtils {
       response.getWriter.print(storageResults.map(bson2json).mkString("[", ", ", "]"))
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doPost", s"EXIT-OK (${storageResults.length} items)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${storageResults.length} items)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

@@ -18,7 +18,7 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val timestamp = parameters("timestamp").toLong
       val documentOid = new ObjectId(parameters("document_master_id"))
@@ -28,7 +28,7 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
       else
         project430ForestOid
       val amazonS3Key = f"$projectOid-$documentOid-$timestamp%x"
-      BWLogger.log(getClass.getName, "doGet", s"amazonS3Key: $amazonS3Key", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"amazonS3Key: $amazonS3Key", request)
       //val inputStream: InputStream = AmazonS3.getObject(amazonS3Key)
       val inputStream: InputStream = GoogleDrive.getObject(amazonS3Key)
       val outputStream = response.getOutputStream
@@ -42,10 +42,10 @@ class DocumentVersionDownload extends HttpServlet with HttpUtils {
       if (document.has("content") && contentTypes.contains(document.content[String]))
         response.setContentType(contentTypes(document.content[String]))
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

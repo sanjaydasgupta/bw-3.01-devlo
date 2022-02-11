@@ -65,7 +65,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request, isLogin = true)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request, isLogin = true)
     try {
       val postData = getStreamData(request)
       val loginParameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
@@ -77,7 +77,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         val person: Option[Document] = BWMongoDB3.persons.find(query).asScala.headOption
         val result = person match {
           case None =>
-            BWLogger.log(getClass.getName, "doPost", s"Login ERROR: $email", request)
+            BWLogger.log(getClass.getName, request.getMethod, s"Login ERROR: $email", request)
             """{"_id": "", "first_name": "", "last_name": ""}"""
           case Some(personRecord) =>
             cookieSessionSet(email, personRecord, request, response)
@@ -88,7 +88,7 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
               "tz", "email_enabled", "ui_hidden", "document_filter_labels", "menu_items").filter(f => personRecord.containsKey(f))
             val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap)
             recordLoginTime(personRecord)
-            BWLogger.audit(getClass.getName, "doPost", "Login OK", request)
+            BWLogger.audit(getClass.getName, request.getMethod, "Login OK", request)
             bson2json(resultPerson)
         }
         response.getWriter.print(result)
@@ -100,17 +100,17 @@ class LoginPost extends HttpServlet with HttpUtils with CryptoUtils {
         val workEmail: String = emails.find(_.`type`[String] == "work").head.email[String]
         request.getSession.removeAttribute("bw-user")
         request.getSession.invalidate()
-        BWLogger.log(getClass.getName, "doPost", s"Logout ($workEmail)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"Logout ($workEmail)", request)
       } else {
         val result = """{"_id": "", "first_name": "", "last_name": ""}"""
         response.getWriter.print(result)
         response.setContentType("application/json")
         response.setStatus(HttpServletResponse.SC_OK)
-        BWLogger.log(getClass.getName, "doPost", s"EXIT-OK Login without parameters ($result)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK Login without parameters ($result)", request)
       }
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", parameters.toSeq: _*)
         //t.printStackTrace()
         throw t
     }

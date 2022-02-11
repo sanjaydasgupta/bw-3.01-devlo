@@ -10,7 +10,7 @@ import org.bson.Document
 class GetAlerts extends HttpServlet with RestUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doGet", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
 
     val user: DynDoc = getUser(request)
     val result: Document = user.first_name[String] match {
@@ -23,7 +23,7 @@ class GetAlerts extends HttpServlet with RestUtils {
     response.setContentType("application/json")
     response.setStatus(HttpServletResponse.SC_OK)
 
-    BWLogger.log(getClass.getName, "doGet", s"EXIT-OK ($json)", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($json)", request)
   }
 
 }

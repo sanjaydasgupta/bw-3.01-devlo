@@ -13,20 +13,20 @@ class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val repositoryService = ProcessEngines.getDefaultProcessEngine.getRepositoryService
 
       val allProcDefs: Seq[ProcessDefinition] = repositoryService.createProcessDefinitionQuery().list().asScala.toSeq
-      BWLogger.log(getClass.getName, "doGet", s"""allProcessDefinitions: ${allProcDefs.mkString(", ")}""", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"""allProcessDefinitions: ${allProcDefs.mkString(", ")}""", request)
       val processDefinitions = allProcDefs.filter(_.getResourceName.contains(bpmnFileName))
-      BWLogger.log(getClass.getName, "doGet", s"""processDefinitions: ${processDefinitions.mkString(", ")}""", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"""processDefinitions: ${processDefinitions.mkString(", ")}""", request)
       val processIds = processDefinitions.map(_.getId)
-      BWLogger.log(getClass.getName, "doGet", s"""processIds: ${processIds.mkString(", ")}""", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"""processIds: ${processIds.mkString(", ")}""", request)
       val diagramStream = processIds.map(pid => Try(repositoryService.getProcessDiagram(pid))).
           find(t => t.isSuccess && t.get != null)
-      BWLogger.log(getClass.getName, "doGet", s"""diagramStream: ${diagramStream.mkString(", ")}""", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"""diagramStream: ${diagramStream.mkString(", ")}""", request)
       val buffer = new Array[Byte](4096)
       val printStream = response.getOutputStream
       def copyDiagramToOutput(): Unit = {
@@ -42,10 +42,10 @@ class PhaseBpmnImage extends HttpServlet with HttpUtils with BpmnUtils {
       copyDiagramToOutput()
       response.setContentType("image/png")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet", "EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }

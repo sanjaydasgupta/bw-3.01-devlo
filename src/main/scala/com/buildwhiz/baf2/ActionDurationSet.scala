@@ -10,7 +10,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val actionName = parameters("action_name")
       val duration = parameters("duration")
@@ -20,7 +20,7 @@ class ActionDurationSet extends HttpServlet with HttpUtils {
       response.setStatus(HttpServletResponse.SC_OK)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
@@ -60,7 +60,7 @@ object ActionDurationSet {
       val topLevelBpmn = theProcess.bpmn_name[String]
       ProcessBpmnTraverse.scheduleBpmnElements(topLevelBpmn, processOid, request)
     }
-    BWLogger.audit(getClass.getName, "doPost", s"Set duration of action '$actionName' to '$duration'", request)
+    BWLogger.audit(getClass.getName, request.getMethod, s"Set duration of action '$actionName' to '$duration'", request)
   }
 
 }

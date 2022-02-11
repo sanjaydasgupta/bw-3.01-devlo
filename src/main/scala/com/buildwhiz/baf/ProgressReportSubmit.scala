@@ -38,7 +38,7 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, "doPost", "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val parts: Iterable[Part] = request.getParts.asScala
       val dataPart = parts.head
@@ -69,9 +69,9 @@ class ProgressReportSubmit extends HttpServlet with HttpUtils with MailUtils wit
       sendProgressMail(projectManager, title, url, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doPost", s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
         throw t
     }
-    BWLogger.log(getClass.getName, "doPost", "EXIT-OK", request)
+    BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
   }
 }

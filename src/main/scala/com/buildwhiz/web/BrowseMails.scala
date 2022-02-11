@@ -20,7 +20,7 @@ class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameters = getParameterMap(request)
-    BWLogger.log(getClass.getName, "doGet()", s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val writer = response.getWriter
     writer.println(s"<html><head><title>Mails Listing</title></head><body>")
     try {
@@ -47,10 +47,10 @@ class BrowseMails extends HttpServlet with HttpUtils with DateTimeUtils {
       writer.println(s"</body></html>")
       response.setContentType("text/html")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, "doGet()", s"EXIT-OK", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, "doGet()", s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         t.printStackTrace()
         throw t
     }

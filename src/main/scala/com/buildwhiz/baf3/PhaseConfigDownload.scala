@@ -35,7 +35,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     }
   }
 
-  private def addConstraintRows(taskSheet: XSSFSheet, request: HttpServletRequest): Unit = {
+  private def addConstraintRows(taskSheet: XSSFSheet, isTakt: Boolean, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "addConstraintRows(): ENTRY", request)
     val cellStyle = taskSheet.getWorkbook.createCellStyle()
     cellStyle.setAlignment(HorizontalAlignment.CENTER)
@@ -46,30 +46,31 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       Seq.range(0, 3).foreach(row.createCell(_).setCellValue("--"))
       row.createCell(3).setCellValue(2 + 3 * n)
       row.createCell(4).setCellValue(5 * (n - 2))
+      row.createCell(5).setCellValue(if (isTakt) "H" else "--")
       row.setRowStyle(cellStyle)
     }
     BWLogger.log(getClass.getName, request.getMethod, "addConstraintRows(): EXIT", request)
   }
 
-  private def addDeliverableRows(taskSheet: XSSFSheet, activityOid: ObjectId, request: HttpServletRequest): Unit = {
+  private def addDeliverableRows(taskSheet: XSSFSheet, activity: DynDoc, request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "addDeliverableRows(): ENTRY", request)
     val cellStyle = taskSheet.getWorkbook.createCellStyle()
     cellStyle.setAlignment(HorizontalAlignment.CENTER)
     cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND)
     cellStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.index)
-    val existingDeliverables = DeliverableApi.deliverablesByActivityOids(Seq(activityOid))
+    val existingDeliverables = DeliverableApi.deliverablesByActivityOids(Seq(activity._id[ObjectId]))
     val sampleDeliverables: Seq[DynDoc] = Seq(
       Map("name" -> "WorkDeliverable", "deliverable_type" -> "Work", "duration" -> 10),
       Map("name" -> "DocumentDeliverable", "deliverable_type" -> "Document", "duration" -> 5)
     )
     for (deliverable <- existingDeliverables ++ sampleDeliverables) {
       val row = taskSheet.createRow(taskSheet.getLastRowNum + 1)
-      Seq.range(0, 5).foreach(row.createCell(_).setCellValue("--"))
-      row.createCell(5).setCellValue(deliverable.name[String])
-      row.createCell(6).setCellValue(deliverable.deliverable_type[String])
-      row.createCell(7).setCellValue(deliverable.duration[Int])
+      Seq.range(0, 6).foreach(row.createCell(_).setCellValue("--"))
+      row.createCell(6).setCellValue(deliverable.name[String])
+      row.createCell(7).setCellValue(deliverable.deliverable_type[String])
+      row.createCell(8).setCellValue(deliverable.duration[Int])
       row.setRowStyle(cellStyle)
-      addConstraintRows(taskSheet, request)
+      addConstraintRows(taskSheet, activity.is_takt[Boolean], request)
     }
     BWLogger.log(getClass.getName, request.getMethod, "addDeliverableRows(): EXIT", request)
   }
@@ -78,7 +79,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, "addTasksSheet(): ENTRY", request)
     val taskSheet = workbook.createSheet("Tasks")
     val headerInfo = Seq(("Activity-Name", 60), ("A-ID", 40), ("Takt?", 15), ("Constraint", 20), ("C-Delay", 20),
-        ("Deliverable-Name", 60), ("D-Type", 20), ("D-Duration", 20))
+        ("C-Hor/Vert", 20), ("Deliverable-Name", 60), ("D-Type", 20), ("D-Duration", 20))
     makeHeaderRow(taskSheet, headerInfo)
     val cellStyle = taskSheet.getWorkbook.createCellStyle()
     cellStyle.setAlignment(HorizontalAlignment.CENTER)
@@ -100,7 +101,7 @@ class PhaseConfigDownload extends HttpServlet with HttpUtils {
       }
       row.createCell(2).setCellValue(taktIndicator)
       row.setRowStyle(cellStyle)
-      addDeliverableRows(taskSheet, activityOid, request)
+      addDeliverableRows(taskSheet, activity, request)
     }
     BWLogger.log(getClass.getName, request.getMethod, "addTasksSheet(): ENTRY", request)
   }

@@ -40,6 +40,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     if (g.constraintsByOwnerOid.contains(deliverable._id[ObjectId])) {
       val constraints = g.constraintsByOwnerOid(deliverable._id[ObjectId])
       val constraintEndDates: Seq[Long] = constraints.map(constraint => {
+        val constraintDelay = constraint.getOrElse[Int]("delay", 0)
         val constraintOid = constraint.constraint_id[ObjectId]
         constraint.`type`[String] match {
           case "Document" | "Work" =>
@@ -49,7 +50,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               //if (verbose)
               //  respond(margin * (level + 1) +
               //    s"DELIVERABLE: ${constraintDeliverable.name[String]} = ${msToDate(deliverableDate)}<br/>")
-              deliverableDate
+              deliverableDate + constraintDelay
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING constraint-deliverable: $constraintOid</font><br/>")
@@ -65,7 +66,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               if (verbose)
                 g.respond(margin * (level + 1) +
                   s"PROCUREMENT End-Date: ${procurementRecord.name[String]} ($constraintOid) = ${msToDate(procurementDate, g.timezone)}<br/>")
-              procurementDate
+              procurementDate + constraintDelay
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING procurement: $constraintOid</font><br/>")
@@ -82,7 +83,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
                 g.respond(margin * (level + 1) +
                   s"DATA End-Date: ${keyDataRecord.name[String]} ($constraintOid) = ${msToDate(keyDataDate, g.timezone)}<br/>")
               }
-              keyDataDate
+              keyDataDate + constraintDelay
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING data: $constraintOid</font><br/>")

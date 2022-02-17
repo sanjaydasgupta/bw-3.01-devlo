@@ -3,14 +3,14 @@ package com.buildwhiz.baf3
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-class DocumentCreate extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
+class DocumentCreate extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)

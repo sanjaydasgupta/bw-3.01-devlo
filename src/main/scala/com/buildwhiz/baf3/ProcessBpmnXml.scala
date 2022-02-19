@@ -147,7 +147,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val endOffset: Option[Long] = stamp.get[Long]("offset_scheduled").
           flatMap(os => stamp.get[Long]("duration_scheduled").map(os + _))
       val endDate = phaseStartDate.flatMap(startDate => endOffset.map(dur =>
-        addWeekdays(startDate, dur, PhaseApi.timeZone(phase)))) match {
+        addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase)))) match {
         case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
         case None => "__/__/____"
       }

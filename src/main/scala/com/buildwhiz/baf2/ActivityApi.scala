@@ -85,7 +85,7 @@ object ActivityApi extends DateTimeUtils {
     val activityLikelyDuration: Option[Long] =
         activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d)})
     scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.
-        map(dur => addWeekdays(startDate, dur, PhaseApi.timeZone(phase))))
+        map(dur => addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase))))
   }
 
   def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
@@ -112,7 +112,7 @@ object ActivityApi extends DateTimeUtils {
     (scheduledStart3(process, activity), activity.get[Long]("duration")) match {
       case (Some(scheduledStartDate), Some(offset)) =>
         val phase = ProcessApi.parentPhase(process._id[ObjectId])
-        Some(addWeekdays(scheduledStartDate, offset, PhaseApi.timeZone(phase)))
+        Some(addWeekdays(scheduledStartDate, math.max(0, offset - 1), PhaseApi.timeZone(phase)))
       case _ => None
     }
   }

@@ -12,11 +12,14 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import java.net.URLEncoder
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.jdk.CollectionConverters._
 import scala.io.Source
 
 object NodeConnector extends HttpServlet with HttpUtils {
+
+  private def enc(s: String): String = URLEncoder.encode(s, "utf8")
 
   private def nodeUri(request: HttpServletRequest): String = {
     if (request.getParameter("uid") != null)
@@ -24,13 +27,13 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val user: DynDoc = getPersona(request)
     val loggedInUser: DynDoc = getUser(request)
     val loggedInUserName = PersonApi.fullName(loggedInUser).replace(" ", "%20")
-    val userParam = s"uid=${user._id[ObjectId]}&u$$nm=$loggedInUserName"
+    val userParam = s"uid=${enc(user._id[ObjectId].toString)}&u$$nm=${enc(loggedInUserName)}"
     val urlParts = request.getRequestURL.toString.split("/")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)
     val serviceNameWithParameters = request.getParameterMap.asScala.filterNot(_._1 == "JSESSIONID") match {
       case params if params.nonEmpty =>
-        serviceName + params.map(kv => s"${kv._1}=${kv._2.head}").mkString("?", "&", "&") + userParam
+        serviceName + params.map(kv => s"${enc(kv._1)}=${enc(kv._2.head)}").mkString("?", "&", "&") + userParam
       case _ => serviceName + "?" + userParam
     }
     s"http://localhost:3000/$serviceNameWithParameters"

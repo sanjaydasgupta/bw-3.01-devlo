@@ -110,7 +110,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
             BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work", "email" -> email))).headOption.map(_.asDoc)
           val result = person match {
             case None =>
-              BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Google-OK but no work-email: $email", request)
+              BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR unknown work-email: $email", request)
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
               val singleProjectIndicator = ProjectApi.projectsByUser30(personRecord.getObjectId("_id")) match {
@@ -144,7 +144,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
               recordLoginTime(personRecord)
-              val message = s"Login OK. SPI=${singleProjectIndicator.toJson}"
+              val message = s"Login OK ($email). SPI=${singleProjectIndicator.toJson}"
               BWLogger.audit(getClass.getName, request.getMethod, message, request)
               bson2json(resultPerson)
           }

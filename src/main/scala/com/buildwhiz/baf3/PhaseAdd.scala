@@ -125,6 +125,22 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     endNodeBuffer.append(end)
   }
 
+  private def addStartNode(startNode: Element, bpmnName: String, namePath: String, idPath: String,
+      startNodeBuffer: mutable.Buffer[Document]): Unit = {
+    val name = cleanText(nameAttribute(startNode))
+    val bpmnId = startNode.getAttributes.getNamedItem("id").getTextContent
+    val fullBpmnName = if (idPath == ".") {
+      bpmnName
+    } else {
+      idPath.substring(2) + "/" + bpmnName
+    }
+    val start: Document = Map("bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "name" -> name,
+      "bpmn_id" -> bpmnId,
+      "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined",
+      "full_path_name" -> s"$namePath/$name", "full_path_id" -> s"$idPath/$bpmnId")
+    startNodeBuffer.append(start)
+  }
+
   private def addActivity(activityNode: Element, bpmnName: String, namePath: String, idPath: String,
        timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
     val name = cleanText(nameAttribute(activityNode))
@@ -220,6 +236,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   private def analyzeBpmn(bpmnName: String, namePath: String, idPath: String, responseWriter: PrintWriter,
       activityBuffer: mutable.Buffer[Document], timerBuffer: mutable.Buffer[Document],
       milestoneBuffer: mutable.Buffer[Document], endNodeBuffer: mutable.Buffer[Document],
+      startNodeBuffer: mutable.Buffer[Document],
       variableBuffer: mutable.Buffer[Document], callElementBuffer: mutable.Buffer[Document],
       timeZone: String, isTakt: Boolean): Unit = {
     val level = idPath.split("/").length
@@ -274,6 +291,22 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } else {
       if (responseWriter != null) {
         responseWriter.println(s"""$margin$namePath($bpmnName) NO-ENDS<br/>""")
+      }
+    }
+
+    val startNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:startEvent").map(_.asInstanceOf[Element])
+    if (startNodes.nonEmpty) {
+      for (startNode <- startNodes) {
+        val name = cleanText(nameAttribute(startNode))
+        val bpmnId = startNode.getAttributes.getNamedItem("id").getTextContent
+        if (responseWriter != null) {
+          responseWriter.println(s"""$margin$namePath($bpmnName) START:$name[$bpmnId]<br/>""")
+        }
+        addStartNode(startNode, bpmnName, namePath, idPath, startNodeBuffer)
+      }
+    } else {
+      if (responseWriter != null) {
+        responseWriter.println(s"""$margin$namePath($bpmnName) NO-STARTS<br/>""")
       }
     }
 
@@ -337,7 +370,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val newIdPath = s"$idPath/$callerElementId"
       val isTakt2 = isTakt || call.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
       analyzeBpmn(calledBpmnName, newNamePath, newIdPath, responseWriter, activityBuffer, timerBuffer,
-          milestoneBuffer, endNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt2)
+          milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt2)
     }
   }
 
@@ -351,20 +384,21 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val timerBuffer: mutable.Buffer[Document] = mutable.Buffer[Document]()
     val milestoneBuffer = mutable.Buffer[Document]()
     val endNodeBuffer = mutable.Buffer[Document]()
+    val startNodeBuffer = mutable.Buffer[Document]()
     val variableBuffer = mutable.Buffer[Document]()
     val callElementBuffer = mutable.Buffer[Document]()
 
     val phaseTimezone = PhaseApi.timeZone(thePhase, Some(request))
-    analyzeBpmn(bpmnName, ".", ".", null, activityBuffer, timerBuffer, milestoneBuffer, endNodeBuffer, variableBuffer,
-      callElementBuffer, phaseTimezone, isTakt = false)
+    analyzeBpmn(bpmnName, ".", ".", null, activityBuffer, timerBuffer, milestoneBuffer, endNodeBuffer,
+      startNodeBuffer, variableBuffer, callElementBuffer, phaseTimezone, isTakt = false)
 
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
       "variables" -> variableBuffer.asJava,
-      "bpmn_timestamps" -> callElementBuffer, "start" -> "00:00:00", "end" -> "00:00:00",
+      "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
       "assigned_roles" -> Seq.empty[Document], "milestones" -> milestoneBuffer.asJava,
-      "end_nodes" -> endNodeBuffer.asJava)
+      "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)
 
     BWMongoDB3.processes.insertOne(newProcess)
     val processOid = newProcess.y._id[ObjectId]
@@ -393,11 +427,12 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val timerBuffer: mutable.Buffer[Document] = mutable.Buffer[Document]()
       val milestoneBuffer = mutable.Buffer[Document]()
       val endNodeBuffer = mutable.Buffer[Document]()
+      val startNodeBuffer = mutable.Buffer[Document]()
       val variableBuffer = mutable.Buffer[Document]()
       val callElementBuffer = mutable.Buffer[Document]()
 
       analyzeBpmn(bpmnName, ".", ".", responseWriter, activityBuffer, timerBuffer,
-        milestoneBuffer, endNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false)
+        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false)
       responseWriter.println(s"<b>Total activities: ${activityBuffer.length}</b><br/>")
       for (activity <- activityBuffer) {
         responseWriter.println(s"${activity.toJson}<br/>")
@@ -413,6 +448,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       responseWriter.println(s"<b>Total end-nodes: ${endNodeBuffer.length}</b><br/>")
       for (endNode <- endNodeBuffer) {
         responseWriter.println(s"${endNode.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total start-nodes: ${startNodeBuffer.length}</b><br/>")
+      for (startNode <- startNodeBuffer) {
+        responseWriter.println(s"${startNode.toJson}<br/>")
       }
       responseWriter.println(s"<b>Total variable-nodes: ${variableBuffer.length}</b><br/>")
       for (variableNode <- variableBuffer) {

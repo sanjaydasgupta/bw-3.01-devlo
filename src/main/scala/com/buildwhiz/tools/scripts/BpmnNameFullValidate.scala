@@ -83,6 +83,43 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     }
   }
 
+  private def validateStartNode(margin: String, bpmnName: String, idPath: String, startNode: DynDoc, process: DynDoc,
+      responseWriter: PrintWriter, go: Boolean): Unit = {
+    val name = startNode.name[String]
+    val bpmnId = startNode.bpmn_id[String]
+    val expectedBpmnNameFull = if (idPath.isEmpty) {
+      bpmnName
+    } else {
+      s"$idPath/$bpmnName"
+    }
+    startNode.get[String]("bpmn_name_full") match {
+      case Some(bpmnNameFull) =>
+        if (bpmnNameFull == expectedBpmnNameFull) {
+          responseWriter.println(s"""$margin<font color="green">OK-StartNode:$name($bpmnId) >> """ +
+            s"""$bpmnNameFull</font><br/>""")
+        } else {
+          responseWriter.println(s"""$margin<font color="red">Bad-value-StartNode:$name($bpmnId) >> """ +
+            s"""$expectedBpmnNameFull!=$bpmnNameFull</font><br/>""".stripMargin)
+        }
+      case None =>
+        responseWriter.println(s"""$margin<font color="red">No-Value-StartNode:$name($bpmnId) >> """ +
+          s"""$expectedBpmnNameFull</font><br/>""")
+        if (go) {
+          val updateResult = BWMongoDB3.processes.updateOne(
+            Map("_id" -> process._id[ObjectId],
+              "start_nodes" -> Map($elemMatch -> Map("bpmn_name" -> bpmnName, "bpmn_id" -> bpmnId))),
+            Map($set -> Map("start_nodes.$.bpmn_name_full" -> expectedBpmnNameFull)))
+          if (updateResult.getModifiedCount == 1) {
+            responseWriter.println(s"""$margin<font color="green"><b>UPDATE-OK-StartNode:$name($bpmnId) >> """ +
+              s"""$expectedBpmnNameFull</b></font><br/>""")
+          } else {
+            responseWriter.println(s"""$margin<font color="red"><b>UPDATE-FAIL-StartNode:$name($bpmnId) >> """ +
+              s"""$updateResult</b></font><br/>""")
+          }
+        }
+    }
+  }
+
   private def validateTimer(margin: String, bpmnName: String, idPath: String, timer: DynDoc, process: DynDoc,
       responseWriter: PrintWriter, go: Boolean): Unit = {
     val name = timer.name[String]
@@ -295,6 +332,37 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       }
     } else {
       responseWriter.println(s"""$margin<font color="brown">NO-EndNodes in $fullBpmnName</font><br/>""")
+    }
+
+    val startNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:startEvent").map(_.asInstanceOf[Element])
+    if (startNodes.nonEmpty) {
+      val procStartNodes: Seq[DynDoc] = process.getOrElse[Many[Document]]("start_nodes", Seq.empty)
+      val startNodesByBpmnNameAndId: Map[(String, String), DynDoc] =
+        procStartNodes.map(pEndNode => ((pEndNode.bpmn_name[String], pEndNode.bpmn_id[String]), pEndNode)).toMap
+      for (startNode <- startNodes) {
+        val name = cleanText(nameAttribute(startNode))
+        val bpmnId = startNode.getAttributes.getNamedItem("id").getTextContent
+        startNodesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
+          case Some(startNode: DynDoc) =>
+            validateStartNode(margin, bpmnName, idPath, startNode, process, responseWriter, go)
+          case None =>
+            responseWriter.println(s"""$margin<font color="red">MISSING-StartNode:$name[$bpmnId]</font><br/>""")
+            if (go) {
+              val end: Document = Map("bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "name" -> name,
+                "bpmn_id" -> bpmnId, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined",
+                "full_path_id" -> s"$idPath/$bpmnId")
+              val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> process._id[ObjectId]),
+                Map($push -> Map("start_nodes" -> end)))
+              if (updateResult.getModifiedCount == 1) {
+                responseWriter.println(
+                  s"""$margin<font color="green"><b>UPDATE-OK-StartNode:$name($bpmnId) >> """ +
+                    s"""$fullBpmnName</b></font><br/>""")
+              }
+            }
+        }
+      }
+    } else {
+      responseWriter.println(s"""$margin<font color="brown">NO-StartNodes in $fullBpmnName</font><br/>""")
     }
 
     val variableNodes: Seq[Element] = theDom.getElementsByTagName("camunda:property").

@@ -49,7 +49,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getEndNodes(process: DynDoc, processName: String, bpmnNameFull: String): Seq[Document] = {
+  private def getEndNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String): Seq[Document] = {
     val endNodes: Seq[DynDoc] = process.get[Many[Document]]("end_nodes") match {
       case Some(ens) => ens.filter(
         endNode => if (endNode.has("bpmn_name_full")) {
@@ -60,14 +60,50 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       )
       case None => Seq.empty[DynDoc]
     }
+    val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+    val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
     endNodes.map(endNode => {
+      val theOffset = endNode.get[Long]("offset")
+      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(dur =>
+        addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase)))) match {
+        case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
+        case None => "NA"
+      }
       new Document("bpmn_id", endNode.bpmn_id[String]).append("id", endNode.bpmn_id[String]).
-          append("name", endNode.name[String]).
-          append("start", endNode.start[String]).append("end", endNode.end[String]).
+          append("name", endNode.name[String]).append("start", theDate).append("end", theDate).
           append("status", endNode.status[String]).append("elementType", "end_node").
           //append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false).
           append("on_critical_path", false).
           append("offset", if (endNode.has("offset")) endNode.offset[Long].toString else "NA")
+    })
+  }
+
+  private def getStartNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String): Seq[Document] = {
+    val startNodes: Seq[DynDoc] = process.get[Many[Document]]("start_nodes") match {
+      case Some(sns) => sns.filter(
+        startNode => if (startNode.has("bpmn_name_full")) {
+          startNode.bpmn_name_full[String] == bpmnNameFull
+        } else {
+          startNode.bpmn_name[String] == processName
+        }
+      )
+      case None => Seq.empty[DynDoc]
+    }
+    val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+    val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
+    startNodes.map(startNode => {
+      val theOffset = startNode.get[Long]("offset")
+      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(dur =>
+        addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase)))) match {
+        case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
+        case None => "NA"
+      }
+      new Document("bpmn_id", startNode.bpmn_id[String]).append("id", startNode.bpmn_id[String]).
+        append("name", startNode.name[String]).append("start", theDate).append("end", theDate).
+        append("status", startNode.status[String]).append("elementType", "start_node").
+        //append("on_critical_path", if (endNode.has("on_critical_path")) endNode.on_critical_path[Boolean] else false).
+        append("on_critical_path", false).
+        append("offset", if (startNode.has("offset")) startNode.offset[Long].toString else "NA")
     })
   }
 
@@ -338,7 +374,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processVariables = getVariables(process, bpmnFileName, bpmnNameFull)
       val processTimers = getTimers(process, bpmnFileName, bpmnNameFull)
       val milestones = getMilestones(process, bpmnFileName, bpmnNameFull)
-      val endNodes = getEndNodes(process, bpmnFileName, bpmnNameFull)
+      val endNodes = getEndNodes(thePhase, process, bpmnFileName, bpmnNameFull)
+      val startNodes = getStartNodes(thePhase, process, bpmnFileName, bpmnNameFull)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]], Map("takt_unit_no" -> 1))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
@@ -375,7 +412,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
           append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
           append("repetition_count", repetitionCount).append("cycle_time", cycleTime).append("menu_items", menuItems).
-          append("bpmn_name_full", bpmnNameFull).
+          append("bpmn_name_full", bpmnNameFull).append("start_nodes", startNodes).
           append("activity_count", processActivities.length)
       response.getWriter.println(bson2json(returnValue))
       response.setContentType("application/json")

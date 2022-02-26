@@ -52,6 +52,24 @@ object ProcessBpmnTraverse extends BpmnUtils {
     //  s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
   }
 
+  private def setStartEventOffset(startEvent: StartEvent, process: DynDoc, bpmnName: String, offset: Long,
+      request: HttpServletRequest): Unit = {
+    //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY: setEndEventOffset()", request)
+    val processOid = process._id[ObjectId]
+    //val name = endEvent.getAttributeValue("name")
+    val id = startEvent.getAttributeValue("id")
+    val query = Map("_id" -> processOid, "start_nodes" -> Map($elemMatch -> Map("bpmn_id" -> id, "bpmn_name" -> bpmnName)))
+    val setter = Map($set -> Map("start_nodes.$.offset" -> offset))
+    val updateResult = BWMongoDB3.processes.updateOne(query, setter)
+    if (updateResult.getMatchedCount == 0) {
+      BWLogger.log(getClass.getName, request.getMethod,
+        s"ERROR: setStartEventOffset:query=$query, setter=$setter", request)
+      //throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+    //BWLogger.log(getClass.getName, request.getMethod,
+    //  s"EXIT-OK: setEndEventOffset(updated=${updateResult.getModifiedCount}, bpmn_id=$id, name=$name)", request)
+  }
+
   private def setCallActivitySchedule(process: DynDoc, bpmnName: String, offset: Long, duration: Long,
       request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, request.getMethod,
@@ -215,8 +233,11 @@ object ProcessBpmnTraverse extends BpmnUtils {
             setUserTaskOffset(aTask, process, bpmnNameFull, offset, taktUnitCount, firstTaktTaskDuration, request)
           offset + getActivityDuration(aTask.getId, process, bpmnNameFull, durations, activitiesByBpmnNameIdAndTakt,
               messages)
-        case _: StartEvent =>
-          processOffset
+        case startEvent: StartEvent =>
+          val startOffset = maxPredecessorOffset(startEvent)
+          if (durations.nonEmpty)
+            setStartEventOffset(startEvent, process, bpmnName, startOffset, request)
+          startOffset
         case parallelGateway: ParallelGateway =>
           maxPredecessorOffset(parallelGateway)
         case exclusiveGateway: ExclusiveGateway =>

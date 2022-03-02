@@ -93,8 +93,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
     startNodes.map(startNode => {
       val theOffset = startNode.get[Long]("offset")
-      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(dur =>
-        addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase)))) match {
+      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(offset =>
+        addWeekdays(startDate, math.max(0, offset), PhaseApi.timeZone(phase)))) match {
         case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
         case None => "NA"
       }
@@ -152,7 +152,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
   }
 
   private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
-      bpmnNameFull: String, request: HttpServletRequest): Seq[Document] = {
+      bpmnNameFull: String): Seq[Document] = {
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(
       stamp => if (stamp.has("bpmn_name_full2")) {
         stamp.bpmn_name_full2[String] == bpmnNameFull
@@ -189,7 +189,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
       val endLabel = "Scheduled End Date"
       val offset: DynDoc = stamp.offset[Document]
-      val (start, end, status) = (offset.start[String], offset.end[String], stamp.status[String])
+      val (_, _, status) = (offset.start[String], offset.end[String], stamp.status[String])
       val hoverInfo = Seq(
         new Document("name", "Start").append("value", startDate),
         new Document("name", "End").append("value", endDate),
@@ -379,7 +379,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]], Map("takt_unit_no" -> 1))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
-      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull, request)
+      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull)
       val startDateTime: String = if (process.has("timestamps")) {
         val timestamps: DynDoc = process.timestamps[Document]
         if (timestamps.has("planned_start"))

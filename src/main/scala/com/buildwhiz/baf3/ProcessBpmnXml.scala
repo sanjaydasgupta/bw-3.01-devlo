@@ -341,9 +341,10 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val bpmnNameFull = parameters.getOrElse("bpmn_name_full", bpmnFileName)
       val phaseOid = new ObjectId(parameters("phase_id"))
       val thePhase = PhaseApi.phaseById(phaseOid)
-      val globalTakt = parameters.get("is_takt") match {
-        case Some(taktValue) => taktValue.toBoolean
-        case None => false
+      val (globalTakt, taktUnitNo) = (parameters.get("is_takt"), parameters.get("takt_unit_no")) match {
+        case (Some(taktValue), Some(taktUnitValue)) => (taktValue.toBoolean, taktUnitValue.toInt)
+        case (Some(taktValue), None) => (taktValue.toBoolean, 1)
+        case (None, _) => (false, 1)
       }
       val process: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
         case Some(p) => p
@@ -376,7 +377,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestones = getMilestones(process, bpmnFileName, bpmnNameFull)
       val endNodes = getEndNodes(thePhase, process, bpmnFileName, bpmnNameFull)
       val startNodes = getStartNodes(thePhase, process, bpmnFileName, bpmnNameFull)
-      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]], Map("takt_unit_no" -> 1))
+      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]],
+          Map("takt_unit_no" -> taktUnitNo))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
       val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull)

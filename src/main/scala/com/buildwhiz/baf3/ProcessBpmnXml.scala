@@ -49,7 +49,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getEndNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String): Seq[Document] = {
+  private def getEndNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String, cycleTime: Int,
+      taktUnitNo: Int): Seq[Document] = {
     val endNodes: Seq[DynDoc] = process.get[Many[Document]]("end_nodes") match {
       case Some(ens) => ens.filter(
         endNode => if (endNode.has("bpmn_name_full")) {
@@ -63,9 +64,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
     val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
     endNodes.map(endNode => {
-      val theOffset = endNode.get[Long]("offset")
-      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(dur =>
-        addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase)))) match {
+      val theOffset = endNode.get[Long]("offset").map(_ + cycleTime * (taktUnitNo - 1))
+      val theDate = phaseStartDate.flatMap(startDate => theOffset.map(offset =>
+        addWeekdays(startDate, math.max(0, offset - 1), PhaseApi.timeZone(phase)))) match {
         case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
         case None => "NA"
       }
@@ -78,7 +79,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     })
   }
 
-  private def getStartNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String): Seq[Document] = {
+  private def getStartNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String, cycleTime: Int,
+      taktUnitNo: Int): Seq[Document] = {
     val startNodes: Seq[DynDoc] = process.get[Many[Document]]("start_nodes") match {
       case Some(sns) => sns.filter(
         startNode => if (startNode.has("bpmn_name_full")) {
@@ -92,7 +94,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
     val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
     startNodes.map(startNode => {
-      val theOffset = startNode.get[Long]("offset")
+      val theOffset = startNode.get[Long]("offset").map(_ + cycleTime * (taktUnitNo - 1))
       val theDate = phaseStartDate.flatMap(startDate => theOffset.map(offset =>
         addWeekdays(startDate, math.max(0, offset), PhaseApi.timeZone(phase)))) match {
         case Some(d) => dateTimeStringAmerican(d, Some(PhaseApi.timeZone(phase))).split(" ").head
@@ -375,8 +377,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processVariables = getVariables(process, bpmnFileName, bpmnNameFull)
       val processTimers = getTimers(process, bpmnFileName, bpmnNameFull)
       val milestones = getMilestones(process, bpmnFileName, bpmnNameFull)
-      val endNodes = getEndNodes(thePhase, process, bpmnFileName, bpmnNameFull)
-      val startNodes = getStartNodes(thePhase, process, bpmnFileName, bpmnNameFull)
       val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]],
           Map("takt_unit_no" -> taktUnitNo))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
@@ -407,6 +407,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } else {
         ""
       }
+      val safeCycleTime = try {
+        cycleTime.toInt
+      } catch {
+        case _: Throwable => 0
+      }
+      val endNodes = getEndNodes(thePhase, process, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
+      val startNodes = getStartNodes(thePhase, process, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
           append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).

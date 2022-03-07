@@ -190,12 +190,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "__/__/____"
       }
       val endLabel = "Scheduled End Date"
-      val offset: DynDoc = stamp.offset[Document]
-      val (_, _, status) = (offset.start[String], offset.end[String], stamp.status[String])
-      val hoverInfo = Seq(
-        new Document("name", "Start").append("value", startDate),
-        new Document("name", "End").append("value", endDate),
-        new Document("name", "Status").append("value", status),
+      val hoverInfo = deliverables.map(d =>
+        new Document("name", d.name[String]).append("status", d.status[String]).append("end_date", "__/__/____")
       )
       val durationLikely = stamp.get[Long]("duration_scheduled") match {
         case Some(d) => d.toString
@@ -233,35 +229,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val returnActivities = activities.map(activity => {
       val activityOid = activity._id[ObjectId]
-      val deliverableCount = deliverables.count(_.activity_id[ObjectId] == activityOid)
+      val activityDeliverables = deliverables.filter(_.activity_id[ObjectId] == activityOid)
+      val deliverableCount = activityDeliverables.length
 
       val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity, request)
 
-      val assignments: Seq[DynDoc] = ActivityApi.teamAssignment.list(activity._id[ObjectId])
-
-      val priority = Map("Pre-Approval" -> 1, "Post-Approval" -> 3)
-
-      val assignmentInfo: Seq[Document] = assignments.sortBy(a => priority.getOrElse(a.role[String], 2)).
-          zipWithIndex.flatMap(a => {
-        val name = if (a._1.has("person_id")) {
-          val personOid = a._1.person_id[ObjectId]
-          val personRec = PersonApi.personById(personOid)
-          PersonApi.fullName(personRec)
-        } else
-        "NA"
-        val sno = a._2 + 1
-        Seq(
-          new Document("name", s"Role ($sno)").append("value", a._1.role[String]),
-          new Document("name", s"Status ($sno)").append("value", a._1.status[String]),
-          new Document("name", s"Person ($sno)").append("value", name)
-        )
-      })
-
-      val hoverInfo = Seq(
-        new Document("name", "Start").append("value", activityStart),
-        new Document("name", "End").append("value", activityEnd),
-        new Document("name", "Status").append("value", ActivityApi.stateSubState(activity))
-      ) ++ assignmentInfo
+      val hoverInfo = activityDeliverables.map(d =>
+        new Document("name", d.name[String]).append("status", d.status[String]).append("end_date", "__/__/____")
+      )
 
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
           find(_.role[String] == activity.role[String]) match {

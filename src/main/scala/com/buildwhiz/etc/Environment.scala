@@ -51,14 +51,30 @@ class Environment extends HttpServlet with RestUtils {
   private def reportData(envVariable: String, response: HttpServletResponse): Unit = {
     response.setContentType("text/html")
     val writer = response.getWriter
-    case class FieldSpec(name: String, asString: Any => String)
+    case class FldSpec(name: String, asString: Any => String)
+    def phoneFormatter(rec: Any): String = {
+      rec.asInstanceOf[Many[Document]].filter(_.phone[String].nonEmpty).
+        map(em => s"${em.phone[String]} (${em.`type`[String]})").mkString(",")
+    }
+    def emailFormatter(rec: Any): String = {
+      rec.asInstanceOf[Many[Document]].filter(_.email[String].nonEmpty).
+        map(em => s"${em.email[String]} (${em.`type`[String]})").mkString(",")
+    }
+    def booleanFormatter(field: Any): String = {
+      if (field == null) "false" else field.toString
+    }
+    def primitiveFormatter(field: Any): String = {
+      if (field == null) "" else field.toString
+    }
+    def csvFormatter(field: Any): String = {
+      if (field == null) "" else field.asInstanceOf[Many[_]].mkString(",")
+    }
     def personData(): Unit = {
-      val fields = Seq[FieldSpec](FieldSpec("_id", _.toString), FieldSpec("first_name", _.toString),
-        FieldSpec("last_name", _.toString), FieldSpec("organization_id", _.toString),
-        FieldSpec("emails", _.asInstanceOf[Many[Document]].map(em => s"${em.email[String]} (${em.`type`[String]})").mkString(",")),
-        FieldSpec("phones", _.asInstanceOf[Many[Document]].map(ph => s"${ph.phone[String]} (${ph.`type`[String]})").mkString(",")),
-        FieldSpec("rating", _.toString), FieldSpec("skills", _.asInstanceOf[Many[_]].mkString(",")),
-        FieldSpec("years_experience", _.toString))
+      val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("first_name", primitiveFormatter),
+        FldSpec("last_name", primitiveFormatter), FldSpec("organization_id", primitiveFormatter),
+        FldSpec("enabled", booleanFormatter), FldSpec("emails", emailFormatter), FldSpec("phones", phoneFormatter),
+        FldSpec("rating", primitiveFormatter), FldSpec("skills", csvFormatter),
+        FldSpec("years_experience", primitiveFormatter), FldSpec("slack_id", primitiveFormatter))
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       val orgs: Seq[DynDoc] = BWMongoDB3.persons.find()
       for (org <- orgs) {
@@ -67,14 +83,26 @@ class Environment extends HttpServlet with RestUtils {
       }
     }
     def orgData(): Unit = {
-      val fields = Seq[FieldSpec](FieldSpec("_id", _.toString), FieldSpec("name", _.toString),
-        FieldSpec("active", _.toString), FieldSpec("areas_of_operation", _.asInstanceOf[Many[_]].mkString(",")),
-        FieldSpec("rating", _.toString), FieldSpec("skills", _.asInstanceOf[Many[_]].mkString(",")),
-        FieldSpec("years_experience", _.toString))
+      val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
+        FldSpec("active", booleanFormatter), FldSpec("areas_of_operation", csvFormatter),
+        FldSpec("rating", primitiveFormatter), FldSpec("skills", csvFormatter),
+        FldSpec("years_experience", primitiveFormatter), FldSpec("design_partner", booleanFormatter),
+        FldSpec("project_sponsor", booleanFormatter), FldSpec("trade_partner", booleanFormatter))
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       val orgs: Seq[DynDoc] = BWMongoDB3.organizations.find()
       for (org <- orgs) {
-        val tds = fields.map(f => (f.name, f.asString(org.asDoc.get(f.name))))
+        val tds = fields.map(f => (f.name, f.asString(org.asDoc.getOrElse(f.name, null))))
+        writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      }
+    }
+    def teamData(): Unit = {
+      val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("team_name", primitiveFormatter),
+        FldSpec("group", primitiveFormatter), FldSpec("skill", csvFormatter),
+        FldSpec("organization_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter))
+      writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      val orgs: Seq[DynDoc] = BWMongoDB3.teams.find()
+      for (org <- orgs) {
+        val tds = fields.map(f => (f.name, f.asString(org.asDoc.getOrElse(f.name, null))))
         writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       }
     }
@@ -86,6 +114,10 @@ class Environment extends HttpServlet with RestUtils {
     writer.println("<h2>Persons</h2>")
     writer.println("""<table id="persons" border="1">""")
     personData()
+    writer.println("</table>")
+    writer.println("<h2>Teams</h2>")
+    writer.println("""<table id="teams" border="1">""")
+    teamData()
     writer.println("</table>")
     writer.println("</body></html>")
   }

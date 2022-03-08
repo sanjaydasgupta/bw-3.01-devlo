@@ -1,13 +1,13 @@
 package com.buildwhiz.etc
 
 import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletResponse}
-
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.api.RestUtils
 import BWMongoDB3._
 import DynDoc._
 import com.buildwhiz.utils.BWLogger
 import org.bson.Document
+import org.bson.types.ObjectId
 
 class Environment extends HttpServlet with RestUtils {
 
@@ -96,8 +96,16 @@ class Environment extends HttpServlet with RestUtils {
       }
     }
     def teamData(): Unit = {
+      def membersFormatter(members: Any): String = {
+        if (members == null) {
+          ""
+        } else {
+          members.asInstanceOf[Many[Document]].map(m =>
+            s"""${m.person_id[ObjectId]} (${m.roles[Many[String]].mkString(",")})""").mkString(",")
+        }
+      }
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("team_name", primitiveFormatter),
-        FldSpec("group", primitiveFormatter), FldSpec("skill", csvFormatter),
+        FldSpec("group", primitiveFormatter), FldSpec("skill", csvFormatter), FldSpec("team_members", membersFormatter),
         FldSpec("organization_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter))
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       val orgs: Seq[DynDoc] = BWMongoDB3.teams.find()

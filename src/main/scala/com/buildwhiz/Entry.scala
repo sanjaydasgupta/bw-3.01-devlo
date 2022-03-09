@@ -20,6 +20,7 @@ class Entry extends HttpServlet with HttpUtils {
     val loggingIn = (uriParts.last, uriParts.init.last) match {
       case ("LoginPost", "etc") => true
       case ("Environment", "etc") => true
+      case ("BIDataConnector", "etc") => true
       case ("Login", "baf2") => true
       case ("Logout", "baf2") => true
       case ("GLogin", "baf3") => true

@@ -49,8 +49,15 @@ class BIDataConnector extends HttpServlet with RestUtils {
   }
 
   def phasesData(writer: PrintWriter): Unit = {
+    def teamAssignmentsFormatter(teamAssignments: Any): String = {
+      if (teamAssignments == null) {
+        ""
+      } else {
+        teamAssignments.asInstanceOf[Many[Document]].map(m => m.team_id[ObjectId]).mkString(",")
+      }
+    }
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
-      FldSpec("process_ids", primitiveFormatter))
+        FldSpec("process_ids", primitiveFormatter), FldSpec("team_assignments", teamAssignmentsFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     for (phase <- phases) {
@@ -136,7 +143,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   def deliverablesData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("activity_id", primitiveFormatter), FldSpec("deliverable_type", primitiveFormatter),
-        FldSpec("is_takt", booleanFormatter), FldSpec("status", primitiveFormatter))
+        FldSpec("is_takt", booleanFormatter), FldSpec("status", primitiveFormatter),
+        FldSpec("common_instance_no", primitiveFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     for (deliverable <- deliverables) {
@@ -149,7 +157,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),
       FldSpec("owner_deliverable_id", primitiveFormatter), FldSpec("constraint_id", primitiveFormatter),
       FldSpec("delay", primitiveFormatter), FldSpec("is_replicable", booleanFormatter),
-      FldSpec("common_set_no", primitiveFormatter))
+      FldSpec("common_set_no", primitiveFormatter), FldSpec("common_set_no", primitiveFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find()
     for (constraint <- constraints) {

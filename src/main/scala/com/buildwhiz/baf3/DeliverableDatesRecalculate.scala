@@ -24,23 +24,22 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]], procurementsByOid: Map[ObjectId, DynDoc],
       keyDataByOid: Map[ObjectId, DynDoc], respond: String => Unit)
 
-  private def addDaysToDate(date: Long, days: Int): Long = {
-    val millisecondsPerDay = 86400000L
-    date + days * millisecondsPerDay
-  }
   private def msToDate(ms: Long, timezone: String): String = {
     dateString(ms, timezone)
   }
 
+  private def dName(deliverable: DynDoc) =
+    s"${deliverable.name[String]}[${deliverable.takt_unit_no[Int]}] (${deliverable._id[ObjectId]})"
+
   private def startDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
       g.respond(margin * level +
-          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+          s"StartDate ${dName(deliverable)}<br/>")
     }
     if (g.constraintsByOwnerOid.contains(deliverable._id[ObjectId])) {
       val constraints = g.constraintsByOwnerOid(deliverable._id[ObjectId])
       val constraintEndDates: Seq[Long] = constraints.map(constraint => {
-        val constraintDelayMs = constraint.getOrElse[Int]("delay", 0) * 86400000L
+        val constraintDelay = constraint.getOrElse[Int]("delay", 0)
         val constraintOid = constraint.constraint_id[ObjectId]
         constraint.`type`[String] match {
           case "Document" | "Work" =>
@@ -50,7 +49,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
               //if (verbose)
               //  respond(margin * (level + 1) +
               //    s"DELIVERABLE: ${constraintDeliverable.name[String]} = ${msToDate(deliverableDate)}<br/>")
-              deliverableDate + constraintDelayMs
+              addWeekdays(deliverableDate, constraintDelay, g.timezone)
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING constraint-deliverable: $constraintOid</font><br/>")
@@ -60,13 +59,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
             if (g.procurementsByOid.contains(constraintOid)) {
               val procurementRecord = g.procurementsByOid(constraintOid)
               val procurementDate = procurementRecord.get[Int]("duration") match {
-                case Some(d) => addDaysToDate(g.phaseStartDate, d)
+                case Some(d) => addWeekdays(g.phaseStartDate, d, g.timezone) //addDaysToDate(g.phaseStartDate, d)
                 case None => g.phaseStartDate
               }
               if (verbose)
                 g.respond(margin * (level + 1) +
                   s"PROCUREMENT End-Date: ${procurementRecord.name[String]} ($constraintOid) = ${msToDate(procurementDate, g.timezone)}<br/>")
-              procurementDate + constraintDelayMs
+              addWeekdays(procurementDate, constraintDelay, g.timezone)
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING procurement: $constraintOid</font><br/>")
@@ -76,14 +75,14 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
             if (g.keyDataByOid.contains(constraintOid)) {
               val keyDataRecord = g.keyDataByOid(constraintOid)
               val keyDataDate = keyDataRecord.get[Int]("duration") match {
-                case Some(d) => addDaysToDate(g.phaseStartDate, d)
+                case Some(d) => addWeekdays(g.phaseStartDate, d, g.timezone) //addDaysToDate(g.phaseStartDate, d)
                 case None => g.phaseStartDate
               }
               if (verbose) {
                 g.respond(margin * (level + 1) +
                   s"DATA End-Date: ${keyDataRecord.name[String]} ($constraintOid) = ${msToDate(keyDataDate, g.timezone)}<br/>")
               }
-              keyDataDate + constraintDelayMs
+              addWeekdays(keyDataDate, constraintDelay, g.timezone)
             } else {
               g.respond("""<font color="red">""" + margin * (level + 1) +
                   s"ERROR: MISSING data: $constraintOid</font><br/>")
@@ -98,15 +97,15 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       }
       if (verbose) {
         g.respond(margin * level +
-          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateStart, g.timezone)}<br/>")
+          s"StartDate ${dName(deliverable)} = ${msToDate(dateStart, g.timezone)}<br/>")
       }
       dateStart
     } else {
       if (verbose) {
         g.respond("""<font color="blue">""" + margin * (level + 1) +
-          s"MISSING constraints for deliverable: ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
+          s"MISSING constraints for deliverable: ${dName(deliverable)}</font><br/>")
         g.respond(margin * level +
-          s"StartDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(g.phaseStartDate, g.timezone)}<br/>")
+          s"StartDate ${dName(deliverable)} = ${msToDate(g.phaseStartDate, g.timezone)}<br/>")
       }
       g.phaseStartDate
     }
@@ -114,8 +113,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
 
   private def endDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
-      g.respond(margin * level +
-        s"EndDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]})<br/>")
+      g.respond(margin * level + s"EndDate ${dName(deliverable)}<br/>")
     }
     def setEndDate(deliverable: DynDoc, date: Long): Unit = {
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
@@ -128,33 +126,34 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         commitDate
       case _ =>
         val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
-        val estimatedEndDate = addDaysToDate(estimatedStartDate, deliverable.duration[Int])
+        val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
+        val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
         deliverable.get[Long]("date_end_estimated") match {
           case Some(existingEndDate) =>
-            if (existingEndDate == estimatedEndDate) {
+            if (existingEndDate == displayedEndDate) {
               if (verbose) {
                 g.respond("""<font color="green">""" + margin * (level + 1) +
-                  s"SKIPPING ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
+                    s"SKIPPING ${dName(deliverable)}</font><br/>")
               }
             } else {
               if (verbose) {
                 g.respond("""<font color="green">""" + margin * (level + 1) +
-                  s"UPDATING ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
+                    s"UPDATING ${dName(deliverable)}</font><br/>")
               }
-              setEndDate(deliverable, estimatedEndDate)
+              setEndDate(deliverable, displayedEndDate)
             }
           case None =>
             if (verbose) {
               g.respond("""<font color="green">""" + margin * (level + 1) +
-                s"INITIALIZING ${deliverable.name[String]} (${deliverable._id[ObjectId]})</font><br/>")
+                  s"INITIALIZING ${dName(deliverable)}</font><br/>")
             }
-            setEndDate(deliverable, estimatedEndDate)
+            setEndDate(deliverable, displayedEndDate)
         }
-        estimatedEndDate
+        cumulativeEndDate
     }
     if (verbose) {
-      g.respond(margin * level +
-        s"EndDate (${deliverable.name[String]}) (${deliverable._id[ObjectId]}) = ${msToDate(dateEnd, g.timezone)}<br/>")
+      g.respond(margin * level + s"EndDate ${dName(deliverable)} = " +
+          s"${msToDate(addWeekdays(dateEnd, -1, g.timezone), g.timezone)}<br/>")
     }
     dateEnd
   }
@@ -163,7 +162,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     val constraintsByConstraintOid = g.constraints.groupBy(_.constraint_id[ObjectId])
     val endDeliverables = g.deliverables.filter(d => !constraintsByConstraintOid.contains(d._id[ObjectId]))
     if (verbose) {
-      g.respond(s"""${endDeliverables.length} End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
+      g.respond(s"${endDeliverables.length}" +
+          s"""End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
     }
     bulkWriteBuffer.clear()
     for (endDeliverable <- endDeliverables) {

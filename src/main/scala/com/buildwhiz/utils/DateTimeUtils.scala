@@ -53,12 +53,19 @@ trait DateTimeUtils {
   def addWeekdays(baseDateMs: Long, days: Long, tz: String): Long = {
     val calendar = Calendar.getInstance(TimeZone.getTimeZone(tz))
     calendar.setTimeInMillis(baseDateMs)
+    val delta = if (days > 0) {
+      1
+    } else if (days < 0) {
+      -1
+    } else {
+      0
+    }
     var daysLeft = days
-    while (daysLeft > 0) {
-      calendar.add(Calendar.DATE, 1)
+    while (daysLeft != 0) {
+      calendar.add(Calendar.DATE, delta)
       val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
       if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
-        daysLeft -= 1
+        daysLeft -= delta
       }
     }
     calendar.getTimeInMillis

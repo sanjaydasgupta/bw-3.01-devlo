@@ -144,7 +144,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("activity_id", primitiveFormatter), FldSpec("deliverable_type", primitiveFormatter),
         FldSpec("is_takt", booleanFormatter), FldSpec("status", primitiveFormatter),
-        FldSpec("common_instance_no", primitiveFormatter))
+        FldSpec("common_instance_no", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     for (deliverable <- deliverables) {

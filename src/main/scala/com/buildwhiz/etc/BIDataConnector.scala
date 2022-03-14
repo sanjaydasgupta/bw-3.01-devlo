@@ -39,7 +39,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
 
   def projectsData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
-        FldSpec("phase_ids", primitiveFormatter))
+        FldSpec("phase_ids", csvFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
@@ -57,7 +57,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       }
     }
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
-        FldSpec("process_ids", primitiveFormatter), FldSpec("team_assignments", teamAssignmentsFormatter))
+        FldSpec("process_ids", csvFormatter), FldSpec("team_assignments", teamAssignmentsFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     for (phase <- phases) {
@@ -68,7 +68,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
 
   def processesData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
-      FldSpec("activity_ids", primitiveFormatter))
+      FldSpec("activity_ids", csvFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
     for (process <- processes) {
@@ -130,8 +130,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("bpmn_id", primitiveFormatter), FldSpec("bpmn_name", primitiveFormatter),
       FldSpec("bpmn_name_full", primitiveFormatter), FldSpec("full_path_id", primitiveFormatter),
       FldSpec("full_path_name", primitiveFormatter), FldSpec("is_takt", booleanFormatter),
-      FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter),
-      FldSpec("offset", primitiveFormatter))
+      FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter))
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
     for (activity <- activities) {

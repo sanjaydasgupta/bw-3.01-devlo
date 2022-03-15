@@ -1,19 +1,17 @@
-package com.buildwhiz.baf
+package com.buildwhiz.etc
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
-import com.buildwhiz.infra.DynDoc
-import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.BWMongoDB3
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import com.mongodb.client.FindIterable
 import org.bson.Document
 
-import scala.jdk.CollectionConverters._
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 import scala.languageFeature.{implicitConversions, postfixOps}
 import scala.sys.process._
 

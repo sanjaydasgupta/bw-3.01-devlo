@@ -12,8 +12,8 @@
   self.projection = '';
   self.queryOk = false;
 
-  $log.log('MongodbCtrl: calling GET baf/MongoDBView');
-  $http.get('baf/MongoDBView').then(
+  $log.log('MongodbCtrl: calling GET etc/MongoDBView');
+  $http.get('etc/MongoDBView').then(
     function(resp) {
       var newCollections = [];
       resp.data.forEach(function(coll) {
@@ -27,8 +27,8 @@
   );
 
   self.displayCollection = function(name) {
-    var q = 'baf/MongoDBView?collection_name=' + name;
-    $log.log('MongodbCtrl: GET baf/MongoDBView' + q);
+    var q = 'etc/MongoDBView?collection_name=' + name;
+    $log.log('MongodbCtrl: GET etc/MongoDBView' + q);
     $http.get(q).then(
       function(resp) {
         self.details = resp.data.map(function(d){return JSON.stringify(d, null, 1);});
@@ -42,7 +42,7 @@
   }
 
   self.displaySchema = function(name) {
-    var q = 'baf/MongoDBView?collection_name=' + name + '*';
+    var q = 'etc/MongoDBView?collection_name=' + name + '*';
     $log.log('MongodbCtrl: GET ' + q);
     $http.get(q).then(
       function(resp) {
@@ -57,7 +57,7 @@
   }
 
   self.archive = function() {
-    var q = 'baf/MongoDBView?collection_name=*';
+    var q = 'etc/MongoDBView?collection_name=*';
     $log.log('MongodbCtrl: GET ' + q);
     $http.get(q).then(
       function(resp) {
@@ -72,7 +72,7 @@
 
   self.runQuery = function() {
     $log.log('Called runQuery()');
-    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&find_query=' + escape(self.query);
+    var q = 'etc/MongoDBView?collection_name=' + escape(self.name) + '&find_query=' + escape(self.query);
     if (self.projection != '') {
       q += '&fields=' + escape(self.projection);
     }
@@ -92,7 +92,7 @@
 
   self.runUpdate = function() {
     $log.log('Called runUpdate()');
-    var q = 'baf/MongoDBView?collection_name=' + escape(self.name) + '&update_query=' + escape(self.query);
+    var q = 'etc/MongoDBView?collection_name=' + escape(self.name) + '&update_query=' + escape(self.query);
     if (self.projection != '') {
       q += '&fields=' + escape(self.projection);
     }

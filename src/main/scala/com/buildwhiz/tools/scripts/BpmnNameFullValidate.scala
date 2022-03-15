@@ -328,6 +328,18 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
             validateEndNode(margin, bpmnName, idPath, endNode, process, responseWriter, go)
           case None =>
             responseWriter.println(s"""$margin<font color="red">MISSING-EndNode:$name[$bpmnId]</font><br/>""")
+            if (go) {
+              val end: Document = Map("bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "name" -> name,
+                "bpmn_id" -> bpmnId, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined",
+                "full_path_id" -> s"$idPath/$bpmnId")
+              val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> process._id[ObjectId]),
+                Map($push -> Map("end_nodes" -> end)))
+              if (updateResult.getModifiedCount == 1) {
+                responseWriter.println(
+                  s"""$margin<font color="green"><b>UPDATE-OK-EndNode:$name($bpmnId) >> """ +
+                    s"""$fullBpmnName</b></font><br/>""")
+              }
+            }
         }
       }
     } else {
@@ -348,11 +360,11 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
           case None =>
             responseWriter.println(s"""$margin<font color="red">MISSING-StartNode:$name[$bpmnId]</font><br/>""")
             if (go) {
-              val end: Document = Map("bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "name" -> name,
+              val start: Document = Map("bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "name" -> name,
                 "bpmn_id" -> bpmnId, "start" -> "00:00:00", "end" -> "00:00:00", "status" -> "defined",
                 "full_path_id" -> s"$idPath/$bpmnId")
               val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> process._id[ObjectId]),
-                Map($push -> Map("start_nodes" -> end)))
+                Map($push -> Map("start_nodes" -> start)))
               if (updateResult.getModifiedCount == 1) {
                 responseWriter.println(
                   s"""$margin<font color="green"><b>UPDATE-OK-StartNode:$name($bpmnId) >> """ +

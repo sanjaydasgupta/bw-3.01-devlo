@@ -161,10 +161,20 @@ class BIDataConnector extends HttpServlet with RestUtils {
   }
 
   def deliverablesData(writer: PrintWriter): Unit = {
+    def teamAssignmentsFormatter(assignments: Any): String = {
+      if (assignments == null) {
+        ""
+      } else {
+        assignments.asInstanceOf[Many[Document]].
+            map(ta => s"${ta.team_id[ObjectId]} (${ta.role[String]})").mkString(", ")
+      }
+    }
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("activity_id", primitiveFormatter), FldSpec("deliverable_type", primitiveFormatter),
         FldSpec("is_takt", booleanFormatter), FldSpec("status", primitiveFormatter),
-        FldSpec("common_instance_no", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter))
+        FldSpec("common_instance_no", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter),
+        FldSpec("duration", primitiveFormatter), FldSpec("date_end_estimated", primitiveFormatter),
+        FldSpec("team_assignments", teamAssignmentsFormatter))
     writer.println("<h2>Deliverables</h2>")
     writer.println("""<table id="deliverables" border="1">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))

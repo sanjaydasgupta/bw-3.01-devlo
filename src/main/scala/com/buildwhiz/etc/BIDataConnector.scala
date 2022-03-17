@@ -190,7 +190,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),
       FldSpec("owner_deliverable_id", primitiveFormatter), FldSpec("constraint_id", primitiveFormatter),
       FldSpec("delay", primitiveFormatter), FldSpec("is_replicable", booleanFormatter),
-      FldSpec("common_set_no", primitiveFormatter))
+      FldSpec("common_set_no", primitiveFormatter), FldSpec("direction", primitiveFormatter))
     writer.println("<h2>Constraints</h2>")
     writer.println("""<table id="constraints" border="1">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))

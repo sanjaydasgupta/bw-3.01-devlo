@@ -131,7 +131,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("team_name", primitiveFormatter),
       FldSpec("group", primitiveFormatter), FldSpec("skill", csvFormatter), FldSpec("team_members", membersFormatter),
-      FldSpec("organization_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter))
+      FldSpec("organization_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter),
+      FldSpec("color", primitiveFormatter))
     writer.println("<h2>Teams</h2>")
     writer.println("""<table id="teams" border="1">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))

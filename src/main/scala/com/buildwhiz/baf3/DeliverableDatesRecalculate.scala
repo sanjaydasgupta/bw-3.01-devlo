@@ -42,7 +42,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         val constraintDelay = constraint.getOrElse[Int]("delay", 0)
         val constraintOid = constraint.constraint_id[ObjectId]
         constraint.`type`[String] match {
-          case "Document" | "Work" =>
+          case "Document" | "Work" | "Milestone" =>
             if (g.deliverablesByOid.contains(constraintOid)) {
               val constraintDeliverable = g.deliverablesByOid(constraintOid)
               val deliverableDate = endDate(constraintDeliverable, level + 1, verbose, g)

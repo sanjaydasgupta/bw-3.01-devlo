@@ -17,6 +17,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
     "bmp" -> ("image/bmp", true),
     "doc" -> ("application/msword", false),
     "docx" -> ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", false),
+    "folder" -> ("application/zip", false),
     "gif" -> ("image/gif", true),
     "jpg" -> ("image/jpeg", true),
     "jpeg" -> ("image/jpeg", true),

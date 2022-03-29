@@ -106,9 +106,9 @@ package object baf3 {
     "Docs__category" -> Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
         "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification"
       , "Submittals", "Task-Specs", "Work-Scope"),
-    "Docs__file_format" -> Seq("PDF", "DOC", "DOCX", "XLS", "XLSX", "GIF", "JPEG", "JPG", "PPT", "PPTX", "TXT",
+    "Docs__file_format" -> Seq("PDF", "Folder", "DOC", "DOCX", "XLS", "XLSX", "GIF", "JPEG", "JPG", "PPT", "PPTX",
         "BLD", "RVT", "RFA", "RTE", "RFT", "SVG", "DGN", "DWF", "DWG", "DXF", "IFC", "SAT", "SKP", "HTML", "gbXML",
-        "PNG", "TIF", "TIFF", "TXT", "XML", "ZIP", "JSON", "BMP"),
+        "PNG", "TIF", "TIFF", "TXT", "XML", "ZIP", "JSON", "BMP", "TXT"),
     "Docs__tags" -> Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice", "Land-Use",
       "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health", "Report",
       "Soils-Report", "Survey", "Traffic-Study", "Wind-Study"),

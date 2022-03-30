@@ -41,7 +41,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("phase_ids", csvFormatter))
     writer.println("<h2>Projects</h2>")
-    writer.println("""<table id="projects" border="1">""")
+    writer.println("""<table id="projects" border="1" types="s,s,csv">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
@@ -62,7 +62,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("process_ids", csvFormatter), FldSpec("team_assignments", teamAssignmentsFormatter))
     writer.println("<h2>Phases</h2>")
-    writer.println("""<table id="phases" border="1">""")
+    writer.println("""<table id="phases" border="1" types="s,s,csv,csv">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     for (phase <- phases) {
@@ -76,7 +76,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
       FldSpec("activity_ids", csvFormatter))
     writer.println("<h2>Processes</h2>")
-    writer.println("""<table id="processes" border="1">""")
+    writer.println("""<table id="processes" border="1" types="s,s,csv">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
     for (process <- processes) {
@@ -93,7 +93,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("rating", primitiveFormatter), FldSpec("skills", csvFormatter),
       FldSpec("years_experience", primitiveFormatter), FldSpec("slack_id", primitiveFormatter))
     writer.println("<h2>Persons</h2>")
-    writer.println("""<table id="persons" border="1">""")
+    writer.println("""<table id="persons" border="1" types="s,s,s,s,b,csv,csv,i,csv,f,s">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find()
     for (person <- persons) {
@@ -110,7 +110,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("years_experience", primitiveFormatter), FldSpec("design_partner", booleanFormatter),
       FldSpec("project_sponsor", booleanFormatter), FldSpec("trade_partner", booleanFormatter))
     writer.println("<h2>Organizations</h2>")
-    writer.println("""<table id="organizations" border="1">""")
+    writer.println("""<table id="organizations" border="1" types="s,s,b,csv,i,csv,f,b,b,b">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val organizations: Seq[DynDoc] = BWMongoDB3.organizations.find()
     for (organization <- organizations) {
@@ -134,7 +134,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("organization_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter),
       FldSpec("color", primitiveFormatter))
     writer.println("<h2>Teams</h2>")
-    writer.println("""<table id="teams" border="1">""")
+    writer.println("""<table id="teams" border="1" types="s,s,s,csv,csv,s,s,s">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val teams: Seq[DynDoc] = BWMongoDB3.teams.find()
     for (team <- teams) {
@@ -151,7 +151,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("full_path_name", primitiveFormatter), FldSpec("is_takt", booleanFormatter),
       FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter))
     writer.println("<h2>Activities</h2>")
-    writer.println("""<table id="activities" border="1">""")
+    writer.println("""<table id="activities" border="1" types="s,s,s,s,s,s,s,b,i,i">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
     for (activity <- activities) {
@@ -177,7 +177,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
         FldSpec("duration", primitiveFormatter), FldSpec("date_end_estimated", primitiveFormatter),
         FldSpec("team_assignments", teamAssignmentsFormatter))
     writer.println("<h2>Deliverables</h2>")
-    writer.println("""<table id="deliverables" border="1">""")
+    writer.println("""<table id="deliverables" border="1" types="s,s,s,s,b,s,i,i,i,l,csv">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     for (deliverable <- deliverables) {
@@ -193,7 +193,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       FldSpec("delay", primitiveFormatter), FldSpec("is_replicable", booleanFormatter),
       FldSpec("common_set_no", primitiveFormatter), FldSpec("direction", primitiveFormatter))
     writer.println("<h2>Constraints</h2>")
-    writer.println("""<table id="constraints" border="1">""")
+    writer.println("""<table id="constraints" border="1" types="s,s,s,s,i,b,i,s">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find()
     for (constraint <- constraints) {

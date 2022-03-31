@@ -10,10 +10,11 @@ import org.bson.types.ObjectId
 
 import java.io.PrintWriter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import scala.annotation.tailrec
 
 class BIDataConnector extends HttpServlet with RestUtils {
 
-  def phoneFormatter(rec: Any): String = {
+  private def phoneFormatter(rec: Any): String = {
     rec.asInstanceOf[Many[Document]].filter(_.phone[String].nonEmpty).
       map(em => s"${em.phone[String]} (${em.`type`[String]})").mkString(", ")
   }
@@ -35,9 +36,18 @@ class BIDataConnector extends HttpServlet with RestUtils {
     if (field == null) "" else field.asInstanceOf[Many[_]].mkString(", ")
   }
 
+  @tailrec
+  private def fieldValue(record: DynDoc, fieldPath: String): Any = {
+    fieldPath.split("[.]").toSeq match {
+      case fieldName +: Nil => if (record != null) record.getOrElse(fieldName, null) else null
+      case prefix +: subPath =>
+        if (record != null) fieldValue(record.getOrElse[Document](prefix, null), subPath.mkString(".")) else null
+    }
+  }
+
   case class FldSpec(name: String, asString: Any => String)
 
-  def projectsData(writer: PrintWriter): Unit = {
+  private def projectsData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("phase_ids", csvFormatter))
     writer.println("<h2>Projects</h2>")
@@ -45,13 +55,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     for (project <- projects) {
-      val tds = fields.map(f => (f.name, f.asString(project.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(project, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def phasesData(writer: PrintWriter): Unit = {
+  private def phasesData(writer: PrintWriter): Unit = {
     def teamAssignmentsFormatter(teamAssignments: Any): String = {
       if (teamAssignments == null) {
         ""
@@ -66,13 +76,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     for (phase <- phases) {
-      val tds = fields.map(f => (f.name, f.asString(phase.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(phase, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def processesData(writer: PrintWriter): Unit = {
+  private def processesData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
       FldSpec("activity_ids", csvFormatter))
     writer.println("<h2>Processes</h2>")
@@ -80,13 +90,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
     for (process <- processes) {
-      val tds = fields.map(f => (f.name, f.asString(process.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(process, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def personData(writer: PrintWriter): Unit = {
+  private def personData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("first_name", primitiveFormatter),
       FldSpec("last_name", primitiveFormatter), FldSpec("organization_id", primitiveFormatter),
       FldSpec("enabled", booleanFormatter), FldSpec("emails", emailFormatter), FldSpec("phones", phoneFormatter),
@@ -97,13 +107,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find()
     for (person <- persons) {
-      val tds = fields.map(f => (f.name, f.asString(person.asDoc.get(f.name))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(person, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def organizationsData(writer: PrintWriter): Unit = {
+  private def organizationsData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
       FldSpec("active", booleanFormatter), FldSpec("areas_of_operation", csvFormatter),
       FldSpec("rating", primitiveFormatter), FldSpec("skills", csvFormatter),
@@ -114,13 +124,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val organizations: Seq[DynDoc] = BWMongoDB3.organizations.find()
     for (organization <- organizations) {
-      val tds = fields.map(f => (f.name, f.asString(organization.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(organization, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def teamData(writer: PrintWriter): Unit = {
+  private def teamData(writer: PrintWriter): Unit = {
     def membersFormatter(members: Any): String = {
       if (members == null) {
         ""
@@ -138,30 +148,31 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val teams: Seq[DynDoc] = BWMongoDB3.teams.find()
     for (team <- teams) {
-      val tds = fields.map(f => (f.name, f.asString(team.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(team, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def activitiesData(writer: PrintWriter): Unit = {
+  private def activitiesData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
       FldSpec("bpmn_id", primitiveFormatter), FldSpec("bpmn_name", primitiveFormatter),
       FldSpec("bpmn_name_full", primitiveFormatter), FldSpec("full_path_id", primitiveFormatter),
       FldSpec("full_path_name", primitiveFormatter), FldSpec("is_takt", booleanFormatter),
-      FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter))
+      FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter),
+      FldSpec("durations.likely", primitiveFormatter))
     writer.println("<h2>Activities</h2>")
-    writer.println("""<table id="activities" border="1" types="s,s,s,s,s,s,s,b,i,i">""")
+    writer.println("""<table id="activities" border="1" types="s,s,s,s,s,s,s,b,i,i,i">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
     for (activity <- activities) {
-      val tds = fields.map(f => (f.name, f.asString(activity.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(activity, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def deliverablesData(writer: PrintWriter): Unit = {
+  private def deliverablesData(writer: PrintWriter): Unit = {
     def teamAssignmentsFormatter(assignments: Any): String = {
       if (assignments == null) {
         ""
@@ -181,13 +192,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     for (deliverable <- deliverables) {
-      val tds = fields.map(f => (f.name, f.asString(deliverable.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(deliverable, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")
   }
 
-  def constraintsData(writer: PrintWriter): Unit = {
+  private def constraintsData(writer: PrintWriter): Unit = {
     val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),
       FldSpec("owner_deliverable_id", primitiveFormatter), FldSpec("constraint_id", primitiveFormatter),
       FldSpec("delay", primitiveFormatter), FldSpec("is_replicable", booleanFormatter),
@@ -197,7 +208,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find()
     for (constraint <- constraints) {
-      val tds = fields.map(f => (f.name, f.asString(constraint.asDoc.getOrElse(f.name, null))))
+      val tds = fields.map(f => (f.name, f.asString(fieldValue(constraint, f.name))))
       writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     }
     writer.println("</table>")

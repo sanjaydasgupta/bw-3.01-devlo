@@ -39,9 +39,18 @@ class BIDataConnector extends HttpServlet with RestUtils {
   @tailrec
   private def fieldValue(record: DynDoc, fieldPath: String): Any = {
     fieldPath.split("[.]").toSeq match {
-      case fieldName +: Nil => if (record != null) record.getOrElse(fieldName, null) else null
+      case fieldName +: Nil =>
+        if (record != null && record.asDoc != null) {
+          record.getOrElse(fieldName, null)
+        } else {
+          null
+        }
       case prefix +: subPath =>
-        if (record != null) fieldValue(record.getOrElse[Document](prefix, null), subPath.mkString(".")) else null
+        if (record != null && record.asDoc != null) {
+          fieldValue(record.getOrElse[Document](prefix, null), subPath.mkString("."))
+        } else {
+          null
+        }
     }
   }
 

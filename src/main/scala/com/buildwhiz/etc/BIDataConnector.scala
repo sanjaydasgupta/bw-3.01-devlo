@@ -207,7 +207,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
         FldSpec("total_quantity", primitiveFormatter), FldSpec("unit", primitiveFormatter),
         FldSpec("check_list", checkListFormatter))
     writer.println("<h2>Deliverables</h2>")
-    writer.println("""<table id="deliverables" border="1" types="s,s,s,s,b,s,i,i,i,l,csv">""")
+    writer.println("""<table id="deliverables" border="1" types="s,s,s,s,b,s,i,i,i,l,csv,s,s,i,i,s,csv">""")
     writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     for (deliverable <- deliverables) {

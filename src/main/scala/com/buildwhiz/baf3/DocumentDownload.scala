@@ -62,7 +62,8 @@ class DocumentDownload extends HttpServlet with HttpUtils {
           if (contentDescriptions.contains(fileType)) {
             val contentDescription = contentDescriptions(fileType)
             response.setContentType(contentDescription._1)
-            val contentDisposition = if (contentDescription._2) "inline" else s"""attachment; filename="$fileName""""
+            val contentDisposition = /*if (contentDescription._2) "inline" else*/
+              s"""attachment; filename="$fileName""""
             response.setHeader("Content-Disposition", contentDisposition)
             val message = s"Set Content-Type='${contentDescription._1}', Content-Disposition='$contentDisposition'"
             BWLogger.log(getClass.getName, request.getMethod, message, request)

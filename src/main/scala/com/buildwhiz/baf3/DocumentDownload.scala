@@ -58,20 +58,18 @@ class DocumentDownload extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException("No content for this document record")
         case Some(v) => if (v.has("file_name")) {
           val fileName = v.file_name[String]
-          val fileType = fileName.split("\\.").last.toLowerCase
-          if (contentDescriptions.contains(fileType)) {
-            val contentDescription = contentDescriptions(fileType)
-            response.setContentType(contentDescription._1)
-            val contentDisposition = /*if (contentDescription._2) "inline" else*/
-              s"""attachment; filename="$fileName""""
-            response.setHeader("Content-Disposition", contentDisposition)
-            val message = s"Set Content-Type='${contentDescription._1}', Content-Disposition='$contentDisposition'"
-            BWLogger.log(getClass.getName, request.getMethod, message, request)
-          } else {
-            BWLogger.log(getClass.getName, request.getMethod, s"No Content-Type for: $fileType", request)
-          }
+          val contentDisposition = s"""attachment; filename="$fileName""""
+          response.setHeader("Content-Disposition", contentDisposition)
+          val message = s"Set Content-Disposition='$contentDisposition'"
+          BWLogger.log(getClass.getName, request.getMethod, message, request)
+        } else {
+          val contentDisposition = s"""attachment; filename="unknown-name.tmp""""
+          response.setHeader("Content-Disposition", contentDisposition)
+          val message = s"Set Content-Disposition='$contentDisposition'"
+          BWLogger.log(getClass.getName, request.getMethod, message, request)
         }
       }
+      response.setContentType("application/octet-stream")
       val storageKey = f"$projectOid-$documentOid-$timestamp%x"
       BWLogger.log(getClass.getName, request.getMethod, s"storage-key: $storageKey", request)
       val inputStream: InputStream = GoogleDrive.getObject(storageKey)

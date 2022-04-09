@@ -119,37 +119,46 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
           new Document($set, new Document("date_end_estimated", date))))
     }
-    val dateEnd = Seq("date_end_actual", "commit_date").map(deliverable.get[Long]) match {
-      case Seq(Some(dateEndActual), _) =>
-        dateEndActual
-      case Seq(None, Some(commitDate)) =>
-        commitDate
-      case _ =>
-        val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
-        val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
-        val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
-        deliverable.get[Long]("date_end_estimated") match {
-          case Some(existingEndDate) =>
-            if (existingEndDate == displayedEndDate) {
-              if (verbose) {
-                g.respond("""<font color="green">""" + margin * (level + 1) +
-                    s"SKIPPING ${dName(deliverable)}</font><br/>")
-              }
-            } else {
-              if (verbose) {
-                g.respond("""<font color="green">""" + margin * (level + 1) +
-                    s"UPDATING ${dName(deliverable)}</font><br/>")
-              }
-              setEndDate(deliverable, displayedEndDate)
+    val dateEnd = deliverable.get[Long]("end$date") match {
+      case None =>
+        val dt = Seq("date_end_actual", "commit_date").map(deliverable.get[Long]) match {
+          case Seq(Some(dateEndActual), _) =>
+            dateEndActual
+          case Seq(None, Some(commitDate)) =>
+            commitDate
+          case _ =>
+            val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
+            val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
+            val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
+            deliverable.get[Long]("date_end_estimated") match {
+              case Some(existingEndDate) =>
+                if (existingEndDate == displayedEndDate) {
+                  if (verbose) {
+                    g.respond(
+                      """<font color="green">""" + margin * (level + 1) +
+                        s"SKIPPING ${dName(deliverable)}</font><br/>")
+                  }
+                } else {
+                  if (verbose) {
+                    g.respond(
+                      """<font color="green">""" + margin * (level + 1) +
+                        s"UPDATING ${dName(deliverable)}</font><br/>")
+                  }
+                  setEndDate(deliverable, displayedEndDate)
+                }
+              case None =>
+                if (verbose) {
+                  g.respond(
+                    """<font color="green">""" + margin * (level + 1) +
+                      s"INITIALIZING ${dName(deliverable)}</font><br/>")
+                }
+                setEndDate(deliverable, displayedEndDate)
             }
-          case None =>
-            if (verbose) {
-              g.respond("""<font color="green">""" + margin * (level + 1) +
-                  s"INITIALIZING ${dName(deliverable)}</font><br/>")
-            }
-            setEndDate(deliverable, displayedEndDate)
+            cumulativeEndDate
         }
-        cumulativeEndDate
+        deliverable.end$date = dt
+        dt
+      case Some(dt) => dt
     }
     if (verbose) {
       g.respond(margin * level + s"EndDate ${dName(deliverable)} = " +

@@ -12,8 +12,10 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class Dependencyinfo extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private def getTree(deliverable: DynDoc, optConstraint: Option[DynDoc], optParentOid: Option[ObjectId], timezone: String,
-      deliverablesByOid: Map[ObjectId, DynDoc], constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]]): Document = {
+  private def getTree(deliverable: DynDoc, optConstraint: Option[DynDoc], optParentOid: Option[ObjectId],
+      timezone: String, deliverablesByOid: Map[ObjectId, DynDoc], constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]],
+      count: Array[Int]): Document = {
+    count(0) += 1
     val document = new Document("name", deliverable.name[String]).append("type", deliverable.deliverable_type[String]).
         append("status", "Planned").append("takt_unit_no", "").append("commit_date", "02/07/2022").
         append("parent", optParentOid match {case Some(p) => p.toString; case None => ""}).append("direction", "")
@@ -31,7 +33,8 @@ class Dependencyinfo extends HttpServlet with HttpUtils with DateTimeUtils {
         case Some(c) => c._id[ObjectId]
         case None => deliverable._id[ObjectId]
       }
-      getTree(deliverable2, Some(constraint2), Some(parentOid), timezone, deliverablesByOid, constraintsByOwnerOid)
+      getTree(deliverable2, Some(constraint2), Some(parentOid), timezone, deliverablesByOid, constraintsByOwnerOid,
+          count)
     })
     document.append("items", items)
     document
@@ -56,13 +59,14 @@ class Dependencyinfo extends HttpServlet with HttpUtils with DateTimeUtils {
       val constraintsByOwnerOid = constraints.groupBy(_.owner_deliverable_id[ObjectId])
       val message = s"deliverables: ${deliverables.length}, constraints: ${constraints.length}"
       BWLogger.log(getClass.getName, request.getMethod, message, request)
+      val counts = Array[Int](0)
       val tree = getTree(deliverablesByOid(deliverableOid), None, None, timezone, deliverablesByOid,
-          constraintsByOwnerOid)
+          constraintsByOwnerOid, counts)
       val array: Many[Document] = Seq(tree)
       response.getWriter.print(new Document("tree", array).toJson)
       response.setContentType("application/json")
       val delay = System.currentTimeMillis() - t0
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms)", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, counts: ${counts(0)})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

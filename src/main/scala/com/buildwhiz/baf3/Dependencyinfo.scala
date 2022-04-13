@@ -16,8 +16,14 @@ class Dependencyinfo extends HttpServlet with HttpUtils with DateTimeUtils {
       timezone: String, deliverablesByOid: Map[ObjectId, DynDoc], constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]],
       count: Array[Int]): Document = {
     count(0) += 1
+    val taktUnitNo = if (deliverable.is_takt[Boolean]) deliverable.takt_unit_no[Int].toString else ""
+    val commitDate = (deliverable.get[Long]("commit_date"), deliverable.get[Long]("date_end_actual")) match {
+      case (_, Some(ms)) => dateTimeStringAmerican(ms).split(" ").head
+      case (Some(ms), None) => dateTimeStringAmerican(ms).split(" ").head
+      case _ => ""
+    }
     val document = new Document("name", deliverable.name[String]).append("type", deliverable.deliverable_type[String]).
-        append("status", "Planned").append("takt_unit_no", "").append("commit_date", "02/07/2022").
+        append("status", "Planned").append("takt_unit_no", taktUnitNo).append("commit_date", commitDate).
         append("parent", optParentOid match {case Some(p) => p.toString; case None => ""}).append("direction", "")
     optConstraint match {
       case Some(c) => document.append("_id", c._id[ObjectId].toString).

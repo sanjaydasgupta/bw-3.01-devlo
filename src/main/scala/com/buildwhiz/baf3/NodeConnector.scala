@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, ProjectApi, PhaseApi}
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -62,13 +62,25 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val nodeEntityDocument = Document.parse(nodeEntityString)
         val user: DynDoc = getPersona(request)
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-        val menuItems = uiContextSelectedManaged(request) match {
+        val uri = request.getRequestURI
+        val params = getParameterMap(request)
+        val selectedManaged = (uri.contains("ProjectInfo"), uri.contains("PhaseInfo"), uri.contains("Home")) match {
+          case (false, false, true) => Some(false, false)
+          case (true, _, _) =>
+            val project = ProjectApi.projectById(new ObjectId(params("project_id")))
+            Some(true, isAdmin || ProjectApi.canManage(user._id[ObjectId], project))
+          case (false, true, _) =>
+            val phase = PhaseApi.phaseById(new ObjectId(params("phase_id")))
+            Some(true, isAdmin || PhaseApi.canManage(user._id[ObjectId], phase))
+          case _ => None
+        }
+        val menuItems = uiContextSelectedManaged(request, selectedManaged) match {
           case None => displayedMenuItems(isAdmin, starting = true)
           case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
         }
         nodeEntityDocument.append("menu_items", menuItems)
         val updatedNodeEntityString = nodeEntityDocument.toJson
-        val containsMenuItems = updatedNodeEntityString.contains("menu_items")
+        //val containsMenuItems = updatedNodeEntityString.contains("menu_items")
         //BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():menu_items=$containsMenuItems", request)
         val updatedNodeEntity = new StringEntity(updatedNodeEntityString, ContentType.create("application/json", "utf-8"))
         response.setHeader("Content-Length", updatedNodeEntity.getContentLength.toString)

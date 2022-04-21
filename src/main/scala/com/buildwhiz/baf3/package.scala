@@ -101,7 +101,7 @@ package object baf3 {
 
   }
 
-  val masterData = Map(
+  val masterData: Map[String, _] = Map(
     "DeliverableInfoSet__deliverable_type" -> Seq("Data", "Document", "Work"),
     "Docs__category" -> Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
         "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification"
@@ -139,7 +139,7 @@ package object baf3 {
     "Team__omniclass33" -> OmniClass33.omniClass33skills()
   )
 
-  val menuItemsList: Seq[Document] = Seq(
+  private val menuItemsList: Seq[Document] = Seq(
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/home.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/home.svg",
       "navLabel" -> "Home", "routeUrl" -> "/private/project", "toolTipLabel" -> "Home"),

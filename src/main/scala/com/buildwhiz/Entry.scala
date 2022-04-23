@@ -69,7 +69,7 @@ class Entry extends HttpServlet with HttpUtils {
         case Some(httpServlet) => delegateTo(httpServlet)
         case None => Try(Class.forName(className)) match {
           case Success(clazz) =>
-            Try(clazz.newInstance()) match {
+            Try(clazz.getDeclaredConstructor().newInstance()) match {
               case Success(httpServlet: Entry.BWServlet @ unchecked) =>
                 Entry.cache(className) = httpServlet
                 delegateTo(httpServlet)

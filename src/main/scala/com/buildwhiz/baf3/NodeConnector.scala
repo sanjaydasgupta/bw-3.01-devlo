@@ -65,23 +65,25 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val uri = request.getRequestURI
         val params = getParameterMap(request)
         val selectedManaged = (uri.contains("ProjectInfo"), uri.contains("PhaseInfo"), uri.contains("Home")) match {
-          case (false, false, true) => Some(false, false)
+          case (false, false, true) => Some(false, isAdmin)
           case (true, _, _) =>
             val project = ProjectApi.projectById(new ObjectId(params("project_id")))
             Some(true, isAdmin || ProjectApi.canManage(user._id[ObjectId], project))
           case (false, true, _) =>
             val phase = PhaseApi.phaseById(new ObjectId(params("phase_id")))
             Some(true, isAdmin || PhaseApi.canManage(user._id[ObjectId], phase))
-          case _ => None
+          case _ => uiContextSelectedManaged(request) match {
+            case None => Some(false, isAdmin)
+            case Some((selected, _)) => Some(selected, isAdmin)
+          }
         }
-        val menuItems = uiContextSelectedManaged(request, selectedManaged) match {
-          case None => displayedMenuItems(isAdmin, starting = true)
+        val menuItems = selectedManaged match {
+          //case None => displayedMenuItems(isAdmin, starting = true)
           case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
         }
+        uiContextSelectedManaged(request, selectedManaged)
         nodeEntityDocument.append("menu_items", menuItems)
         val updatedNodeEntityString = nodeEntityDocument.toJson
-        //val containsMenuItems = updatedNodeEntityString.contains("menu_items")
-        //BWLogger.log(getClass.getName, request.getMethod, s"executeNodeRequest():menu_items=$containsMenuItems", request)
         val updatedNodeEntity = new StringEntity(updatedNodeEntityString, ContentType.create("application/json", "utf-8"))
         response.setHeader("Content-Length", updatedNodeEntity.getContentLength.toString)
         updatedNodeEntity.writeTo(response.getOutputStream)

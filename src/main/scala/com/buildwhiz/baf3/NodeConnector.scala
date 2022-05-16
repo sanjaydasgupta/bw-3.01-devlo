@@ -107,8 +107,13 @@ object NodeConnector extends HttpServlet with HttpUtils {
     try {
       val httpGet = new HttpGet(nodeUri(request))
       request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
+      val (clientIp, clientIpSource) = request.getHeader("X-FORWARDED-FOR") match {
+        case null => (request.getRemoteAddr, "getRemoteAddr")
+        case ip => (ip, "X-FORWARDED-FOR")
+      }
+      httpGet.setHeader("X-FORWARDED-FOR", clientIp)
       executeNodeRequest(request, response, httpGet, t0)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT (IP-Source=$clientIpSource)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -148,8 +153,13 @@ object NodeConnector extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException(s"unknown contentType: '$contentType'")
       }
       httpPost.removeHeaders("Content-Length")
+      val (clientIp, clientIpSource) = request.getHeader("X-FORWARDED-FOR") match {
+        case null => (request.getRemoteAddr, "getRemoteAddr")
+        case ip => (ip, "X-FORWARDED-FOR")
+      }
+      httpPost.setHeader("X-FORWARDED-FOR", clientIp)
       executeNodeRequest(request, response, httpPost, t0)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT", request)
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT (IP-Source=$clientIpSource)", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

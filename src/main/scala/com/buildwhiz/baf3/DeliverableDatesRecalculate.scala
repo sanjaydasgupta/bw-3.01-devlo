@@ -42,7 +42,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         val constraintDelay = constraint.getOrElse[Int]("delay", 0)
         val constraintOid = constraint.constraint_id[ObjectId]
         constraint.`type`[String] match {
-          case "Document" | "Work" | "Milestone" =>
+          case "Document" | "Work" | "Milestone" | "Submittal" =>
             if (g.deliverablesByOid.contains(constraintOid)) {
               val constraintDeliverable = g.deliverablesByOid(constraintOid)
               val deliverableDate = endDate(constraintDeliverable, level + 1, verbose, g)
@@ -115,9 +115,9 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     if (verbose) {
       g.respond(margin * level + s"EndDate ${dName(deliverable)}<br/>")
     }
-    def setEndDate(deliverable: DynDoc, date: Long): Unit = {
+    def setDates(deliverable: DynDoc, startDate: Long, endDate: Long): Unit = {
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
-          new Document($set, new Document("date_end_estimated", date))))
+          new Document($set, new Document("date_start_estimated", startDate).append("date_end_estimated", endDate))))
     }
     val dateEnd = deliverable.get[Long]("end$date") match {
       case None =>
@@ -130,9 +130,9 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
             val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
             val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
             val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
-            deliverable.get[Long]("date_end_estimated") match {
-              case Some(existingEndDate) =>
-                if (existingEndDate == displayedEndDate) {
+            (deliverable.get[Long]("date_start_estimated"), deliverable.get[Long]("date_end_estimated")) match {
+              case (Some(existingStartDate), Some(existingEndDate)) =>
+                if (existingStartDate == estimatedStartDate && existingEndDate == displayedEndDate) {
                   if (verbose) {
                     g.respond(
                       """<font color="green">""" + margin * (level + 1) +
@@ -144,15 +144,15 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
                       """<font color="green">""" + margin * (level + 1) +
                         s"UPDATING ${dName(deliverable)}</font><br/>")
                   }
-                  setEndDate(deliverable, displayedEndDate)
+                  setDates(deliverable, estimatedStartDate, displayedEndDate)
                 }
-              case None =>
+              case _ =>
                 if (verbose) {
                   g.respond(
                     """<font color="green">""" + margin * (level + 1) +
                       s"INITIALIZING ${dName(deliverable)}</font><br/>")
                 }
-                setEndDate(deliverable, displayedEndDate)
+                setDates(deliverable, estimatedStartDate, displayedEndDate)
             }
             cumulativeEndDate
         }
@@ -277,8 +277,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       val writer = new PrintWriter(printByteStream)
       val delay = processDeliverables(msg => writer.print(msg), request, response, verbose = false)
       writer.flush()
-      val cleanMessages = printByteStream.toString.replaceAll("[&][^;]+[;]", "").replaceAll("[<]br/[>]", ", ").
-          replaceAll("[<][^>]+[>]", "").trim()
+      val cleanMessages = printByteStream.toString.replaceAll("&[^;]+;", "").replaceAll("<br/>", ", ").
+          replaceAll("<[^>]+>", "").trim()
       val messages = if (cleanMessages.contains("ERROR")) {
         cleanMessages
       } else {

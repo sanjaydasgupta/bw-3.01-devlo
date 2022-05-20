@@ -12,13 +12,12 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 object OrphanRecordsDelete extends HttpUtils {
 
-  private val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
-  private val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
   private val sp2 = "&nbsp;" * 2
   private val sp4 = sp2 * 2
 
   private def deleteOrphanedPhases(request: HttpServletRequest, writer: PrintWriter, go: Boolean): Unit = {
     writer.println(s"${sp2}ENTRY deleteOrphanedPhases()<br/>")
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     val expectedPhaseOids: Many[ObjectId] = projects.flatMap(_.phase_ids[Many[ObjectId]]).distinct
     writer.println(s"${sp4}Expected phase Oids (${expectedPhaseOids.length}): " +
         expectedPhaseOids.mkString(", ") + "<br/>")
@@ -41,6 +40,7 @@ object OrphanRecordsDelete extends HttpUtils {
   private def deleteOrphanedProcesses(request: HttpServletRequest, writer: PrintWriter, go: Boolean):
       Unit = {
     writer.println(s"${sp2}ENTRY deleteOrphanedProcesses()<br/>")
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     val expectedProcessOids: Many[ObjectId] = phases.flatMap(_.process_ids[Many[ObjectId]]).distinct
     writer.println(s"${sp4}Expected process Oids (${expectedProcessOids.length}): " +
         expectedProcessOids.mkString(", ") + "<br/>")
@@ -105,8 +105,30 @@ object OrphanRecordsDelete extends HttpUtils {
     writer.println(s"${sp2}EXIT deleteOrphanedDeliverables()<br/><br/>")
   }
 
+  private def deleteOrphanedConstraints(writer: PrintWriter, go: Boolean): Unit = {
+    writer.println(s"${sp2}ENTRY deleteOrphanedConstraints()<br/>")
+    val existingDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
+    val deliverableOids: Seq[ObjectId] = existingDeliverables.map(_._id[ObjectId])
+    val orphanedConstraints: Seq[DynDoc] = BWMongoDB3.constraints.find(Map($and -> Seq(
+      Map("owner_deliverable_id" -> Map($not -> Map($in -> deliverableOids))),
+      Map("constraint_id" -> Map($not -> Map($in -> deliverableOids)))
+    )))
+    val orphanedConstraintOids: Seq[ObjectId] = orphanedConstraints.map(_._id[ObjectId])
+    writer.println(s"${sp4}Orphaned constraint Oids (${orphanedConstraintOids.length}): " +
+      orphanedConstraintOids.mkString(", ") + "<br/>")
+    if (go && orphanedConstraints.nonEmpty) {
+      writer.println(s"${sp4}Deleting ${orphanedConstraints.length} orphaned constraints<br/>")
+      val deleteResult = BWMongoDB3.constraints.deleteMany(Map("_id" -> Map("$in" -> orphanedConstraintOids)))
+      if (deleteResult.getDeletedCount != orphanedConstraintOids.length) {
+        writer.println(s"${sp4}Deleted only ${deleteResult.getDeletedCount} orphaned constraints<br/>")
+      }
+    }
+    writer.println(s"${sp2}EXIT deleteOrphanedConstraints()<br/><br/>")
+  }
+
   private def deleteOrphanedDocs(writer: PrintWriter, go: Boolean): Unit = {
     writer.println(s"${sp2}ENTRY deleteOrphanedDocs()<br/>")
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     val projectOids = projects.map(_._id[ObjectId])
     val projectOrphanedDocs: Seq[DynDoc] = BWMongoDB3.document_master.
         find(Map($and -> Seq(Map("project_id" -> Map($exists -> true)),
@@ -114,16 +136,17 @@ object OrphanRecordsDelete extends HttpUtils {
     val projectOrphanedDocOids = projectOrphanedDocs.map(_._id[ObjectId])
     writer.println(s"${sp4}Project-Orphaned doc Oids (${projectOrphanedDocOids.length}): " +
       projectOrphanedDocOids.mkString(", ") + "<br/>")
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     val phaseOids = phases.map(_._id[ObjectId])
     val phaseOrphanedDocs: Seq[DynDoc] = BWMongoDB3.document_master.
-        find(Map($and -> Seq(Map("phase_id" -> Map($exists -> true)),
-          Map("phase_id" -> Map($not -> Map($in -> phaseOids))))))
+        find(Map($and -> Seq(Map("_id" -> Map($not -> Map($in -> projectOrphanedDocOids))),
+        Map("phase_id" -> Map($exists -> true)), Map("phase_id" -> Map($not -> Map($in -> phaseOids))))))
     val phaseOrphanedDocOids = phaseOrphanedDocs.map(_._id[ObjectId])
     writer.println(s"${sp4}Phase-Orphaned doc Oids (${phaseOrphanedDocOids.length}): " +
       phaseOrphanedDocOids.mkString(", ") + "<br/>")
     val orphanedDocOids: Seq[ObjectId] = projectOrphanedDocOids ++ phaseOrphanedDocOids
-    writer.println(s"${sp4}ALL Orphaned doc Oids (${orphanedDocOids.length}): " +
-      orphanedDocOids.mkString(", ") + "<br/>")
+    //writer.println(s"${sp4}ALL Orphaned doc Oids (${orphanedDocOids.length}): " +
+    //  orphanedDocOids.mkString(", ") + "<br/>")
     if (go && orphanedDocOids.nonEmpty) {
       writer.println(s"${sp4}Deleting ${orphanedDocOids.length} orphaned docs<br/>")
       val deleteResult = BWMongoDB3.document_master.deleteMany(Map("_id" -> Map("$in" -> orphanedDocOids)))
@@ -148,6 +171,7 @@ object OrphanRecordsDelete extends HttpUtils {
     deleteOrphanedProcesses(request, writer, go)
     deleteOrphanedActivities(writer, go)
     deleteOrphanedDeliverables(writer, go)
+    deleteOrphanedConstraints(writer, go)
     deleteOrphanedDocs(writer, go)
     writer.println(s"EXIT ${getClass.getName}:main()<br/>")
     writer.println("</tt></body></html>")

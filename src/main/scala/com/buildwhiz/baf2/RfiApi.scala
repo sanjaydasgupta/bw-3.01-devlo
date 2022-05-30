@@ -16,7 +16,7 @@ object RfiApi {
   def exists(rfiOid: ObjectId): Boolean = BWMongoDB3.rfi_messages.find(Map("_id" -> rfiOid)).nonEmpty
 
   def rfisByUser(userOid: ObjectId): Seq[DynDoc] = {
-    val rfis: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val rfis: Seq[DynDoc] = BWMongoDB3.tasks.find()
     rfis
   }
 

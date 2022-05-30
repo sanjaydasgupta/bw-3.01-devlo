@@ -33,7 +33,7 @@ class ProcessConfigDownload extends HttpServlet with HttpUtils {
 
   private def addTasksSheet(workbook: XSSFWorkbook, process: DynDoc, bpmnName: String): Int = {
     val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
+    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityIds),
       "bpmn_name" -> bpmnName))
     val taskSheet = workbook.createSheet("Tasks")
     val headerInfo = Seq(("Task-Name", 60), ("Type", 20), ("Parent", 60), ("Duration", 20), ("Assignee", 50),
@@ -103,7 +103,7 @@ class ProcessConfigDownload extends HttpServlet with HttpUtils {
       ("Activity\nDo Not Change", 40), ("Task\nDo Not Change", 40), ("Document-ID\nDo Not Change", 40))
     makeHeaderRow(documentSheet, headerInfo)
     val activityIds: Seq[ObjectId] = process.activity_ids[Many[ObjectId]]
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds),
+    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityIds),
       "bpmn_name" -> bpmnName))
     for (activity <- activities) {
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]

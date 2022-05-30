@@ -74,7 +74,7 @@ class Project extends HttpServlet with RestUtils {
       val phaseOids: Seq[ObjectId] = theProject.process_ids[Many[ObjectId]]
       val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       val activityOids: Seq[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]])
-      BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
+      BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.processes.deleteMany(Map("_id" -> Map("$in" -> phaseOids)))
       BWMongoDB3.mails.deleteMany(Map("project_id" -> projectOid))
       BWMongoDB3.persons.updateMany(Map.empty[String, Any], Map("$pull" -> Map("project_ids" -> projectOid)))

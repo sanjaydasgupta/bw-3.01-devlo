@@ -20,7 +20,7 @@ class TaskChecklistItemAdd extends HttpServlet with HttpUtils with DateTimeUtils
           theActivity.check_list[Many[Document]].exists(_.name[String] == checkListItemName))
         throw new IllegalArgumentException(s"Check list item already exists")
       val checkListItem = Map("name" -> checkListItemName, "status" -> false)
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+      val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
           Map("$push" -> Map("check_list" -> checkListItem)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

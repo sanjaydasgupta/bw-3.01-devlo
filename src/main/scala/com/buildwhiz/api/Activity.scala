@@ -11,7 +11,7 @@ object Activity {
   def allActions(activity: DynDoc): Seq[DynDoc] = activity.actions[Many[Document]]
 
   def allActions(activityOid: ObjectId): Seq[DynDoc] = {
-    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val activity: DynDoc = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).head
     allActions(activity)
   }
 

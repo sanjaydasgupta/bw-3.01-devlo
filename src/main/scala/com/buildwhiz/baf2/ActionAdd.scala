@@ -46,14 +46,14 @@ object ActionAdd {
   }
 
   private def mainInbox(activityOid: ObjectId, actionName: String): Many[ObjectId] = {
-    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val activity: DynDoc = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).head
     val mainAction: DynDoc = activity.actions[Many[Document]].find(_.`type`[String] == "main").head
     mainAction.inbox[Many[ObjectId]]
   }
 
   def add(request: HttpServletRequest, activityOid: ObjectId, actionName: String, actionDescription: String,
           typ: String, bpmnName: String, assigneeOid: ObjectId, duration: String, optRole: Option[String]): Unit = {
-    val theActivity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val theActivity: DynDoc = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).head
     val existingActionNames: Seq[String] = theActivity.actions[Many[Document]].map(_.name[String])
     if (existingActionNames.contains(actionName))
       throw new IllegalArgumentException(s"Duplicate action name '$actionName'")
@@ -67,7 +67,7 @@ object ActionAdd {
       "start" -> "00:00:00", "end" -> "00:00:00", "bpmn_name" -> bpmnName, "assignee_person_id" -> assigneeOid)
     if (optRole.isDefined)
       action.append("assignee_role", optRole.get)
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+    val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
       Map("$push" -> Map("actions" -> action)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

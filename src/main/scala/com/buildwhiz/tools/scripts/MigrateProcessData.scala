@@ -44,7 +44,7 @@ object MigrateProcessData {
       val fromActivity = ActivityApi.activityById(fromActivityOid)
       if (fromActivity.has("change_log")) {
         val fromChangeLog = fromActivity.change_log[Many[Document]]
-        val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> toActivityOid),
+        val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> toActivityOid),
           Map($push -> Map("change_log" -> Map($each -> fromChangeLog))))
         if (updateResult.getMatchedCount == 0)
           throw new IllegalArgumentException(s"MongoDB error: $updateResult")

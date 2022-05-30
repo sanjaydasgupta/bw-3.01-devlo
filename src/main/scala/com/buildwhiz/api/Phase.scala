@@ -54,7 +54,7 @@ class Phase extends HttpServlet with RestUtils {
 //    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(Map("_id" -> Map("$in" -> phaseOids)))
 //    val phaseAdminPersonOids: Seq[ObjectId] = phases.map(_.admin_person_id[ObjectId])
 //    val activityOids = phases.flatMap(_.activity_ids[Many[ObjectId]])
-//    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+//    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityOids)))
 //    val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
 //    val actionAssigneeOids = actions.map(_.assignee_person_id[ObjectId])
 //    (theProject.admin_person_id[ObjectId] +: (phaseAdminPersonOids ++ actionAssigneeOids)).distinct
@@ -72,14 +72,14 @@ class Phase extends HttpServlet with RestUtils {
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("process_ids" -> phaseOid)).head
       //val preDeleteParticipantOids = projectParticipantOids(theProject)
       val activityOids: Seq[ObjectId] = thePhase.activity_ids[Many[ObjectId]]
-      val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+      val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityOids)))
       val actionNamesByActivityOid: Seq[(ObjectId, Seq[String])] = activities.
         map(activity => (activity._id[ObjectId], activity.actions[Many[Document]].map(_.name[String])))
       for ((activityOid, actionNames) <- actionNamesByActivityOid) {
         BWMongoDB3.document_master.deleteMany(
           Map("activity_id" -> activityOid, "action_name" -> Map("$in" -> actionNames)))
       }
-      BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
+      BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids)))
       BWMongoDB3.processes.deleteOne(Map("_id" -> phaseOid))
       BWMongoDB3.projects.updateMany(new Document(/* optimization possible */),
         Map("$pull" -> Map("process_ids" -> phaseOid)))
@@ -108,7 +108,7 @@ object Phase {
 
   def allActivityOids(phase: DynDoc): Seq[ObjectId] = phase.activity_ids[Many[ObjectId]]
   def allActivities(phase: DynDoc): Seq[DynDoc] = allActivityOids(phase).
-    map(activityOid => BWMongoDB3.activities.find(Map("_id" -> activityOid)).head)
+    map(activityOid => BWMongoDB3.tasks.find(Map("_id" -> activityOid)).head)
   def allActions(phase: DynDoc): Seq[DynDoc] = allActivities(phase).flatMap(_.actions[Many[Document]])
 
   def phaseLevelUsers(phase: DynDoc): Seq[ObjectId] = {

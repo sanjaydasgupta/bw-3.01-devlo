@@ -14,7 +14,7 @@ class TaskStatusReport extends HttpServlet with HttpUtils with DateTimeUtils {
         optPercentComplete: Option[String], endDates: Seq[(String, Long)]): Unit = {
 
     if (endDates.nonEmpty) {
-      BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map($set -> endDates.toMap))
+      BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid), Map($set -> endDates.toMap))
     }
 
     def superUsersAssignment(assignment: DynDoc, user: DynDoc): Boolean = {

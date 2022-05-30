@@ -253,7 +253,7 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
         responseWriter.println(s"""$margin<font color="red">No-Value-Activity:$name($bpmnId) >> """ +
           s"""$expectedBpmnNameFull ($activityOid)</font><br/>""")
         if (go) {
-          val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+          val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
             Map($set -> Map("bpmn_name_full" -> expectedBpmnNameFull)))
           if (updateResult.getModifiedCount == 1) {
             responseWriter.println(s"""$margin<font color="green"><b>UPDATE-OK-Activity:$name($bpmnId) >> """ +
@@ -452,7 +452,7 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       val bpmnName = process.bpmn_name[String]
       if (bpmnName != "****") {
         val activityOids = process.activity_ids[Many[ObjectId]]
-        val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)))
+        val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)))
         val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
           activities.map(activity => ((activity.bpmn_name[String], activity.bpmn_id[String]), activity)).toMap
         traverseBpmn(1, bpmnName, "", process, activitiesByBpmnNameAndId, responseWriter, go)

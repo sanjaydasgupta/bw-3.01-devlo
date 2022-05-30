@@ -19,7 +19,7 @@ class ProcessTasksConfigUpload extends HttpServlet with HttpUtils with MailUtils
     for (taskConfig <- taskConfigurations) {
       val activityOid = taskConfig._id[ObjectId]
       val deliverables = taskConfig.deliverables[Seq[DynDoc]]
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+      val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
           Map($set -> Map("deliverables" -> deliverables)))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

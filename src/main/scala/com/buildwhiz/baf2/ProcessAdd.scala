@@ -474,7 +474,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
           "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
           "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone),
           "bpmn_actual_end_date" -> date2long(bpmnActualEnd, timeZone), "on_critical_path" -> false)
-        BWMongoDB3.activities.insertOne(activity)
+        BWMongoDB3.tasks.insertOne(activity)
         val activityOid = activity.getObjectId("_id")
         val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
           Map("$push" -> Map("activity_ids" -> activityOid)))

@@ -29,7 +29,7 @@ class TaskChecklistItemToggle extends HttpServlet with HttpUtils with DateTimeUt
 
       val currentStatus = checkList(idx).status[Boolean]
 
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+      val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
           Map("$set" -> Map(s"check_list.$idx.status" -> !currentStatus)))
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

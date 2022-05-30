@@ -55,7 +55,7 @@ object ProcessApi {
 
     val activityOids: Seq[ObjectId] = allActivities(Right(process)).map(_._id[ObjectId])
     val activityDeleteCount = if (activityOids.nonEmpty)
-      BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
+      BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
     else
       0
     val deliverableDeleteCount = if (activityOids.nonEmpty)

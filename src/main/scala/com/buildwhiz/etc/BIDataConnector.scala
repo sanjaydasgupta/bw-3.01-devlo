@@ -194,7 +194,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   }
 
   private def activitiesData(writer: PrintWriter, json: Boolean): Unit = {
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     if (json) {
       val jsons = activities.map(_.asDoc.toJson).mkString("[", ", ", "], ")
       writer.print("\"activities\": " + jsons)

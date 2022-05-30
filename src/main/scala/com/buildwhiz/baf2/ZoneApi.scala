@@ -35,7 +35,7 @@ object ZoneApi {
 
   def allActivities(zone: DynDoc): Seq[DynDoc] = {
     val activityOids = zone.activity_ids[Many[ObjectId]]
-    BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+    BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityOids)))
   }
 
 }

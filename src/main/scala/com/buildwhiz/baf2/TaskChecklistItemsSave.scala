@@ -49,7 +49,7 @@ class TaskChecklistItemsSave extends HttpServlet with HttpUtils with DateTimeUti
         val message = modifications.map(t => s"""'${t._1}' to ${t._2}""").mkString("Set checklist item ", ", ", "")
         ActivityApi.addChangeLogEntry(activityOid, message, Some(user._id[ObjectId]), None)
 
-        val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+        val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
           Map("$set" -> Map(s"check_list" -> modifiedArray.
             map(nameStatus => Map("name" -> nameStatus._1, "status" -> nameStatus._2)))))
         if (updateResult.getModifiedCount == 0)

@@ -31,7 +31,7 @@ object ActionDelete {
     val actionIdx = actions.indexWhere(_.name[String] == actionName)
     if (actionIdx == -1)
       throw new IllegalArgumentException(s"Nonexistent action: '$actionName'")
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+    val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
       Map("$pull" -> Map("actions" -> Map("name" -> actionName))))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

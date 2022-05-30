@@ -51,7 +51,7 @@ object ActivityHandlerEnd {
       }
     }
     val timestamp = System.currentTimeMillis()
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" ->
+    val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid), Map("$set" ->
       Map("status" -> "ended", "timestamps.end" -> timestamp)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $updateResult")

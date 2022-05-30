@@ -66,14 +66,14 @@ object OrphanRecordsDelete extends HttpUtils {
     val expectedActivityOids: Many[ObjectId] = processes.flatMap(_.activity_ids[Many[ObjectId]]).distinct
     writer.println(s"${sp4}Expected activity Oids (${expectedActivityOids.length}): " +
         expectedActivityOids.mkString(", ") + "<br/>")
-    val existingActivities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val existingActivities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     val existingActivityOids: Seq[ObjectId] = existingActivities.map(_._id[ObjectId])
     val orphanedActivityOids: Seq[ObjectId] = existingActivityOids.filterNot(expectedActivityOids.toSet.contains)
     writer.println(s"${sp4}Orphaned activity Oids (${orphanedActivityOids.length}): " +
         orphanedActivityOids.mkString(", ") + "<br/>")
     if (go && orphanedActivityOids.nonEmpty) {
       writer.println(s"${sp4}Deleting ${orphanedActivityOids.length} orphaned activities<br/>")
-      val deleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map("$in" -> orphanedActivityOids)))
+      val deleteResult = BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> orphanedActivityOids)))
       if (deleteResult.getDeletedCount != orphanedActivityOids.length) {
         writer.println(s"${sp4}Deleted only ${deleteResult.getDeletedCount} orphaned activities<br/>")
       }
@@ -88,7 +88,7 @@ object OrphanRecordsDelete extends HttpUtils {
     writer.println(s"${sp2}ENTRY deleteOrphanedDeliverables()<br/>")
     val existingDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     val parentActivityOids: Seq[ObjectId] = existingDeliverables.map(_.activity_id[ObjectId]).distinct
-    val existingParentActivities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map($in -> parentActivityOids)))
+    val existingParentActivities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> parentActivityOids)))
     val existingParentActivityOids: Set[ObjectId] = existingParentActivities.map(_._id[ObjectId]).toSet
     val orphanedDeliverables = existingDeliverables.
         filterNot(d => existingParentActivityOids.contains(d.activity_id[ObjectId]))

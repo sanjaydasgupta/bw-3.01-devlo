@@ -58,7 +58,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
       }
     }
 
-    BWMongoDB3.activities.insertMany(newActivityDocs.toSeq)
+    BWMongoDB3.tasks.insertMany(newActivityDocs.toSeq)
     val newOids: Many[ObjectId] = newActivityDocs.map(_.getObjectId("_id")).toSeq
     val processOid: ObjectId = PhaseApi.allProcesses(phaseOid).headOption match {
       case Some(procOid) => procOid._id
@@ -84,7 +84,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
       Map($pull -> Map("activity_ids" -> Map($in -> oidsToDelete))))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException("Failed to update activity_ids")
-    val deleteResult = BWMongoDB3.activities.deleteMany(Map("_id" -> Map($in -> oidsToDelete)))
+    val deleteResult = BWMongoDB3.tasks.deleteMany(Map("_id" -> Map($in -> oidsToDelete)))
     if (deleteResult.getDeletedCount != oidsToDelete.length)
       throw new IllegalArgumentException(s"Deleted only ${deleteResult.getDeletedCount} activities")
     BWLogger.log(getClass.getName, request.getMethod, s"removeTaktUnits() Exit", request)

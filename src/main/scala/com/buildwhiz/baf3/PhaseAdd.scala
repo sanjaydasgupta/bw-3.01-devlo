@@ -407,7 +407,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     if (activityBuffer.nonEmpty) {
-      BWMongoDB3.activities.insertMany(activityBuffer.asJava)
+      BWMongoDB3.tasks.insertMany(activityBuffer.asJava)
     }
     val activityOids = activityBuffer.map(_.getObjectId("_id")).asJava
     val updateResult2 = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),

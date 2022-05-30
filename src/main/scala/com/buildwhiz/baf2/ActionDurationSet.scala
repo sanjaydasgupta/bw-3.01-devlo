@@ -51,7 +51,7 @@ object ActionDurationSet {
       case Some(desc) => Map(s"actions.$actionIdx.duration" -> formatDuration(duration),
         s"actions.$actionIdx.description" -> desc)
     }
-    val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid), Map("$set" -> valuesToSet))
+    val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid), Map("$set" -> valuesToSet))
     if (updateResult.getMatchedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     else {

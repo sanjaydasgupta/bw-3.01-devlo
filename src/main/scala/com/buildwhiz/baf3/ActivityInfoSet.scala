@@ -39,7 +39,7 @@ class ActivityInfoSet extends HttpServlet with HttpUtils {
           parameterConverters(paramName)._1(parameterMap(paramName))))
       if (mongoDbNameValuePairs.isEmpty)
         throw new IllegalArgumentException("No parameters found")
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activityOid),
+      val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
           Map("$set" -> mongoDbNameValuePairs.toMap))
       if (updateResult.getMatchedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

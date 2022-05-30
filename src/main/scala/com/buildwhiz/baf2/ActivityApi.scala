@@ -12,16 +12,16 @@ import scala.annotation.tailrec
 object ActivityApi extends DateTimeUtils {
 
   def activitiesByIds(activityOids: Seq[ObjectId], filter: Map[String, Any] = Map.empty): Seq[DynDoc] =
-    BWMongoDB3.activities.find(Map("_id" -> Map($in -> activityOids)) ++ filter)
+    BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)) ++ filter)
 
   def activityById(activityOid: ObjectId): DynDoc = {
-    BWMongoDB3.activities.find(Map("_id" -> activityOid)).headOption match {
+    BWMongoDB3.tasks.find(Map("_id" -> activityOid)).headOption match {
       case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
       case Some(activity) => activity
     }
   }
 
-  def exists(activityOid: ObjectId): Boolean = BWMongoDB3.activities.find(Map("_id" -> activityOid)).nonEmpty
+  def exists(activityOid: ObjectId): Boolean = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).nonEmpty
 
   def allActions(activity: DynDoc): Seq[DynDoc] = activity.actions[Many[Document]]
 
@@ -31,7 +31,7 @@ object ActivityApi extends DateTimeUtils {
       BWMongoDB3.deliverables.find(Map("activity_id" -> activityOid))
 
   def actionsByUser(userOid: ObjectId): Seq[DynDoc] = {
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     val actions: Seq[DynDoc] = activities.flatMap(activity => {
       val actions = activity.actions[Many[Document]]
       actions.foreach(_.activity_id = activity._id[ObjectId])
@@ -248,7 +248,7 @@ object ActivityApi extends DateTimeUtils {
           "percent_complete" -> pct)
       case (None, Some(_)) => // Never possible!
     }
-    val updateResult = BWMongoDB3.activities.
+    val updateResult = BWMongoDB3.tasks.
       updateOne(Map("_id" -> activityOid), Map("$push" -> Map("change_log" -> changeLogEntry)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
@@ -318,9 +318,9 @@ object ActivityApi extends DateTimeUtils {
   def setDelayed(activity: DynDoc, delayed: Boolean): Unit = {
     (isDelayed(activity), delayed) match {
       case (true, false) =>
-        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($unset -> Map("is_delayed" -> true)))
+        BWMongoDB3.tasks.updateOne(Map("_id" -> activity._id[ObjectId]), Map($unset -> Map("is_delayed" -> true)))
       case (false, true) =>
-        BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]), Map($set -> Map("is_delayed" -> true)))
+        BWMongoDB3.tasks.updateOne(Map("_id" -> activity._id[ObjectId]), Map($set -> Map("is_delayed" -> true)))
       case _ => // do nothing
     }
   }
@@ -356,7 +356,7 @@ object ActivityApi extends DateTimeUtils {
       case (fieldName, Some(duration)) => Some((fieldName.replace("duration_", "durations."), duration))
       case (_, None) => None
     }
-    val updateResult = BWMongoDB3.activities.updateMany(Map("_id" -> Map($in -> activityOids)),
+    val updateResult = BWMongoDB3.tasks.updateMany(Map("_id" -> Map($in -> activityOids)),
         Map($set -> setters.toMap))
     if (updateResult.getMatchedCount != activityOids.length)
       throw new IllegalArgumentException(s"MongoDB failed to match ${activityOids.length} Oid(s): $updateResult")

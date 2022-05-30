@@ -17,7 +17,7 @@ class PrerequisiteTest extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(query).head
+      val activity: DynDoc = BWMongoDB3.tasks.find(query).head
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionsWithIndex = actions.zipWithIndex
       val actionName = de.getVariable("action_name")
@@ -26,7 +26,7 @@ class PrerequisiteTest extends JavaDelegate {
         case Some(("ready", idx: Int)) =>
           BWLogger.log(getClass.getName, "execute()", "Matching satisfied prerequisite found", de)
           de.setVariable("prerequisite_ok", true)
-          val updateResult = BWMongoDB3.activities.updateOne(query,
+          val updateResult = BWMongoDB3.tasks.updateOne(query,
             Map("$set" -> Map(s"actions.$idx.status" -> "ended",
               s"actions.$idx.timestamps.end" -> System.currentTimeMillis)))
           if (updateResult.getModifiedCount == 0)

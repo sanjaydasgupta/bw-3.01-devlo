@@ -9,13 +9,13 @@ class StartMainAction extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
 //      val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-//      val activity = BWMongoDB3.activities.find(query).head
+//      val activity = BWMongoDB3.tasks.find(query).head
 //      val actions = activity("actions").asInstanceOf[Documents]
 //      val actionsWithIndex = actions.zipWithIndex
 //      val actionName = de.getVariable("action_name").asInstanceOf[String]
 //      actionsWithIndex.find(_._1("name") == actionName).map(_._2) match {
 //        case Some(idx) =>
-//          val updateResult = BWMongoDB3.activities.updateOne(query,
+//          val updateResult = BWMongoDB3.tasks.updateOne(query,
 //            Map("$set" -> Map(s"actions.$idx.status" -> "running",
 //              s"actions.$idx.timestamps.start" -> System.currentTimeMillis)))
 //          if (updateResult.getModifiedCount == 0)

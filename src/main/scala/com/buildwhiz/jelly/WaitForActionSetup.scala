@@ -42,7 +42,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
     BWLogger.log(getClass.getName, "notify()", "ENTRY", de)
     try {
       val activityQuery = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(activityQuery).head
+      val activity: DynDoc = BWMongoDB3.tasks.find(activityQuery).head
       val actions: Seq[DynDoc] = activity.actions[Many[Document]]
       val actionNames: Seq[String] = actions.map(_.name[String])
       val actionName = de.getVariable("action_name").asInstanceOf[String]
@@ -53,7 +53,7 @@ class WaitForActionSetup extends ExecutionListener with MailUtils with DateTimeU
           BWLogger.log(getClass.getName, "notify()", s"Action '$actionName' wait-id: ${de.getId}", de)
           val projectOid = new ObjectId(de.getVariable("project_id").asInstanceOf[String])
           saveAndSendMail(actions(idx), projectOid)
-          val updateResult = BWMongoDB3.activities.updateOne(activityQuery,
+          val updateResult = BWMongoDB3.tasks.updateOne(activityQuery,
             Map("$set" -> Map(s"actions.$idx.status" -> "waiting", s"actions.$idx.camunda_execution_id" -> de.getId,
             s"actions.$idx.timestamps.start" -> System.currentTimeMillis)))
           if (updateResult.getModifiedCount == 0)

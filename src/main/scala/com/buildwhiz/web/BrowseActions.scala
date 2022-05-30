@@ -27,7 +27,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
         val phaseIds = projects.flatMap(_.process_ids[Many[ObjectId]])
         val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseIds)))
         val activityIds = phases.flatMap(_.activity_ids[Many[ObjectId]])
-        val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
+        val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityIds)))
         val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]]).
           filter(_.assignee_person_id[ObjectId] == person._id[ObjectId])
         if (actions.exists(_.status[String] == "waiting"))
@@ -75,7 +75,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
       val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
       for (phase <- phases) {
         val activityOids: Many[ObjectId] = phase.activity_ids[Many[ObjectId]]
-        val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityOids)))
+        val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityOids)))
         val activitiesByBpmn = activities.groupBy(_.bpmn_name[String])
         for ((bpmnName, activities) <- activitiesByBpmn) {
           for (activity <- activities) {
@@ -143,7 +143,7 @@ class BrowseActions extends HttpServlet with HttpUtils {
       docs.map(_.asDoc)
     }.asJava
 
-    val activity: DynDoc = BWMongoDB3.activities.find(Map("_id" -> activityOid)).head
+    val activity: DynDoc = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).head
     val action: DynDoc = activity.actions[Many[Document]].filter(_.name[String] == actionName).head
     val text = mutable.Buffer.empty[String]
     text += "<table width=\"100%\" border=\"1\">" +

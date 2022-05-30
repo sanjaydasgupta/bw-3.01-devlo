@@ -47,7 +47,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       val activityName = de.getCurrentActivityName.replaceAll("[\\s]+", " ")
       val bpmnName = getBpmnName(de)
       val query = Map("_id" -> Map("$in" -> activityOids), "name" -> activityName, "bpmn_name" -> bpmnName)
-      val activity: DynDoc = BWMongoDB3.activities.find(query).headOption match {
+      val activity: DynDoc = BWMongoDB3.tasks.find(query).headOption match {
         case Some(a) => a
         case None => throw new IllegalArgumentException(s"Query did not match any activity: '$query'")
       }
@@ -70,7 +70,7 @@ class ActivityHandlerStart extends JavaDelegate with BpmnUtils {
       de.setVariable("action_name", mainActionName)
 
       val timestamp = System.currentTimeMillis()
-      val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> activity._id[ObjectId]),
+      val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activity._id[ObjectId]),
           Map("$set" -> Map("status" -> "running", "timestamps.start" -> timestamp,
           "activity_instance_id" -> de.getActivityInstanceId)))
       if (updateResult.getModifiedCount == 0)

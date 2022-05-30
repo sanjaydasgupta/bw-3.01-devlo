@@ -197,7 +197,7 @@ object TimerModule extends HttpUtils {
       for (zp <- newZombies) {
         BWMongoDB3.processes.updateOne(Map("_id" -> zp._id[ObjectId]), Map($set -> Map("is_zombie" -> true)))
         val allActivityOids: Seq[ObjectId] = zp.activity_ids[Many[ObjectId]]
-        BWMongoDB3.activities.updateOne(Map("_id" -> Map($in -> allActivityOids)), Map($set -> Map("is_zombie" -> true)))
+        BWMongoDB3.tasks.updateOne(Map("_id" -> Map($in -> allActivityOids)), Map($set -> Map("is_zombie" -> true)))
         val phase = ProcessApi.parentPhase(zp._id[ObjectId])
         val project = PhaseApi.parentProject(phase._id[ObjectId])
         val processIdentity = s"${project.name[String]}/${phase.name[String]}/${zp.name[String]}"

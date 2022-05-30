@@ -70,7 +70,7 @@ object DataConsistencyChecker extends HttpUtils {
         map(pp => (pp._2, pp._1._id[ObjectId])).toMap
 
     // Activities (Tasks)
-    val existingActivities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val existingActivities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     val oidToExistingActivitiesMap: Map[ObjectId, DynDoc] = existingActivities.
         map(activity => (activity._id[ObjectId], activity)).toMap
     val existingProcessActivityOidPairs: Seq[(DynDoc, ObjectId)] = goodProcesses.

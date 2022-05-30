@@ -48,7 +48,7 @@ object OwnedProjects {
     val phaseOids = project.process_ids[Many[ObjectId]]
     val phases: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map("$in" -> phaseOids)))
     val activityIds: Many[ObjectId] = phases.flatMap(_.activity_ids[Many[ObjectId]]).asJava
-    val activities: Seq[DynDoc] = BWMongoDB3.activities.find(Map("_id" -> Map("$in" -> activityIds)))
+    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map("$in" -> activityIds)))
     val actions: Seq[DynDoc] = activities.flatMap(_.actions[Many[Document]])
     if (actions.exists(action => action.status[String] == "waiting" && action.assignee_person_id[ObjectId] == personOid))
       project.display_status = "waiting"

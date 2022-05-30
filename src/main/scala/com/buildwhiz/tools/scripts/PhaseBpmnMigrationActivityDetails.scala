@@ -34,7 +34,7 @@ object PhaseBpmnMigrationActivityDetails {
           optDurations match {
             case Some(durations) =>
               if (go) {
-                val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> toActivity._id[ObjectId]),
+                val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> toActivity._id[ObjectId]),
                   Map($set -> Map("durations" -> durations)))
                 if (updateResult.getMatchedCount == 0)
                   throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
@@ -54,7 +54,7 @@ object PhaseBpmnMigrationActivityDetails {
             optDurations match {
               case Some(durations) =>
                 if (go) {
-                  val updateResult = BWMongoDB3.activities.updateOne(Map("_id" -> toActivity._id[ObjectId]),
+                  val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> toActivity._id[ObjectId]),
                     Map($set -> Map("durations" -> durations)))
                   if (updateResult.getMatchedCount == 0)
                     throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")

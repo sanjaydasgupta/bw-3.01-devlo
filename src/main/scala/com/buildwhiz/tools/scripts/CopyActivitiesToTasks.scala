@@ -14,7 +14,7 @@ object CopyActivitiesToTasks {
     response.setContentType("text/plain")
     val writer = response.getWriter
     val go = args.length > 0 && args.head == "GO"
-    val knownActivities: Seq[DynDoc] = BWMongoDB3.activities.find()
+    val knownActivities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     val activityCount = knownActivities.length
     writer.println(s"found $activityCount activities")
 

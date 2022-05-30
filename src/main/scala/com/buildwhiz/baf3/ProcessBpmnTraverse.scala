@@ -125,7 +125,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
       val taktOffset = offset + (taktUnitNo - 1) * firstTaktTaskDuration
       bulkWriteBuffer.add(new UpdateOneModel(query, new Document($set, new Document("offset", taktOffset))))
     }
-    val bulkWriteResult = BWMongoDB3.activities.bulkWrite(bulkWriteBuffer)
+    val bulkWriteResult = BWMongoDB3.tasks.bulkWrite(bulkWriteBuffer)
     if (bulkWriteResult.getMatchedCount != bulkWriteBuffer.length) {
       throw new IllegalArgumentException(s"MongoDB update failed: $bulkWriteResult")
     }

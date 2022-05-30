@@ -17,7 +17,7 @@ class PrerequisiteRetest extends JavaDelegate {
     BWLogger.log(getClass.getName, "execute()", "ENTRY", de)
     try {
       val query = Map("_id" -> new ObjectId(de.getVariable("activity_id").asInstanceOf[String]))
-      val activity: DynDoc = BWMongoDB3.activities.find(query).head
+      val activity: DynDoc = BWMongoDB3.tasks.find(query).head
       val actions: Seq[Document] = activity.actions[Many[Document]]
       val actionsWithIndex = actions.zipWithIndex
       val prerequisiteName = de.getVariable("action_name")
@@ -26,7 +26,7 @@ class PrerequisiteRetest extends JavaDelegate {
           val id = awi._1.asScala("id").asInstanceOf[String]
           BWLogger.log(getClass.getName, "execute()", "Prerequisite satisfied: calling messageEventReceived()", de)
           de.getProcessEngineServices.getRuntimeService.messageEventReceived("prerequisite", id)
-          val updateResult = BWMongoDB3.activities.updateOne(query, Map("$set" ->
+          val updateResult = BWMongoDB3.tasks.updateOne(query, Map("$set" ->
             Map(s"actions.${awi._2}.status" -> "ended", s"actions.${awi._2}.timestamps.end" -> System.currentTimeMillis)))
           BWLogger.log(getClass.getName, "execute()", s"MongoDB.updateResult: $updateResult", de)
         case Some(awi) =>

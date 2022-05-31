@@ -193,11 +193,11 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def activitiesData(writer: PrintWriter, json: Boolean): Unit = {
+  private def tasksData(writer: PrintWriter, json: Boolean): Unit = {
     val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     if (json) {
       val jsons = activities.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"activities\": " + jsons)
+      writer.print("\"tasks\": " + jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("bpmn_id", primitiveFormatter), FldSpec("bpmn_name", primitiveFormatter),
@@ -205,8 +205,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
         FldSpec("full_path_name", primitiveFormatter), FldSpec("is_takt", booleanFormatter),
         FldSpec("offset", primitiveFormatter), FldSpec("takt_unit_no", primitiveFormatter),
         FldSpec("durations.likely", primitiveFormatter))
-      writer.println("<h2>Activities</h2>")
-      writer.println("""<table id="activities" border="1" types="s,s,s,s,s,s,s,b,i,i,i">""")
+      writer.println("<h2>Tasks</h2>")
+      writer.println("""<table id="tasks" border="1" types="s,s,s,s,s,s,s,b,i,i,i">""")
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       for (activity <- activities) {
         val tds = fields.map(f => (f.name, f.asString(fieldValue(activity, f.name))))
@@ -288,7 +288,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     organizationsData(writer, json)
     personData(writer, json)
     teamData(writer, json)
-    activitiesData(writer, json)
+    tasksData(writer, json)
     deliverablesData(writer, json)
     constraintsData(writer, json)
     writer.print(if (json) "\"status\": 1}" else "</body></html>")

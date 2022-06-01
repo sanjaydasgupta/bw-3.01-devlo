@@ -58,7 +58,7 @@ object PhaseApi {
           new Document("$unwind", new Document("path", "$processes").append("preserveNullAndEmptyArrays", false)),
           new Document("$set", new Document("activity_ids", "$processes.activity_ids")),
           new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
-          new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
+          new Document("$lookup", new Document("from", "tasks").append("localField", "activity_ids").
             append("foreignField", "_id").append("as", "activity")),
           new Document("$unwind", new Document("path", "$activity").append("preserveNullAndEmptyArrays", false)),
           new Document("$replaceRoot", new Document("newRoot", "$activity"))
@@ -68,7 +68,7 @@ object PhaseApi {
           new Document("$match", new Document("_id", new Document($in, phaseRecord.process_ids[Many[ObjectId]]))),
           new Document("$limit", 1),
           new Document("$unwind", new Document("path", "$activity_ids").append("preserveNullAndEmptyArrays", false)),
-          new Document("$lookup", new Document("from", "activities").append("localField", "activity_ids").
+          new Document("$lookup", new Document("from", "tasks").append("localField", "activity_ids").
             append("foreignField", "_id").append("as", "activity")),
           new Document("$unwind", new Document("path", "$activity").append("preserveNullAndEmptyArrays", false)),
           new Document("$replaceRoot", new Document("newRoot", "$activity"))

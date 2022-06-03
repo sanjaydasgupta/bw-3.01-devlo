@@ -6,47 +6,55 @@ import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.DynDoc._
 import com.sun.org.apache.xerces.internal.parsers.DOMParser
 import org.w3c.dom
-import org.w3c.dom.{Element, NamedNodeMap, Node, NodeList}
 import org.xml.sax.InputSource
 
 import java.io.PrintWriter
 import java.util.TimeZone
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.language.implicitConversions
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import org.bson.Document
 import org.bson.types.ObjectId
+import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
+import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent,
+    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, StartEvent, Task, TimeDuration, UserTask}
 
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
-  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
+//  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
-  private def extensionProperties(e: Element, name: String): Seq[Node] = e.getElementsByTagName("camunda:property").
-      filter(nameAttribute(_) == name)
+//  private def extensionProperties(e: Element, name: String): Seq[Node] = e.getElementsByTagName("camunda:property").
+//      filter(nameAttribute(_) == name)
+//
+  private def extensionProperties2(e: FlowElement, name: String): Seq[CamundaProperty] =
+    e.getChildElementsByType(classOf[CamundaProperty]).asScala.toSeq.filter(_.getAttributeValue("name") == name)
 
   private def cleanText(txt: String): String = txt.replaceAll("\\s+", " ").replaceAll("&#10;", " ")
 
-  private def getAttribute(node: Node, attributeName: String): String = {
-    node.getAttributes match {
-      case null => ""
-      case attributes: NamedNodeMap => attributes.getNamedItem(attributeName) match {
-        case null => ""
-        case valueItem: Node => valueItem.getTextContent match {
-          case null => ""
-          case textContent: String => textContent
-        }
-      }
-    }
+//  private def getAttribute(node: Node, attributeName: String): String = {
+//    node.getAttributes match {
+//      case null => ""
+//      case attributes: NamedNodeMap => attributes.getNamedItem(attributeName) match {
+//        case null => ""
+//        case valueItem: Node => valueItem.getTextContent match {
+//          case null => ""
+//          case textContent: String => textContent
+//        }
+//      }
+//    }
+//  }
+//
+//  private def valueAttribute(node: Node): String = {
+//    getAttribute(node, "value")
+//  }
+//
+  private def valueAttribute2(node: CamundaProperty): String = {
+    node.getAttributeValue("value")
   }
 
-  private def valueAttribute(node: Node): String = {
-    getAttribute(node, "value")
-  }
-
-  private def nameAttribute(node: Node): String = {
-    getAttribute(node, "name")
-  }
-
+//  private def nameAttribute(node: Node): String = {
+//    getAttribute(node, "name")
+//  }
+//
   case class CallerBpmnDom(callerName: String, bpmnName: String, theDom: dom.Document)
 
   def bpmnDom(bpmnName: String): dom.Document = {
@@ -67,18 +75,18 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def addTimer(timerNode: Element, bpmnName: String, namePath: String, idPath: String,
+  private def addTimer(timerNode: IntermediateCatchEvent, bpmnName: String, namePath: String, idPath: String,
       prefix: String, timerBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(nameAttribute(timerNode))
-    val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
-    val timerVariableName = timerNode.getElementsByTagName(s"$prefix:timeDuration").
-      find(n => n.getAttributes.getNamedItem("xsi:type").getTextContent == s"$prefix:tFormalExpression" &&
+    val name = cleanText(timerNode.getName)
+    val bpmnId = timerNode.getId
+    val timerVariableName = timerNode.getChildElementsByType(classOf[TimeDuration]).//(s"$prefix:timeDuration").
+      asScala.toSeq.find(n => n.getAttributeValue("xsi:type") == s"$prefix:tFormalExpression" &&
         n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${}]", "")) match {
       case Some(tvn) => tvn
       case None => throw new IllegalArgumentException(s"Bad timer ($bpmnName, '$name', $bpmnId)")
     }
-    val duration = extensionProperties(timerNode, "bw-duration") match {
-      case dur +: _ => valueAttribute(dur)
+    val duration = extensionProperties2(timerNode, "bw-duration") match {
+      case dur +: _ => valueAttribute2(dur)
       case Nil => "00:00:00"
     }
     val fullBpmnName = if (idPath == ".") {
@@ -93,10 +101,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     timerBuffer.append(timer)
   }
 
-  private def addMilestone(milestoneNode: Element, bpmnName: String, namePath: String, idPath: String,
+  private def addMilestone(milestoneNode: IntermediateThrowEvent, bpmnName: String, namePath: String, idPath: String,
       milestoneBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(nameAttribute(milestoneNode))
-    val bpmnId = milestoneNode.getAttributes.getNamedItem("id").getTextContent
+    val name = cleanText(milestoneNode.getName)
+    val bpmnId = milestoneNode.getId
     val fullBpmnName = if (idPath == ".") {
       bpmnName
     } else {
@@ -109,10 +117,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     milestoneBuffer.append(milestone)
   }
 
-  private def addEndNode(endNode: Element, bpmnName: String, namePath: String, idPath: String,
+  private def addEndNode(endNode: EndEvent, bpmnName: String, namePath: String, idPath: String,
       endNodeBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(nameAttribute(endNode))
-    val bpmnId = endNode.getAttributes.getNamedItem("id").getTextContent
+    val name = cleanText(endNode.getName)
+    val bpmnId = endNode.getId
     val fullBpmnName = if (idPath == ".") {
       bpmnName
     } else {
@@ -125,10 +133,10 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     endNodeBuffer.append(end)
   }
 
-  private def addStartNode(startNode: Element, bpmnName: String, namePath: String, idPath: String,
+  private def addStartNode(startNode: StartEvent, bpmnName: String, namePath: String, idPath: String,
       startNodeBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(nameAttribute(startNode))
-    val bpmnId = startNode.getAttributes.getNamedItem("id").getTextContent
+    val name = cleanText(startNode.getName)
+    val bpmnId = startNode.getId
     val fullBpmnName = if (idPath == ".") {
       bpmnName
     } else {
@@ -141,38 +149,38 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     startNodeBuffer.append(start)
   }
 
-  private def addActivity(activityNode: Element, bpmnName: String, namePath: String, idPath: String,
-       timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
-    val name = cleanText(nameAttribute(activityNode))
-    val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
-    val role = extensionProperties(activityNode, "bw-role") match {
-      case r +: _ => valueAttribute(r)
+  private def addActivity(activityNode: Task, bpmnName: String, namePath: String, idPath: String,
+      timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
+    val name = cleanText(activityNode.getName)
+    val bpmnId = activityNode.getId
+    val role = extensionProperties2(activityNode, "bw-role") match {
+      case r +: _ => valueAttribute2(r)
       //case Nil | null => "phase-manager"
       case Nil | null => "none"
     }
-    val description = extensionProperties(activityNode, "bw-description") match {
-      case d +: _ => valueAttribute(d).replaceAll("\"", "\'")
+    val description = extensionProperties2(activityNode, "bw-description") match {
+      case d +: _ => valueAttribute2(d).replaceAll("\"", "\'")
       case Nil | null => s"$name (no description provided)"
     }
-    val bpmnDuration = extensionProperties(activityNode, "bw-duration") match {
-      case dur +: _ => valueAttribute(dur)
+    val bpmnDuration = extensionProperties2(activityNode, "bw-duration") match {
+      case dur +: _ => valueAttribute2(dur)
       case Nil | null => "00:00:00"
     }
-    val bpmnActualStart = extensionProperties(activityNode, "bw-actual-start") match {
+    val bpmnActualStart = extensionProperties2(activityNode, "bw-actual-start") match {
       case Nil | null => ""
-      case start +: _ => valueAttribute(start)
+      case start +: _ => valueAttribute2(start)
     }
-    val bpmnActualEnd = extensionProperties(activityNode, "bw-actual-end") match {
+    val bpmnActualEnd = extensionProperties2(activityNode, "bw-actual-end") match {
       case Nil | null => ""
-      case end +: _ => valueAttribute(end)
+      case end +: _ => valueAttribute2(end)
     }
-    val bpmnScheduledStart = extensionProperties(activityNode, "bw-scheduled-start") match {
+    val bpmnScheduledStart = extensionProperties2(activityNode, "bw-scheduled-start") match {
       case Nil | null => ""
-      case start +: _ => valueAttribute(start)
+      case start +: _ => valueAttribute2(start)
     }
-    val bpmnScheduledEnd = extensionProperties(activityNode, "bw-scheduled-end") match {
+    val bpmnScheduledEnd = extensionProperties2(activityNode, "bw-scheduled-end") match {
       case Nil | null => ""
-      case end +: _ => valueAttribute(end)
+      case end +: _ => valueAttribute2(end)
     }
     val durations: Document = Map("optimistic" -> -1, "pessimistic" -> -1, "likely" -> -1, "actual" -> -1)
     val fullBpmnName = if (idPath == ".") {
@@ -191,9 +199,9 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     activityBuffer.append(activity)
   }
 
-  private def addVariable(variableNode: Element, bpmnName: String, idPath: String,
+  private def addVariable(variableNode: CamundaProperty, bpmnName: String, idPath: String,
       variableBuffer: mutable.Buffer[Document]): Unit = {
-    val nameAndType = variableNode.getAttributes.getNamedItem("value").getTextContent
+    val nameAndType = variableNode.getAttributeValue("value")
     val parts = nameAndType.split(":")
     val converters: Map[String, String => Any] =
       Map("B" -> (s => s.toBoolean), "L" -> (s => s.toLong), "D" -> (s => s.toDouble), "S" -> (s => s))
@@ -210,12 +218,15 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     variableBuffer.append(variable)
   }
 
-  private def addCallElement(callElementNode: Element, bpmnName: String, idPath: String,
-      prefix: String, callElementBuffer: mutable.Buffer[Document]): Unit = {
-    val isTakt = callElementNode.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
-    val callee = callElementNode.getAttributes.getNamedItem("calledElement").getTextContent
-    val callerElementId = callElementNode.getAttributes.getNamedItem("id").getTextContent
-    val callerElementName = cleanText(nameAttribute(callElementNode))
+  private def addCallElement(callElementNode: CallActivity, bpmnName: String, idPath: String,
+      callElementBuffer: mutable.Buffer[Document]): Unit = {
+    val isTakt = callElementNode.getLoopCharacteristics match {
+      case _: MultiInstanceLoopCharacteristics => true
+      case _ => false
+    }
+    val callee = callElementNode.getCalledElement
+    val callerElementId = callElementNode.getId
+    val callerElementName = cleanText(callElementNode.getName)
     val fullBpmnName = if (idPath == ".") {
       callerElementId + "/" + callee
     } else {
@@ -238,18 +249,26 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       milestoneBuffer: mutable.Buffer[Document], endNodeBuffer: mutable.Buffer[Document],
       startNodeBuffer: mutable.Buffer[Document],
       variableBuffer: mutable.Buffer[Document], callElementBuffer: mutable.Buffer[Document],
-      timeZone: String, isTakt: Boolean): Unit = {
+      timeZone: String, isTakt: Boolean, request: HttpServletRequest): Unit = {
     val level = idPath.split("/").length
     val margin = "&nbsp;&nbsp;&nbsp;|" * level
-    val theDom = bpmnDom(bpmnName)
-    val prefix = theDom.getDocumentElement.getTagName.split(":")(0)
+    //val theDom = bpmnDom(bpmnName)
+    //val prefix = theDom.getDocumentElement.getTagName.split(":")(0)
+    val bpmnModel = bpmnModelInstance(bpmnName)
+    val bpmnPrefix = bpmnModel.getDocument.getRootElement.getPrefix
+    //BWLogger.log(getClass.getName, request.getMethod, s"bpmnPrefix: '$bpmnPrefix'", request)
+    val bpmnTasks: Seq[Task] = bpmnModel.getModelElementsByType(classOf[Task]).asScala.toSeq
+    val bpmnUserTasks: Seq[UserTask] = bpmnModel.getModelElementsByType(classOf[UserTask]).asScala.toSeq
+    val allTasks = bpmnTasks ++ bpmnUserTasks
 
-    val activityNodes: Seq[Element] = (theDom.getElementsByTagName(s"$prefix:userTask") ++
-        theDom.getElementsByTagName(s"$prefix:task")).map(_.asInstanceOf[Element])
-    if (activityNodes.nonEmpty) {
-      for (activityNode <- activityNodes) {
-        val name = cleanText(nameAttribute(activityNode))
-        val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
+    //val activityNodes: Seq[Element] = (theDom.getElementsByTagName(s"$prefix:userTask") ++
+    //    theDom.getElementsByTagName(s"$prefix:task")).map(_.asInstanceOf[Element])
+    if (allTasks.nonEmpty) {
+      for (activityNode <- allTasks) {
+        val name = cleanText(activityNode.getAttributeValue("name"))
+        //val name = cleanText(nameAttribute(activityNode))
+        val bpmnId = activityNode.getAttributeValue("id")
+        //val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) ACTIVITY:$name[$bpmnId]<br/>""")
         }
@@ -261,16 +280,15 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val timerNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:intermediateCatchEvent").
-      filter(_.getChildNodes.exists(_.getLocalName == "timerEventDefinition")).map(_.asInstanceOf[Element])
+    val timerNodes: Seq[IntermediateCatchEvent] = bpmnModel.getModelElementsByType(classOf[IntermediateCatchEvent]).asScala.toSeq
     if (timerNodes.nonEmpty) {
       for (timerNode <- timerNodes) {
-        val name = cleanText(nameAttribute(timerNode))
-        val bpmnId = timerNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(timerNode.getAttributeValue("name"))
+        val bpmnId = timerNode.getAttributeValue("id")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) TIMER:$name[$bpmnId]<br/>""")
         }
-        addTimer(timerNode, bpmnName, namePath, idPath, prefix, timerBuffer)
+        addTimer(timerNode, bpmnName, namePath, idPath, bpmnPrefix, timerBuffer)
       }
     } else {
       if (responseWriter != null) {
@@ -278,11 +296,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val endNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:endEvent").map(_.asInstanceOf[Element])
+    val endNodes: Seq[EndEvent] = bpmnModel.getModelElementsByType(classOf[EndEvent]).asScala.toSeq
     if (endNodes.nonEmpty) {
       for (endNode <- endNodes) {
-        val name = cleanText(nameAttribute(endNode))
-        val bpmnId = endNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(endNode.getAttributeValue("name"))
+        val bpmnId = endNode.getAttributeValue("id")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) END:$name[$bpmnId]<br/>""")
         }
@@ -294,11 +312,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val startNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:startEvent").map(_.asInstanceOf[Element])
+    val startNodes: Seq[StartEvent] = bpmnModel.getModelElementsByType(classOf[StartEvent]).asScala.toSeq
     if (startNodes.nonEmpty) {
       for (startNode <- startNodes) {
-        val name = cleanText(nameAttribute(startNode))
-        val bpmnId = startNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(startNode.getAttributeValue("name"))
+        val bpmnId = startNode.getAttributeValue("id")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) START:$name[$bpmnId]<br/>""")
         }
@@ -310,12 +328,12 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val milestoneNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:intermediateThrowEvent").
-        map(_.asInstanceOf[Element])
+    val milestoneNodes: Seq[IntermediateThrowEvent] = bpmnModel.getModelElementsByType(classOf[IntermediateThrowEvent]).
+        asScala.toSeq
     if (milestoneNodes.nonEmpty) {
       for (milestoneNode <- milestoneNodes) {
-        val name = cleanText(nameAttribute(milestoneNode))
-        val bpmnId = milestoneNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(milestoneNode.getAttributeValue("name"))
+        val bpmnId = milestoneNode.getAttributeValue("id")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) MILESTONE:$name[$bpmnId]<br/>""")
         }
@@ -327,11 +345,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val variableNodes: Seq[Element] = theDom.getElementsByTagName("camunda:property").
-      filter(nameAttribute(_) == "bw-variable").map(_.asInstanceOf[Element])
+    val variableNodes: Seq[CamundaProperty] = bpmnModel.getModelElementsByType(classOf[CamundaProperty]).asScala.toSeq.
+      filter(_.getAttributeValue("name") == "bw-variable")
     if (variableNodes.nonEmpty) {
       for (variableNode <- variableNodes) {
-        val name = nameAttribute(variableNode)
+        val name = cleanText(variableNode.getAttributeValue("name"))
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) VARIABLE:$name[???]<br/>""")
         }
@@ -343,18 +361,17 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val callActivityNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:callActivity").
-        filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler").
-        map(_.asInstanceOf[Element])
+    val callActivityNodes: Seq[CallActivity] = bpmnModel.getModelElementsByType(classOf[CallActivity]).asScala.toSeq.
+        filter(_.getAttributeValue("calledElement") != "Infra-Activity-Handler")
 
     if (callActivityNodes.nonEmpty) {
       for (callElementNode <- callActivityNodes) {
-        val name = cleanText(nameAttribute(callElementNode))
-        val bpmnId = callElementNode.getAttributes.getNamedItem("id").getTextContent
+        val name = cleanText(callElementNode.getAttributeValue("name"))
+        val bpmnId = callElementNode.getAttributeValue("id")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) CALL:$name[$bpmnId]<br/>""")
         }
-        addCallElement(callElementNode, bpmnName, idPath, prefix, callElementBuffer)
+        addCallElement(callElementNode, bpmnName, idPath, callElementBuffer)
       }
     } else {
       if (responseWriter != null) {
@@ -363,14 +380,17 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
 
     for (call <- callActivityNodes) {
-      val calledBpmnName = call.getAttributes.getNamedItem("calledElement").getTextContent
-      val callerElementName = nameAttribute(call)
-      val callerElementId = call.getAttributes.getNamedItem("id").getTextContent
+      val calledBpmnName = call.getCalledElement
+      val callerElementName = call.getName
+      val callerElementId = call.getId
       val newNamePath = s"$namePath/${cleanText(callerElementName)}"
       val newIdPath = s"$idPath/$callerElementId"
-      val isTakt2 = isTakt || call.getElementsByTagName(s"$prefix:multiInstanceLoopCharacteristics").nonEmpty
+      val isTakt2 = call.getLoopCharacteristics match {
+        case _: MultiInstanceLoopCharacteristics => true
+        case _ => isTakt
+      }
       analyzeBpmn(calledBpmnName, newNamePath, newIdPath, responseWriter, activityBuffer, timerBuffer,
-          milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt2)
+        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, timeZone, isTakt2, request)
     }
   }
 
@@ -390,7 +410,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
     val phaseTimezone = PhaseApi.timeZone(thePhase, Some(request))
     analyzeBpmn(bpmnName, ".", ".", null, activityBuffer, timerBuffer, milestoneBuffer, endNodeBuffer,
-      startNodeBuffer, variableBuffer, callElementBuffer, phaseTimezone, isTakt = false)
+      startNodeBuffer, variableBuffer, callElementBuffer, phaseTimezone, isTakt = false, request)
 
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
@@ -432,7 +452,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val callElementBuffer = mutable.Buffer[Document]()
 
       analyzeBpmn(bpmnName, ".", ".", responseWriter, activityBuffer, timerBuffer,
-        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false)
+        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false, request)
       responseWriter.println(s"<b>Total activities: ${activityBuffer.length}</b><br/>")
       for (activity <- activityBuffer) {
         responseWriter.println(s"${activity.toJson}<br/>")

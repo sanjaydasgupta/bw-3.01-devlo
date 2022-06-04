@@ -199,7 +199,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     } else {
       idPath.substring(2) + "/" + bpmnName
     }
-    val activity: Document = Map("status" -> "defined", "name" -> name, "bpmn_id" -> bpmnId,
+    val atEnd: Boolean = activityNode.getSucceedingNodes.filterByType(classOf[EndEvent]).count() > 0
+    val activity: Document = Map("status" -> "defined", "name" -> name, "bpmn_id" -> bpmnId, "at_end" -> atEnd,
         "full_path_name" -> s"$namePath/$name", "full_path_id" -> s"$idPath/$bpmnId", "is_takt" -> isTakt,
         "bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "role" -> role, "description" -> description,
         "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> bpmnDuration, "durations" -> durations,
@@ -440,9 +441,14 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     if (activityBuffer.nonEmpty) {
       BWMongoDB3.tasks.insertMany(activityBuffer.asJava)
     }
+    val lastActivityOid = activityBuffer.filter(_.y.at_end[Boolean]).
+      find(a => a.y.bpmn_name[String] == a.y.bpmn_name_full[String]) match {
+      case Some(a) => a.y._id[ObjectId]
+      case _ => throw new IllegalArgumentException("Cant find last activity/task for milestone")
+    }
     val activityOids = activityBuffer.map(_.getObjectId("_id")).asJava
     val updateResult2 = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
-      Map("$set" -> Map("activity_ids" -> activityOids)))
+      Map("$set" -> Map("activity_ids" -> activityOids, "milestone_activity_id" -> lastActivityOid)))
     if (updateResult2.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }

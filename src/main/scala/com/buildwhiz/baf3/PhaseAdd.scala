@@ -4,9 +4,6 @@ import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.DynDoc._
-import com.sun.org.apache.xerces.internal.parsers.DOMParser
-import org.w3c.dom
-import org.xml.sax.InputSource
 
 import java.io.PrintWriter
 import java.util.TimeZone
@@ -17,7 +14,8 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
 import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent,
-    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, StartEvent, Task, TimeDuration, UserTask}
+    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, StartEvent, Task, TimeDuration, TimerEventDefinition,
+    UserTask}
 
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
@@ -55,15 +53,15 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //    getAttribute(node, "name")
 //  }
 //
-  case class CallerBpmnDom(callerName: String, bpmnName: String, theDom: dom.Document)
+//  case class CallerBpmnDom(callerName: String, bpmnName: String, theDom: dom.Document)
 
-  def bpmnDom(bpmnName: String): dom.Document = {
-    val modelInputStream = getProcessModel(bpmnName)
-    val domParser = new DOMParser()
-    domParser.parse(new InputSource(modelInputStream))
-    domParser.getDocument
-  }
-
+//  def bpmnDom(bpmnName: String): dom.Document = {
+//    val modelInputStream = getProcessModel(bpmnName)
+//    val domParser = new DOMParser()
+//    domParser.parse(new InputSource(modelInputStream))
+//    domParser.getDocument
+//  }
+//
   private def date2long(date: String, timeZone: String): Long = {
     if (date.isEmpty)
       -1L
@@ -76,14 +74,27 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addTimer(timerNode: IntermediateCatchEvent, bpmnName: String, namePath: String, idPath: String,
-      prefix: String, timerBuffer: mutable.Buffer[Document]): Unit = {
+      timerBuffer: mutable.Buffer[Document]): Unit = {
     val name = cleanText(timerNode.getName)
     val bpmnId = timerNode.getId
-    val timerVariableName = timerNode.getChildElementsByType(classOf[TimeDuration]).//(s"$prefix:timeDuration").
-      asScala.toSeq.find(n => n.getAttributeValue("xsi:type") == s"$prefix:tFormalExpression" &&
-        n.getTextContent.matches("\\$\\{.+\\}")).map(_.getTextContent.replaceAll("[${}]", "")) match {
-      case Some(tvn) => tvn
-      case None => throw new IllegalArgumentException(s"Bad timer ($bpmnName, '$name', $bpmnId)")
+    val timeDuration: TimeDuration = timerNode.getEventDefinitions.asScala.headOption match {
+      case Some(ted: TimerEventDefinition) => ted.getTimeDuration
+      case _ =>
+        val textContent = timerNode.getTextContent
+        val elementType = timerNode.getElementType.getTypeName
+        val baseType = timerNode.getElementType.getBaseType.getTypeName
+        val timerInfo = s"elementType: $elementType, baseType: $baseType, /text: $textContent"
+        throw new IllegalArgumentException(s"Not found TimeDuration($bpmnName, '$name', $bpmnId): $timerInfo")
+    }
+
+    val timerVariableName = if (timeDuration.getTextContent.matches("\\$\\{.+\\}")) {
+      timeDuration.getTextContent.replaceAll("[${}]", "")
+    } else {
+      val textContent = timeDuration.getTextContent
+      val elementType = timeDuration.getElementType.getTypeName
+      val baseType = timeDuration.getElementType.getBaseType.getTypeName
+      val timerInfo = s"elementType: $elementType, baseType: $baseType, /text: $textContent"
+      throw new IllegalArgumentException(s"Bad TimeDuration($bpmnName, '$name', $bpmnId): $timerInfo")
     }
     val duration = extensionProperties2(timerNode, "bw-duration") match {
       case dur +: _ => valueAttribute2(dur)
@@ -255,7 +266,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     //val theDom = bpmnDom(bpmnName)
     //val prefix = theDom.getDocumentElement.getTagName.split(":")(0)
     val bpmnModel = bpmnModelInstance(bpmnName)
-    val bpmnPrefix = bpmnModel.getDocument.getRootElement.getPrefix
+    //val bpmnPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     //BWLogger.log(getClass.getName, request.getMethod, s"bpmnPrefix: '$bpmnPrefix'", request)
     val bpmnTasks: Seq[Task] = bpmnModel.getModelElementsByType(classOf[Task]).asScala.toSeq
     val bpmnUserTasks: Seq[UserTask] = bpmnModel.getModelElementsByType(classOf[UserTask]).asScala.toSeq
@@ -288,7 +299,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) TIMER:$name[$bpmnId]<br/>""")
         }
-        addTimer(timerNode, bpmnName, namePath, idPath, bpmnPrefix, timerBuffer)
+        addTimer(timerNode, bpmnName, namePath, idPath, timerBuffer)
       }
     } else {
       if (responseWriter != null) {

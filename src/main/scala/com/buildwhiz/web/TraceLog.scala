@@ -7,11 +7,16 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 import org.bson.Document
 
+import java.util.regex.Pattern
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  private val ipPattern = "(?:\\d{1,3}\\.){3}\\d{1,3}|(?:[\\da-fA-F]{1,4}\\:){7}[\\da-fA-F]{1,4}"
+  private val reverseEventPattern = Pattern.compile("^\\s*(%s)\\s*[:=]\\s*tneil[cC](.+)$".format(ipPattern),
+      Pattern.DOTALL)
 
   private def addSpaces(line: String): String = {
     if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*") || line.split("%20").length > 2 || line.split(",\\S").length > 1)
@@ -29,8 +34,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val (duration, durationUnit) = parameters.get("count") match {
         case None => (50, "rows")
         case Some(theCount) =>
-          val withUnitPattern = "([0-9.]+)(hours|days|rows)".r
-          val withoutUnitPattern = "([0-9.]+)".r
+          val withUnitPattern = "([\\d.]+)(hours|days|rows)".r
+          val withoutUnitPattern = "([\\d.]+)".r
           theCount match {
             case withUnitPattern(d, u) => (d.toInt, u)
             case withoutUnitPattern(d) => (d.toInt, "rows")
@@ -52,8 +57,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(10, 10, 2, 39, 39)
-      writer.println(List("Timestamp", "Process", "Activity", "Event", "Variables").zip(widths).
+      val widths = Seq(10, 10, 10, 10, 10, 2, 34, 34)
+      writer.println(List("Timestamp", "Process", "Session", "User", "IP", "Activity", "Event", "Variables").zip(widths).
           map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
 
@@ -61,9 +66,9 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val (untilStr, untilMs, untilUnit, untilNum) = parameters.get("until") match {
         case None => ("now", millisNow, "", millisNow)
         case Some(input) =>
-          val withHourPattern = "([0-9]+)hours".r
-          val withDayPattern = "([0-9]+)days".r
-          val withMsPattern = "([0-9]{10,})".r
+          val withHourPattern = "(\\d+)hours".r
+          val withDayPattern = "(\\d+)days".r
+          val withMsPattern = "(\\d{10,})".r
           input match {
             case withHourPattern(hrs) => (s"${hrs}hours", millisNow - 3600L * 1000L * hrs.toLong, "hours", hrs.toLong)
             case withDayPattern(dys) => (s"${dys}days", millisNow - 86400L * 1000L * dys.toLong, "days", dys.toLong)
@@ -108,15 +113,31 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val details: Seq[DynDoc] = traceLogDocs.flatMap(_.details[Many[Document]])
       details.sortBy(_.milliseconds[String]).reverse.foreach(detail => {
         val activity = detail.activity[String]
-        val variables = detail.get[Document]("variables") match {
-          case Some(doc) => doc.asScala.toSeq.map(pair => s"${pair._1}: ${pair._2}").mkString(", ")
+        val variables: Seq[(String, AnyRef)] = detail.get[Document]("variables") match {
+          case Some(doc) => doc.asScala.toSeq
+          case None => Seq.empty[(String, AnyRef)]
+        }
+        val variablesString = variables.filter(v => v._1 != "BW-Session-ID" && v._1 != "u$nm").
+            map(p => s"${p._1}: ${p._2}").mkString(", ")
+        val session = variables.find(_._1 == "BW-Session-ID") match {
+          case Some(sessionId) => sessionId._2.hashCode().toString
+          case None => ""
+        }
+        val user = variables.find(_._1 == "u$nm") match {
+          case Some(un) => un._2
           case None => ""
         }
         val process = detail.process[String]
-        val event = addSpaces(detail.event[String])
+        val rawEvent = addSpaces(detail.event[String])
+        val reverseEventPatternMatcher = reverseEventPattern.matcher(rawEvent.reverse)
+        val (ip, event) = if (reverseEventPatternMatcher.matches()) {
+          (reverseEventPatternMatcher.group(1).reverse, reverseEventPatternMatcher.group(2).reverse.trim())
+        } else {
+          ("127.0.0.1", rawEvent)
+        }
         val timestamp = dateTimeString(detail.milliseconds[String].toLong, parameters.get("tz").orElse(Some("Asia/Calcutta")))
         val color = if (event.toLowerCase.contains("error")) "red" else "black"
-        val htmlRowData = Seq(timestamp, process, activity, event, variables).zip(widths).
+        val htmlRowData = Seq(timestamp, process, session, user, ip, activity, event, variablesString).zip(widths).
             map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
           writer.println(s"""<tr style="background-color: beige;color: $color" align="center">$htmlRowData</tr>""")

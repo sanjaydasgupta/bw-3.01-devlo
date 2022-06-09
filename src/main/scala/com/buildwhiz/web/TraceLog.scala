@@ -121,7 +121,10 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
             map(p => s"${p._1}: ${p._2}").mkString(", ")
         val session = variables.find(_._1 == "BW-Session-ID") match {
           case Some(sessionId) => sessionId._2.hashCode().toString
-          case None => ""
+          case None => variables.find(_._1 == "BW-Session-Code") match {
+            case Some(sessionCode) => sessionCode._2
+            case None => ""
+          }
         }
         val user = variables.find(_._1 == "u$nm") match {
           case Some(un) => un._2

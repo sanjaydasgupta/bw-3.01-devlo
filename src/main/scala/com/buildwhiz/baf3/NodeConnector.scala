@@ -49,6 +49,8 @@ object NodeConnector extends HttpServlet with HttpUtils {
       }
     }
     val t1 = System.currentTimeMillis()
+    val sessionCode = request.getSession.getId.hashCode.toString
+    nodeRequest.setHeader("BW-Session-Code", sessionCode)
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
     val delay1 = System.currentTimeMillis() - t1
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))

@@ -27,7 +27,9 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val user: DynDoc = getPersona(request)
     val loggedInUser: DynDoc = getUser(request)
     val loggedInUserName = PersonApi.fullName(loggedInUser)
-    val userParam = s"uid=${enc(user._id[ObjectId].toString)}&u$$nm=${enc(loggedInUserName)}"
+    val sessionCode = request.getSession.getId.hashCode.toString
+    val userParam = s"uid=${enc(user._id[ObjectId].toString)}" + s"&u$$nm=${enc(loggedInUserName)}" +
+        s"""&${enc("BW-Session-Code")}=${enc(sessionCode)}"""
     val urlParts = request.getRequestURL.toString.split("/")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)
@@ -49,8 +51,6 @@ object NodeConnector extends HttpServlet with HttpUtils {
       }
     }
     val t1 = System.currentTimeMillis()
-    val sessionCode = request.getSession.getId.hashCode.toString
-    nodeRequest.setHeader("BW-Session-Code", sessionCode)
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
     val delay1 = System.currentTimeMillis() - t1
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))

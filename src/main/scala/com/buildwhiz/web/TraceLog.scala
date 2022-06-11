@@ -117,7 +117,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           case Some(doc) => doc.asScala.toSeq
           case None => Seq.empty[(String, AnyRef)]
         }
-        val variablesString = variables.filter(v => v._1 != "BW-Session-ID" && v._1 != "u$nm").
+        val variablesString = variables.filter(v => !v._1.startsWith("BW-Session-") && v._1 != "u$nm").
             map(p => s"${p._1}: ${p._2}").mkString(", ")
         val session = variables.find(_._1 == "BW-Session-ID") match {
           case Some(sessionId) => sessionId._2.hashCode().toString

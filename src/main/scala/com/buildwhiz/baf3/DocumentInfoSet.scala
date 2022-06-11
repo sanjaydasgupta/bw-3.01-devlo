@@ -15,6 +15,7 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val t0 = System.currentTimeMillis()
       val user: DynDoc = getPersona(request)
       def csv2array(csv: String): Many[String] = csv.split(",").map(_.trim).filter(_.nonEmpty).toSeq.asJava
       val parameterInfo: Map[String, (String=>Any, String)] = Map("name" -> (n => n, "name"),
@@ -47,7 +48,8 @@ class DocumentInfoSet extends HttpServlet with HttpUtils with MailUtils {
       if (updateResult.getModifiedCount == 0)
         throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
       val values = parameterValues.map(kv => "%s=%s".format(kv._1, kv._2)).mkString(", ")
-      val message = s"""Set parameters $values for document $documentOid"""
+      val delay = System.currentTimeMillis() - t0
+      val message = s"""time: $delay ms, Set parameters $values for document $documentOid"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
       response.getWriter.print(successJson())
       response.setContentType("application/json")

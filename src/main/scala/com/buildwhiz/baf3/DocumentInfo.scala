@@ -75,6 +75,7 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
+      val t0 = System.currentTimeMillis()
       val user: DynDoc = getPersona(request)
       val documentOid = new ObjectId(parameters("document_id"))
       val docRecord: DynDoc = BWMongoDB3.document_master.find(Map("_id" -> documentOid)).head
@@ -114,7 +115,8 @@ class DocumentInfo extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.print(returnDoc.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${versionInfo.length})", request)
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, ${versionInfo.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

@@ -81,6 +81,7 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
     val parameters = getParameterMap(request)
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
+      val t0 = System.currentTimeMillis()
       val projectOid = new ObjectId(parameters("project_id"))
       val user: DynDoc = getPersona(request)
       val userOid = user._id[ObjectId]
@@ -102,7 +103,8 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")
       response.setStatus(HttpServletResponse.SC_OK)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${allDocuments.length})", request)
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, ${allDocuments.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

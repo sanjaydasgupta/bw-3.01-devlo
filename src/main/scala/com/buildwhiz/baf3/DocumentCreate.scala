@@ -16,6 +16,7 @@ class DocumentCreate extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val t0 = System.currentTimeMillis()
       type CONVERTER = String => Any
       val checkCategory: CONVERTER =
           cat => if (masterData("Docs__category").asInstanceOf[Seq[String]].contains(cat))
@@ -68,7 +69,8 @@ class DocumentCreate extends HttpServlet with HttpUtils {
       val docOid = documentRecord.getObjectId("_id").toString
       response.getWriter.print(successJson(fields = Map("document_id" -> docOid)))
       response.setContentType("application/json")
-      val message = s"""$disposition document name='${nameValuePairs("name")}', _id='$docOid'"""
+      val delay = System.currentTimeMillis() - t0
+      val message = s"""time: $delay ms, $disposition document name='${nameValuePairs("name")}', _id='$docOid'"""
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>

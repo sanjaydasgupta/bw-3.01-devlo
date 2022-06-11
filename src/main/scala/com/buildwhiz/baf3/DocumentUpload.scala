@@ -15,6 +15,7 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils with Date
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val t0 = System.currentTimeMillis()
       val documentOid = new ObjectId(parameters("document_id"))
       if (!DocumentApi.exists(documentOid))
         throw new IllegalArgumentException(s"unknown document-id: $documentOid")
@@ -76,7 +77,8 @@ class DocumentUpload extends HttpServlet with HttpUtils with MailUtils with Date
         documentOid, timestamp, versionComments, authorOid, properties, request)
 
       response.setStatus(HttpServletResponse.SC_OK)
-      val message = s"Added version (${storageResults._2} bytes) to file ${documentRecord.name[String]}"
+      val delay = System.currentTimeMillis() - t0
+      val message = s"time: $delay ms, Added version (${storageResults._2} bytes) to file ${documentRecord.name[String]}"
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
       response.getWriter.print(successJson())
       response.setContentType("application/json")

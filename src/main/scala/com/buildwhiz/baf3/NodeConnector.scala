@@ -42,7 +42,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
   }
 
   private def executeNodeRequest(request: HttpServletRequest, response: HttpServletResponse,
-      nodeRequest: HttpRequestBase, t0: Long): Unit = {
+      nodeRequest: HttpRequestBase, t0: Long): Long = {
     def exitStatus(httpResponse: HttpResponse): String = {
       if (httpResponse.getStatusLine.getStatusCode == 200) {
         "OK"
@@ -52,7 +52,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
     }
     val t1 = System.currentTimeMillis()
     val nodeResponse = HttpClients.createDefault().execute(nodeRequest)
-    val delay1 = System.currentTimeMillis() - t1
+    val delayNode = System.currentTimeMillis() - t1
     nodeResponse.getAllHeaders.foreach(hdr => response.addHeader(hdr.getName, hdr.getValue))
     response.setStatus(nodeResponse.getStatusLine.getStatusCode)
     val nodeEntity = nodeResponse.getEntity
@@ -100,7 +100,8 @@ object NodeConnector extends HttpServlet with HttpUtils {
     nodeRequest.releaseConnection()
     val delay = System.currentTimeMillis() - t0
     BWLogger.log(getClass.getName, request.getMethod,
-        s"executeNodeRequest(total-time: $delay ms, node-time: $delay1 ms) - $message", request)
+        s"executeNodeRequest(total-time: $delay ms, node-time: $delayNode ms) - $message", request)
+    delayNode
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
@@ -114,8 +115,10 @@ object NodeConnector extends HttpServlet with HttpUtils {
         case ip => (ip, "X-FORWARDED-FOR")
       }
       httpGet.setHeader("X-FORWARDED-FOR", clientIp)
-      executeNodeRequest(request, response, httpGet, t0)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT (IP-Source=$clientIpSource)", request)
+      val delay1 = executeNodeRequest(request, response, httpGet, t0)
+      val delay = System.currentTimeMillis() - t0
+      val message = s"EXIT (time: $delay ms, node-time: $delay1 ms, IP-Source=$clientIpSource)"
+      BWLogger.log(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -160,8 +163,10 @@ object NodeConnector extends HttpServlet with HttpUtils {
         case ip => (ip, "X-FORWARDED-FOR")
       }
       httpPost.setHeader("X-FORWARDED-FOR", clientIp)
-      executeNodeRequest(request, response, httpPost, t0)
-      BWLogger.log(getClass.getName, request.getMethod, s"EXIT (IP-Source=$clientIpSource)", request)
+      val delay1 = executeNodeRequest(request, response, httpPost, t0)
+      val delay = System.currentTimeMillis() - t0
+      val message = s"EXIT (time: $delay ms, node-time: $delay1 ms, IP-Source=$clientIpSource)"
+      BWLogger.log(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

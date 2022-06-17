@@ -11,14 +11,24 @@ trait DateTimeUtils {
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
-  def dateTimeString(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT")): String = {
-    val simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
+  def dateTimeString(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT"),
+      withMilliseconds: Boolean = false): String = {
+    val simpleDateFormat = if (withMilliseconds) {
+      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS z")
+    } else {
+      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
+    }
     timeZoneCode.foreach(tzc => simpleDateFormat.setTimeZone(TimeZone.getTimeZone(tzc)))
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
-  def dateTimeStringAmerican(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT")): String = {
-    val usDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z")
+  def dateTimeStringAmerican(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT"),
+      withMilliseconds: Boolean = false): String = {
+    val usDateFormat = if (withMilliseconds) {
+      new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS z")
+    } else {
+      new SimpleDateFormat("MM/dd/yyyy HH:mm:ss z")
+    }
     timeZoneCode.foreach(tzc => usDateFormat.setTimeZone(TimeZone.getTimeZone(tzc)))
     usDateFormat.format(new Date(milliSeconds))
   }

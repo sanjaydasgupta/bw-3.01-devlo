@@ -444,7 +444,13 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val lastActivityOid = activityBuffer.filter(_.y.at_end[Boolean]).
       find(a => a.y.bpmn_name[String] == a.y.bpmn_name_full[String]) match {
       case Some(a) => a.y._id[ObjectId]
-      case _ => throw new IllegalArgumentException("Cant find last activity/task for milestone")
+      case _ => activityBuffer.find(a => a.y.bpmn_name[String] == a.y.bpmn_name_full[String]) match {
+        case Some(a) => a.y._id[ObjectId]
+        case _ => activityBuffer.headOption match {
+          case Some(a) => a.y._id[ObjectId]
+          case _ => throw new IllegalArgumentException("Cant find last activity/task for milestone")
+        }
+      }
     }
     val activityOids = activityBuffer.map(_.getObjectId("_id")).asJava
     val updateResult2 = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),

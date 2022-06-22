@@ -149,7 +149,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           writer.println(s"""<tr style="color: $color" align="center">$htmlRowData</tr>""")
       })
       if (traceLogDocs.isEmpty)
-        writer.println(s"""<tr><td colspan="5" align="center">No such rows!</td></tr>""")
+        writer.println(s"""<tr><td colspan="8" align="center">No data for this selection!</td></tr>""")
       writer.println("</table>")
 
       val hourCountLinks = Seq(1, 2, 6, 18).

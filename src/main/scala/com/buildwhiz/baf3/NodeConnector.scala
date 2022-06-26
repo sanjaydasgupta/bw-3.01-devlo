@@ -27,7 +27,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val user: DynDoc = getPersona(request)
     val loggedInUser: DynDoc = getUser(request)
     val loggedInUserName = PersonApi.fullName(loggedInUser)
-    val sessionCode = request.getSession.getId.hashCode.toString
+    val sessionCode = "%x".format(request.getSession.getId.hashCode)
     val userParam = s"uid=${enc(user._id[ObjectId].toString)}" + s"&u$$nm=${enc(loggedInUserName)}" +
         s"""&${enc("BW-Session-Code")}=${enc(sessionCode)}"""
     val urlParts = request.getRequestURL.toString.split("/")

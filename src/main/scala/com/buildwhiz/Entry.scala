@@ -18,6 +18,7 @@ class Entry extends HttpServlet with HttpUtils {
     val session: HttpSession = getSessionAlternatives(request)
     val uriParts = request.getRequestURI.split("/")
     val loggingIn = (uriParts.last, uriParts.init.last) match {
+      case ("Status", "etc") => true
       case ("LoginPost", "etc") => true
       case ("Environment", "etc") => true
       case ("BIDataConnector", "etc") => true

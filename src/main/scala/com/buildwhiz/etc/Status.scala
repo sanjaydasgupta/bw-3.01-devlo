@@ -16,6 +16,7 @@ class Status extends HttpServlet with RestUtils {
       val matcher: DynDoc = Map("$match" -> Map(
         "milliseconds" -> Map($gte -> (System.currentTimeMillis - 60L * 60 * 1000)),
         "event_name" -> Map($regex -> "^(EXIT[ -]|ERROR:).*"),
+        "event_name" -> Map($not -> Map($regex -> ".*(BuildWhiz: Not logged in|Authentication failed).*")),
         "process_id" -> Map($not -> Map($regex -> "baf2.Login")),
         "variables.u$nm" -> Map($not -> Map($regex -> "^Sanjay.*"))
       ))

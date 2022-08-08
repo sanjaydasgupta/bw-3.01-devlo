@@ -1,6 +1,7 @@
 package com.buildwhiz.etc
 
 import com.buildwhiz.api.RestUtils
+import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -9,16 +10,22 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class Status extends HttpServlet with RestUtils {
 
-  private def sendStatus(response: HttpServletResponse): Unit = {
+  private def sendStatus(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val t0 = System.currentTimeMillis()
     response.setContentType("application/json")
+    val user: DynDoc = getPersona(request)
+    val userName = if (user.asDoc == null) {
+      "^Sanjay (Dasgupta|Admin).*$"
+    } else {
+      "^" + PersonApi.fullName(user) + ".*$"
+    }
     try {
       val matcher: DynDoc = Map("$match" -> Map(
         "milliseconds" -> Map($gte -> (System.currentTimeMillis - 60L * 60 * 1000)),
         "event_name" -> Map($regex -> "^(EXIT[ -]|ERROR:).*"),
         "event_name" -> Map($not -> Map($regex -> ".*(BuildWhiz: Not logged in|Authentication failed).*")),
         "process_id" -> Map($not -> Map($regex -> "baf2.Login")),
-        "variables.u$nm" -> Map($not -> Map($regex -> "^Sanjay.*"))
+        "variables.u$nm" -> Map($not -> Map($regex -> userName))
       ))
       val grouper: DynDoc = Map("$group" -> Map(
         "_id" -> Map("$ceil" -> Map("$divide" -> Seq(Map("$subtract" -> Seq(System.currentTimeMillis, "$milliseconds")), 60000))),
@@ -46,7 +53,7 @@ class Status extends HttpServlet with RestUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
 
-    sendStatus(response)
+    sendStatus(request, response)
     //BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
   }
 

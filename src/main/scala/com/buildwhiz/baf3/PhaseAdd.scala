@@ -14,8 +14,8 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
 import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent,
-    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, StartEvent, Task, TimeDuration, TimerEventDefinition,
-    UserTask}
+    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, Process, StartEvent, Task, TimeDuration,
+    TimerEventDefinition, UserTask}
 
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
@@ -160,7 +160,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     startNodeBuffer.append(start)
   }
 
-  private def addActivity(activityNode: Task, bpmnName: String, namePath: String, idPath: String,
+  private def addActivity(bpmnProcessName: String, activityNode: Task, bpmnName: String, namePath: String, idPath: String,
       timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
     val name = cleanText(activityNode.getName)
     val bpmnId = activityNode.getId
@@ -204,7 +204,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "full_path_name" -> s"$namePath/$name", "full_path_id" -> s"$idPath/$bpmnId", "is_takt" -> isTakt,
         "bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "role" -> role, "description" -> description,
         "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> bpmnDuration, "durations" -> durations,
-        "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
+        "bpmn_process_name" -> bpmnProcessName, "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
         "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
         "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone), "takt_unit_no" -> 1,
         "bpmn_actual_end_date" -> date2long(bpmnActualEnd, timeZone), "on_critical_path" -> false)
@@ -269,22 +269,24 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val bpmnModel = bpmnModelInstance(bpmnName)
     //val bpmnPrefix = bpmnModel.getDocument.getRootElement.getPrefix
     //BWLogger.log(getClass.getName, request.getMethod, s"bpmnPrefix: '$bpmnPrefix'", request)
-    val bpmnTasks: Seq[Task] = bpmnModel.getModelElementsByType(classOf[Task]).asScala.toSeq
-    val bpmnUserTasks: Seq[UserTask] = bpmnModel.getModelElementsByType(classOf[UserTask]).asScala.toSeq
-    val allTasks = bpmnTasks ++ bpmnUserTasks
+    val bpmnProcesses: Seq[Process] = bpmnModel.getModelElementsByType(classOf[Process]).asScala.toSeq
+    val allTasks: Seq[(Process, Task)] = bpmnProcesses.flatMap(p =>
+        (p.getChildElementsByType(classOf[Task]).asScala.toSeq ++
+        p.getChildElementsByType(classOf[UserTask]).asScala.toSeq).map(t => (p, t)))
 
     //val activityNodes: Seq[Element] = (theDom.getElementsByTagName(s"$prefix:userTask") ++
     //    theDom.getElementsByTagName(s"$prefix:task")).map(_.asInstanceOf[Element])
     if (allTasks.nonEmpty) {
-      for (activityNode <- allTasks) {
+      for ((processNode, activityNode) <- allTasks) {
         val name = cleanText(activityNode.getAttributeValue("name"))
         //val name = cleanText(nameAttribute(activityNode))
         val bpmnId = activityNode.getAttributeValue("id")
         //val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
+        val bpmnProcessName = processNode.getAttributeValue("name")
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) ACTIVITY:$name[$bpmnId]<br/>""")
         }
-        addActivity(activityNode, bpmnName, namePath, idPath, timeZone, isTakt, activityBuffer)
+        addActivity(bpmnProcessName, activityNode, bpmnName, namePath, idPath, timeZone, isTakt, activityBuffer)
       }
     } else {
       if (responseWriter != null) {

@@ -230,44 +230,77 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     }
   }
 
-  private def validateActivity(margin: String, bpmnName: String, idPath: String, activity: DynDoc,
+  private def validateActivities(margin: String, bpmnName: String, idPath: String, activities: Seq[DynDoc], processName: String,
       responseWriter: PrintWriter, go: Boolean): Unit = {
-    val name = activity.name[String]
-    val bpmnId = activity.bpmn_id[String]
     val expectedBpmnNameFull = if (idPath.isEmpty) {
       bpmnName
     } else {
       s"$idPath/$bpmnName"
     }
-    val activityOid = activity._id[ObjectId]
-    activity.get[String]("bpmn_name_full") match {
-      case Some(bpmnNameFull) =>
-        if (bpmnNameFull == expectedBpmnNameFull) {
-          responseWriter.println(s"""$margin<font color="green">OK-Activity:$name($bpmnId) >> """ +
+    val (activitiesWithBpmnNameFull, activitiesWithoutBpmnNameFull) = activities.partition(_.has("bpmn_name_full"))
+    for (a <- activitiesWithBpmnNameFull) {
+      val bpmnNameFull = a.bpmn_name_full[String]
+      val name = a.name[String]
+      val bpmnId = a.bpmn_id[String]
+      val activityOid = a._id[ObjectId]
+      val taktUnitNo = a.takt_unit_no[Int]
+      if (bpmnNameFull == expectedBpmnNameFull) {
+        responseWriter.println(
+          s"""$margin<font color="green">OK-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
             s"""$bpmnNameFull ($activityOid)</font><br/>""")
-        } else {
-          responseWriter.println(s"""$margin<font color="red">Bad-value-Activity:$name($bpmnId) >> """ +
-               s"""$expectedBpmnNameFull!=$bpmnNameFull ($activityOid)</font><br/>""".stripMargin)
-        }
-      case None =>
-        responseWriter.println(s"""$margin<font color="red">No-Value-Activity:$name($bpmnId) >> """ +
+      } else {
+        responseWriter.println(
+          s"""$margin<font color="red">Bad-value-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
+            s"""$expectedBpmnNameFull!=$bpmnNameFull ($activityOid)</font><br/>""".stripMargin)
+      }
+    }
+    for (a <- activitiesWithoutBpmnNameFull) {
+      val name = a.name[String]
+      val bpmnId = a.bpmn_id[String]
+      val activityOid = a._id[ObjectId]
+      val taktUnitNo = a.takt_unit_no[Int]
+      responseWriter.println(
+        s"""$margin<font color="red">No-Value-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
           s"""$expectedBpmnNameFull ($activityOid)</font><br/>""")
-        if (go) {
-          val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
-            Map($set -> Map("bpmn_name_full" -> expectedBpmnNameFull)))
-          if (updateResult.getModifiedCount == 1) {
-            responseWriter.println(s"""$margin<font color="green"><b>UPDATE-OK-Activity:$name($bpmnId) >> """ +
+      if (go) {
+        val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
+          Map($set -> Map("bpmn_name_full" -> expectedBpmnNameFull)))
+        if (updateResult.getModifiedCount == 1) {
+          responseWriter.println(
+            s"""$margin<font color="green"><b>UPDATE-OK-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
               s"""$expectedBpmnNameFull ($activityOid)</b></font><br/>""")
-          } else {
-            responseWriter.println(s"""$margin<font color="red"><b>UPDATE-FAIL-Activity:$name($bpmnId) >> """ +
+        } else {
+          responseWriter.println(
+            s"""$margin<font color="red"><b>UPDATE-FAIL-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
               s"""$updateResult ($activityOid)</b></font><br/>""")
-          }
         }
+      }
+    }
+    for (a <- activities.filterNot(_.has("bpmn_process_name"))) {
+      val name = a.name[String]
+      val bpmnId = a.bpmn_id[String]
+      val activityOid = a._id[ObjectId]
+      val taktUnitNo = a.takt_unit_no[Int]
+      responseWriter.println(
+        s"""$margin<font color="red">No-BPMN-Process-Name:$name[$taktUnitNo]($bpmnId) >> $processName ($activityOid)</font><br/>""")
+      if (go) {
+        val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
+          Map($set -> Map("bpmn_process_name" -> processName)))
+        if (updateResult.getModifiedCount == 1) {
+          responseWriter.println(
+            s"""$margin<font color="green"><b>UPDATE-OK-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
+              s"""$processName ($activityOid)</b></font><br/>""")
+        } else {
+          responseWriter.println(
+            s"""$margin<font color="red"><b>UPDATE-FAIL-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
+              s"""$updateResult ($activityOid)</b></font><br/>""")
+        }
+      }
     }
   }
 
   private def traverseBpmn(level: Int, bpmnName: String, idPath: String, process: DynDoc,
-      activitiesByBpmnNameAndId: Map[(String, String), DynDoc], responseWriter: PrintWriter, go: Boolean): Unit = {
+      activitiesByBpmnNameAndId: Map[(String, String), Seq[DynDoc]], responseWriter: PrintWriter, go: Boolean): Unit = {
     val margin = "&nbsp;&nbsp;&nbsp;|" * level
     val fullBpmnName = if (idPath.isEmpty) {
       bpmnName
@@ -278,17 +311,29 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     val theDom = bpmnDom(bpmnName)
     val prefix = theDom.getDocumentElement.getTagName.split(":")(0)
 
-    val activityNodes: Seq[Element] = (theDom.getElementsByTagName(s"$prefix:userTask") ++
-      theDom.getElementsByTagName(s"$prefix:task")).map(_.asInstanceOf[Element])
-    if (activityNodes.nonEmpty) {
-      for (activityNode <- activityNodes) {
-        val name = cleanText(nameAttribute(activityNode))
-        val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
-        activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
-          case Some(activity: DynDoc) =>
-            validateActivity(margin, bpmnName, idPath, activity, responseWriter, go)
-          case None =>
-            responseWriter.println(s"""$margin<font color="red">MISSING-Activity:$name[$bpmnId]</font><br/>""")
+    val processNodes = theDom.getElementsByTagName(s"$prefix:process")//.map(_.asInstanceOf[Element])
+    val processNames = processNodes.map(nameAttribute)
+    responseWriter.println(s"""$margin<font color="brown">PROCESS-Nodes: ${processNames.mkString(", ")}</font><br/>""")
+    val processIds = processNodes.map(pn => getAttribute(pn, "id"))
+    responseWriter.println(s"""$margin<font color="brown">PROCESS-Ids: ${processIds.mkString(", ")}</font><br/>""")
+
+    val processNodeElements: Seq[Element] = processNodes.map(_.asInstanceOf[Element])
+    val processActivityNodes: Seq[(Element, Seq[Node])] = processNodeElements.map(pn =>
+      (pn, pn.getElementsByTagName(s"$prefix:userTask") ++ pn.getElementsByTagName(s"$prefix:task"))).
+      filter(_._2.nonEmpty)
+
+    if (processActivityNodes.nonEmpty) {
+      for ((processNode, activityNodes) <- processActivityNodes) {
+        val processName = getAttribute(processNode, "name")
+        for (activityNode <- activityNodes) {
+          val name = cleanText(nameAttribute(activityNode))
+          val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
+          activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
+            case Some(activities: Seq[DynDoc]) =>
+              validateActivities(margin, bpmnName, idPath, activities, processName, responseWriter, go)
+            case None =>
+              responseWriter.println(s"""$margin<font color="red">MISSING-Activity:$name[$bpmnId]</font><br/>""")
+          }
         }
       }
     } else {
@@ -453,8 +498,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       if (bpmnName != "****") {
         val activityOids = process.activity_ids[Many[ObjectId]]
         val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)))
-        val activitiesByBpmnNameAndId: Map[(String, String), DynDoc] =
-          activities.map(activity => ((activity.bpmn_name[String], activity.bpmn_id[String]), activity)).toMap
+        val activitiesByBpmnNameAndId: Map[(String, String), Seq[DynDoc]] =
+            activities.groupBy(a => (a.bpmn_name[String], a.bpmn_id[String]))
         traverseBpmn(1, bpmnName, "", process, activitiesByBpmnNameAndId, responseWriter, go)
       }
     }

@@ -230,8 +230,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     }
   }
 
-  private def validateActivities(margin: String, bpmnName: String, idPath: String, activities: Seq[DynDoc], processName: String,
-      responseWriter: PrintWriter, go: Boolean): Unit = {
+  private def validateActivities(margin: String, bpmnName: String, idPath: String, activities: Seq[DynDoc],
+      processName: String, processNameCount: Int, responseWriter: PrintWriter, go: Boolean): Unit = {
     val expectedBpmnNameFull = if (idPath.isEmpty) {
       bpmnName
     } else {
@@ -285,7 +285,7 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
         s"""$margin<font color="red">No-BPMN-Process-Name:$name[$taktUnitNo]($bpmnId) >> $processName ($activityOid)</font><br/>""")
       if (go) {
         val updateResult = BWMongoDB3.tasks.updateOne(Map("_id" -> activityOid),
-          Map($set -> Map("bpmn_process_name" -> processName)))
+          Map($set -> Map("bpmn_process_name" -> processName, "bpmn_process_count" -> processNameCount)))
         if (updateResult.getModifiedCount == 1) {
           responseWriter.println(
             s"""$margin<font color="green"><b>UPDATE-OK-Activity:$name[$taktUnitNo]($bpmnId) >> """ +
@@ -330,7 +330,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
           val bpmnId = activityNode.getAttributes.getNamedItem("id").getTextContent
           activitiesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
             case Some(activities: Seq[DynDoc]) =>
-              validateActivities(margin, bpmnName, idPath, activities, processName, responseWriter, go)
+              validateActivities(margin, bpmnName, idPath, activities, processName, processNodeElements.length,
+                responseWriter, go)
             case None =>
               responseWriter.println(s"""$margin<font color="red">MISSING-Activity:$name[$bpmnId]</font><br/>""")
           }

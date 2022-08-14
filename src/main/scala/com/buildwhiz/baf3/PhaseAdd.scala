@@ -160,8 +160,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     startNodeBuffer.append(start)
   }
 
-  private def addActivity(bpmnProcessName: String, activityNode: Task, bpmnName: String, namePath: String, idPath: String,
-      timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
+  private def addActivity(bpmnProcessName: String, bpmnProcessCount: Int, activityNode: Task, bpmnName: String,
+      namePath: String, idPath: String, timeZone: String, isTakt: Boolean, activityBuffer: mutable.Buffer[Document]): Unit = {
     val name = cleanText(activityNode.getName)
     val bpmnId = activityNode.getId
     val role = extensionProperties2(activityNode, "bw-role") match {
@@ -205,7 +205,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         "bpmn_name_full" -> fullBpmnName, "bpmn_name" -> bpmnName, "role" -> role, "description" -> description,
         "start" -> "00:00:00", "end" -> "00:00:00", "duration" -> bpmnDuration, "durations" -> durations,
         "bpmn_process_name" -> bpmnProcessName, "bpmn_scheduled_start_date" -> date2long(bpmnScheduledStart, timeZone),
-        "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone),
+        "bpmn_scheduled_end_date" -> date2long(bpmnScheduledEnd, timeZone), "bpmn_process_count" -> bpmnProcessCount,
         "bpmn_actual_start_date" -> date2long(bpmnActualStart, timeZone), "takt_unit_no" -> 1,
         "bpmn_actual_end_date" -> date2long(bpmnActualEnd, timeZone), "on_critical_path" -> false)
     activityBuffer.append(activity)
@@ -286,7 +286,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         if (responseWriter != null) {
           responseWriter.println(s"""$margin$namePath($bpmnName) ACTIVITY:$name[$bpmnId]<br/>""")
         }
-        addActivity(bpmnProcessName, activityNode, bpmnName, namePath, idPath, timeZone, isTakt, activityBuffer)
+        addActivity(bpmnProcessName, bpmnProcesses.length, activityNode, bpmnName, namePath, idPath, timeZone,
+            isTakt, activityBuffer)
       }
     } else {
       if (responseWriter != null) {

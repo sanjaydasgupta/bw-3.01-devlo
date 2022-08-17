@@ -25,6 +25,7 @@ object BWMongoDB3 extends Dynamic {
   val $in = "$in"
   val $lt = "$lt"
   val $lte = "$lte"
+  val $ne = "$ne"
   val $not = "$not"
   val $options = "$options"
   val $or = "$or"

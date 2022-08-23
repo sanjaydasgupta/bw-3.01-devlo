@@ -28,7 +28,7 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
     val isError = Map("$regexMatch" -> Map("input" -> "$event_name", "regex" -> "^(ERROR:|EXIT-ERROR).+"))
     val output: DynDoc = Map("$group" -> Map(
       "_id" -> Map("$ceil" -> Map("$divide" -> Seq(ageInMs, pitchInMinutes * 60000))),
-      "count" -> Map("$sum" -> 1),
+      "users" -> Map("$push" -> "$variables.u$nm"),
       "errors" -> Map("$sum" -> Map("$cond" -> Map("if" -> isError, "then" -> 1, "else" -> 0)))
     ))
     output.asDoc
@@ -36,17 +36,23 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
 
   private val sortOnId: Document = Map("$sort" -> Map("_id" -> 1))
 
-  private def sendStatusPage(tz: String, response: HttpServletResponse): Unit = {
+  private def sendStatusPage(tz: String, userName: String, detail: String, response: HttpServletResponse): Unit = {
     val t0 = System.currentTimeMillis()
     response.setContentType("text/html")
     val writer = response.getWriter
-    val (duration, pitch) = (240, 15)
+    val daysRe = "([0-9]+)d".r
+    val hoursRe = "([0-9]+)h?".r
+    val (duration, pitch) = detail match {
+      case daysRe(days) => (days.toInt * 60 * 24, 60)
+      case hoursRe(hours) => (hours.toInt * 60, 15)
+      case _ => (240, 15)
+    }
     val logInfo: Seq[DynDoc] = BWMongoDB3.trace_log.
-        aggregate(Seq(matcher(duration, "Anon Anon"), grouper(pitch), sortOnId))
+        aggregate(Seq(matcher(duration, userName), grouper(pitch), sortOnId))
     writer.println("""<html><body><table border="1">""")
     writer.println("""<tr><td align="center">Time</td><td>Count</td><td>Errors</td></tr>""")
     for (info <- logInfo) {
-      val (id, count, errors) = (info._id[Double], info.count[Int], info.errors[Int])
+      val (id, count, errors) = (info._id[Double], info.users[Many[String]].size(), info.errors[Int])
       val ms = t0 - id.toLong * pitch * 60000L
       val time = dateTimeString(ms, Some(tz))
       writer.println(s"""<tr><td>$time</td><td align="center">$count</td><td align="center">$errors</td></tr>""")
@@ -56,22 +62,18 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
     writer.println("</table></body></html>")
   }
 
-  private def sendStatus(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+  private def sendStatus(userName: String, response: HttpServletResponse): Unit = {
     val t0 = System.currentTimeMillis()
     response.setContentType("application/json")
-    val user: DynDoc = getPersona(request)
-    val userName = if (user.asDoc == null) {
-      "^Sanjay (Dasgupta|Admin).*$"
-    } else {
-      "^" + PersonApi.fullName(user) + ".*$"
-    }
     try {
       val logInfo: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(Seq(matcher(60, userName), grouper(1), sortOnId))
-      val under60 = logInfo.filter(_._id[Double] > 30).map(_.count[Int]).sum
-      val under30 = logInfo.filter(info => info._id[Double] <= 30 && info._id[Double] > 15).map(_.count[Int]).sum
-      val under15 = logInfo.filter(info => info._id[Double] <= 15 && info._id[Double] > 5).map(_.count[Int]).sum
-      val under5 = logInfo.filter(_._id[Double] <= 5).map(_.count[Int]).sum
-      val totalCount = logInfo.map(_.count[Int]).sum
+      val under60 = logInfo.filter(_._id[Double] > 30).map(_.users[Many[String]].size()).sum
+      val under30 = logInfo.filter(info => info._id[Double] <= 30 && info._id[Double] > 15).
+          map(_.users[Many[String]].size()).sum
+      val under15 = logInfo.filter(info => info._id[Double] <= 15 && info._id[Double] > 5).
+          map(_.users[Many[String]].size()).sum
+      val under5 = logInfo.filter(_._id[Double] <= 5).map(_.users[Many[String]].size()).sum
+      val totalCount = logInfo.map(_.users[Many[String]].size()).sum
       val errorCount = logInfo.map(_.errors[Int]).sum
       val delay = System.currentTimeMillis() - t0
       val fields: DynDoc = Map("total" -> totalCount, "bad" -> errorCount, "under60" -> under60, "under30" -> under30,
@@ -87,17 +89,22 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     //BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameters = getParameterMap(request)
+    val user = getPersona(request)
+    val userName = if (user == null) {
+      "^Sanjay (Dasgupta|Admin).*$"
+    } else {
+      "^" + PersonApi.fullName(user) + ".*$"
+    }
     (parameters.get("detail"), parameters.get("tz")) match {
-      case (Some(_), Some(tz)) => sendStatusPage(tz, response)
-      case (Some(_), None) =>
-        val user = getUser(request)
+      case (Some(detail), Some(tz)) => sendStatusPage(tz, userName, detail, response)
+      case (Some(detail), None) =>
         val tz = if (user == null) {
           "GMT"
         } else {
           user.get("tz").asInstanceOf[String]
         }
-        sendStatusPage(tz, response)
-      case (None, _) => sendStatus(request, response)
+        sendStatusPage(tz, userName, detail, response)
+      case (None, _) => sendStatus(userName, response)
     }
     //BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
   }

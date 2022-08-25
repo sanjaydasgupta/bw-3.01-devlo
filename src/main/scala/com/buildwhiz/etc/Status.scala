@@ -17,8 +17,8 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
       "milliseconds" -> Map($gte -> (System.currentTimeMillis - durationInMinutes * 60000L)),
       "process_id" -> Map($ne -> "baf2.Login"),
       "event_name" -> Map($regex -> "^(EXIT[ -]|ERROR:).*",
-        $not -> Map($regex -> ".*(BuildWhiz: Not logged in|Authentication failed).*")),
-      "variables.u$nm" -> Map($not -> Map($regex -> userName))
+          $not -> Map($regex -> ".*(BuildWhiz: Not logged in|Authentication failed).*")),
+      "variables.u$nm" -> Map($exists -> true, $not -> Map($regex -> userName))
     ))
     output.asDoc
   }
@@ -37,13 +37,9 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
   private val sortOnId: Document = Map("$sort" -> Map("_id" -> 1))
 
   private def sendStatusPage(tz: String, userName: String, detail: String, response: HttpServletResponse): Unit = {
+
     def cleanUserName(userName: String): String = {
-      val userNameParts = userName.split("\\s+")
-      if (userNameParts.last.matches("\\([0-9a-f]{24}\\)")) {
-        userNameParts.init.mkString(" ")
-      } else {
-        userNameParts.mkString(" ")
-      }
+      userName.split("\\s+").filterNot(_.matches("\\([0-9a-f]{24}\\)")).mkString(" ")
     }
 
     val t0 = System.currentTimeMillis()
@@ -73,7 +69,7 @@ class Status extends HttpServlet with RestUtils with DateTimeUtils {
       writer.println(s"""<tr><td>$time</td><td align="center">${userDetail.mkString(", ")}</td></tr>""")
     }
     val delay = System.currentTimeMillis() - t0
-    writer.println(s"""<tr><td colspan="2" align="center">time=$delay</td></tr>""")
+    writer.println(s"""<tr><td colspan="2" align="center">time: $delay ms</td></tr>""")
     writer.println("</table></body></html>")
   }
 

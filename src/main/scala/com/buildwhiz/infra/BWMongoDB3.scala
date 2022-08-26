@@ -33,6 +33,7 @@ object BWMongoDB3 extends Dynamic {
   val $pullAll = "$pullAll"
   val $push = "$push"
   val $regex = "$regex"
+  val $rename = "$rename"
   val $set = "$set"
   val $unset = "$unset"
   val $where = "$where"

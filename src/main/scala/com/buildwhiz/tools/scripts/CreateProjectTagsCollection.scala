@@ -16,7 +16,7 @@ import scala.collection.mutable
 
 object CreateProjectTagsCollection extends HttpUtils {
 
-  private def convertDocumentRecords(projectOid: ObjectId, projectTagNames: Seq[String], output: String => Unit): Unit = {
+  private def convertDocumentRecords(projectOid: ObjectId, output: String => Unit): Unit = {
     val projectDocs: Seq[DynDoc] = BWMongoDB3.document_master.find(Map("project_id" -> projectOid))
     val allDocumentTags: Seq[String] = projectDocs.flatMap(d => {
       d.get[Many[String]]("labels") match {
@@ -25,7 +25,8 @@ object CreateProjectTagsCollection extends HttpUtils {
       }
     }).map(_.trim).filter(_.nonEmpty).distinct
     val existingProjectTags: Seq[DynDoc] = BWMongoDB3.project_tags.find(Map("project_id" -> projectOid))
-    val tags2Oids: Map[String, ObjectId] = existingProjectTags.map(t => (t.L1[String], t._id[ObjectId])).toMap
+    val tags2Oids: Map[String, ObjectId] = existingProjectTags.map(t => (t.L1[String].trim, t._id[ObjectId])).
+        filter(_._1.nonEmpty).toMap
     val badDocumentTags = allDocumentTags.filterNot(tags2Oids.contains)
     if (badDocumentTags.nonEmpty) {
       output(s"""<font color="red">MISSING tags: ${badDocumentTags.mkString(", ")}<font/><br/>""")
@@ -37,9 +38,10 @@ object CreateProjectTagsCollection extends HttpUtils {
         val updateResult1 = BWMongoDB3.document_master.updateOne(Map("_id" -> docOid),
             Map($rename -> Map("labels" -> "labels2")))
         if (updateResult1.getModifiedCount == 1) {
-          val labelOids: Many[ObjectId] = doc.labels[Many[String]].map(tags2Oids)
+          val existingLabelValues: Many[String] = doc.labels[Many[String]]
+          val newLabelOids: Many[ObjectId] = existingLabelValues.map(_.trim).filter(_.nonEmpty).map(tags2Oids)
           val updateResult2 = BWMongoDB3.document_master.updateOne(Map("_id" -> docOid),
-            Map($set -> Map("labels" -> labelOids)))
+            Map($set -> Map("labels" -> newLabelOids)))
           if (updateResult2.getModifiedCount == 1) {
             output(s"""<font color="green">SUCCESSFULLY Relabeled: $docName ($docOid)</font><br/>""")
           } else {
@@ -99,7 +101,7 @@ object CreateProjectTagsCollection extends HttpUtils {
               } else {
                 val tagCount = createNewTags(theProject._id[ObjectId], projectTagNames, output)
                 if (tagCount > 0) {
-                  convertDocumentRecords(projectOid, projectTagNames, output)
+                  convertDocumentRecords(projectOid, output)
                 }
               }
             }

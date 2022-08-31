@@ -6,16 +6,14 @@ import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.DynDoc._
 
 import java.io.PrintWriter
-import java.util.TimeZone
+import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
-import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent,
-    IntermediateThrowEvent, MultiInstanceLoopCharacteristics, Process, StartEvent, Task, TimeDuration,
-    TimerEventDefinition, UserTask}
+import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent, IntermediateThrowEvent, MultiInstanceLoopCharacteristics, Process, StartEvent, Task, TimeDuration, TimerEventDefinition, UserTask}
 
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
@@ -531,9 +529,20 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       new Document("role_name", "Project-Manager").append("person_id", oid)
     ).asJava
 
+    val projectRecord = ProjectApi.projectById(parentProjectOid)
+
+    val calendar = Calendar.getInstance()
+    val createdMs = calendar.getTimeInMillis
+    calendar.setTimeZone(TimeZone.getTimeZone(ProjectApi.timeZone(projectRecord)))
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    val startEstimatedMs = calendar.getTimeInMillis
+    val timestamps = Map("created" -> createdMs, "date_start_estimated" -> startEstimatedMs)
+
     val newPhaseRecord: DynDoc = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
       "assigned_roles" -> managersInRoles, "status" -> "defined", "admin_person_id" -> phaseManagerOids.head,
-      "timestamps" -> Map("created" -> System.currentTimeMillis), "description" -> description)
+      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord))
     BWMongoDB3.phases.insertOne(newPhaseRecord.asDoc)
 
     val newPhaseOid = newPhaseRecord._id[ObjectId]

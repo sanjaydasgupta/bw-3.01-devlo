@@ -1,5 +1,6 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.PhaseApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
@@ -16,10 +17,16 @@ object TeamApi {
   def teamsByMemberOid(memberOid: ObjectId): Seq[DynDoc] =
     BWMongoDB3.teams.find(Map("team_members" -> Map($elemMatch -> Map("person_id" -> memberOid))))
 
-  def phasesByMemberOid(memberOid: ObjectId): Seq[DynDoc] = {
+  def phasesByMemberOid(memberOid: ObjectId, optProjectOid: Option[ObjectId] = None): Seq[DynDoc] = {
     val teams = teamsByMemberOid(memberOid)
     val teamOids = teams.map(_._id[ObjectId])
-    BWMongoDB3.phases.find(Map("team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> teamOids)))))
+    val teamPhases: Seq[DynDoc] = BWMongoDB3.phases.find(
+        Map("team_assignments" -> Map($elemMatch -> Map("team_id" -> Map($in -> teamOids)))))
+    optProjectOid match {
+      case None => teamPhases
+      case Some(projectOid) =>
+          teamPhases.filter(phase => PhaseApi.parentProject(phase._id[ObjectId])._id[ObjectId] == projectOid)
+    }
   }
 
   def memberOids(team: DynDoc): Seq[ObjectId] = team.get[Many[Document]]("team_members") match {

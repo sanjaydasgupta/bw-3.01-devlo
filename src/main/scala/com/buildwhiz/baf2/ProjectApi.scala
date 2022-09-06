@@ -58,7 +58,7 @@ object ProjectApi extends HttpUtils {
     if (PersonApi.isBuildWhizAdmin(Left(userOid)) || ProjectApi.canManage(userOid, parentProject)) {
       allPhases(parentProject)
     } else {
-      TeamApi.phasesByMemberOid(userOid)
+      TeamApi.phasesByMemberOid(userOid, Some(parentProject._id[ObjectId]))
     }
   }
 

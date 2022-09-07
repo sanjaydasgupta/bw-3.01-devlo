@@ -94,15 +94,14 @@ object ProjectApi extends HttpUtils {
   def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => PhaseApi.isActive(phase))
 
   def delete(project: DynDoc, request: HttpServletRequest): Unit = {
-    if (project.status[String] != "ended")
+    if (project.status[String] != "ended" || isActive(project))
       throw new IllegalArgumentException(s"Project '${project.name[String]}' is still active")
     val projectOid = project._id[ObjectId]
-    if (isActive(project))
-      throw new IllegalArgumentException(s"Project '${project.name[String]}' is still active")
     val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
     if (projectDeleteResult.getDeletedCount == 0)
       throw new IllegalArgumentException(s"MongoDB error: $projectDeleteResult")
     allPhases(project).foreach(phase => PhaseApi.delete(phase, request))
+    BWMongoDB3.teams.deleteMany(Map("project_id" -> projectOid))
     val message = s"Deleted project '${project.name[String]}' (${project._id[ObjectId]})"
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }

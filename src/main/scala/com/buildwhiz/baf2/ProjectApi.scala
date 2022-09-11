@@ -98,13 +98,15 @@ object ProjectApi extends HttpUtils {
     } else {
       val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
       if (projectDeleteResult.getDeletedCount == 1) {
-        output(s"Deleted project object $projectOid<br/>")
+        output(s"""<font color="green">Deleted project object $projectOid</font><br/>""")
         allPhases(project).foreach(phase => {
-          output(s"Deleting phase object ${phase.name[String]} ...<br/>")
           PhaseApi.delete(phase, request)
+          output(s"""<font color="green">Deleted phase object ${phase.name[String]}</font><br/>""")
         })
         val teamDeleteResult = BWMongoDB3.teams.deleteMany(Map("project_id" -> projectOid))
-        output(s"Deleted ${teamDeleteResult.getDeletedCount} team objects<br/>")
+        output(s"""<font color="green">Deleted ${teamDeleteResult.getDeletedCount} team objects</font><br/>""")
+        val tagsDeleteResult = BWMongoDB3.project_tags.deleteMany(Map("project_id" -> projectOid))
+        output(s"""<font color="green">Deleted ${tagsDeleteResult.getDeletedCount} project_tags objects</font><br/>""")
         val message = s"Deleted project '${project.name[String]}' ($projectOid)"
         BWLogger.audit(getClass.getName, request.getMethod, message, request)
       } else {

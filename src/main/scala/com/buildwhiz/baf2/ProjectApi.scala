@@ -10,8 +10,6 @@ import javax.servlet.http.HttpServletRequest
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import scala.util.Either
-
 object ProjectApi extends HttpUtils {
 
   def listProjects(): Seq[DynDoc] = {
@@ -93,17 +91,26 @@ object ProjectApi extends HttpUtils {
 
   def isActive(project: DynDoc): Boolean = allPhases(project).exists(phase => PhaseApi.isActive(phase))
 
-  def delete(project: DynDoc, request: HttpServletRequest): Unit = {
-    if (project.status[String] != "ended" || isActive(project))
-      throw new IllegalArgumentException(s"Project '${project.name[String]}' is still active")
+  def delete(project: DynDoc, request: HttpServletRequest, output: String => Unit): Unit = {
     val projectOid = project._id[ObjectId]
-    val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
-    if (projectDeleteResult.getDeletedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB error: $projectDeleteResult")
-    allPhases(project).foreach(phase => PhaseApi.delete(phase, request))
-    BWMongoDB3.teams.deleteMany(Map("project_id" -> projectOid))
-    val message = s"Deleted project '${project.name[String]}' (${project._id[ObjectId]})"
-    BWLogger.audit(getClass.getName, request.getMethod, message, request)
+    if (project.status[String] != "ended" || isActive(project)) {
+      output(s"""<font color="red">Can't delete ACTIVE project: '${project.name[String]}' ($projectOid)</font><br/>""")
+    } else {
+      val projectDeleteResult = BWMongoDB3.projects.deleteOne(Map("_id" -> projectOid))
+      if (projectDeleteResult.getDeletedCount == 1) {
+        output(s"Deleted project object $projectOid<br/>")
+        allPhases(project).foreach(phase => {
+          output(s"Deleting phase object ${phase.name[String]} ...<br/>")
+          PhaseApi.delete(phase, request)
+        })
+        val teamDeleteResult = BWMongoDB3.teams.deleteMany(Map("project_id" -> projectOid))
+        output(s"Deleted ${teamDeleteResult.getDeletedCount} team objects<br/>")
+        val message = s"Deleted project '${project.name[String]}' ($projectOid)"
+        BWLogger.audit(getClass.getName, request.getMethod, message, request)
+      } else {
+        output(s"""<font color="red">FAILED project delete: '$projectDeleteResult</font><br/>""")
+      }
+    }
   }
 
   def hasRole30(personOid: ObjectId, project: DynDoc): Boolean = {

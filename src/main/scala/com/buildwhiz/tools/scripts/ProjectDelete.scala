@@ -12,7 +12,12 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 object ProjectDelete extends HttpUtils {
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
-    response.getWriter.println(s"${getClass.getName}:main() ENTRY")
+    val writer = response.getWriter
+    def output(s: String): Unit = writer.print(s)
+    response.setContentType("text/html")
+    output(s"<html><body>")
+
+    output(s"${getClass.getName}:main() ENTRY<br/>")
     val user: DynDoc = getUser(request)
     if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
       throw new IllegalArgumentException("Not permitted")
@@ -21,20 +26,19 @@ object ProjectDelete extends HttpUtils {
       val projectOid = new ObjectId(args(0))
       BWMongoDB3.projects.find(Map("_id" -> projectOid)).headOption match {
         case None =>
-          response.getWriter.println(s"No such project ID: '${args(0)}'")
+          output(s"No such project ID: '${args(0)}'<br/>")
         case Some(theProject) =>
-          response.getWriter.println(s"Found project: '${theProject.asDoc.toJson}'")
+          output(s"Found project: '${theProject.asDoc.toJson}'<br/>")
           val go: Boolean = args.length == 2 && args(1) == "GO"
           if (go) {
-            response.getWriter.println(s"DELETING project ...")
-            ProjectApi.delete(theProject, request)
-            response.getWriter.println(s"DELETE project complete")
+            ProjectApi.delete(theProject, request, output)
           }
       }
-      response.getWriter.println(s"${getClass.getName}:main() EXIT-OK")
+      output(s"${getClass.getName}:main() EXIT-OK<br/>")
     } else {
-      response.getWriter.println(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} phase-id [,GO]")
+      output(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} phase-id [,GO]<br/>")
     }
+    output("</body></html>")
   }
 
 }

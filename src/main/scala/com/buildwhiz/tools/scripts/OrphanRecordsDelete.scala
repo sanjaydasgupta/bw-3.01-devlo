@@ -158,6 +158,25 @@ object OrphanRecordsDelete extends HttpUtils {
     writer.println(s"${sp2}EXIT deleteOrphanedDocs()<br/><br/>")
   }
 
+  private def deleteOrphanedProjectTags(writer: PrintWriter, go: Boolean, detail: Boolean): Unit = {
+    writer.println(s"${sp2}ENTRY deleteOrphanedProjectTags()<br/>")
+    val existingProjects: Seq[DynDoc] = BWMongoDB3.projects.find()
+    val existingProjectOids = existingProjects.map(_._id[ObjectId])
+    val orphanedProjectTags: Seq[DynDoc] = BWMongoDB3.project_tags.find(
+        Map("project_id" -> Map($not -> Map($in -> existingProjectOids))))
+    val orphanedProjectTagOids: Many[ObjectId] = orphanedProjectTags.map(_._id[ObjectId])
+    writer.println(s"${sp4}Orphaned project_tags (${orphanedProjectTagOids.length})" +
+      (if (detail) orphanedProjectTagOids.mkString(": ", ", ", "") else "") + "<br/>")
+    if (go && orphanedProjectTagOids.nonEmpty) {
+      writer.println(s"${sp4}Deleting ${orphanedProjectTagOids.length} project_tags<br/>")
+      val deleteResult = BWMongoDB3.project_tags.deleteMany(Map("_id" -> Map("$in" -> orphanedProjectTagOids)))
+      if (deleteResult.getDeletedCount != orphanedProjectTagOids.length) {
+        writer.println(s"${sp4}Deleted only ${deleteResult.getDeletedCount} orphaned project_tags<br/>")
+      }
+    }
+    writer.println(s"${sp2}EXIT deleteOrphanedProjectTags()<br/><br/>")
+  }
+
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     response.setContentType("text/html")
     val writer = response.getWriter
@@ -178,6 +197,7 @@ object OrphanRecordsDelete extends HttpUtils {
     deleteOrphanedDeliverables(writer, go, detail)
     deleteOrphanedConstraints(writer, go, detail)
     deleteOrphanedDocs(writer, go, detail)
+    deleteOrphanedProjectTags(writer, go, detail)
     writer.println(s"EXIT ${getClass.getName}:main()<br/>")
     writer.println("</tt></body></html>")
     writer.flush()

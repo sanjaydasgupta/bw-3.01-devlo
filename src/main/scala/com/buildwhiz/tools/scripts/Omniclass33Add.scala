@@ -281,7 +281,7 @@ object Omniclass33Add extends HttpUtils {
     }
     val existingCount = BWMongoDB3.omni33classes.countDocuments()
     if (existingCount > 0) {
-      output(s"ALREADY EXIST: $existingCount Omniclass33 records - will QUIT<br/>")
+      output(s"ALREADY EXISTS: $existingCount Omniclass33 records - will QUIT<br/>")
     } else {
       output(s"Omniclass33 Record count: ${records.length}<br/>")
       if (args.length >= 1 && args(0) == "GO") {
@@ -306,6 +306,37 @@ object Omniclass33Add extends HttpUtils {
           output(s"""<font color="red">ERROR during bulkWrite(update): $bulkUpdateResult<font/><br/>""")
         } else {
           output(s"Updated ${bulkUpdateResult.getInsertedCount} records<br/>")
+        }
+        val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
+        val bulkInsertBuffer2 = projects.map(project => {
+          val newRecord = new Document("project_id", project._id[ObjectId]).append("codes", Seq(
+            "33-11 00 00", "33-11 21 00", "33-11 51 00", "33-11 61 21", "33-21 00 00", "33-21 11 00", "33-21 11 11",
+            "33-21 11 21", "33-21 21 00", "33-21 23 00", "33-21 27 00", "33-21 31 00", "33-21 31 11", "33-21 31 11 11",
+            "33-21 31 14", "33-21 31 17", "33-21 31 17 11", "33-21 31 17 21", "33-21 31 17 34", "33-21 31 21",
+            "33-21 31 21 31", "33-21 31 24 21", "33-21 31 99 11", "33-21 31 99 21 11", "33-21 31 99 21 21",
+            "33-21 31 99 21 31", "33-21 51 00", "33-21 51 11", "33-21 51 16", "33-21 51 19", "33-21 99 10",
+            "33-21 99 25", "33-21 99 28", "33-21 99 31 11", "33-21 99 31 13", "33-21 99 46", "33-23 00 00",
+            "33-23 11 00", "33-23 21 00", "33-23 21 11", "33-23 21 21", "33-23 21 31", "33-23 41 00", "33-23 51 00",
+            "33-25 00 00", "33-25 11 00", "33-25 11 11", "33-25 14 00", "33-25 15 00", "33-25 16 00", "33-25 16 11",
+            "33-25 16 13", "33-25 21 00", "33-25 31 00", "33-25 41 00", "33-25 41 21", "33-25 51 00", "33-25 51 11",
+            "33-25 51 13", "33-25 61 00", "33-41 00 00", "33-41 01 00", "33-41 01 13", "33-41 01 14", "33-41 01 16",
+            "33-41 01 31", "33-41 03 00", "33-41 03 11 11", "33-41 03 21", "33-41 03 31", "33-41 06 00", "33-41 06 11",
+            "33-41 09 00", "33-41 09 11", "33-41 10 00", "33-41 10 11", "33-41 10 21", "33-41 21 00", "33-41 21 11",
+            "33-41 24 00", "33-41 30 00", "33-41 31 00", "33-41 31 11", "33-41 33 00", "33-41 40 00", "33-41 43 00",
+            "33-41 46 00", "33-41 51 00", "33-41 53 00", "33-41 54 00", "33-41 56 00", "33-41 60 00", "33-41 63 00",
+            "33-41 64 00", "33-41 64 11", "33-41 64 31", "33-41 73 00", "33-41 76 00", "33-41 76 11", "33-41 79 00",
+            "33-41 81 21", "33-41 83 00", "33-41 91 11", "33-55 00 00", "33-55 14 14", "33-55 14 17", "33-55 21 00",
+            "33-55 24 00", "33-55 24 14", "33-55 24 21", "33-55 24 23 41", "33-81 00 00", "33-81 11 11", "33-81 11 17",
+            "33-81 11 21", "33-81 11 23", "33-81 21 11", "33-81 21 21 11", "33-81 21 21 13", "33-81 31 00",
+            "33-81 31 11", "33-81 31 14", "33-81 31 17", "33-81 31 19", "33-81 31 26").asJava)
+          new InsertOneModel(newRecord)
+        })
+        output(s"Inserting ${bulkInsertBuffer2.length} records into collection 'project_omni33classes'<br/>")
+        val bulkWriteResult2 = BWMongoDB3.project_omni33classes.bulkWrite(bulkInsertBuffer2.asJava)
+        if (bulkWriteResult2.getInsertedCount != bulkInsertBuffer2.length) {
+          output(s"""<font color="red">ERROR during bulkWrite(insert): $bulkWriteResult2<font/><br/>""")
+        } else {
+          output(s"Inserted ${bulkWriteResult2.getInsertedCount} records<br/>")
         }
       }
     }

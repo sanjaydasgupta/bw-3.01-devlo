@@ -34,15 +34,17 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-21 11 27", "full_title" -> Seq("Design Disciplines", "Architecture", "Industrial Architecture").asJava, "parent_id" -> "33-21 11 00"),
     Map("code" -> "33-21 21 00", "full_title" -> Seq("Design Disciplines", "Landscape Architecture").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 23 00", "full_title" -> Seq("Design Disciplines", "Interior Design").asJava, "parent_id" -> "33-21 00 00"),
-    Map("code" -> "33-21 25 00", "full_title" -> Seq("Design Disciplines", "Specifying").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 27 00", "full_title" -> Seq("Design Disciplines", "Graphic Design").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 27 11", "full_title" -> Seq("Design Disciplines", "Graphic Design", "Signage Graphic Design").asJava, "parent_id" -> "33-21 27 00"),
+    Map("code" -> "33-21 25 00", "full_title" -> Seq("Design Disciplines", "Specifying").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 31 00", "full_title" -> Seq("Design Disciplines", "Engineering").asJava, "parent_id" -> "33-21 00 00"),
+    Map("code" -> "33-21 31 BW", "full_title" -> Seq("Design Disciplines", "Engineering", "MEP Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 02", "full_title" -> Seq("Design Disciplines", "Engineering", "Aerospace Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 04", "full_title" -> Seq("Design Disciplines", "Engineering", "Agricultural Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 06", "full_title" -> Seq("Design Disciplines", "Engineering", "Biomedical Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 08", "full_title" -> Seq("Design Disciplines", "Engineering", "Chemical Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 11", "full_title" -> Seq("Design Disciplines", "Engineering", "Civil Engineering").asJava, "parent_id" -> "33-21 31 00"),
+    Map("code" -> "33-21 31 11 BW", "full_title" -> Seq("Design Disciplines", "Engineering", "Civil Engineering", "Soil-Consultant").asJava, "parent_id" -> "33-21 31 11"),
     Map("code" -> "33-21 31 11 11", "full_title" -> Seq("Design Disciplines", "Engineering", "Civil Engineering", "Geotechnical Engineering").asJava, "parent_id" -> "33-21 31 11"),
     Map("code" -> "33-21 31 14", "full_title" -> Seq("Design Disciplines", "Engineering", "Structural Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 14 11", "full_title" -> Seq("Design Disciplines", "Engineering", "Structural Engineering", "Foundation Engineering").asJava, "parent_id" -> "33-21 31 14"),
@@ -251,6 +253,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-81 11 14", "full_title" -> Seq("Support Disciplines", "Legal Services", "Forensic Investigation").asJava, "parent_id" -> "33-81 11 00"),
     Map("code" -> "33-81 11 17", "full_title" -> Seq("Support Disciplines", "Legal Services", "Permitting").asJava, "parent_id" -> "33-81 11 00"),
     Map("code" -> "33-81 11 21", "full_title" -> Seq("Support Disciplines", "Legal Services", "Lawyer").asJava, "parent_id" -> "33-81 11 00"),
+    Map("code" -> "33-81 11 BW", "full_title" -> Seq("Support Disciplines", "Legal Services", "Land-Use-Attorney").asJava, "parent_id" -> "33-81 11 00"),
     Map("code" -> "33-81 11 23", "full_title" -> Seq("Support Disciplines", "Legal Services", "Notary").asJava, "parent_id" -> "33-81 11 00"),
     Map("code" -> "33-81 21 00", "full_title" -> Seq("Support Disciplines", "Administrative and General Consulting").asJava, "parent_id" -> "33-81 00 00"),
     Map("code" -> "33-81 21 11", "full_title" -> Seq("Support Disciplines", "Administrative and General Consulting", "Public Relations").asJava, "parent_id" -> "33-81 21 00"),
@@ -265,8 +268,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-81 31 19", "full_title" -> Seq("Support Disciplines", "Finance", "Purchasing Management").asJava, "parent_id" -> "33-81 31 00"),
     Map("code" -> "33-81 31 21", "full_title" -> Seq("Support Disciplines", "Finance", "Bonding").asJava, "parent_id" -> "33-81 31 00"),
     Map("code" -> "33-81 31 23", "full_title" -> Seq("Support Disciplines", "Finance", "Compensation and Benefits Management").asJava, "parent_id" -> "33-81 31 00"),
-    Map("code" -> "33-81 31 26", "full_title" -> Seq("Support Disciplines", "Finance", "Human Resources Management").asJava, "parent_id" -> "33-81 31 00")
-  )
+    Map("code" -> "33-81 31 26", "full_title" -> Seq("Support Disciplines", "Finance", "Human Resources Management").asJava, "parent_id" -> "33-81 31 00"))
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     val writer = response.getWriter
@@ -311,24 +313,25 @@ object Omniclass33Add extends HttpUtils {
         val bulkInsertBuffer2 = projects.map(project => {
           val newRecord = new Document("project_id", project._id[ObjectId]).append("codes", Seq(
             "33-11 00 00", "33-11 21 00", "33-11 51 00", "33-11 61 21", "33-21 00 00", "33-21 11 00", "33-21 11 11",
-            "33-21 11 21", "33-21 21 00", "33-21 23 00", "33-21 27 00", "33-21 31 00", "33-21 31 11", "33-21 31 11 11",
-            "33-21 31 14", "33-21 31 17", "33-21 31 17 11", "33-21 31 17 21", "33-21 31 17 34", "33-21 31 21",
-            "33-21 31 21 31", "33-21 31 24 21", "33-21 31 99 11", "33-21 31 99 21 11", "33-21 31 99 21 21",
-            "33-21 31 99 21 31", "33-21 51 00", "33-21 51 11", "33-21 51 16", "33-21 51 19", "33-21 99 10",
-            "33-21 99 25", "33-21 99 28", "33-21 99 31 11", "33-21 99 31 13", "33-21 99 46", "33-23 00 00",
-            "33-23 11 00", "33-23 21 00", "33-23 21 11", "33-23 21 21", "33-23 21 31", "33-23 41 00", "33-23 51 00",
-            "33-25 00 00", "33-25 11 00", "33-25 11 11", "33-25 14 00", "33-25 15 00", "33-25 16 00", "33-25 16 11",
-            "33-25 16 13", "33-25 21 00", "33-25 31 00", "33-25 41 00", "33-25 41 21", "33-25 51 00", "33-25 51 11",
-            "33-25 51 13", "33-25 61 00", "33-41 00 00", "33-41 01 00", "33-41 01 13", "33-41 01 14", "33-41 01 16",
-            "33-41 01 31", "33-41 03 00", "33-41 03 11 11", "33-41 03 21", "33-41 03 31", "33-41 06 00", "33-41 06 11",
-            "33-41 09 00", "33-41 09 11", "33-41 10 00", "33-41 10 11", "33-41 10 21", "33-41 21 00", "33-41 21 11",
-            "33-41 24 00", "33-41 30 00", "33-41 31 00", "33-41 31 11", "33-41 33 00", "33-41 40 00", "33-41 43 00",
-            "33-41 46 00", "33-41 51 00", "33-41 53 00", "33-41 54 00", "33-41 56 00", "33-41 60 00", "33-41 63 00",
-            "33-41 64 00", "33-41 64 11", "33-41 64 31", "33-41 73 00", "33-41 76 00", "33-41 76 11", "33-41 79 00",
-            "33-41 81 21", "33-41 83 00", "33-41 91 11", "33-55 00 00", "33-55 14 14", "33-55 14 17", "33-55 21 00",
-            "33-55 24 00", "33-55 24 14", "33-55 24 21", "33-55 24 23 41", "33-81 00 00", "33-81 11 11", "33-81 11 17",
-            "33-81 11 21", "33-81 11 23", "33-81 21 11", "33-81 21 21 11", "33-81 21 21 13", "33-81 31 00",
-            "33-81 31 11", "33-81 31 14", "33-81 31 17", "33-81 31 19", "33-81 31 26").asJava)
+            "33-21 11 21", "33-21 21 00", "33-21 23 00", "33-21 27 00", "33-21 31 00", "33-21 31 BW", "33-21 31 11",
+            "33-21 31 11 BW", "33-21 31 11 11", "33-21 31 14", "33-21 31 17", "33-21 31 17 11", "33-21 31 17 21",
+            "33-21 31 17 34", "33-21 31 21", "33-21 31 21 31", "33-21 31 24 21", "33-21 31 99 11",
+            "33-21 31 99 21 11", "33-21 31 99 21 21", "33-21 31 99 21 31", "33-21 51 00", "33-21 51 11",
+            "33-21 51 16", "33-21 51 19", "33-21 99 10", "33-21 99 25", "33-21 99 28", "33-21 99 31 11",
+            "33-21 99 31 13", "33-21 99 46", "33-23 00 00", "33-23 11 00", "33-23 21 00", "33-23 21 11",
+            "33-23 21 21", "33-23 21 31", "33-23 41 00", "33-23 51 00", "33-25 00 00", "33-25 11 00", "33-25 11 11",
+            "33-25 14 00", "33-25 15 00", "33-25 16 00", "33-25 16 11", "33-25 16 13", "33-25 21 00", "33-25 31 00",
+            "33-25 41 00", "33-25 41 21", "33-25 51 00", "33-25 51 11", "33-25 51 13", "33-25 61 00", "33-41 00 00",
+            "33-41 01 00", "33-41 01 13", "33-41 01 14", "33-41 01 16", "33-41 01 31", "33-41 03 00",
+            "33-41 03 11 11", "33-41 03 21", "33-41 03 31", "33-41 06 00", "33-41 06 11", "33-41 09 00",
+            "33-41 09 11", "33-41 10 00", "33-41 10 11", "33-41 10 21", "33-41 21 00", "33-41 21 11", "33-41 24 00",
+            "33-41 30 00", "33-41 31 00", "33-41 31 11", "33-41 33 00", "33-41 40 00", "33-41 43 00", "33-41 46 00",
+            "33-41 51 00", "33-41 53 00", "33-41 54 00", "33-41 56 00", "33-41 60 00", "33-41 63 00", "33-41 64 00",
+            "33-41 64 11", "33-41 64 31", "33-41 73 00", "33-41 76 00", "33-41 76 11", "33-41 79 00", "33-41 81 21",
+            "33-41 83 00", "33-41 91 11", "33-55 00 00", "33-55 14 14", "33-55 14 17", "33-55 21 00", "33-55 24 00",
+            "33-55 24 14", "33-55 24 21", "33-55 24 23 41", "33-81 00 00", "33-81 11 11", "33-81 11 17",
+            "33-81 11 21", "33-81 11 BW", "33-81 11 23", "33-81 21 11", "33-81 21 21 11", "33-81 21 21 13",
+            "33-81 31 00", "33-81 31 11", "33-81 31 14", "33-81 31 17", "33-81 31 19", "33-81 31 26").asJava)
           new InsertOneModel(newRecord)
         })
         output(s"Inserting ${bulkInsertBuffer2.length} records into collection 'project_omni33classes'<br/>")

@@ -36,7 +36,7 @@ object ProjectDelete extends HttpUtils {
       }
       output(s"${getClass.getName}:main() EXIT-OK<br/>")
     } else {
-      output(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} phase-id [,GO]<br/>")
+      output(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} project-id [,GO]<br/>")
     }
     output("</body></html>")
   }

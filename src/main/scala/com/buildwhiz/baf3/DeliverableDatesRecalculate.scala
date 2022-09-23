@@ -115,24 +115,34 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     if (verbose) {
       g.respond(margin * level + s"EndDate ${dName(deliverable)}<br/>")
     }
-    def setDates(deliverable: DynDoc, startDate: Long, endDate: Long): Unit = {
+    def setDates(deliverable: DynDoc, startDate: Long, endDate: Long, optFloatDays: Option[Long]): Unit = {
+      val baseValues: Document = Map("date_start_estimated" -> startDate, "date_end_estimated" -> endDate)
+      val setterValues = optFloatDays match {
+        case Some(floatDays) => baseValues.append("float_days", floatDays)
+        case None => baseValues
+      }
       bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
-          new Document($set, new Document("date_start_estimated", startDate).append("date_end_estimated", endDate))))
+        new Document($set, setterValues)))
     }
     val dateEnd = deliverable.get[Long]("end$date") match {
       case None =>
         val dt = Seq("date_end_actual", "commit_date").map(deliverable.get[Long]) match {
           case Seq(Some(dateEndActual), _) =>
             dateEndActual
-          case Seq(None, Some(commitDate)) =>
-            commitDate
-          case _ =>
+          case Seq(None, optCommitDate) =>
             val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
             val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
             val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
-            (deliverable.get[Long]("date_start_estimated"), deliverable.get[Long]("date_end_estimated")) match {
-              case (Some(existingStartDate), Some(existingEndDate)) =>
-                if (existingStartDate == estimatedStartDate && existingEndDate == displayedEndDate) {
+            val newOptFloatDays: Option[Long] = optCommitDate match {
+              case Some(commitDate) => Some(weekDaysBetween(estimatedStartDate, commitDate, g.timezone) -
+                deliverable.duration[Int])
+              case None => None
+            }
+            (deliverable.get[Long]("date_start_estimated"), deliverable.get[Long]("date_end_estimated"),
+                deliverable.get[Long]("float_days")) match {
+              case (Some(existingStartDate), Some(existingEndDate), optExistingFloatDays) =>
+                if (existingStartDate == estimatedStartDate && existingEndDate == displayedEndDate &&
+                    optExistingFloatDays == newOptFloatDays) {
                   if (verbose) {
                     g.respond(
                       """<font color="green">""" + margin * (level + 1) +
@@ -144,7 +154,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
                       """<font color="green">""" + margin * (level + 1) +
                         s"UPDATING ${dName(deliverable)}</font><br/>")
                   }
-                  setDates(deliverable, estimatedStartDate, displayedEndDate)
+                  setDates(deliverable, estimatedStartDate, displayedEndDate, newOptFloatDays)
                 }
               case _ =>
                 if (verbose) {
@@ -152,9 +162,12 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
                     """<font color="green">""" + margin * (level + 1) +
                       s"INITIALIZING ${dName(deliverable)}</font><br/>")
                 }
-                setDates(deliverable, estimatedStartDate, displayedEndDate)
+                setDates(deliverable, estimatedStartDate, displayedEndDate, newOptFloatDays)
             }
-            cumulativeEndDate
+            optCommitDate match {
+              case Some(commitDate) => commitDate
+              case None => cumulativeEndDate
+            }
         }
         deliverable.end$date = dt
         dt

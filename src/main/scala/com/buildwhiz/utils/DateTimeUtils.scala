@@ -65,8 +65,8 @@ trait DateTimeUtils {
     calendar.setTimeInMillis(startDate)
     val delta = math.signum(endDate - startDate).toInt
     var daysBetween = 0
-    while (calendar.getTimeInMillis != endDate) {
-      calendar.add(Calendar.DATE, delta)
+    while (delta * (endDate - calendar.getTimeInMillis) > 0) {
+      calendar.setTimeInMillis(calendar.getTimeInMillis + delta * 86400000L)
       val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
       if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
         daysBetween += delta
@@ -113,4 +113,12 @@ object DateTimeUtilsTest extends App with DateTimeUtils {
   println(s"GMT: ${dateTimeString(utcMillis)}")
   println(s"""Kolkata: ${dateTimeString(utcMillis, Some("Asia/Kolkata"))}""")
   println(s"""Pacific: ${dateTimeString(utcMillis, Some("US/Pacific"))}""")
+  println("******************************************")
+  val refDate = milliseconds("2022-09-23")
+  val priorDate = milliseconds("2022-09-09")
+  val laterDate = milliseconds("2022-10-07")
+  val sameDate = milliseconds("2022-09-23")
+  println(s"""Later-Date: ${weekDaysBetween(refDate, laterDate, "Asia/Kolkata")}""")
+  println(s"""Prior-Date: ${weekDaysBetween(refDate, priorDate, "Asia/Kolkata")}""")
+  println(s"""Same-Date: ${weekDaysBetween(refDate, sameDate, "Asia/Kolkata")}""")
 }

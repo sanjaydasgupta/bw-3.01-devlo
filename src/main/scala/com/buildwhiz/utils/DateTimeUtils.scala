@@ -60,6 +60,22 @@ trait DateTimeUtils {
     s"P${days}DT${hours}H${minutes}M"
   }
 
+  def weekDaysBetween(startDate: Long, endDate: Long, tz: String): Int = {
+    val calendar = Calendar.getInstance(TimeZone.getTimeZone(tz))
+    calendar.setTimeInMillis(startDate)
+    val delta = math.signum(endDate - startDate).toInt
+    var daysBetween = 0
+    while (calendar.getTimeInMillis != endDate) {
+      calendar.add(Calendar.DATE, delta)
+      val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+      if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
+        daysBetween += delta
+      }
+    }
+    daysBetween
+  }
+
+
   def addWeekdays(baseDateMs: Long, days: Long, tz: String): Long = {
     val calendar = Calendar.getInstance(TimeZone.getTimeZone(tz))
     calendar.setTimeInMillis(baseDateMs)

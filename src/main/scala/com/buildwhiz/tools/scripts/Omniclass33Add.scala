@@ -24,8 +24,11 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-11 51 00", "full_title" -> Seq("Planning Disciplines", "Environmental Planning").asJava, "parent_id" -> "33-11 00 00"),
     Map("code" -> "33-11 61 00", "full_title" -> Seq("Planning Disciplines", "Facility Conservation Planning").asJava, "parent_id" -> "33-11 00 00"),
     Map("code" -> "33-11 61 21", "full_title" -> Seq("Planning Disciplines", "Facility Conservation Planning", "Historic Building Conservation Planning").asJava, "parent_id" -> "33-11 61 00"),
+    Map("code" -> "33-11 61 21 BW", "full_title" -> Seq("Planning Disciplines", "Facility Conservation Planning", "Historic Building Conservation Planning", "Historic-Consultant").asJava, "parent_id" -> "33-11 61 21"),
     Map("code" -> "33-11 61 31", "full_title" -> Seq("Planning Disciplines", "Facility Conservation Planning", "Ancient Monument Conservation Planning").asJava, "parent_id" -> "33-11 61 00"),
     Map("code" -> "33-11 61 41", "full_title" -> Seq("Planning Disciplines", "Facility Conservation Planning", "Archaeological Area Conservation Planning").asJava, "parent_id" -> "33-11 61 00"),
+    Map("code" -> "33-11 BW 00", "full_title" -> Seq("Planning Disciplines", "BuildWhiz").asJava, "parent_id" -> "33-11 00 00"),
+    Map("code" -> "33-11 BW 11", "full_title" -> Seq("Planning Disciplines", "BuildWhiz", "Current-Planning").asJava, "parent_id" -> "33-11 BW 00"),
     Map("code" -> "33-21 00 00", "full_title" -> Seq("Design Disciplines").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 11 00", "full_title" -> Seq("Design Disciplines", "Architecture").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 11 11", "full_title" -> Seq("Design Disciplines", "Architecture", "Residential Architecture").asJava, "parent_id" -> "33-21 11 00"),
@@ -38,7 +41,8 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-21 27 11", "full_title" -> Seq("Design Disciplines", "Graphic Design", "Signage Graphic Design").asJava, "parent_id" -> "33-21 27 00"),
     Map("code" -> "33-21 25 00", "full_title" -> Seq("Design Disciplines", "Specifying").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-21 31 00", "full_title" -> Seq("Design Disciplines", "Engineering").asJava, "parent_id" -> "33-21 00 00"),
-    Map("code" -> "33-21 31 BW", "full_title" -> Seq("Design Disciplines", "Engineering", "MEP Engineering").asJava, "parent_id" -> "33-21 31 00"),
+    Map("code" -> "33-21 31 BW", "full_title" -> Seq("Design Disciplines", "Engineering", "BuildWhiz").asJava, "parent_id" -> "33-21 31 00"),
+    Map("code" -> "33-21 31 BW 11", "full_title" -> Seq("Design Disciplines", "Engineering", "BuildWhiz", "MEP").asJava, "parent_id" -> "33-21 31 BW"),
     Map("code" -> "33-21 31 02", "full_title" -> Seq("Design Disciplines", "Engineering", "Aerospace Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 04", "full_title" -> Seq("Design Disciplines", "Engineering", "Agricultural Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 06", "full_title" -> Seq("Design Disciplines", "Engineering", "Biomedical Engineering").asJava, "parent_id" -> "33-21 31 00"),
@@ -70,6 +74,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-21 31 24", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering").asJava, "parent_id" -> "33-21 31 00"),
     Map("code" -> "33-21 31 24 11", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Piping Engineering").asJava, "parent_id" -> "33-21 31 24"),
     Map("code" -> "33-21 31 24 21", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Wind Engineering").asJava, "parent_id" -> "33-21 31 24"),
+    Map("code" -> "33-21 31 24 21 BW", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Wind Engineering", "Wind-Consultant").asJava, "parent_id" -> "33-21 31 24 21"),
     Map("code" -> "33-21 31 24 31", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Co-Generation Engineering").asJava, "parent_id" -> "33-21 31 24"),
     Map("code" -> "33-21 31 24 41", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Nuclear Engineering").asJava, "parent_id" -> "33-21 31 24"),
     Map("code" -> "33-21 31 24 51", "full_title" -> Seq("Design Disciplines", "Engineering", "Process Engineering", "Sanitary Engineering").asJava, "parent_id" -> "33-21 31 24"),
@@ -109,6 +114,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-21 99 31", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Environmental Design").asJava, "parent_id" -> "33-21 99 00"),
     Map("code" -> "33-21 99 31 11", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Environmental Design", "Tree Preservation").asJava, "parent_id" -> "33-21 99 31"),
     Map("code" -> "33-21 99 31 13", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Environmental Design", "Solar Design").asJava, "parent_id" -> "33-21 99 31"),
+    Map("code" -> "33-21 99 31 BW", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Environmental Design", "Env-Consultant").asJava, "parent_id" -> "33-21 99 31"),
     Map("code" -> "33-21 99 45", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Transportation Design").asJava, "parent_id" -> "33-21 99 00"),
     Map("code" -> "33-21 99 45 11", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Transportation Design", "Air Transportation Design").asJava, "parent_id" -> "33-21 99 45"),
     Map("code" -> "33-21 99 45 21", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Transportation Design", "Roadway Transportation Design").asJava, "parent_id" -> "33-21 99 45"),
@@ -121,6 +127,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-23 11 31", "full_title" -> Seq("Investigation Disciplines", "Surveying", "Site Surveying").asJava, "parent_id" -> "33-23 11 00"),
     Map("code" -> "33-23 21 00", "full_title" -> Seq("Investigation Disciplines", "Environmental Investigation").asJava, "parent_id" -> "33-23 00 00"),
     Map("code" -> "33-23 21 11", "full_title" -> Seq("Investigation Disciplines", "Environmental Investigation", "Environmental Impact Investigation").asJava, "parent_id" -> "33-23 21 00"),
+    Map("code" -> "33-23 21 11 BW", "full_title" -> Seq("Investigation Disciplines", "Environmental Investigation", "Environmental Impact Investigation", "EIR-Consultant").asJava, "parent_id" -> "33-23 21 11"),
     Map("code" -> "33-23 21 21", "full_title" -> Seq("Investigation Disciplines", "Environmental Investigation", "Air Quality Evaluation Investigation").asJava, "parent_id" -> "33-23 21 00"),
     Map("code" -> "33-23 21 31", "full_title" -> Seq("Investigation Disciplines", "Environmental Investigation", "Hazardous Materials Investigation").asJava, "parent_id" -> "33-23 21 00"),
     Map("code" -> "33-23 31 00", "full_title" -> Seq("Investigation Disciplines", "Hydrological Investigation").asJava, "parent_id" -> "33-23 00 00"),
@@ -132,6 +139,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-25 14 00", "full_title" -> Seq("Project Management Disciplines", "Proposal Preparation").asJava, "parent_id" -> "33-25 00 00"),
     Map("code" -> "33-25 15 00", "full_title" -> Seq("Project Management Disciplines", "Architectural and Engineering Management").asJava, "parent_id" -> "33-25 00 00"),
     Map("code" -> "33-25 16 00", "full_title" -> Seq("Project Management Disciplines", "Construction Management").asJava, "parent_id" -> "33-25 00 00"),
+    Map("code" -> "33-25 16 00 BW", "full_title" -> Seq("Project Management Disciplines", "Construction Management", "Project-Manager").asJava, "parent_id" -> "33-25 16 00"),
     Map("code" -> "33-25 16 11", "full_title" -> Seq("Project Management Disciplines", "Construction Management", "General Contracting").asJava, "parent_id" -> "33-25 16 00"),
     Map("code" -> "33-25 16 13", "full_title" -> Seq("Project Management Disciplines", "Construction Management", "Subcontracting").asJava, "parent_id" -> "33-25 16 00"),
     Map("code" -> "33-25 21 00", "full_title" -> Seq("Project Management Disciplines", "Scheduling").asJava, "parent_id" -> "33-25 00 00"),
@@ -268,7 +276,9 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-81 31 19", "full_title" -> Seq("Support Disciplines", "Finance", "Purchasing Management").asJava, "parent_id" -> "33-81 31 00"),
     Map("code" -> "33-81 31 21", "full_title" -> Seq("Support Disciplines", "Finance", "Bonding").asJava, "parent_id" -> "33-81 31 00"),
     Map("code" -> "33-81 31 23", "full_title" -> Seq("Support Disciplines", "Finance", "Compensation and Benefits Management").asJava, "parent_id" -> "33-81 31 00"),
-    Map("code" -> "33-81 31 26", "full_title" -> Seq("Support Disciplines", "Finance", "Human Resources Management").asJava, "parent_id" -> "33-81 31 00"))
+    Map("code" -> "33-81 31 26", "full_title" -> Seq("Support Disciplines", "Finance", "Human Resources Management").asJava, "parent_id" -> "33-81 31 00"),
+    Map("code" -> "33-BW 00 00", "full_title" -> Seq("Other").asJava, "parent_id" -> "33-BW 00 00")
+  )
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     val writer = response.getWriter

@@ -120,6 +120,7 @@ object Omniclass33Add extends HttpUtils {
     Map("code" -> "33-21 99 45 21", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Transportation Design", "Roadway Transportation Design").asJava, "parent_id" -> "33-21 99 45"),
     Map("code" -> "33-21 99 45 31", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Transportation Design", "Marine Transportation Design").asJava, "parent_id" -> "33-21 99 45"),
     Map("code" -> "33-21 99 46", "full_title" -> Seq("Design Disciplines", "Specialty Design", "Vertical Conveyance Design").asJava, "parent_id" -> "33-21 99 00"),
+    Map("code" -> "33-21 BW 12", "full_title" -> Seq("Design Disciplines", "Accessibility").asJava, "parent_id" -> "33-21 00 00"),
     Map("code" -> "33-23 00 00", "full_title" -> Seq("Investigation Disciplines").asJava, "parent_id" -> "33-23 00 00"),
     Map("code" -> "33-23 11 00", "full_title" -> Seq("Investigation Disciplines", "Surveying").asJava, "parent_id" -> "33-23 00 00"),
     Map("code" -> "33-23 11 11", "full_title" -> Seq("Investigation Disciplines", "Surveying", "Cartography").asJava, "parent_id" -> "33-23 11 00"),

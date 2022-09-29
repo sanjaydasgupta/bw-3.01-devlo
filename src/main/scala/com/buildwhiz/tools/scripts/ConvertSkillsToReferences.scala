@@ -8,6 +8,7 @@ import com.buildwhiz.utils.HttpUtils
 import org.bson.Document
 import org.bson.types.ObjectId
 import com.mongodb.client.MongoCollection
+import com.mongodb.client.model.UpdateOneModel
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
@@ -15,19 +16,52 @@ object ConvertSkillsToReferences extends HttpUtils {
 
   private def convertSkills(skilledCollection: MongoCollection[Document], skill2id: Map[String, ObjectId],
       go: Boolean, output: String => Unit): Unit = {
+    val collectionName = skilledCollection.getNamespace.getCollectionName
+    output(s"${getClass.getName}:convertSkills($collectionName) ENTRY<br/>")
     val skilledRecords: Seq[DynDoc] = skilledCollection.find()
-    output(s"Found ${skilledRecords.length} records in '${skilledCollection.getNamespace.getCollectionName}'<br/>")
+    output(s"Found ${skilledRecords.length} records in '$collectionName'<br/>")
     val skillsWithCode = skilledRecords.flatMap(_.skills[Many[String]].map(_.trim).filter(_.nonEmpty)).distinct
     val allSkills = skillsWithCode.map(skill => {
-      val parts = skill.split(" [(][0-9]{2}-[0-9]{2} [0-9]{2} [0-9]{2}")
+      val parts = skill.split(" [(][0-9]{2}-[0-9]{2} (BW|[0-9]{2}) (BW|[0-9]{2})")
       parts.head.trim
     })
+    output(s"""Skill-List: ${allSkills.mkString(", ")}<br/>""")
     val unknownSkills = allSkills.filterNot(skill2id.contains)
     if (unknownSkills.nonEmpty) {
-      output(s"""<font color="red">Unknown skills: ${unknownSkills.mkString(", ")}</font><br/>""")
+      output(s"""<font color="red">UNKNOWN skills (will EXIT): ${unknownSkills.mkString(", ")}</font><br/>""")
     } else {
-      output(s"""Skill-List: ${allSkills.mkString(", ")}<br/>""")
+      val skillsLabelContents = skilledRecords.flatMap(_.get[Many[String]]("skills_label") match {
+        case Some(skills) => skills
+        case None => Seq.empty[String]
+      })
+      if (skillsLabelContents.nonEmpty) {
+        output(s"""<font color="red">EXISTS 'skills_label' (will EXIT): ${skillsLabelContents.mkString(", ")}</font><br/>""")
+      } else if (go) {
+        val renameSkillsResult = skilledCollection.updateMany(Map.empty[String, Any],
+            Map($rename -> Map("skills" -> "skills_label")))
+        if (renameSkillsResult.getModifiedCount != skilledRecords.length) {
+          output(s"""<font color="red">FAILED rename 'skills' to 'skills_label' (will EXIT): $renameSkillsResult</font><br/>""")
+        } else {
+          val bulkSetSkillsList = skilledRecords.map(skilledRecord => {
+            val oid = skilledRecord._id[ObjectId]
+            val skills = skilledRecord.skills[Many[String]].map(_.trim).filter(_.nonEmpty)
+            val skillOids: Many[ObjectId] = skills.map(skill => {
+              val parts = skill.split(" [(][0-9]{2}-[0-9]{2} (BW|[0-9]{2}) (BW|[0-9]{2})")
+              skill2id(parts.head.trim)
+            })
+            new UpdateOneModel[Document](new Document("_id", oid),
+                new Document($set, new Document("skills", skillOids)))
+          })
+          val bulkSetResult = skilledCollection.bulkWrite(bulkSetSkillsList)
+          if (bulkSetResult.getModifiedCount != bulkSetSkillsList.length) {
+            output(s"""<font color="red">FAILED set 'skills': $bulkSetResult</font><br/>""")
+          } else {
+            output(s"""<font color="green">SUCCESS processing '$collectionName'</font><br/>""")
+          }
+        }
+      }
     }
+    output(s"${getClass.getName}:convertSkills($collectionName) EXIT<br/>")
   }
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {

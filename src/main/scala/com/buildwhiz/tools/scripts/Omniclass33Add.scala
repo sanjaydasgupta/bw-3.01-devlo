@@ -317,7 +317,7 @@ object Omniclass33Add extends HttpUtils {
         if (bulkUpdateResult.getModifiedCount != bulkUpdateBuffer.length) {
           output(s"""<font color="red">ERROR during bulkWrite(update): $bulkUpdateResult<font/><br/>""")
         } else {
-          output(s"Updated ${bulkUpdateResult.getInsertedCount} records<br/>")
+          output(s"Updated ${bulkUpdateResult.getModifiedCount} records<br/>")
         }
         val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
         val bulkInsertBuffer2 = projects.map(project => {

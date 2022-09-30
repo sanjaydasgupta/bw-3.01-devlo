@@ -172,7 +172,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } else {
         processActivities.filter(_.bpmn_name_full[String] == bpmnNameFull)
       }
-      val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId]))
+      val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId])).
+          filter(_.deliverable_type[String] != "Milestone")
       val deliverableCount = deliverables.length
       val uniqueStatusValues = DeliverableApi.taskStatusMap(deliverables).values.toSet
       val aggregatedStatus = uniqueStatusValues.size match {
@@ -225,7 +226,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         activity.bpmn_name[String] == processName
       }
     )
-    val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+    val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId])).
+        filter(_.deliverable_type[String] != "Milestone")
     val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val returnActivities = activities.map(activity => {
       val activityOid = activity._id[ObjectId]

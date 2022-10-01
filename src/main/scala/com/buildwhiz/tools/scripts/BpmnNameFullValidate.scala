@@ -193,8 +193,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     }
   }
 
-  private def validateCallBlock(margin: String, bpmnName: String, idPath: String, callBlockNode: DynDoc, process: DynDoc,
-      responseWriter: PrintWriter, go: Boolean): Unit = {
+  private def validateCallBlock(margin: String, bpmnName: String, idPath: String, callBlockNode: DynDoc,
+      process: DynDoc, processName: String, processNameCount: Int, responseWriter: PrintWriter, go: Boolean): Unit = {
     val name = callBlockNode.getOrElse[String]("parent_activity_name", "???")
     val bpmnId = callBlockNode.parent_activity_id[String]
     val expectedBpmnNameFull2 = if (idPath.isEmpty) {
@@ -202,8 +202,8 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     } else {
       s"$idPath/$bpmnName"
     }
-    callBlockNode.get[String]("bpmn_name_full2") match {
-      case Some(bpmnNameFull) =>
+    (callBlockNode.get[String]("bpmn_name_full2"), callBlockNode.get[String]("bpmn_process_name")) match {
+      case (Some(bpmnNameFull), Some(bpmnProcessName)) =>
         if (bpmnNameFull == expectedBpmnNameFull2) {
           responseWriter.println(s"""$margin<font color="green">OK-CallBlock:$name($bpmnId) >> """ +
             s"""$bpmnNameFull</font><br/>""")
@@ -211,22 +211,69 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
           responseWriter.println(s"""$margin<font color="red">Bad-value-CallBlock:$name($bpmnId) >> """ +
             s"""$expectedBpmnNameFull2!=$bpmnNameFull</font><br/>""".stripMargin)
         }
-      case None =>
-        responseWriter.println(s"""$margin<font color="red">No-Value-CallBlock:$name($bpmnId) >> """ +
-          s"""$expectedBpmnNameFull2</font><br/>""")
+        if (bpmnProcessName == processName) {
+          responseWriter.println(
+            s"""$margin<font color="green">OK-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+              s"""$processName</font><br/>""")
+        } else {
+          responseWriter.println(
+            s"""$margin<font color="red">Bad-value-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+              s"""$bpmnProcessName!=$processName</font><br/>""".stripMargin)
+        }
+      case (Some(bpmnNameFull), None) =>
+        if (bpmnNameFull == expectedBpmnNameFull2) {
+          responseWriter.println(
+            s"""$margin<font color="green">OK-CallBlock:$name($bpmnId) >> """ +
+              s"""$bpmnNameFull</font><br/>""")
+        } else {
+          responseWriter.println(
+            s"""$margin<font color="red">Bad-value-CallBlock:$name($bpmnId) >> """ +
+              s"""$expectedBpmnNameFull2!=$bpmnNameFull</font><br/>""".stripMargin)
+        }
+        responseWriter.println(
+          s"""$margin<font color="red">No-Value-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+            s"""$processName</font><br/>""")
         if (go) {
           val updateResult = BWMongoDB3.processes.updateOne(
             Map("_id" -> process._id[ObjectId],
               "bpmn_timestamps" -> Map($elemMatch -> Map("parent_name" -> bpmnName, "parent_activity_id" -> bpmnId))),
-            Map($set -> Map("bpmn_timestamps.$.bpmn_name_full2" -> expectedBpmnNameFull2)))
+            Map($set -> Map("bpmn_timestamps.$.bpmn_process_name" -> processName,
+                "bpmn_timestamps.$.bpmn_process_count" -> processNameCount)))
           if (updateResult.getModifiedCount == 1) {
-            responseWriter.println(s"""$margin<font color="green"><b>UPDATE-OK-CallBlock:$name($bpmnId) >> """ +
-              s"""$expectedBpmnNameFull2</b></font><br/>""")
+            responseWriter.println(
+              s"""$margin<font color="green"><b>UPDATE-OK-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+                s"""$processName</b></font><br/>""")
           } else {
-            responseWriter.println(s"""$margin<font color="red"><b>UPDATE-FAIL-CallBlock:$name($bpmnId) >> """ +
-              s"""$updateResult</b></font><br/>""")
+            responseWriter.println(
+              s"""$margin<font color="red"><b>UPDATE-FAIL-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+                s"""$updateResult</b></font><br/>""")
           }
         }
+      case (None, None) =>
+        responseWriter.println(
+          s"""$margin<font color="red">No-Value-CallBlock:$name($bpmnId) >> """ +
+            s"""$expectedBpmnNameFull2</font><br/>""")
+        responseWriter.println(
+          s"""$margin<font color="red">No-Value-CallBlock-BpmnProcessName:$name($bpmnId) >> """ +
+            s"""$processName</font><br/>""")
+        if (go) {
+          val updateResult = BWMongoDB3.processes.updateOne(
+            Map("_id" -> process._id[ObjectId],
+              "bpmn_timestamps" -> Map($elemMatch -> Map("parent_name" -> bpmnName, "parent_activity_id" -> bpmnId))),
+            Map($set -> Map("bpmn_timestamps.$.bpmn_name_full2" -> expectedBpmnNameFull2,
+              "bpmn_timestamps.$.bpmn_process_name" -> processName,
+              "bpmn_timestamps.$.bpmn_process_count" -> processNameCount)))
+          if (updateResult.getModifiedCount == 1) {
+            responseWriter.println(
+              s"""$margin<font color="green"><b>UPDATE-OK-CallBlock-BpmnProcessName+BpmnProcessName:$name($bpmnId) >> """ +
+                s"""$processName</b></font><br/>""")
+          } else {
+            responseWriter.println(
+              s"""$margin<font color="red"><b>UPDATE-FAIL-CallBlock-BpmnProcessName+BpmnProcessName:$name($bpmnId) >> """ +
+                s"""$updateResult</b></font><br/>""")
+          }
+        }
+      case _ =>
     }
   }
 
@@ -442,11 +489,16 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       responseWriter.println(s"""$margin<font color="brown">NO-Variables in $fullBpmnName</font><br/>""")
     }
 
-    val callActivityNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:callActivity").
-      filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler").
-      map(_.asInstanceOf[Element])
+//    val callActivityNodes: Seq[Element] = theDom.getElementsByTagName(s"$prefix:callActivity").
+//      filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler").
+//      map(_.asInstanceOf[Element])
+    val callActivitiesByProcessNode: Seq[Seq[Node]] =
+        processNodeElements.map(_.getElementsByTagName(s"$prefix:callActivity").
+          filter(_.getAttributes.getNamedItem("calledElement").getTextContent != "Infra-Activity-Handler"))
+    val processCallNodes: Seq[(Element, Seq[Node])] = processNodeElements.
+      zip(callActivitiesByProcessNode).filter(_._2.nonEmpty)
 
-    if (callActivityNodes.nonEmpty) {
+    if (processCallNodes.nonEmpty) {
       val callBlockNodes: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]]
       val callNodesByBpmnNameAndId: Map[(String, String), DynDoc] = callBlockNodes.
         filter(cn => cn.has("parent_name") && cn.has("parent_activity_id")).
@@ -454,21 +506,25 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
       if (callBlockNodes.length > callNodesByBpmnNameAndId.size) {
         responseWriter.println(s"""$margin<font color="red">MISSING-CallBlock:Some CallBlocks not processed</font><br/>""")
       }
-      for (callElementNode <- callActivityNodes) {
-        val name = cleanText(nameAttribute(callElementNode))
-        val bpmnId = callElementNode.getAttributes.getNamedItem("id").getTextContent
-        callNodesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
-          case Some(callBlockNode: DynDoc) =>
-            validateCallBlock(margin, bpmnName, idPath, callBlockNode, process, responseWriter, go)
-          case None =>
-            responseWriter.println(s"""$margin<font color="red">MISSING-CallBlock:$name[$bpmnId]</font><br/>""")
+      for ((processNode, callElementNodes) <- processCallNodes) {
+        val processName = getAttribute(processNode, "name")
+        for (callElementNode <- callElementNodes) {
+          val name = cleanText(nameAttribute(callElementNode))
+          val bpmnId = callElementNode.getAttributes.getNamedItem("id").getTextContent
+          callNodesByBpmnNameAndId.get((bpmnName, bpmnId)) match {
+            case Some(callBlockNode: DynDoc) =>
+              validateCallBlock(margin, bpmnName, idPath, callBlockNode, process, processName,
+                processNodeElements.length, responseWriter, go)
+            case None =>
+              responseWriter.println(s"""$margin<font color="red">MISSING-CallBlock:$name[$bpmnId]</font><br/>""")
+          }
         }
       }
     } else {
       responseWriter.println(s"""$margin<font color="brown">NO-CallBlocks in $fullBpmnName</font><br/>""")
     }
 
-    for (call <- callActivityNodes) {
+    for (call <- processCallNodes.flatMap(_._2)) {
       val calledBpmnName = call.getAttributes.getNamedItem("calledElement").getTextContent
       val callerElementId = call.getAttributes.getNamedItem("id").getTextContent
       val newIdPath = if (idPath.isEmpty) {

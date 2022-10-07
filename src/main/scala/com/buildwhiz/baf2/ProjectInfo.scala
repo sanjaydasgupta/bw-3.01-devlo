@@ -65,14 +65,8 @@ object ProjectInfo extends HttpUtils {
       BWLogger.log(getClass.getName, "project2json", s"ENTRY", request)
     val user: DynDoc = getUser(request)
     val editable = ProjectInfo.isEditable(project, user)
-    val bareDocumentTags: Seq[String] = if (project.has("document_tags")) {
-      project.document_tags[Many[Document]].map(tagSpec => {
-        val name = tagSpec.name[String]
-        if (tagSpec.has("logic")) s"$name => ${tagSpec.logic[String]}" else name
-      })
-    } else
-      Seq.empty[String].asJava
-    val documentTags = new Document("editable", false).append("value", bareDocumentTags.asJava)
+    val documentTagRecords: Seq[DynDoc] = BWMongoDB3.project_tags.find(Map("project_id" -> project._id[ObjectId]))
+    val documentTags = new Document("editable", false).append("value", documentTagRecords.map(_.L1[String]).asJava)
     val description = new Document("editable", editable).append("value", project.description[String])
     val rawStatus = project.status[String]
     val status = new Document("editable", false).append("value", rawStatus)

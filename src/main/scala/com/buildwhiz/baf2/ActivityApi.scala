@@ -23,9 +23,9 @@ object ActivityApi extends DateTimeUtils {
 
   def exists(activityOid: ObjectId): Boolean = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).nonEmpty
 
-  def allActions(activity: DynDoc): Seq[DynDoc] = activity.actions[Many[Document]]
+  def allActions(activity: DynDoc) = Seq.empty[DynDoc] //activity.actions[Many[Document]]
 
-  def allActions(activityOid: ObjectId): Seq[DynDoc] = allActions(activityById(activityOid))
+  def allActions(activityOid: ObjectId) = Seq.empty[DynDoc] //: Seq[DynDoc] = allActions(activityById(activityOid))
 
   def allDeliverables3(activityOid: ObjectId): Seq[DynDoc] =
       BWMongoDB3.deliverables.find(Map("activity_id" -> activityOid))
@@ -33,7 +33,7 @@ object ActivityApi extends DateTimeUtils {
   def actionsByUser(userOid: ObjectId): Seq[DynDoc] = {
     val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     val actions: Seq[DynDoc] = activities.flatMap(activity => {
-      val actions = activity.actions[Many[Document]]
+      val actions: Many[Document] = Seq.empty[Document] //= activity.actions[Many[Document]]
       actions.foreach(_.activity_id = activity._id[ObjectId])
       actions
     })

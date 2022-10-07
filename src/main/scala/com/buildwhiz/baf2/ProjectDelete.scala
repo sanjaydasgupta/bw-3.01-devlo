@@ -15,7 +15,7 @@ class ProjectDelete extends HttpServlet with HttpUtils {
     try {
       val projectOid = new ObjectId(parameters("project_id"))
       val theProject: DynDoc = BWMongoDB3.projects.find(Map("_id" -> projectOid)).head
-      ProjectApi.delete(theProject, request)
+      ProjectApi.delete(theProject, request, _ => {})
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

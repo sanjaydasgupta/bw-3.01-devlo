@@ -1,0 +1,47 @@
+package com.buildwhiz.baf2
+
+import com.buildwhiz.api.Project
+import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import org.bson.types.ObjectId
+
+class PhaseAdminSet extends HttpServlet with HttpUtils {
+
+  private def doPostTransaction(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val parameters = getParameterMap(request)
+    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+    try {
+      val personOid = new ObjectId(parameters("person_id"))
+      if (!PersonApi.exists(personOid))
+        throw new IllegalArgumentException(s"Bad person id: '$personOid'")
+      val phaseOid = new ObjectId(parameters("phase_id"))
+      val thePhase: DynDoc = PhaseApi.phaseById(phaseOid)
+      val parentProject: DynDoc = PhaseApi.parentProject(phaseOid)
+      val user: DynDoc = getUser(request)
+      val freshUserRecord: DynDoc = BWMongoDB3.persons.find(Map("_id" -> user._id[ObjectId])).head
+      val isAdmin = PersonApi.isBuildWhizAdmin(Right(freshUserRecord))
+      if (!isAdmin && freshUserRecord._id[ObjectId] != parentProject.admin_person_id[ObjectId])
+        throw new IllegalArgumentException("Not permitted")
+      val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+        Map("$set" -> Map(s"admin_person_id" -> personOid)))
+      if (updateResult.getMatchedCount == 0)
+        throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+      Project.renewUserAssociations(request, Some(parentProject._id[ObjectId]))
+      response.setStatus(HttpServletResponse.SC_OK)
+      val message = s"Set manager of phase '${thePhase.name[String]}' ($phaseOid)"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWMongoDB3.withTransaction(doPostTransaction(request, response))
+  }
+}

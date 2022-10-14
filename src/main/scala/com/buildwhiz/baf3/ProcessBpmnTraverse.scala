@@ -152,11 +152,30 @@ object ProcessBpmnTraverse extends BpmnUtils {
     }
   }
 
+  def processDurationRecalculate2(bpmnName: String, processOid: ObjectId, bpmnNameFull: String,
+      durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
+
+    val process = ProcessApi.processById(processOid)
+
+    val duration = if (durations.isEmpty) {
+      processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, Seq.empty, request)
+    } else {
+      if (bpmnName != process.bpmn_name[String]) {
+        processDurationRecalculate(process.bpmn_name[String], process, 0, process.bpmn_name[String], durations,
+          request)
+        processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, Seq.empty, request)
+      } else {
+        processDurationRecalculate(bpmnName, process, 0, bpmnNameFull, durations, request)
+      }
+    }
+    duration
+  }
+
   def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, bpmnNameFull: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
 
-    val process = PhaseApi.allProcesses(phaseOid) match {
-      case Seq(soloProcess) => soloProcess
+    val process = PhaseApi.allProcesses(phaseOid).headOption match {
+      case Some(soloProcess) => soloProcess
       case _ => throw new IllegalArgumentException("Bad phase: mis-configured processes")
     }
 

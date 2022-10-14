@@ -376,8 +376,8 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-                         request: HttpServletRequest): Unit = {
+  private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId, processType: String,
+      request: HttpServletRequest): Unit = {
     val thePhase = PhaseApi.phaseById(phaseOid)
     if (!PersonApi.isBuildWhizAdmin(Right(user)))
       throw new IllegalArgumentException("Not permitted")
@@ -397,7 +397,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
-      "variables" -> variableBuffer.asJava,
+      "variables" -> variableBuffer.asJava, "type" -> processType,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
       "assigned_roles" -> Seq.empty[Document], "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)
@@ -440,9 +440,15 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val processName = parameters("process_name")
       //PhaseApi.validateNewName(phaseName, parentPhaseOid)
       val bpmnName = "Phase-" + parameters("bpmn_name")
+      val processType = parameters.get("type") match {
+        case None => "Primary"
+        case Some("Template") => "Template"
+        case Some("Transient") => "Transient"
+        case x => throw new IllegalArgumentException(s"Unknown type: '$x'")
+      }
 
       BWMongoDB3.withTransaction({
-        addProcess(user, bpmnName, processName, parentPhaseOid, request)
+        addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
       })
     } catch {
       case t: Throwable =>

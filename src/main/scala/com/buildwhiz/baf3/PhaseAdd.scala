@@ -229,7 +229,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addCallElement(callElementNode: CallActivity, bpmnName: String, idPath: String,
-      callElementBuffer: mutable.Buffer[Document]): Unit = {
+      processName: String, processNameCount: Int, callElementBuffer: mutable.Buffer[Document]): Unit = {
     val isTakt = callElementNode.getLoopCharacteristics match {
       case _: MultiInstanceLoopCharacteristics => true
       case _ => false
@@ -250,7 +250,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val callDetails: Document = Map("name" -> callee, "bpmn_name_full" -> fullBpmnName, "parent_name" -> bpmnName,
       "parent_activity_id" -> callerElementId, "offset" -> Map("start" -> "00:00:00", "end" -> "00:00:00"),
       "status" -> "defined", "is_takt" -> isTakt, "parent_activity_name" -> callerElementName,
-      "bpmn_name_full2" -> fullBpmnName2)
+      "bpmn_name_full2" -> fullBpmnName2, "bpmn_process_name" -> processName, "bpmn_process_count" -> processNameCount)
     callElementBuffer.append(callDetails)
   }
 
@@ -374,25 +374,30 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val callActivityNodes: Seq[CallActivity] = bpmnModel.getModelElementsByType(classOf[CallActivity]).asScala.toSeq.
-        filter(_.getAttributeValue("calledElement") != "Infra-Activity-Handler")
-
-    if (callActivityNodes.nonEmpty) {
-      for (callElementNode <- callActivityNodes) {
-        val name = cleanText(callElementNode.getAttributeValue("name"))
-        val bpmnId = callElementNode.getAttributeValue("id")
-        if (responseWriter != null) {
-          responseWriter.println(s"""$margin$namePath($bpmnName) CALL:$name[$bpmnId]<br/>""")
+    val processNodeElements: Seq[Process] = bpmnModel.getModelElementsByType(classOf[Process]).asScala.toSeq
+    val callActivitiesByProcessNode: Seq[(Process, Seq[CallActivity])] = processNodeElements.
+      map(p => (p, p.getChildElementsByType(classOf[CallActivity]).asScala.toSeq.
+        filter(_.getAttributeValue("calledElement") != "Infra-Activity-Handler")))
+    for ((process, callActivityNodes) <- callActivitiesByProcessNode) {
+      val processName = process.getName
+      val processNameCount = callActivitiesByProcessNode.length
+      if (callActivityNodes.nonEmpty) {
+        for (callElementNode <- callActivityNodes) {
+          val name = cleanText(callElementNode.getAttributeValue("name"))
+          val bpmnId = callElementNode.getAttributeValue("id")
+          if (responseWriter != null) {
+            responseWriter.println(s"""$margin$namePath($bpmnName) CALL:$name[$bpmnId]<br/>""")
+          }
+          addCallElement(callElementNode, bpmnName, idPath, processName, processNameCount, callElementBuffer)
         }
-        addCallElement(callElementNode, bpmnName, idPath, callElementBuffer)
-      }
-    } else {
-      if (responseWriter != null) {
-        responseWriter.println(s"""$margin$namePath($bpmnName) NO-CALLS<br/>""")
+      } else {
+        if (responseWriter != null) {
+          responseWriter.println(s"""$margin$namePath($bpmnName) NO-CALLS<br/>""")
+        }
       }
     }
 
-    for (call <- callActivityNodes) {
+    for (call <- callActivitiesByProcessNode.flatMap(_._2)) {
       val calledBpmnName = call.getCalledElement
       val callerElementName = call.getName
       val callerElementId = call.getId

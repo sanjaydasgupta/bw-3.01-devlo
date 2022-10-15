@@ -3,7 +3,7 @@ package com.buildwhiz.baf3
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
-import com.buildwhiz.baf2.{PersonApi, PhaseApi}
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
@@ -199,7 +199,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addCallElement(callElementNode: CallActivity, bpmnName: String, idPath: String,
-                             callElementBuffer: mutable.Buffer[Document]): Unit = {
+      processName: String, processNameCount: Int, callElementBuffer: mutable.Buffer[Document]): Unit = {
     val isTakt = callElementNode.getLoopCharacteristics match {
       case _: MultiInstanceLoopCharacteristics => true
       case _ => false
@@ -220,16 +220,16 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val callDetails: Document = Map("name" -> callee, "bpmn_name_full" -> fullBpmnName, "parent_name" -> bpmnName,
       "parent_activity_id" -> callerElementId, "offset" -> Map("start" -> "00:00:00", "end" -> "00:00:00"),
       "status" -> "defined", "is_takt" -> isTakt, "parent_activity_name" -> callerElementName,
-      "bpmn_name_full2" -> fullBpmnName2)
+      "bpmn_name_full2" -> fullBpmnName2, "bpmn_process_name" -> processName, "bpmn_process_count" -> processNameCount)
     callElementBuffer.append(callDetails)
   }
 
   private def analyzeBpmn(bpmnName: String, namePath: String, idPath: String, responseWriter: PrintWriter,
-                          activityBuffer: mutable.Buffer[Document], timerBuffer: mutable.Buffer[Document],
-                          milestoneBuffer: mutable.Buffer[Document], endNodeBuffer: mutable.Buffer[Document],
-                          startNodeBuffer: mutable.Buffer[Document],
-                          variableBuffer: mutable.Buffer[Document], callElementBuffer: mutable.Buffer[Document],
-                          timeZone: String, isTakt: Boolean, request: HttpServletRequest): Unit = {
+      activityBuffer: mutable.Buffer[Document], timerBuffer: mutable.Buffer[Document],
+      milestoneBuffer: mutable.Buffer[Document], endNodeBuffer: mutable.Buffer[Document],
+      startNodeBuffer: mutable.Buffer[Document],
+      variableBuffer: mutable.Buffer[Document], callElementBuffer: mutable.Buffer[Document],
+      timeZone: String, isTakt: Boolean, request: HttpServletRequest): Unit = {
     val level = idPath.split("/").length
     val margin = "&nbsp;&nbsp;&nbsp;|" * level
     //val theDom = bpmnDom(bpmnName)
@@ -344,25 +344,31 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       }
     }
 
-    val callActivityNodes: Seq[CallActivity] = bpmnModel.getModelElementsByType(classOf[CallActivity]).asScala.toSeq.
-      filter(_.getAttributeValue("calledElement") != "Infra-Activity-Handler")
+    val processNodeElements: Seq[Process] = bpmnModel.getModelElementsByType(classOf[Process]).asScala.toSeq
+    val callActivitiesByProcessNode: Seq[(Process, Seq[CallActivity])] = processNodeElements.
+        map(p => (p, p.getChildElementsByType(classOf[CallActivity]).asScala.toSeq.
+          filter(_.getAttributeValue("calledElement") != "Infra-Activity-Handler")))
 
-    if (callActivityNodes.nonEmpty) {
-      for (callElementNode <- callActivityNodes) {
-        val name = cleanText(callElementNode.getAttributeValue("name"))
-        val bpmnId = callElementNode.getAttributeValue("id")
-        if (responseWriter != null) {
-          responseWriter.println(s"""$margin$namePath($bpmnName) CALL:$name[$bpmnId]<br/>""")
+    for ((process, callActivityNodes) <- callActivitiesByProcessNode) {
+      val processName = process.getName
+      val processNameCount = callActivitiesByProcessNode.length
+      if (callActivityNodes.nonEmpty) {
+        for (callElementNode <- callActivityNodes) {
+          val name = cleanText(callElementNode.getAttributeValue("name"))
+          val bpmnId = callElementNode.getAttributeValue("id")
+          if (responseWriter != null) {
+            responseWriter.println(s"""$margin$namePath($bpmnName) CALL:$name[$bpmnId]<br/>""")
+          }
+          addCallElement(callElementNode, bpmnName, idPath, processName, processNameCount, callElementBuffer)
         }
-        addCallElement(callElementNode, bpmnName, idPath, callElementBuffer)
-      }
-    } else {
-      if (responseWriter != null) {
-        responseWriter.println(s"""$margin$namePath($bpmnName) NO-CALLS<br/>""")
+      } else {
+        if (responseWriter != null) {
+          responseWriter.println(s"""$margin$namePath($bpmnName) NO-CALLS<br/>""")
+        }
       }
     }
 
-    for (call <- callActivityNodes) {
+    for (call <- callActivitiesByProcessNode.flatMap(_._2)) {
       val calledBpmnName = call.getCalledElement
       val callerElementName = call.getName
       val callerElementId = call.getId
@@ -439,7 +445,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         throw new IllegalArgumentException(s"Unknown phase-id: '$parentPhaseOid'")
       val user: DynDoc = getUser(request)
       val processName = parameters("process_name")
-      //PhaseApi.validateNewName(phaseName, parentPhaseOid)
+      ProcessApi.validateNewName(processName, parentPhaseOid)
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processType = parameters.get("type") match {
         case None => "Primary"

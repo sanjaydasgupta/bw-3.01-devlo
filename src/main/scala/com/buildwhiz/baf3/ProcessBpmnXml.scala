@@ -2,7 +2,7 @@ package com.buildwhiz.baf3
 
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BpmnUtils, BWLogger, DateTimeUtils, HttpUtils, ProjectUtils}
+import com.buildwhiz.utils.{BWLogger, BpmnUtils, DateTimeUtils, HttpUtils, ProjectUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -10,7 +10,7 @@ import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.annotation.tailrec
 import scala.collection.mutable
-import com.buildwhiz.baf2.{ActivityApi, OrganizationApi, PersonApi, PhaseApi}
+import com.buildwhiz.baf2.{ActivityApi, OrganizationApi, PersonApi, PhaseApi, ProcessApi}
 
 class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with DateTimeUtils with ProjectUtils {
 
@@ -318,22 +318,31 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       //val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val bpmnNameFull = parameters.getOrElse("bpmn_name_full", bpmnFileName)
-      val phaseOid = new ObjectId(parameters("phase_id"))
-      val thePhase = PhaseApi.phaseById(phaseOid)
+      val (thePhase: DynDoc, theProcess: DynDoc) = (parameters.get("phase_id"), parameters.get("process_id")) match {
+        case (None, Some(processOid)) =>
+          val process = ProcessApi.processById(new ObjectId(processOid))
+          val phase = ProcessApi.parentPhase(process._id[ObjectId])
+          (phase, process)
+        case (Some(phaseId), None) =>
+          val phase = PhaseApi.phaseById(new ObjectId(phaseId))
+          val process: DynDoc = PhaseApi.allProcesses(phase).headOption match {
+            case Some(p) => p
+            case None => throw new IllegalArgumentException("Phase has no processes")
+          }
+          (phase, process)
+        case _ => throw new IllegalArgumentException("Ambiguous id combination in input")
+      }
+      val phaseOid = thePhase._id[ObjectId]
       val (globalTakt, taktUnitNo) = (parameters.get("is_takt"), parameters.get("takt_unit_no")) match {
         case (Some(taktValue), Some(taktUnitValue)) => (taktValue.toBoolean, taktUnitValue.toInt)
         case (Some(taktValue), None) => (taktValue.toBoolean, 1)
         case (None, _) => (false, 1)
       }
-      val process: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
-        case Some(p) => p
-        case None => throw new IllegalArgumentException("Phase has no processes")
-      }
       val canManage = PhaseApi.canManage(user._id[ObjectId], thePhase)
       val processModelStream = if (bpmnFileName == "****") {
         new ByteArrayInputStream(placeholder.getBytes)
       } else {
-        val version = process.get[Int]("process_version") match {
+        val version = theProcess.get[Int]("process_version") match {
           case Some(v) => v
           case None => 1
         }
@@ -351,16 +360,16 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
       copyModelToOutput()
       val xml = new String(byteBuffer.toArray)
-      val processVariables = getVariables(process, bpmnFileName, bpmnNameFull)
-      val processTimers = getTimers(process, bpmnFileName, bpmnNameFull)
-      val milestones = getMilestones(process, bpmnFileName, bpmnNameFull)
-      val allActivities = ActivityApi.activitiesByIds(process.activity_ids[Many[ObjectId]],
+      val processVariables = getVariables(theProcess, bpmnFileName, bpmnNameFull)
+      val processTimers = getTimers(theProcess, bpmnFileName, bpmnNameFull)
+      val milestones = getMilestones(theProcess, bpmnFileName, bpmnNameFull)
+      val allActivities = ActivityApi.activitiesByIds(theProcess.activity_ids[Many[ObjectId]],
           Map("takt_unit_no" -> taktUnitNo))
       val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
-      val processCalls = getSubProcessCalls(thePhase, process, bpmnFileName, allActivities, bpmnNameFull)
-      val startDateTime: String = if (process.has("timestamps")) {
-        val timestamps: DynDoc = process.timestamps[Document]
+      val processCalls = getSubProcessCalls(thePhase, theProcess, bpmnFileName, allActivities, bpmnNameFull)
+      val startDateTime: String = if (theProcess.has("timestamps")) {
+        val timestamps: DynDoc = theProcess.timestamps[Document]
         if (timestamps.has("planned_start"))
           dateTimeString(timestamps.planned_start[Long], Some(user.tz[String])).split(" ").head
         else
@@ -368,11 +377,11 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } else {
         ""
       }
-      val parentBpmnName = process.bpmn_timestamps[Many[Document]].find(ts => ts.name[String] == bpmnFileName) match {
+      val parentBpmnName = theProcess.bpmn_timestamps[Many[Document]].find(ts => ts.name[String] == bpmnFileName) match {
         case None => ""
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
-      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, process, 0, bpmnNameFull,
+      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, theProcess, 0, bpmnNameFull,
         Seq.empty[(String, String, Int)], request)
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val menuItems = uiContextSelectedManaged(request) match {
@@ -389,13 +398,13 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       } catch {
         case _: Throwable => 0
       }
-      val endNodes = getEndNodes(thePhase, process, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
-      val startNodes = getStartNodes(thePhase, process, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
+      val endNodes = getEndNodes(thePhase, theProcess, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
+      val startNodes = getStartNodes(thePhase, theProcess, bpmnFileName, bpmnNameFull, safeCycleTime, taktUnitNo)
       val returnValue = new Document("xml", xml).append("variables", processVariables).
           append("timers", processTimers).append("activities", processActivities).append("calls", processCalls).
-          append("admin_person_id", process.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
-          append("process_status", process.status[String]).append("parent_bpmn_name", parentBpmnName).
-          append("bpmn_ancestors", bpmnAncestors(process, bpmnFileName)).append("milestones", milestones).
+          append("admin_person_id", theProcess.admin_person_id[ObjectId]).append("start_datetime", startDateTime).
+          append("process_status", theProcess.status[String]).append("parent_bpmn_name", parentBpmnName).
+          append("bpmn_ancestors", bpmnAncestors(theProcess, bpmnFileName)).append("milestones", milestones).
           append("end_nodes", endNodes).append("bpmn_duration", bpmnDuration.toString).append("is_takt", globalTakt).
           append("repetition_count", repetitionCount).append("cycle_time", cycleTime).append("menu_items", menuItems).
           append("bpmn_name_full", bpmnNameFull).append("start_nodes", startNodes).

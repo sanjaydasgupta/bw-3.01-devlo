@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.PhaseApi
+import com.buildwhiz.baf2.{PhaseApi, ProcessApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -214,10 +214,18 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private def processDeliverables(respond: String => Unit, request: HttpServletRequest, response: HttpServletResponse, verbose: Boolean): Long = {
     val t0 = System.currentTimeMillis
     val parameters = getParameterMap(request)
-    val phaseOid = new ObjectId(parameters("phase_id"))
-    val phaseRecord = PhaseApi.phaseById(phaseOid)
-    val timezone = PhaseApi.timeZone(phaseRecord)
-    val activities = PhaseApi.allActivities30(Right(phaseRecord))
+    val (thePhase: DynDoc, theProcess: DynDoc) = (parameters.get("phase_id"), parameters.get("process_id")) match {
+      case (Some(phId), None) =>
+        val phase = PhaseApi.phaseById(new ObjectId(phId))
+        val process = PhaseApi.allProcesses(phase).head
+        (phase, process)
+      case (None, Some(procId)) =>
+        val process = ProcessApi.processById(new ObjectId(procId))
+        val phase = ProcessApi.parentPhase(process._id[ObjectId])
+        (phase, process)
+    }
+    val timezone = PhaseApi.timeZone(thePhase)
+    val activities = ProcessApi.allActivities(Right(theProcess))
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
     val deliverableOids = deliverables.map(_._id[ObjectId])
     val deliverablesByOid: Map[ObjectId, DynDoc] = deliverableOids.zip(deliverables).toMap
@@ -229,11 +237,11 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       procurements.map(_._id[ObjectId]).zip(procurements).toMap
     }
     val keyDataByOid: Map[ObjectId, DynDoc] = {
-      val project = PhaseApi.parentProject(phaseRecord._id[ObjectId])
+      val project = PhaseApi.parentProject(thePhase._id[ObjectId])
       val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
       keyData.map(_._id[ObjectId]).zip(keyData).toMap
     }
-    val timestamps: DynDoc = phaseRecord.timestamps[Document]
+    val timestamps: DynDoc = thePhase.timestamps[Document]
     if (verbose) {
       respond("<html><br/><tt>")
       timestamps.get[Long]("date_start_estimated") match {

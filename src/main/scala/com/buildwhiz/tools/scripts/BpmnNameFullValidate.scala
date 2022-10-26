@@ -1,6 +1,6 @@
 package com.buildwhiz.tools.scripts
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, ProcessApi}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
@@ -346,6 +346,39 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
     }
   }
 
+  private def validateProcess(margin: String, process: DynDoc, responseWriter: PrintWriter, go: Boolean): Unit = {
+    val processName = process.name[String]
+    val processOid = process._id[ObjectId]
+    val processManagers = process.assigned_roles[Many[Document]].filter(_.role_name[String] == "Manager")
+    val processManagerNames = processManagers.
+        map(mgr => PersonApi.fullName(PersonApi.personById(mgr.person_id[ObjectId]))).mkString(", ")
+    if (processManagers.nonEmpty) {
+      responseWriter.println(s"""$margin<font color="green">OK-Process-Manager:$processName($processOid) >> """ +
+          s"""$processManagerNames</font><br/>""")
+    } else {
+      responseWriter.println(s"""$margin<font color="red">MISSING-Process-Manager:""" +
+        s"""$processName($processOid)</font><br/>""")
+      if (go) {
+        val parentPhase = ProcessApi.parentPhase(processOid)
+        val phaseManagers = parentPhase.assigned_roles[Many[Document]].filter(_.role_name[String] == "Project-Manager")
+        if (phaseManagers.nonEmpty) {
+          val phaseManagerNames = phaseManagers.
+            map(mgr => PersonApi.fullName(PersonApi.personById(mgr.person_id[ObjectId]))).mkString(", ")
+          phaseManagers.foreach(pm => pm.role_name = "Manager")
+          val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
+            Map($push -> Map("assigned_roles" -> Map($each -> phaseManagers))))
+          if (updateResult.getModifiedCount != 0) {
+            responseWriter.println(
+              s"""$margin<font color="green">UPDATED-OK-Process-Manager:""" +
+                s"""$processName($processOid) >> $phaseManagerNames</font><br/>""")
+          } else {
+            responseWriter.println(s"""$margin<font color="red">UPDATE-FAILED-Process-Manager:$updateResult""")
+          }
+        }
+      }
+    }
+  }
+
   private def traverseBpmn(level: Int, bpmnName: String, idPath: String, process: DynDoc,
       activitiesByBpmnNameAndId: Map[(String, String), Seq[DynDoc]], responseWriter: PrintWriter, go: Boolean): Unit = {
     val margin = "&nbsp;&nbsp;&nbsp;|" * level
@@ -542,27 +575,33 @@ object BpmnNameFullValidate extends HttpUtils with BpmnUtils {
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     response.setContentType("text/html")
     val responseWriter = response.getWriter
-    responseWriter.println("<html><tt><br/>")
-    responseWriter.println(s"ENTRY ${getClass.getName}:main()<br/><br/>")
-    val user: DynDoc = getUser(request)
-    if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
-      throw new IllegalArgumentException("Not permitted")
-    }
-    val go: Boolean = args.length == 1 && args(0) == "GO"
-    val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
-    for (process <- processes) {
-      val bpmnName = process.bpmn_name[String]
-      if (bpmnName != "****") {
-        val activityOids = process.activity_ids[Many[ObjectId]]
-        val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)))
-        val activitiesByBpmnNameAndId: Map[(String, String), Seq[DynDoc]] =
-            activities.groupBy(a => (a.bpmn_name[String], a.bpmn_id[String]))
-        traverseBpmn(1, bpmnName, "", process, activitiesByBpmnNameAndId, responseWriter, go)
+    try {
+      responseWriter.println("<html><tt><br/>")
+      responseWriter.println(s"ENTRY ${getClass.getName}:main()<br/><br/>")
+      val user: DynDoc = getUser(request)
+      if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
+        throw new IllegalArgumentException("Not permitted")
       }
+      val go: Boolean = args.length == 1 && args(0) == "GO"
+      val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
+      for (process <- processes) {
+        validateProcess("", process, responseWriter, go)
+        val bpmnName = process.bpmn_name[String]
+        if (bpmnName != "****") {
+          val activityOids = process.activity_ids[Many[ObjectId]]
+          val activities: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)))
+          val activitiesByBpmnNameAndId: Map[(String, String), Seq[DynDoc]] =
+            activities.groupBy(a => (a.bpmn_name[String], a.bpmn_id[String]))
+          traverseBpmn(1, bpmnName, "", process, activitiesByBpmnNameAndId, responseWriter, go)
+        }
+      }
+      responseWriter.println(s"EXIT ${getClass.getName}:main()<br/>")
+      responseWriter.println("</tt></html><br/>")
+      responseWriter.flush()
+    } catch {
+      case t: Throwable =>
+        t.printStackTrace(responseWriter)
     }
-    responseWriter.println(s"EXIT ${getClass.getName}:main()<br/>")
-    responseWriter.println("</tt></html><br/>")
-    responseWriter.flush()
   }
 
 }

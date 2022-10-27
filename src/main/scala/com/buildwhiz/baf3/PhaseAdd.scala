@@ -413,7 +413,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-      request: HttpServletRequest): Unit = {
+      request: HttpServletRequest, phaseManagerOids: Seq[ObjectId]): Unit = {
     val thePhase = PhaseApi.phaseById(phaseOid)
     if (!PersonApi.isBuildWhizAdmin(Right(user)))
       throw new IllegalArgumentException("Not permitted")
@@ -429,13 +429,16 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val phaseTimezone = PhaseApi.timeZone(thePhase, Some(request))
     analyzeBpmn(bpmnName, ".", ".", null, activityBuffer, timerBuffer, milestoneBuffer, endNodeBuffer,
       startNodeBuffer, variableBuffer, callElementBuffer, phaseTimezone, isTakt = false, request)
+    val managersInRoles = phaseManagerOids.map(oid =>
+      new Document("role_name", "Manager").append("person_id", oid)
+    ).asJava
 
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
       "variables" -> variableBuffer.asJava,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
-      "assigned_roles" -> Seq.empty[Document], "milestones" -> milestoneBuffer.asJava,
+      "assigned_roles" -> managersInRoles, "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)
 
     BWMongoDB3.processes.insertOne(newProcess)
@@ -582,7 +585,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
       BWMongoDB3.withTransaction({
         val phaseOid = addPhase(user, phaseName, parentProjectOid, description, phaseManagerOids)
-        addProcess(user, bpmnName, processName, phaseOid, request)
+        addProcess(user, bpmnName, processName, phaseOid, request, phaseManagerOids)
       })
     } catch {
       case t: Throwable =>

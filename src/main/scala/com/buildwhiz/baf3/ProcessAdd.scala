@@ -401,12 +401,14 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     analyzeBpmn(bpmnName, ".", ".", null, activityBuffer, timerBuffer, milestoneBuffer, endNodeBuffer,
       startNodeBuffer, variableBuffer, callElementBuffer, phaseTimezone, isTakt = false, request)
 
+    val assignedRoles = Seq(new Document("role_name", "Manager").append("person_id", user._id[ObjectId])).asJava
+
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
       "variables" -> variableBuffer.asJava, "type" -> processType,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
-      "assigned_roles" -> Seq.empty[Document], "milestones" -> milestoneBuffer.asJava,
+      "assigned_roles" -> assignedRoles, "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)
 
     BWMongoDB3.processes.insertOne(newProcess)

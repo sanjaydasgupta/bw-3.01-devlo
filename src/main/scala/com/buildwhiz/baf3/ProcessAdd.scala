@@ -384,7 +384,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-      processType: String, request: HttpServletRequest): Unit = {
+      processType: String, request: HttpServletRequest): ObjectId = {
     val thePhase = PhaseApi.phaseById(phaseOid)
     if (!PersonApi.isBuildWhizAdmin(Right(user)))
       throw new IllegalArgumentException("Not permitted")
@@ -436,10 +436,12 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       Map("$set" -> Map("activity_ids" -> activityOids, "milestone_activity_id" -> lastActivityOid)))
     if (updateResult2.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    processOid
   }
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    var optProcessOid: Option[ObjectId] = None
     try {
       val parameters = getParameterMap(request)
       val parentPhaseOid = new ObjectId(parameters("phase_id"))
@@ -455,9 +457,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         case Some("Transient") => "Transient"
         case x => throw new IllegalArgumentException(s"Unknown type: '$x'")
       }
-
       BWMongoDB3.withTransaction({
-        addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
+        val processOid = addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
+        optProcessOid = Some(processOid)
       })
     } catch {
       case t: Throwable =>
@@ -465,7 +467,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         //t.printStackTrace()
         throw t
     }
-    response.getWriter.print(successJson())
+    response.getWriter.print(successJson(fields = Map("process_id" -> optProcessOid.get.toString)))
     response.setContentType("application/json")
     BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
   }

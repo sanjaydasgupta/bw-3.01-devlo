@@ -38,7 +38,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
     val fieldsToKeep = Set("duration", "bpmn_scheduled_end_date", "name", "full_path_name", "role", "description",
       "is_takt", "on_critical_path", "bpmn_actual_start_date", "durations", "bpmn_actual_end_date",
       "bpmn_name_full", "status", "bpmn_scheduled_start_date", "bpmn_id", "end", "start", "full_path_id",
-      "bpmn_name", "offset")
+      "bpmn_name", "offset", "bpmn_process_count", "bpmn_process_name")
     val templateDocs = activities.filter(_.takt_unit_no[Int] == 1).map(_.asDoc)
     templateDocs.foreach(templateDoc => {
       val fields = templateDoc.keySet().asScala.toList

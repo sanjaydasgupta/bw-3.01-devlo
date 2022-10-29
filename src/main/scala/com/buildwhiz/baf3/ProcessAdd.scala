@@ -452,7 +452,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       ProcessApi.validateNewName(processName, parentPhaseOid)
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processType = parameters.get("type") match {
-        case None => "Primary"
+        case Some("Primary") => "Primary"
         case Some("Template") => "Template"
         case Some("Transient") => "Transient"
         case x => throw new IllegalArgumentException(s"Unknown type: '$x'")

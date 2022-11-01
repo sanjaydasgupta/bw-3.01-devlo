@@ -243,7 +243,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
         keyData.map(_._id[ObjectId]).zip(keyData).toMap
       }
-      val timestamps: DynDoc = thePhase.timestamps[Document]
+      val timestamps: DynDoc = (theProcess.get[Document]("timestamps"), thePhase.get[Document]("timestamps")) match {
+        case (Some(ts), _) if ts.has("date_start_estimated") => ts
+        case (None, Some(ts)) if ts.has("date_start_estimated") => ts
+        case _ =>
+          BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)
+          new Document()
+      }
       if (verbose) {
         respond("<html><br/><tt>")
         timestamps.get[Long]("date_start_estimated") match {
@@ -262,7 +268,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
             constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
           traverseAllTrees(verbose, globals, request)
         case None =>
-          BWLogger.log(getClass.getName, request.getMethod, "WARN: phase start-date undefined. Dates NOT calculated", request)
+          BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)
       }
       response.setStatus(HttpServletResponse.SC_OK)
     }

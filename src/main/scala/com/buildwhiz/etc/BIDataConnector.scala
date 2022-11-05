@@ -108,9 +108,10 @@ class BIDataConnector extends HttpServlet with RestUtils {
       writer.print("\"processes\": " + jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
-        FldSpec("activity_ids", csvFormatter))
+        FldSpec("activity_ids", csvFormatter), FldSpec("type", primitiveFormatter),
+        FldSpec("template_process_id", primitiveFormatter))
       writer.println("<h2>Processes</h2>")
-      writer.println("""<table id="processes" border="1" types="s,s,csv">""")
+      writer.println("""<table id="processes" border="1" types="s,s,csv,s,s">""")
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       for (process <- processes) {
         val tds = fields.map(f => (f.name, f.asString(fieldValue(process, f.name))))

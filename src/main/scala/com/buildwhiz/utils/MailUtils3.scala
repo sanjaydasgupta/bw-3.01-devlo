@@ -41,6 +41,10 @@ trait MailUtils3 {
 
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
     BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
+    val method = request match {
+      case Some(req) => req.getMethod
+      case None => "?"
+    }
     try {
       val fromAddress = new Email("notifications@550of.com")
       val content = if (isHtml(body)) {
@@ -50,28 +54,37 @@ trait MailUtils3 {
       }
 
       val sendGrid = new SendGrid(sendGridKey())
+      BWLogger.log(getClass.getName, method, s"Init-sendMail(${recipientOids.length} destinations)", request)
       for (userOid <- recipientOids) {
         Future {
-          val user = PersonApi.personById(userOid)
-          val workEmail = user.emails[Many[Document]].find(_.`type`[String] == "work").get.email[String]
-          val toAddress = new Email(workEmail)
-          val mail = new Mail(fromAddress, subject, toAddress, content)
-          val sendGridRequest = new Request()
-          sendGridRequest.setMethod(Method.POST)
-          sendGridRequest.setEndpoint("mail/send")
-          sendGridRequest.setBody(mail.build())
-          val response = sendGrid.api(sendGridRequest)
-          val statusCode = response.getStatusCode
-          val statusBody = response.getBody
-          if (Seq(200, 202).contains(statusCode)) {
-            BWLogger.log(getClass.getName, "sendMail", s"EXIT-OK", request)
-          } else {
-            BWLogger.log(getClass.getName, "sendMail", s"Error-($statusCode)-$statusBody", request)
+          try {
+            BWLogger.log(getClass.getName, method, s"Begin-sendMail($userOid)", request)
+            val user = PersonApi.personById(userOid)
+            val workEmail = user.emails[Many[Document]].find(_.`type`[String] == "work").get.email[String]
+            val toAddress = new Email(workEmail)
+            val mail = new Mail(fromAddress, subject, toAddress, content)
+            val sendGridRequest = new Request()
+            sendGridRequest.setMethod(Method.POST)
+            sendGridRequest.setEndpoint("mail/send")
+            sendGridRequest.setBody(mail.build())
+            val response = sendGrid.api(sendGridRequest)
+            val statusCode = response.getStatusCode
+            val statusBody = response.getBody
+            if (Seq(200, 202).contains(statusCode)) {
+              BWLogger.log(getClass.getName, method, s"OK-sendMail($userOid)", request)
+            } else {
+              BWLogger.log(getClass.getName, method, s"Error-sendMail($statusCode-$statusBody $userOid)", request)
+            }
+          } catch {
+            case t: Throwable =>
+              BWLogger.log(getClass.getName, method, s"Error-sendMail: ${t.getClass.getName}(${t.getMessage})", request)
+              t.printStackTrace(System.out)
           }
         }
       }
     } catch {
       case t: Throwable =>
+        BWLogger.log(getClass.getName, method, s"Error-sendMail: ${t.getClass.getName}(${t.getMessage})", request)
         t.printStackTrace(System.out)
     }
   }

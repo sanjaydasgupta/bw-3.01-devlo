@@ -41,4 +41,31 @@ class HelpMessageSend extends HttpServlet with HttpUtils with MailUtils3 {
     }
   }
 
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+
+    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    val parameters = getParameterMap(request)
+    try {
+      val subject = parameters("subject")
+      val body = parameters("body")
+      val user: DynDoc = getUser(request)
+      val fullName = PersonApi.fullName(user)
+
+      val emailSubject = s"Help-Message from $fullName (${user._id[ObjectId]})"
+      val emailBody = s"User's Subject: $subject\n\nUser's Message: $body"
+      val adminOids = PersonApi.listAdmins.map(_._id[ObjectId])
+      sendMail(adminOids, emailSubject, emailBody, Some(request))
+
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
+      val message = s"$fullName sent help-message with subject '$subject'"
+      BWLogger.audit(getClass.getName, request.getMethod, message, request)
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        //t.printStackTrace()
+        throw t
+    }
+  }
+
 }

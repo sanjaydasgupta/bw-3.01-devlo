@@ -4,7 +4,6 @@ import com.buildwhiz.api.RestUtils
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.BWLogger
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -59,8 +58,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def projectsData(writer: PrintWriter, json: Boolean): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     if (json) {
-      val jsons = projects.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"projects\": " + jsons)
+      val jsons = projects.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("phase_ids", csvFormatter))
@@ -78,8 +77,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def phasesData(writer: PrintWriter, json: Boolean): Unit = {
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     if (json) {
-      val jsons = phases.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"phases\": " + jsons)
+      val jsons = phases.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       def teamAssignmentsFormatter(teamAssignments: Any): String = {
         if (teamAssignments == null) {
@@ -104,8 +103,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def processesData(writer: PrintWriter, json: Boolean): Unit = {
     val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
     if (json) {
-      val jsons = processes.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"processes\": " + jsons)
+      val jsons = processes.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("activity_ids", csvFormatter), FldSpec("type", primitiveFormatter),
@@ -121,11 +120,11 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def personData(writer: PrintWriter, json: Boolean): Unit = {
+  private def personsData(writer: PrintWriter, json: Boolean): Unit = {
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find()
     if (json) {
-      val jsons = persons.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"persons\": " + jsons)
+      val jsons = persons.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("first_name", primitiveFormatter),
         FldSpec("last_name", primitiveFormatter), FldSpec("organization_id", primitiveFormatter),
@@ -146,8 +145,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def organizationsData(writer: PrintWriter, json: Boolean): Unit = {
     val organizations: Seq[DynDoc] = BWMongoDB3.organizations.find()
     if (json) {
-      val jsons = organizations.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"organizations\": " + jsons)
+      val jsons = organizations.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("active", booleanFormatter), FldSpec("areas_of_operation", csvFormatter),
@@ -165,11 +164,11 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def teamData(writer: PrintWriter, json: Boolean): Unit = {
+  private def teamsData(writer: PrintWriter, json: Boolean): Unit = {
     val teams: Seq[DynDoc] = BWMongoDB3.teams.find()
     if (json) {
-      val jsons = teams.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"teams\": " + jsons)
+      val jsons = teams.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       def membersFormatter(members: Any): String = {
         if (members == null) {
@@ -197,8 +196,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def tasksData(writer: PrintWriter, json: Boolean): Unit = {
     val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     if (json) {
-      val jsons = activities.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"tasks\": " + jsons)
+      val jsons = activities.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
         FldSpec("bpmn_id", primitiveFormatter), FldSpec("bpmn_name", primitiveFormatter),
@@ -220,8 +219,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def deliverablesData(writer: PrintWriter, json: Boolean): Unit = {
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     if (json) {
-      val jsons = deliverables.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"deliverables\": " + jsons)
+      val jsons = deliverables.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       def teamAssignmentsFormatter(assignments: Any): String = {
         if (assignments == null) {
@@ -261,8 +260,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def constraintsData(writer: PrintWriter, json: Boolean): Unit = {
     val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find()
     if (json) {
-      val jsons = constraints.map(_.asDoc.toJson).mkString("[", ", ", "], ")
-      writer.print("\"constraints\": " + jsons)
+      val jsons = constraints.map(_.asDoc.toJson).mkString("\n")
+      writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),
         FldSpec("owner_deliverable_id", primitiveFormatter), FldSpec("constraint_id", primitiveFormatter),
@@ -279,29 +278,40 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def reportData(response: HttpServletResponse, json: Boolean): Unit = {
-    response.setContentType(if (json) "application/json" else "text/html")
+  private def reportData(response: HttpServletResponse): Unit = {
     val writer = response.getWriter
-    writer.print(if (json) "{" else "<html><body>")
-    projectsData(writer, json)
-    phasesData(writer, json)
-    processesData(writer, json)
-    organizationsData(writer, json)
-    personData(writer, json)
-    teamData(writer, json)
-    tasksData(writer, json)
-    deliverablesData(writer, json)
-    constraintsData(writer, json)
-    writer.print(if (json) "\"status\": 1}" else "</body></html>")
+    writer.print("<html><body>")
+    projectsData(writer, json = false)
+    phasesData(writer, json = false)
+    processesData(writer, json = false)
+    organizationsData(writer, json = false)
+    personsData(writer, json = false)
+    teamsData(writer, json = false)
+    tasksData(writer, json = false)
+    deliverablesData(writer, json = false)
+    constraintsData(writer, json = false)
+    writer.print("</body></html>")
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     val parameterMap = getParameterMap(request)
-    val key = parameterMap("key")
-
-    reportData(response, key == "json")
-    BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
+    val writer = response.getWriter
+    response.setContentType("text/plain")
+    parameterMap.get("key") match {
+      case None =>
+        response.setContentType("text/html")
+        reportData(response)
+      case Some("projects") => projectsData(writer, json = true)
+      case Some("phases") => phasesData(writer, json = true)
+      case Some("processes") => processesData(writer, json = true)
+      case Some("organizations") => organizationsData(writer, json = true)
+      case Some("persons") => personsData(writer, json = true)
+      case Some("teams") => teamsData(writer, json = true)
+      case Some("tasks") => tasksData(writer, json = true)
+      case Some("deliverables") => deliverablesData(writer, json = true)
+      case Some("constraints") => constraintsData(writer, json = true)
+    }
+    writer.flush()
   }
 
 }

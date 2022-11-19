@@ -53,12 +53,13 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
+  private val oidRegex = """[{]"[$]oid": ("[0-9a-f]{24}")[}]"""
   case class FldSpec(name: String, asString: Any => String)
 
   private def projectsData(writer: PrintWriter, json: Boolean): Unit = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
     if (json) {
-      val jsons = projects.map(_.asDoc.toJson).mkString("\n")
+      val jsons = projects.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
@@ -77,7 +78,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def phasesData(writer: PrintWriter, json: Boolean): Unit = {
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     if (json) {
-      val jsons = phases.map(_.asDoc.toJson).mkString("\n")
+      val jsons = phases.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       def teamAssignmentsFormatter(teamAssignments: Any): String = {
@@ -103,7 +104,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def processesData(writer: PrintWriter, json: Boolean): Unit = {
     val processes: Seq[DynDoc] = BWMongoDB3.processes.find()
     if (json) {
-      val jsons = processes.map(_.asDoc.toJson).mkString("\n")
+      val jsons = processes.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
@@ -123,7 +124,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def personsData(writer: PrintWriter, json: Boolean): Unit = {
     val persons: Seq[DynDoc] = BWMongoDB3.persons.find()
     if (json) {
-      val jsons = persons.map(_.asDoc.toJson).mkString("\n")
+      val jsons = persons.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("first_name", primitiveFormatter),
@@ -145,7 +146,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def organizationsData(writer: PrintWriter, json: Boolean): Unit = {
     val organizations: Seq[DynDoc] = BWMongoDB3.organizations.find()
     if (json) {
-      val jsons = organizations.map(_.asDoc.toJson).mkString("\n")
+      val jsons = organizations.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
@@ -167,7 +168,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def teamsData(writer: PrintWriter, json: Boolean): Unit = {
     val teams: Seq[DynDoc] = BWMongoDB3.teams.find()
     if (json) {
-      val jsons = teams.map(_.asDoc.toJson).mkString("\n")
+      val jsons = teams.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       def membersFormatter(members: Any): String = {
@@ -196,7 +197,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def tasksData(writer: PrintWriter, json: Boolean): Unit = {
     val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
     if (json) {
-      val jsons = activities.map(_.asDoc.toJson).mkString("\n")
+      val jsons = activities.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
@@ -219,7 +220,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def deliverablesData(writer: PrintWriter, json: Boolean): Unit = {
     val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find()
     if (json) {
-      val jsons = deliverables.map(_.asDoc.toJson).mkString("\n")
+      val jsons = deliverables.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       def teamAssignmentsFormatter(assignments: Any): String = {
@@ -260,7 +261,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private def constraintsData(writer: PrintWriter, json: Boolean): Unit = {
     val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find()
     if (json) {
-      val jsons = constraints.map(_.asDoc.toJson).mkString("\n")
+      val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),

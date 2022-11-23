@@ -10,6 +10,7 @@ import org.bson.types.ObjectId
 import java.io.PrintWriter
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.annotation.tailrec
+import scala.jdk.CollectionConverters._
 
 class BIDataConnector extends HttpServlet with RestUtils {
 
@@ -195,9 +196,18 @@ class BIDataConnector extends HttpServlet with RestUtils {
   }
 
   private def tasksData(writer: PrintWriter, json: Boolean): Unit = {
-    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
+    val tasks: Seq[DynDoc] = BWMongoDB3.tasks.find()
+    for (aTask <- tasks) {
+      for (entry <- aTask.asDoc.entrySet().asScala) {
+        entry.getValue match {
+          case value: String =>
+            aTask.asDoc.put(entry.getKey, value.replaceAll("\u00a0", " "))
+          case _ =>
+        }
+      }
+    }
     if (json) {
-      val jsons = activities.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
+      val jsons = tasks.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
     } else {
       val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("name", primitiveFormatter),
@@ -209,7 +219,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       writer.println("<h2>Tasks</h2>")
       writer.println("""<table id="tasks" border="1" types="s,s,s,s,s,s,s,b,i,i,i">""")
       writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
-      for (activity <- activities) {
+      for (activity <- tasks) {
         val tds = fields.map(f => (f.name, f.asString(fieldValue(activity, f.name))))
         writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
       }
@@ -280,6 +290,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
   }
 
   private def reportData(response: HttpServletResponse): Unit = {
+    response.setContentType("text/html")
     val writer = response.getWriter
     writer.print("<html><body>")
     projectsData(writer, json = false)
@@ -300,7 +311,6 @@ class BIDataConnector extends HttpServlet with RestUtils {
     response.setContentType("text/plain")
     parameterMap.get("key") match {
       case None =>
-        response.setContentType("text/html")
         reportData(response)
       case Some("projects") => projectsData(writer, json = true)
       case Some("phases") => phasesData(writer, json = true)
@@ -311,6 +321,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       case Some("tasks") => tasksData(writer, json = true)
       case Some("deliverables") => deliverablesData(writer, json = true)
       case Some("constraints") => constraintsData(writer, json = true)
+      case Some(x) => throw new IllegalArgumentException(s"Unsupported collection '$x'")
     }
     writer.flush()
   }

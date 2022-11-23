@@ -386,8 +386,13 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
       processType: String, request: HttpServletRequest): ObjectId = {
     val thePhase = PhaseApi.phaseById(phaseOid)
-    if (!PersonApi.isBuildWhizAdmin(Right(user)))
-      throw new IllegalArgumentException("Not permitted")
+    if (processType.matches("Transient|Template")) {
+      if (!PhaseApi.canManage(user._id[ObjectId], thePhase))
+        throw new IllegalArgumentException("Not permitted: Must be phase-manager")
+    } else {
+      if (!PersonApi.isBuildWhizAdmin(Right(user)))
+        throw new IllegalArgumentException("Not permitted: Must be admin")
+    }
 
     val activityBuffer = mutable.Buffer[Document]()
     val timerBuffer: mutable.Buffer[Document] = mutable.Buffer[Document]()
@@ -447,7 +452,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val parentPhaseOid = new ObjectId(parameters("phase_id"))
       if (!PhaseApi.exists(parentPhaseOid))
         throw new IllegalArgumentException(s"Unknown phase-id: '$parentPhaseOid'")
-      val user: DynDoc = getUser(request)
+      val user: DynDoc = getPersona(request)
       val processName = parameters("process_name")
       ProcessApi.validateNewName(processName, parentPhaseOid)
       val bpmnName = "Phase-" + parameters("bpmn_name")

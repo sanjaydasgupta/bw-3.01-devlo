@@ -10,6 +10,8 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.camunda.bpm.engine.ProcessEngines
 
+import java.util.Calendar
+
 object ProcessApi {
 
   def listProcesses(): Seq[DynDoc] = {
@@ -161,6 +163,33 @@ object ProcessApi {
     if (count > 0)
       throw new IllegalArgumentException(s"Process named '$newName' already exists")
     true
+  }
+
+  def checkProcessSchedules(ms: Long): Unit = {
+    val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
+      find(Map("timestamps.run_next" -> Map($lte -> ms), "timestamps.end" -> Map($gte -> ms)))
+    for (schedule <- readySchedules) {
+      val timestamps: DynDoc = schedule.timestamps[Document]
+      val calendar = Calendar.getInstance()
+      calendar.setTimeInMillis(timestamps.run_next[Long])
+      val runNext: Long = schedule.frequency[String] match {
+        case "Hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
+        case "Twice-Daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
+        case "Daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
+        case "Weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
+        case "Monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
+        case "Quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
+        case "Half-Yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
+        case "Annually" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
+      }
+      val updateResult = BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+          Map($set -> Map("timestamps.run_next" -> runNext)))
+      if (updateResult.getMatchedCount == 0) {
+        BWLogger.log(getClass.getName, "LOCAL", s"checkProcessSchedules-ERROR: $updateResult")
+      } else {
+        BWLogger.log(getClass.getName, "LOCAL", s"checkProcessSchedules-OK: $schedule -> $runNext")
+      }
+    }
   }
 
 }

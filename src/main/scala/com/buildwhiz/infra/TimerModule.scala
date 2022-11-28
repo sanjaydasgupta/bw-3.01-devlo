@@ -273,6 +273,7 @@ object TimerModule extends HttpUtils {
       // Perform any global quarter-hourly activities here
       processHealthCheck(ms)
       //notifyLogEvents(ms)
+      ProcessApi.checkProcessSchedules(ms)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "LOCAL",

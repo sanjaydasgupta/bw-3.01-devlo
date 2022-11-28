@@ -224,6 +224,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         val process = ProcessApi.processById(new ObjectId(procId))
         val phase = ProcessApi.parentPhase(process._id[ObjectId])
         (phase, process)
+      case _ => throw new IllegalArgumentException(s"Incomplete arguments")
     }
     if (theProcess.`type`[String] != "Template") {
       val timezone = PhaseApi.timeZone(thePhase)

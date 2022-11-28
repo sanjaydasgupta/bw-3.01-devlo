@@ -185,9 +185,11 @@ object ProcessApi {
       val updateResult = BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
           Map($set -> Map("timestamps.run_next" -> runNext)))
       if (updateResult.getMatchedCount == 0) {
-        BWLogger.log(getClass.getName, "LOCAL", s"checkProcessSchedules-ERROR: $updateResult")
+        BWLogger.log(getClass.getName, "LOCAL",
+            s"checkProcessSchedules-ERROR [${schedule.name[String]} (${schedule._id[ObjectId]})]: $updateResult")
       } else {
-        BWLogger.log(getClass.getName, "LOCAL", s"checkProcessSchedules-OK: $schedule -> $runNext")
+        BWLogger.log(getClass.getName, "LOCAL",
+            s"checkProcessSchedules-OK: ${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
       }
     }
   }

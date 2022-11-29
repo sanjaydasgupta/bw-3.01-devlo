@@ -186,10 +186,10 @@ object ProcessApi {
           Map($set -> Map("timestamps.run_next" -> runNext)))
       if (updateResult.getMatchedCount == 0) {
         BWLogger.log(getClass.getName, "LOCAL",
-            s"checkProcessSchedules-ERROR [${schedule.name[String]} (${schedule._id[ObjectId]})]: $updateResult")
+            s"ERROR-checkProcessSchedules [${schedule.name[String]} (${schedule._id[ObjectId]})]: $updateResult")
       } else {
         BWLogger.log(getClass.getName, "LOCAL",
-            s"checkProcessSchedules-OK: ${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
+            s"AUDIT-checkProcessSchedules-OK: ${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
       }
     }
   }

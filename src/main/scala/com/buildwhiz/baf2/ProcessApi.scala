@@ -4,6 +4,10 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
+import org.apache.http.client.methods.HttpPost
+
+import scala.io.Source
+import org.apache.http.impl.client.HttpClients
 
 import javax.servlet.http.HttpServletRequest
 import org.bson.Document
@@ -165,31 +169,51 @@ object ProcessApi {
     true
   }
 
-  def checkProcessSchedules(ms: Long): Unit = {
-    val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
-      find(Map("timestamps.run_next" -> Map($lte -> ms), "timestamps.end" -> Map($gte -> ms)))
-    for (schedule <- readySchedules) {
-      val timestamps: DynDoc = schedule.timestamps[Document]
-      val calendar = Calendar.getInstance()
-      calendar.setTimeInMillis(timestamps.run_next[Long])
-      val runNext: Long = schedule.frequency[String] match {
-        case "Hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
-        case "Twice-Daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
-        case "Daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
-        case "Weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
-        case "Monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
-        case "Quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
-        case "Half-Yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
-        case "Annually" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
-      }
-      val updateResult = BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
-          Map($set -> Map("timestamps.run_next" -> runNext)))
-      if (updateResult.getMatchedCount == 0) {
-        BWLogger.log(getClass.getName, "LOCAL",
-            s"ERROR-checkProcessSchedules [${schedule.name[String]} (${schedule._id[ObjectId]})]: $updateResult")
+  def checkProcessSchedules(scheduleMs: Long): Unit = {
+    def launchNewProcess(schedule: DynDoc): Unit = {
+      val request = new HttpPost("http://localhost:3000/ProcessClone4")
+      val t0 = System.currentTimeMillis()
+      val nodeResponse = HttpClients.createDefault().execute(request)
+      val delay = System.currentTimeMillis() - t0
+      val nodeEntity = nodeResponse.getEntity
+      val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
+      val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
+      if (nodeEntityDoc.ok[Int] == 1) {
+        val timestamps: DynDoc = schedule.timestamps[Document]
+        val calendar = Calendar.getInstance()
+        calendar.setTimeInMillis(timestamps.run_next[Long])
+        val runNext: Long = schedule.frequency[String] match {
+          case "Hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
+          case "Twice-Daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
+          case "Daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
+          case "Weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
+          case "Monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
+          case "Quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
+          case "Half-Yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
+          case "Annually" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
+        }
+        BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+            Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
+            "timestamps.last_message" -> nodeEntityDoc.message[String])))
+        BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-checkProcessSchedules(time: $delay): " +
+          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
       } else {
-        BWLogger.log(getClass.getName, "LOCAL",
-            s"AUDIT-checkProcessSchedules-OK: ${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
+        BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+            Map($set -> Map("timestamps.run_next" -> scheduleMs, "timestamps.last_failure" -> scheduleMs,
+            "timestamps.last_message" -> nodeEntityDoc.message[String])))
+        BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
+          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $scheduleMs")
+      }
+    }
+    val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
+      find(Map("timestamps.run_next" -> Map($lte -> scheduleMs), "timestamps.end" -> Map($gte -> scheduleMs)))
+    for (schedule <- readySchedules) {
+      try {
+        launchNewProcess(schedule)
+      } catch {
+        case t: Throwable =>
+          BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules: " +
+            s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> ${t.getClass.getSimpleName}(${t.getMessage})")
       }
     }
   }

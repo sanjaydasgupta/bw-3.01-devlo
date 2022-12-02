@@ -188,35 +188,38 @@ object ProcessApi {
         def tp2s(tp: Any): Seq[Any] = {
           tp.asInstanceOf[Many[Document]].map(p => {
             val newDoc = new Document("name", p.name[String]).append("type", p.`type`[String]).
-                append("runtime", p.runtime[Boolean]).append("value",
-            p.`type`[String] match {
-              case "Text" => p.value[Any]
-              case "Boolean" => p.value[Any] match {
-                case b: Boolean => Map(true -> "1", false -> "0")(b)
-                case x => x
-              }
-              case "List" => p.value[Any]
-              case "Number" => p.value[Any] match {
-                case nbr: BigDecimal => nbr.toDouble.toString
-                case nbr: BigInt => nbr.toDouble.toString
-                case nbr: Number => nbr.doubleValue().toString
-                case nbr: Float => nbr.toString
-                case nbr: Int => nbr.toString
-                case nbr: Double => nbr.toString
-                case nbr: Long => nbr.toString
-                case x => x.toString
-              }
-              case "Date" => p.value[Any] match {
-                case msl: Long => ms2string(msl)
-                case msl: Int => ms2string(msl)
-                case x => x.toString
-              }
-            })
+              append("runtime", p.runtime[Boolean]).append("value",
+              p.`type`[String] match {
+                case "Text" => p.value[Any]
+                case "Boolean" => p.value[Any] match {
+                  case b: Boolean => Map(true -> "1", false -> "0")(b)
+                  case x => x
+                }
+                case "List" => p.value[Any]
+                case "Number" => p.value[Any] match {
+                  case nbr: BigDecimal => nbr.toDouble.toString
+                  case nbr: BigInt => nbr.toDouble.toString
+                  case nbr: Number => nbr.doubleValue().toString
+                  case nbr: Float => nbr.toString
+                  case nbr: Int => nbr.toString
+                  case nbr: Double => nbr.toString
+                  case nbr: Long => nbr.toString
+                  case x => x.toString
+                }
+                case "Date" => p.value[Any] match {
+                  case msl: Long => ms2string(msl)
+                  case msl: Int => ms2string(msl)
+                  case x => x.toString
+                }
+              })
+            if (p.`type`[String] == "List") {
+              newDoc.append("enum_definition", p.enum_definition[String])
+            }
             newDoc
           })
         }
         val requiredKeyInfos: Map[String, Any => Any] = Seq(
-          ("project_id", oid2string _), ("phase_id", oid2string _), ("template_process_id", oid2string _),
+          ("project_id", oid2string _), ("phase_id", oid2string _), ("process_id", oid2string _),
           ("title", s2s _), ("priority", s2s _), ("zones", oids2stringSeq _), ("target_date", ms2string _),
           ("template_parameters", tp2s _)).toMap
         val newParmEntity: Document = parameterEntity.entrySet().asScala.

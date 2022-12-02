@@ -197,13 +197,13 @@ object ProcessApi {
               }
               case "List" => p.value[Any]
               case "Number" => p.value[Any] match {
-                case nbr: BigDecimal => nbr.toDouble
-                case nbr: BigInt => nbr.toDouble
-                case nbr: Number => nbr.doubleValue()
-                case nbr: Float => nbr
-                case nbr: Int => nbr
-                case nbr: Double => nbr
-                case nbr: Long => nbr
+                case nbr: BigDecimal => nbr.toDouble.toString
+                case nbr: BigInt => nbr.toDouble.toString
+                case nbr: Number => nbr.doubleValue().toString
+                case nbr: Float => nbr.toString
+                case nbr: Int => nbr.toString
+                case nbr: Double => nbr.toString
+                case nbr: Long => nbr.toString
                 case x => x.toString
               }
               case "Date" => p.value[Any] match {

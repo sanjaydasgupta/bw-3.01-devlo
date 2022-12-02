@@ -5,8 +5,10 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 import org.apache.http.client.methods.HttpPost
+import org.apache.http.entity.StringEntity
 
 import scala.io.Source
+import scala.jdk.CollectionConverters._
 import org.apache.http.impl.client.HttpClients
 
 import javax.servlet.http.HttpServletRequest
@@ -170,19 +172,94 @@ object ProcessApi {
   }
 
   def checkProcessSchedules(scheduleMs: Long): Unit = {
-    def launchNewProcess(schedule: DynDoc): Unit = {
-      val request = new HttpPost("http://localhost:3000/ProcessClone4")
+    def createNewTransientProcess(schedule: DynDoc): Unit = {
+      def createRequest(schedule: DynDoc): HttpPost = {
+        val request = new HttpPost("http://localhost:3000/ProcessClone4")
+        val parameterEntity = Document.parse(schedule.asDoc.toJson)
+        def oid2string(oid: Any): Any = oid.toString
+        def oids2stringSeq(oids: Any): Any = oids.asInstanceOf[Many[ObjectId]].map(oid2string)
+        def s2s(s: Any): Any = s
+        def ms2string(ms: Any): Any = {
+          val calendar = Calendar.getInstance()
+          calendar.setTimeInMillis(ms.asInstanceOf[Long])
+          "%02d/%02d/%4d".format(calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH),
+              calendar.get(Calendar.YEAR))
+        }
+        def tp2s(tp: Any): Seq[Any] = {
+          tp.asInstanceOf[Many[Document]].map(p => {
+            val newDoc = new Document("name", p.name[String]).append("type", p.`type`[String]).
+                append("runtime", p.runtime[Boolean]).append("value",
+            p.`type`[String] match {
+              case "Text" => p.value[Any]
+              case "Boolean" => p.value[Any] match {
+                case b: Boolean => Map(true -> "1", false -> "0")(b)
+                case x => x
+              }
+              case "List" => p.value[Any]
+              case "Number" => p.value[Any] match {
+                case nbr: BigDecimal => nbr.toDouble
+                case nbr: BigInt => nbr.toDouble
+                case nbr: Number => nbr.doubleValue()
+                case nbr: Float => nbr
+                case nbr: Int => nbr
+                case nbr: Double => nbr
+                case nbr: Long => nbr
+                case x => x.toString
+              }
+              case "Date" => p.value[Any] match {
+                case msl: Long => ms2string(msl)
+                case msl: Int => ms2string(msl)
+                case x => x.toString
+              }
+            })
+            newDoc
+          })
+        }
+        val requiredKeyInfos: Map[String, Any => Any] = Seq(
+          ("project_id", oid2string _), ("phase_id", oid2string _), ("template_process_id", oid2string _),
+          ("title", s2s _), ("priority", s2s _), ("zones", oids2stringSeq _), ("target_date", ms2string _),
+          ("template_parameters", tp2s _)).toMap
+        val newParmEntity: Document = parameterEntity.entrySet().asScala.
+            filter(e => requiredKeyInfos.contains(e.getKey)).map(e => {
+          val (key, value) = (e.getKey, e.getValue)
+          val newValue = requiredKeyInfos(key)(value)
+          //BWLogger.log(getClass.getName, "LOCAL",
+          //    s"AUDIT-???-checkProcessSchedules KEY: $key, VALUE: $value NEW-VALUE: $newValue")
+          (key, newValue)
+        }).toMap
+        if (!newParmEntity.containsKey("title")) {
+          newParmEntity.put("title", parameterEntity.get("name"))
+        }
+        if (!newParmEntity.containsKey("target_date")) {
+          val targetDuration = if (parameterEntity.containsKey("target_duration")) {
+            parameterEntity.get("target_duration").asInstanceOf[Int]
+          } else {
+            5
+          }
+          val cal = Calendar.getInstance()
+          cal.add(Calendar.DAY_OF_MONTH, targetDuration)
+          val targetDate = "%02d/%02d/%4d".format(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
+              cal.get(Calendar.YEAR))
+          newParmEntity.put("target_date", targetDate)
+        }
+        val parameterEntityJson = newParmEntity.toJson
+        BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
+        request.setEntity(new StringEntity(parameterEntityJson))
+        request
+      }
       val t0 = System.currentTimeMillis()
-      val nodeResponse = HttpClients.createDefault().execute(request)
+      val nodeResponse = HttpClients.createDefault().execute(createRequest(schedule))
       val delay = System.currentTimeMillis() - t0
       val nodeEntity = nodeResponse.getEntity
       val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
+      BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules node-response: $nodeEntityString")
       val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
       if (nodeEntityDoc.ok[Int] == 1) {
-        val timestamps: DynDoc = schedule.timestamps[Document]
         val calendar = Calendar.getInstance()
-        calendar.setTimeInMillis(timestamps.run_next[Long])
+        calendar.setTimeInMillis(scheduleMs)
         val runNext: Long = schedule.frequency[String] match {
+          case "Quarter-Hourly" => calendar.add(Calendar.MINUTE, 15); calendar.getTimeInMillis
+          case "Half-Hourly" => calendar.add(Calendar.MINUTE, 30); calendar.getTimeInMillis
           case "Hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
           case "Twice-Daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
           case "Daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
@@ -207,9 +284,10 @@ object ProcessApi {
     }
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
       find(Map("timestamps.run_next" -> Map($lte -> scheduleMs), "timestamps.end" -> Map($gte -> scheduleMs)))
+    BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules ready-schedules: ${readySchedules.length}")
     for (schedule <- readySchedules) {
       try {
-        launchNewProcess(schedule)
+        createNewTransientProcess(schedule)
       } catch {
         case t: Throwable =>
           BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules: " +

@@ -246,8 +246,10 @@ object ProcessApi {
           newParmEntity.put("target_date", targetDate)
         }
         val parameterEntityJson = newParmEntity.toJson
-        BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
+        request.setHeader("Content-Type", "application/json; charset=utf-8")
         request.setEntity(new StringEntity(parameterEntityJson))
+        BWLogger.log(getClass.getName, "LOCAL",
+            s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
         request
       }
       val t0 = System.currentTimeMillis()

@@ -172,6 +172,7 @@ object ProcessApi {
   }
 
   def checkProcessSchedules(scheduleMs: Long): Unit = {
+    BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-checkProcessSchedules")
     def createNewTransientProcess(schedule: DynDoc): Unit = {
       def createRequest(schedule: DynDoc): HttpPost = {
         val systemUser = PersonApi.systemUser()
@@ -249,8 +250,8 @@ object ProcessApi {
         val parameterEntityJson = newParmEntity.toJson
         request.setHeader("Content-Type", "application/json; charset=utf-8")
         request.setEntity(new StringEntity(parameterEntityJson))
-        BWLogger.log(getClass.getName, "LOCAL",
-            s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
+        //BWLogger.log(getClass.getName, "LOCAL",
+        //    s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
         request
       }
       val t0 = System.currentTimeMillis()
@@ -258,7 +259,7 @@ object ProcessApi {
       val delay = System.currentTimeMillis() - t0
       val nodeEntity = nodeResponse.getEntity
       val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
-      BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules node-response: $nodeEntityString")
+      //BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules node-response: $nodeEntityString")
       val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
       if (nodeEntityDoc.ok[Int] == 1) {
         val calendar = Calendar.getInstance()
@@ -290,7 +291,7 @@ object ProcessApi {
     }
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
       find(Map("timestamps.run_next" -> Map($lte -> scheduleMs), "timestamps.end" -> Map($gte -> scheduleMs)))
-    BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules ready-schedules: ${readySchedules.length}")
+    //BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules ready-schedules: ${readySchedules.length}")
     for (schedule <- readySchedules) {
       try {
         createNewTransientProcess(schedule)

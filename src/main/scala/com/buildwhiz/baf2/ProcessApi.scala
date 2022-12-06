@@ -175,7 +175,7 @@ object ProcessApi {
     def createNewTransientProcess(schedule: DynDoc): Unit = {
       def createRequest(schedule: DynDoc): HttpPost = {
         val systemUser = PersonApi.systemUser()
-        val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=$systemUser")
+        val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=${systemUser._id[ObjectId]}")
         val parameterEntity = Document.parse(schedule.asDoc.toJson)
         def oid2string(oid: Any): Any = oid.toString
         def oids2stringSeq(oids: Any): Any = oids.asInstanceOf[Many[ObjectId]].map(oid2string)

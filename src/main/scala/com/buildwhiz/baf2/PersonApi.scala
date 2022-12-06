@@ -27,6 +27,19 @@ object PersonApi {
 
   def exists(personOid: ObjectId): Boolean = BWMongoDB3.persons.find(Map("_id" -> personOid)).nonEmpty
 
+  def systemUser(): DynDoc = {
+    BWMongoDB3.persons.find(Map("first_name" -> "SYSTEM", "last_name" -> "SYSTEM")).headOption match {
+      case Some(person) =>
+        val organization = OrganizationApi.organizationById(person.organization_id[ObjectId])
+        if (organization.name[String] == "$SYSTEM$") {
+          person
+        } else {
+          throw new IllegalArgumentException("SYSTEM user not found")
+        }
+      case None => throw new IllegalArgumentException("SYSTEM user not found")
+    }
+  }
+
   def isBuildWhizAdmin(who: Either[ObjectId, DynDoc]): Boolean = {
     val userRecord = who match {
       case Right(dynDoc) => dynDoc

@@ -172,7 +172,7 @@ object ProcessApi {
   }
 
   def checkProcessSchedules(scheduleMs: Long): Unit = {
-    BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-checkProcessSchedules")
+    //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-checkProcessSchedules")
     def createNewTransientProcess(schedule: DynDoc): Unit = {
       def createRequest(schedule: DynDoc): HttpPost = {
         val systemUser = PersonApi.systemUser()

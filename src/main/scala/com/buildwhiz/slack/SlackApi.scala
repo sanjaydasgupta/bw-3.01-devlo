@@ -6,6 +6,7 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils}
+
 import javax.servlet.http.HttpServletRequest
 import org.apache.http.Consts
 import org.apache.http.client.methods.HttpPost
@@ -14,6 +15,8 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import java.util.Calendar
+import scala.io.Source
 import scala.jdk.CollectionConverters._
 
 object SlackApi extends DateTimeUtils {
@@ -341,7 +344,42 @@ object SlackApi extends DateTimeUtils {
     post.setHeader("Content-Type", "application/json; charset=utf-8")
     val viewText = optViewText match {
       case Some(txt) => txt
-      case None => homePage(userBySlackId(slackUserId))
+      //case None => homePage(slackUserId)
+      case None => """{
+                     |	"type": "home",
+                     |	"blocks": [
+                     |		{
+                     |			"type": "divider"
+                     |		},
+                     |		{
+                     |			"type": "section",
+                     |			"text": {
+                     |				"type": "mrkdwn",
+                     |				"text": "Member: Mr. A, Apartment: *432*"
+                     |			}
+                     |		},
+                     |		{
+                     |			"type": "divider"
+                     |		},
+                     |		{
+                     |			"type": "section",
+                     |			"text": {
+                     |				"type": "mrkdwn",
+                     |				"text": "Book a Maintenance issue"
+                     |			},
+                     |			"accessory": {
+                     |				"type": "button",
+                     |				"text": {
+                     |					"type": "plain_text",
+                     |					"text": "CREATE",
+                     |					"emoji": true
+                     |				},
+                     |				"value": "click_me_123",
+                     |				"action_id": "button-create-maintenance-issue"
+                     |			}
+                     |		}
+                     |	]
+                     |}""".stripMargin
     }
     val hash = optHash match {
       case Some(h) => h
@@ -387,6 +425,26 @@ object SlackApi extends DateTimeUtils {
     })
     val page: DynDoc = Map("type" -> "home", "blocks" -> blocks)
     page.asDoc.toJson
+  }
+
+  def invokeSlackHandler(uid: String, eventType: String, bodyJson: String = ""): DynDoc = {
+    //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-invokeSlackHandler")
+    val request = new HttpPost(s"http://localhost:3000/SlackHandler?uid=$uid&type=$eventType")
+    if (bodyJson.nonEmpty) {
+      request.setHeader("Content-Type", "application/json; charset=utf-8")
+      request.setEntity(new StringEntity(bodyJson))
+    }
+    //val t0 = System.currentTimeMillis()
+    val nodeResponse = HttpClients.createDefault().execute(request)
+    val nodeEntityString = Source.fromInputStream(nodeResponse.getEntity.getContent).getLines().mkString("\n")
+    val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
+    //if (nodeEntityDoc.ok[Int] == 1) {
+    //  val delay = System.currentTimeMillis() - t0
+    //  BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-invokeSlackHandler(time: $delay)")
+    //} else {
+    //  BWLogger.log(getClass.getName, "LOCAL", s"ERROR-invokeSlackHandler: ${nodeEntityString}")
+    //}
+    nodeEntityDoc
   }
 
   // https://api.slack.com/tutorials/design-expense-block-kit

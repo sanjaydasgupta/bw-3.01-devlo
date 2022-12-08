@@ -44,22 +44,22 @@ object SlackApi extends DateTimeUtils {
     }
   }
 
-  def pushHomePages(): Unit = {
-    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: ENTRY")
-    try {
-      val slackUsers: Seq[DynDoc] = BWMongoDB3.persons.find(Map("slack_id" -> Map($exists -> true)))
-      for (slackUser <- slackUsers) {
-        val slackId = slackUser.slack_id[String]
-        SlackApi.viewPublish(None, slackId, None)
-      }
-    } catch {
-      case t: Throwable =>
-        BWLogger.log(getClass.getName, "LOCAL",
-            s"pushHomePages: ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
-    }
-    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: EXIT-OK")
-  }
-
+//  def pushHomePages(): Unit = {
+//    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: ENTRY")
+//    try {
+//      val slackUsers: Seq[DynDoc] = BWMongoDB3.persons.find(Map("slack_id" -> Map($exists -> true)))
+//      for (slackUser <- slackUsers) {
+//        val slackId = slackUser.slack_id[String]
+//        SlackApi.viewPublish(None, slackId, None)
+//      }
+//    } catch {
+//      case t: Throwable =>
+//        BWLogger.log(getClass.getName, "LOCAL",
+//            s"pushHomePages: ERROR: ${t.getClass.getSimpleName}(${t.getMessage})")
+//    }
+//    BWLogger.log(getClass.getName, "LOCAL", "pushHomePages: EXIT-OK")
+//  }
+//
   def sendToUser(stringOrBlocks: Either[String, Seq[DynDoc]], user: Either[DynDoc, ObjectId],
       optProjectOid: Option[ObjectId] = None, optRequest: Option[HttpServletRequest] = None): Unit = {
     BWLogger.log(getClass.getName, "LOCAL", "sendToUser: ENTRY")
@@ -335,52 +335,13 @@ object SlackApi extends DateTimeUtils {
     BWLogger.log(getClass.getName, "LOCAL", s"pushView: EXIT-OK ($contentString)")
   }
 
-  def viewPublish(optViewText: Option[String] = None, slackUserId: String, optHash: Option[String] = None): Unit = {
+  def viewPublish(viewText: String, slackUserId: String, optHash: Option[String] = None): Unit = {
     BWLogger.log(getClass.getName, "LOCAL", "viewPublish: ENTRY")
     val httpClient = HttpClients.createDefault()
     val post = new HttpPost("https://slack.com/api/views.publish")
     post.setHeader("Authorization",
       "Bearer xoxb-644537296277-708634256516-fXAKmdo1h467oFMx8ZoH8vg2")
     post.setHeader("Content-Type", "application/json; charset=utf-8")
-    val viewText = optViewText match {
-      case Some(txt) => txt
-      //case None => homePage(slackUserId)
-      case None => """{
-                     |	"type": "home",
-                     |	"blocks": [
-                     |		{
-                     |			"type": "divider"
-                     |		},
-                     |		{
-                     |			"type": "section",
-                     |			"text": {
-                     |				"type": "mrkdwn",
-                     |				"text": "Member: Mr. A, Apartment: *432*"
-                     |			}
-                     |		},
-                     |		{
-                     |			"type": "divider"
-                     |		},
-                     |		{
-                     |			"type": "section",
-                     |			"text": {
-                     |				"type": "mrkdwn",
-                     |				"text": "Book a Maintenance issue"
-                     |			},
-                     |			"accessory": {
-                     |				"type": "button",
-                     |				"text": {
-                     |					"type": "plain_text",
-                     |					"text": "CREATE",
-                     |					"emoji": true
-                     |				},
-                     |				"value": "click_me_123",
-                     |				"action_id": "button-create-maintenance-issue"
-                     |			}
-                     |		}
-                     |	]
-                     |}""".stripMargin
-    }
     val hash = optHash match {
       case Some(h) => h
       case None => System.nanoTime().toString

@@ -34,7 +34,7 @@ object CommandLineProcessor extends DateTimeUtils {
         case _ => Nil
       }
       (op.toLowerCase, persons.length) match {
-        case ("home", 0) => (user, _, _) => {SlackApi.viewPublish(None, user.slack_id[String], None); None}
+        case ("home", 0) => (user, _, _) => {SlackApi.viewPublish("", user.slack_id[String], None); None}
         case ("home", _) => (_, _, _) => Some(s"""Redundant parameters: ${names.mkString(", ")}""")
         case ("invite", 1) => (dd, _, _) => Some(SlackApi.invite(persons.head)(dd))
         case ("invite", 0) => (_, _, _) => Some(s"""Unknown user name: ${names.mkString(" ")}""")

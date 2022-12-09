@@ -15,7 +15,7 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import java.util.Calendar
+import java.net.URLEncoder
 import scala.io.Source
 import scala.jdk.CollectionConverters._
 
@@ -388,9 +388,11 @@ object SlackApi extends DateTimeUtils {
     page.asDoc.toJson
   }
 
-  def invokeSlackHandler(uid: String, eventType: String, bodyJson: String = ""): DynDoc = {
+  def invokeSlackHandler(uid: String, urlParams: Map[String, String], bodyJson: String = ""): DynDoc = {
     //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-invokeSlackHandler")
-    val request = new HttpPost(s"http://localhost:3000/SlackHandler?uid=$uid&type=$eventType")
+    val enc = (p: String) => URLEncoder.encode(p, "utf8")
+    val urlParamString = urlParams.map(p => "%s=%s".format(enc(p._1), enc(p._2))).mkString("&")
+    val request = new HttpPost(s"http://localhost:3000/SlackHandler?uid=$uid&$urlParamString")
     if (bodyJson.nonEmpty) {
       request.setHeader("Content-Type", "application/json; charset=utf-8")
       request.setEntity(new StringEntity(bodyJson))

@@ -286,7 +286,7 @@ object ProcessApi {
             Map($set -> Map("timestamps.run_next" -> scheduleMs, "timestamps.last_failure" -> scheduleMs,
             "timestamps.last_message" -> nodeEntityDoc.message[String])))
         BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
-          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $scheduleMs")
+          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")
       }
     }
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.

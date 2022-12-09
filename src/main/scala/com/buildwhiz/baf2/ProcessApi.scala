@@ -222,36 +222,27 @@ object ProcessApi {
         }
         val requiredKeyInfos: Map[String, Any => Any] = Seq(
           ("project_id", oid2string _), ("phase_id", oid2string _), ("process_id", oid2string _),
-          ("title", s2s _), ("priority", s2s _), ("zones", oids2stringSeq _), ("target_date", ms2string _),
+          ("title", s2s _), ("priority", s2s _), ("zones", oids2stringSeq _), ("target_duration", s2s _),
           ("template_parameters", tp2s _)).toMap
+        val missingParameters = requiredKeyInfos.keys.filterNot(parameterEntity.containsKey)
+        if (missingParameters.nonEmpty) {
+          throw new IllegalArgumentException(s"Missing parameters: ${missingParameters.toSeq.mkString(", ")}")
+        }
         val newParmEntity: Document = parameterEntity.entrySet().asScala.
             filter(e => requiredKeyInfos.contains(e.getKey)).map(e => {
           val (key, value) = (e.getKey, e.getValue)
           val newValue = requiredKeyInfos(key)(value)
-          //BWLogger.log(getClass.getName, "LOCAL",
-          //    s"AUDIT-???-checkProcessSchedules KEY: $key, VALUE: $value NEW-VALUE: $newValue")
           (key, newValue)
         }).toMap
-        if (!newParmEntity.containsKey("title")) {
-          newParmEntity.put("title", parameterEntity.get("name"))
-        }
-        if (!newParmEntity.containsKey("target_date")) {
-          val targetDuration = if (parameterEntity.containsKey("target_duration")) {
-            parameterEntity.get("target_duration").asInstanceOf[Int]
-          } else {
-            5
-          }
-          val cal = Calendar.getInstance()
-          cal.add(Calendar.DAY_OF_MONTH, targetDuration)
-          val targetDate = "%02d/%02d/%4d".format(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
-              cal.get(Calendar.YEAR))
-          newParmEntity.put("target_date", targetDate)
-        }
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_MONTH, parameterEntity.y.target_duration[Int])
+        val targetDate = "%02d/%02d/%4d".format(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
+          cal.get(Calendar.YEAR))
+        newParmEntity.put("target_date", targetDate)
+
         val parameterEntityJson = newParmEntity.toJson
         request.setHeader("Content-Type", "application/json; charset=utf-8")
         request.setEntity(new StringEntity(parameterEntityJson))
-        //BWLogger.log(getClass.getName, "LOCAL",
-        //    s"AUDIT-???-checkProcessSchedules CALL-parameters: $parameterEntityJson")
         request
       }
       val t0 = System.currentTimeMillis()
@@ -259,7 +250,6 @@ object ProcessApi {
       val delay = System.currentTimeMillis() - t0
       val nodeEntity = nodeResponse.getEntity
       val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
-      //BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules node-response: $nodeEntityString")
       val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
       if (nodeEntityDoc.ok[Int] == 1) {
         val calendar = Calendar.getInstance()
@@ -274,7 +264,7 @@ object ProcessApi {
           case "Monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
           case "Quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
           case "Half-Yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
-          case "Annually" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
+          case "Yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
         }
         BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
             Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
@@ -283,7 +273,7 @@ object ProcessApi {
           s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
       } else {
         BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
-            Map($set -> Map("timestamps.run_next" -> scheduleMs, "timestamps.last_failure" -> scheduleMs,
+            Map($set -> Map("timestamps.last_failure" -> scheduleMs,
             "timestamps.last_message" -> nodeEntityDoc.message[String])))
         BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
           s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")

@@ -12,6 +12,175 @@ import scala.jdk.CollectionConverters._
 
 class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils with DateTimeUtils {
 
+  private val viewOne = """{
+                          |	"external_id": "New-Maintenance-Request",
+                          |	"type": "modal",
+                          |	"title": {
+                          |		"type": "plain_text",
+                          |		"text": "New Maintenance Request",
+                          |		"emoji": true
+                          |	},
+                          |	"submit": {
+                          |		"type": "plain_text",
+                          |		"text": "Submit",
+                          |		"emoji": true
+                          |	},
+                          |	"close": {
+                          |		"type": "plain_text",
+                          |		"text": "Cancel",
+                          |		"emoji": true
+                          |	},
+                          |	"blocks": [
+                          |		{
+                          |			"block_id": "Emergency",
+                          |			"type": "input",
+                          |			"element": {
+                          |				"type": "radio_buttons",
+                          |				"options": [
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Yes",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Yes"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "No",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "No"
+                          |					}
+                          |				],
+                          |				"action_id": "radio_emergency"
+                          |			},
+                          |			"label": {
+                          |				"type": "plain_text",
+                          |				"text": "Emergency",
+                          |				"emoji": true
+                          |			}
+                          |		},
+                          |		{
+                          |			"type": "input",
+                          |			"block_id": "Category",
+                          |			"label": {
+                          |				"type": "plain_text",
+                          |				"text": "Category",
+                          |				"emoji": true
+                          |			},
+                          |			"element": {
+                          |				"type": "static_select",
+                          |				"placeholder": {
+                          |					"type": "plain_text",
+                          |					"text": "Select an item",
+                          |					"emoji": true
+                          |				},
+                          |				"options": [
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "HVAC",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "HVAC"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Plumbing",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Plumbing"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Handyman",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Handyman"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Electrical",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Electrical"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Flooring",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Flooring"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Paint",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Paint"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Pest",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Pest"
+                          |					},
+                          |					{
+                          |						"text": {
+                          |							"type": "plain_text",
+                          |							"text": "Carpentry",
+                          |							"emoji": true
+                          |						},
+                          |						"value": "Carpentry"
+                          |					}
+                          |				],
+                          |				"action_id": "select_category"
+                          |			}
+                          |		},
+                          |		{
+                          |			"type": "input",
+                          |			"block_id": "DateOfOccurrence",
+                          |			"label": {
+                          |				"type": "plain_text",
+                          |				"text": "Date of Occurrence",
+                          |				"emoji": true
+                          |			},
+                          |			"element": {
+                          |				"type": "datepicker",
+                          |				"placeholder": {
+                          |					"type": "plain_text",
+                          |					"text": "Select a date",
+                          |					"emoji": true
+                          |				},
+                          |				"action_id": "date_date_of_occurrenc"
+                          |			}
+                          |		},
+                          |		{
+                          |			"type": "input",
+                          |			"block_id": "Description",
+                          |			"label": {
+                          |				"type": "plain_text",
+                          |				"text": "Description",
+                          |				"emoji": true
+                          |			},
+                          |			"element": {
+                          |				"type": "plain_text_input",
+                          |				"multiline": true,
+                          |				"action_id": "textarea_description"
+                          |			}
+                          |		}
+                          |	]
+                          |}""".stripMargin
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
@@ -19,39 +188,58 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
       val payload: DynDoc = Document.parse(parameters("payload"))
       val slackUserInfo: DynDoc = payload.user[Document]
       val slackUserId = slackUserInfo.id[String]
-      SlackApi.userBySlackId(slackUserId) match {
-        case Some(userRecord) =>
+      (SlackApi.userBySlackId(slackUserId), payload.get[String]("type"), payload.get[String]("trigger_id")) match {
+        case (Some(userRecord), Some("block_actions"), Some(triggerId)) =>
           request.getSession.setAttribute("bw-user", userRecord.asDoc)
-          payload.get[String]("type") match {
-            case Some("block_actions") =>
-              val body = payload.view[Document]
-              body.put("action_id", payload.actions[Many[Document]].head.action_id[String])
-              val bodyJson = body.asDoc.toJson
-              val response = SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, "block_actions", bodyJson)
-              if (response.ok[Int] == 1) {
-                //val retVal = response.payload[Document].toJson
-                //SlackApi.viewPublish(Some(retVal), slackUserId, None)
-                //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
-              } else {
-                BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
-              }
+          val body = payload.view[Document]
+          body.put("action_id", payload.actions[Many[Document]].head.action_id[String])
+          val bodyJson = body.asDoc.toJson
+          val response = if (userRecord.first_name[String] != "Sanjay") {
+            val urlParams = Map("action_id" -> payload.actions[Many[Document]].head.action_id[String],
+                "type" -> "block_actions")
+            SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson)
+          } else {
+            val respOne: DynDoc = new Document("ok", 1).append("payload", Document.parse(viewOne))
+            respOne
           }
-          BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)
-        case None =>
-          val slackUserName = slackUserInfo.name[String]
+          if (response.ok[Int] == 1) {
+            val retVal = response.payload[Document].toJson
+            SlackApi.viewOpen(retVal, triggerId)
+            //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
+          } else {
+            BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
+          }
+        case (Some(userRecord), Some("view_submission"), Some(triggerId)) =>
+          request.getSession.setAttribute("bw-user", userRecord.asDoc)
+          val body = payload.view[Document]
+          val bodyJson = body.asDoc.toJson
+          val urlParams = if (body.has("external_id")) {
+            Map("type" -> "view_submission", "external_id" -> body.y.external_id[String])
+          } else {
+            Map("type" -> "view_submission")
+          }
+          val response = SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson)
+          if (response.ok[Int] == 1) {
+            val retVal = response.payload[Document].toJson
+            SlackApi.viewOpen(retVal, triggerId)
+            //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
+          } else {
+            BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
+          }
+        case _ =>
           BWLogger.log(getClass.getName, request.getMethod,
-              s"EXIT-ERROR: Unknown Slack user '$slackUserName' ($slackUserId)", request)
+              s"EXIT-ERROR: Unknown message type", request)
       }
-      (payload.get[String]("trigger_id"), payload.get[String]("type")) match {
-        case (Some(triggerId), Some("message_action")) =>
-          val rootOptions = SlackApi.createSelectInputBlock("Select operation area", "Select option", "BW-root",
-            Seq(("Dashboard", "dashboard"), ("Tasks", "tasks")))
-          val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions),
-            withSubmitButton = true)
-          SlackApi.viewOpen(rootModalView.toJson, triggerId)
-        case (Some(triggerId), Some("block_actions")) =>
-          val actions: Many[Document] = payload.actions[Many[Document]]
-          val actionId = actions.head.action_id[String]
+//      (payload.get[String]("trigger_id"), payload.get[String]("type")) match {
+//        case (Some(triggerId), Some("message_action")) =>
+//          val rootOptions = SlackApi.createSelectInputBlock("Select operation area", "Select option", "BW-root",
+//            Seq(("Dashboard", "dashboard"), ("Tasks", "tasks")))
+//          val rootModalView = SlackApi.createModalView("BuildWhiz User Interface", "BW-root", Seq(rootOptions),
+//            withSubmitButton = true)
+//          SlackApi.viewOpen(rootModalView.toJson, triggerId)
+//        case (Some(triggerId), Some("block_actions")) =>
+//          val actions: Many[Document] = payload.actions[Many[Document]]
+//          val actionId = actions.head.action_id[String]
 //          val actionIdParts = action.action_id[String].split("-")
 //          val title = actionIdParts.last
 //          title match {
@@ -144,8 +332,6 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
 ////            BWLogger.log(getClass.getName, request.getMethod, s"Received values: $message", request)
 //          } else {
 //          }
-        case _ =>
-      }
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

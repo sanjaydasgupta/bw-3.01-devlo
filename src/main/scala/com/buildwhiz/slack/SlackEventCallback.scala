@@ -87,24 +87,27 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
           case (Some("event_callback"), _, Some(user)) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
             val bodyJson = event.asDoc.toJson
-            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, "event_callback", bodyJson)
+            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, Map("type" -> "event_callback"),
+                bodyJson)
             if (response.ok[Int] == 1) {
               //val retVal = response.payload[Document].toJson
               //ToDo: add retVal processing here
               //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
             } else {
-              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
+              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})",
+                  request)
             }
           case (Some("message"), _, Some(user)) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
             val bodyJson = event.asDoc.toJson
-            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, "message", bodyJson)
+            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, Map("type" -> "message"), bodyJson)
             if (response.ok[Int] == 1) {
               //val retVal = response.payload[Document].toJson
               //ToDo: add retVal processing here
               //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
             } else {
-              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
+              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})",
+                  request)
             }
           case (Some("app_home_opened"), _, Some(user)) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
@@ -113,9 +116,9 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             if (tab == "home") {
               val view: DynDoc = event.view[Document]
               body.append("blocks", view.blocks[Many[Document]])
-              body.toJson
             }
-            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, "app_home_opened", body.toJson)
+            val urlParams = Map("type" -> "app_home_opened", "tab" -> tab)
+            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, urlParams, body.toJson)
             if (response.ok[Int] == 1) {
               val retVal = response.payload[Document].toJson
               if (tab == "home") {
@@ -125,12 +128,15 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
               }
               //BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-OK", request)
             } else {
-              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})", request)
+              BWLogger.log(getClass.getName, request.getMethod, s"invokeSlackHandler-ERROR (${response.asDoc.toJson})",
+                  request)
             }
           case _ =>
             BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Unknown message: $postDataStream", request)
         }
         //BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
+      } else {
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR Unknown message: $postDataStream", request)
       }
     } catch {
       case t: Throwable =>

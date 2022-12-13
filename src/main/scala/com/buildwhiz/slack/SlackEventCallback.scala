@@ -88,7 +88,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
             request.getSession.setAttribute("bw-user", user.asDoc)
             val bodyJson = event.asDoc.toJson
             val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, Map("type" -> "event_callback"),
-                bodyJson)
+                bodyJson, request)
             if (response.ok[Int] == 1) {
               //val retVal = response.payload[Document].toJson
               //ToDo: add retVal processing here
@@ -100,7 +100,8 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
           case (Some("message"), _, Some(user)) =>
             request.getSession.setAttribute("bw-user", user.asDoc)
             val bodyJson = event.asDoc.toJson
-            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, Map("type" -> "message"), bodyJson)
+            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, Map("type" -> "message"),
+                bodyJson, request)
             if (response.ok[Int] == 1) {
               //val retVal = response.payload[Document].toJson
               //ToDo: add retVal processing here
@@ -118,7 +119,7 @@ class SlackEventCallback extends HttpServlet with HttpUtils {
               body.append("blocks", view.blocks[Many[Document]])
             }
             val urlParams = Map("type" -> "app_home_opened", "tab" -> tab)
-            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, urlParams, body.toJson)
+            val response = SlackApi.invokeSlackHandler(user._id[ObjectId].toString, urlParams, body.toJson, request)
             if (response.ok[Int] == 1) {
               val retVal = response.payload[Document].toJson
               if (tab == "home") {

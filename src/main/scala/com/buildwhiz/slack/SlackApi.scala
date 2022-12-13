@@ -388,17 +388,24 @@ object SlackApi extends DateTimeUtils {
     page.asDoc.toJson
   }
 
-  def invokeSlackHandler(uid: String, urlParams: Map[String, String], bodyJson: String = ""): DynDoc = {
+  def invokeSlackHandler(uid: String, urlParams: Map[String, String], bodyJson: String = "",
+      request: HttpServletRequest): DynDoc = {
     //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-invokeSlackHandler")
     val enc = (p: String) => URLEncoder.encode(p, "utf8")
     val urlParamString = urlParams.map(p => "%s=%s".format(enc(p._1), enc(p._2))).mkString("&")
-    val request = new HttpPost(s"http://localhost:3000/SlackHandler?uid=$uid&$urlParamString")
+    val httpPost = new HttpPost(s"http://localhost:3000/SlackHandler?uid=$uid&$urlParamString")
     if (bodyJson.nonEmpty) {
-      request.setHeader("Content-Type", "application/json; charset=utf-8")
-      request.setEntity(new StringEntity(bodyJson))
+      httpPost.setHeader("Content-Type", "application/json; charset=utf-8")
+      httpPost.setEntity(new StringEntity(bodyJson))
     }
+//    request.getHeaderNames.asScala.foreach(hdrName => httpPost.setHeader(hdrName, request.getHeader(hdrName)))
+    val clientIp = request.getHeader("X-FORWARDED-FOR") match {
+      case null => request.getRemoteAddr
+      case ip => ip
+    }
+    httpPost.setHeader("X-FORWARDED-FOR", clientIp)
     //val t0 = System.currentTimeMillis()
-    val nodeResponse = HttpClients.createDefault().execute(request)
+    val nodeResponse = HttpClients.createDefault().execute(httpPost)
     val nodeEntityString = Source.fromInputStream(nodeResponse.getEntity.getContent).getLines().mkString("\n")
     val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
     //if (nodeEntityDoc.ok[Int] == 1) {

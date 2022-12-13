@@ -197,7 +197,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           val response = if (userRecord.first_name[String] != "Sanjay") {
             val urlParams = Map("action_id" -> payload.actions[Many[Document]].head.action_id[String],
                 "type" -> "block_actions")
-            SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson)
+            SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson, request)
           } else {
             val respOne: DynDoc = new Document("ok", 1).append("payload", Document.parse(viewOne))
             respOne
@@ -218,7 +218,7 @@ class SlackInteractiveCallback extends HttpServlet with HttpUtils with MailUtils
           } else {
             Map("type" -> "view_submission")
           }
-          val response = SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson)
+          val response = SlackApi.invokeSlackHandler(userRecord._id[ObjectId].toString, urlParams, bodyJson, request)
           if (response.ok[Int] == 1) {
             val retVal = response.payload[Document].toJson
             SlackApi.viewOpen(retVal, triggerId)

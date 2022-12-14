@@ -34,8 +34,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val (duration, durationUnit) = parameters.get("count") match {
         case None => (50, "rows")
         case Some(theCount) =>
-          val withUnitPattern = "([\\d.]+)(hours|days|rows)".r
-          val withoutUnitPattern = "([\\d.]+)".r
+          val withUnitPattern = "([0-9]+)(hours|days|rows)".r
+          val withoutUnitPattern = "([0-9]+)".r
           theCount match {
             case withUnitPattern(d, u) => (d.toInt, u)
             case withoutUnitPattern(d) => (d.toInt, "rows")
@@ -103,7 +103,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           val pipeline: Seq[Document] = Seq(
             Map("$match" -> (typeQuery ++ Map("milliseconds" -> Map("$lte" -> untilMs)))),
             Map("$sort" -> Map("milliseconds" -> -1)),
-            Map("$limit" -> 50),
+            Map("$limit" -> duration),
             grouper
           )
           traceLogCollection.aggregate(pipeline.asJava).allowDiskUse(true)

@@ -289,6 +289,12 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
+  private def traceLogData(writer: PrintWriter, query: Document = new Document()): Unit = {
+    val constraints: Seq[DynDoc] = BWMongoDB3.trace_log.find(query)
+    val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
+    writer.print(jsons)
+  }
+
   private def reportData(response: HttpServletResponse): Unit = {
     response.setContentType("text/html")
     val writer = response.getWriter
@@ -326,6 +332,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       case (Some("tasks"), optQuery) => tasksData(writer, json = true, q(optQuery))
       case (Some("deliverables"), optQuery) => deliverablesData(writer, json = true, q(optQuery))
       case (Some("constraints"), optQuery) => constraintsData(writer, json = true, q(optQuery))
+      case (Some("trace_log"), optQuery) => traceLogData(writer, q(optQuery))
       case (Some(x), _) => throw new IllegalArgumentException(s"Unsupported collection '$x'")
     }
     writer.flush()

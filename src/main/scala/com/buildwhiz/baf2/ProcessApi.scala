@@ -179,7 +179,6 @@ object ProcessApi {
         val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=${systemUser._id[ObjectId]}")
         val parameterEntity = Document.parse(schedule.asDoc.toJson)
         def oid2string(oid: Any): Any = oid.toString
-        def oids2stringSeq(oids: Any): Any = oids.asInstanceOf[Many[ObjectId]].map(oid2string)
         def s2s(s: Any): Any = s
         def ms2string(ms: Any): Any = {
           val calendar = Calendar.getInstance()
@@ -221,9 +220,8 @@ object ProcessApi {
           })
         }
         val requiredKeyInfos: Map[String, Any => Any] = Seq(
-          ("project_id", oid2string _), ("phase_id", oid2string _), ("process_id", oid2string _),
-          ("title", s2s _), ("priority", s2s _), ("zones", oids2stringSeq _), ("target_duration", s2s _),
-          ("template_parameters", tp2s _)).toMap
+          ("project_id", oid2string _), ("phase_id", oid2string _), ("template_process_id", oid2string _),
+          ("title", s2s _), ("priority", s2s _), ("template_parameters", tp2s _)).toMap
         val missingParameters = requiredKeyInfos.keys.filterNot(parameterEntity.containsKey)
         if (missingParameters.nonEmpty) {
           throw new IllegalArgumentException(s"Missing parameters: ${missingParameters.toSeq.mkString(", ")}")
@@ -234,11 +232,6 @@ object ProcessApi {
           val newValue = requiredKeyInfos(key)(value)
           (key, newValue)
         }).toMap
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_MONTH, parameterEntity.y.target_duration[Int])
-        val targetDate = "%02d/%02d/%4d".format(cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH),
-          cal.get(Calendar.YEAR))
-        newParmEntity.put("target_date", targetDate)
 
         val parameterEntityJson = newParmEntity.toJson
         request.setHeader("Content-Type", "application/json; charset=utf-8")
@@ -270,13 +263,13 @@ object ProcessApi {
             Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
             "timestamps.last_message" -> nodeEntityDoc.message[String])))
         BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-checkProcessSchedules(time: $delay): " +
-          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $runNext")
+          s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $runNext")
       } else {
         BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
             Map($set -> Map("timestamps.last_failure" -> scheduleMs,
             "timestamps.last_message" -> nodeEntityDoc.message[String])))
         BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
-          s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")
+          s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")
       }
     }
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
@@ -288,7 +281,7 @@ object ProcessApi {
       } catch {
         case t: Throwable =>
           BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules: " +
-            s"${schedule.name[String]} (${schedule._id[ObjectId]}) -> ${t.getClass.getSimpleName}(${t.getMessage})")
+            s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> ${t.getClass.getSimpleName}(${t.getMessage})")
       }
     }
   }

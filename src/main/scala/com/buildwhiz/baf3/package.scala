@@ -164,12 +164,12 @@ package object baf3 {
     Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/text-document-alt.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/text-document-alt.svg",
       "navLabel" -> "Docs", "routeUrl" -> "/private/docs", "toolTipLabel" -> "Docs"),
-    Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/chat-typing-alt.svg",
+    /*Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/chat-typing-alt.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/chat-typing-alt.svg",
       "navLabel" -> "RFI", "routeUrl" -> "/private/rfi", "toolTipLabel" -> "RFI"),
     Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/bell.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/bell.svg",
-      "navLabel" -> "Issues", "routeUrl" -> "/private/issues", "toolTipLabel" -> "Issues"),
+      "navLabel" -> "Issues", "routeUrl" -> "/private/issues", "toolTipLabel" -> "Issues"),*/
     Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/mood-smile.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/mood-smile.svg",
       "navLabel" -> "Teams", "routeUrl" -> "/private/teams", "toolTipLabel" -> "Teams"),
@@ -194,9 +194,9 @@ package object baf3 {
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/contact.svg",
       "navLabel" -> "Partners", "routeUrl" -> "/private/partners", "toolTipLabel" -> "Partners"),
-    Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
+    /*Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/wand.svg",
-      "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications"),
+      "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications"),*/
     Map("access" -> "AIM", "navIcon" -> "assets/images/teenyicons/outline-white/list-layout.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/list-layout.svg",
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")

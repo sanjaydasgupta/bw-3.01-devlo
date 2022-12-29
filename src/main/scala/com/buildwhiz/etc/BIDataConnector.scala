@@ -295,9 +295,30 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.print(jsons)
   }
 
+  private def fixDoc(aDoc: Document): Unit = {
+    for (entry <- aDoc.asDoc.entrySet().asScala) {
+      entry.getValue match {
+        case value: String =>
+          aDoc.asDoc.put(entry.getKey, value.replaceAll("\u00d7", "x"))
+        case subDoc: Document => fixDoc(subDoc)
+        case subDynDoc: DynDoc => fixDoc(subDynDoc.asDoc)
+        case list: Many[Any] => list.zipWithIndex.foreach {
+          case (value: String, index: Int) => list.set(index, value.replaceAll("\u00d7", "x").asInstanceOf[Any])
+          case (subDoc: Document, _) => fixDoc(subDoc)
+          case (subDynDoc: DynDoc, _) => fixDoc(subDynDoc.asDoc)
+          case _ =>
+        }
+        case _ =>
+      }
+    }
+  }
+
   private def documentMasterData(writer: PrintWriter, query: Document = new Document()): Unit = {
-    val constraints: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
-    val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
+    val docs: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
+    for (aDoc <- docs) {
+      fixDoc(aDoc.asDoc)
+    }
+    val jsons = docs.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
     writer.print(jsons)
   }
 

@@ -53,7 +53,10 @@ object OrphanRecordsDelete extends HttpUtils {
     if (go && orphanedProcessOids.nonEmpty) {
       writer.println(s"${sp4}Deleting ${orphanedProcessOids.length} orphaned processes<br/>")
       val processByOid = existingProcesses.map(p => (p._id[ObjectId], p)).toMap
-      orphanedProcessOids.foreach(oid => ProcessApi.delete(processByOid(oid), request))
+      orphanedProcessOids.foreach(oid => ProcessApi.delete(processByOid(oid)) match {
+        case Right(msg) => writer.println(s"Ok: $msg")
+        case Left(msg) => writer.println(s"ERROR: $msg")
+      })
     }
     val missingProcessOids: Seq[ObjectId] = expectedProcessOids.filterNot(existingProcessOids.toSet.contains)
     writer.println(s"${sp4}Missing process Oids (${missingProcessOids.length})" +

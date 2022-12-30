@@ -162,8 +162,8 @@ object ProcessApi {
     val nameLength = newName.length
     if (newName.trim.length != nameLength)
       throw new IllegalArgumentException(s"Bad process name (has blank padding): '$newName'")
-    if (nameLength > 150 || nameLength < 5)
-      throw new IllegalArgumentException(s"Bad process name length: $nameLength (must be 5-150)")
+    if (nameLength > 150 || nameLength < 3)
+      throw new IllegalArgumentException(s"Bad process name length: $nameLength (must be 3-150)")
     val siblingProcessOids: Seq[ObjectId] = PhaseApi.allProcessOids(PhaseApi.phaseById(parentPhaseOid))
     val count = BWMongoDB3.processes.countDocuments(Map("name" -> newName, "_id" -> Map($in -> siblingProcessOids)))
     if (count > 0)

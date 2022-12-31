@@ -302,8 +302,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
           aDoc.asDoc.put(entry.getKey, value.replaceAll("\u00d7", "x"))
         case subDoc: Document => fixDoc(subDoc)
         case subDynDoc: DynDoc => fixDoc(subDynDoc.asDoc)
-        case list: Many[Any] => list.zipWithIndex.foreach {
-          case (value: String, index: Int) => list.set(index, value.replaceAll("\u00d7", "x").asInstanceOf[Any])
+        case list: Many[_] => list.zipWithIndex.foreach {
+          case (value: String, index: Int) => list.asInstanceOf[Many[Any]].set(index, value.replaceAll("\u00d7", "x"))
           case (subDoc: Document, _) => fixDoc(subDoc)
           case (subDynDoc: DynDoc, _) => fixDoc(subDynDoc.asDoc)
           case _ =>

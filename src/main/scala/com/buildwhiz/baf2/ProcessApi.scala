@@ -247,17 +247,17 @@ object ProcessApi {
       if (nodeEntityDoc.ok[Int] == 1) {
         val calendar = Calendar.getInstance()
         calendar.setTimeInMillis(scheduleMs)
-        val runNext: Long = schedule.frequency[String] match {
-          case "Quarter-Hourly" => calendar.add(Calendar.MINUTE, 15); calendar.getTimeInMillis
-          case "Half-Hourly" => calendar.add(Calendar.MINUTE, 30); calendar.getTimeInMillis
-          case "Hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
-          case "Twice-Daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
-          case "Daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
-          case "Weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
-          case "Monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
-          case "Quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
-          case "Half-Yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
-          case "Yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
+        val runNext: Long = schedule.frequency[String].toLowerCase match {
+          case "quarter-hourly" => calendar.add(Calendar.MINUTE, 15); calendar.getTimeInMillis
+          case "half-hourly" => calendar.add(Calendar.MINUTE, 30); calendar.getTimeInMillis
+          case "hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
+          case "twice-daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
+          case "daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
+          case "weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
+          case "monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
+          case "quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
+          case "half-yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
+          case "yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
         }
         BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
             Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,

@@ -6,6 +6,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
+import org.bson.Document
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
@@ -25,10 +26,13 @@ class ProcessDelete extends HttpServlet with HttpUtils {
       BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
       val parameters = getParameterMap(request)
       val processOid = new ObjectId(parameters("process_id"))
+      response.setContentType("application/json")
       processDelete(processOid) match {
         case Right(msg) =>
+          response.getWriter.print(successJson(message=msg))
           BWLogger.audit(getClass.getName, request.getMethod, msg, request)
         case Left(msg) =>
+          response.getWriter.print(new Document("ok", 0).append("message", msg).toJson)
           BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $msg", request)
       }
     } catch {

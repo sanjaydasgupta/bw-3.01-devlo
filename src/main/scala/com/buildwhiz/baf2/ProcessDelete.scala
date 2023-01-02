@@ -15,7 +15,7 @@ class ProcessDelete extends HttpServlet with HttpUtils {
     try {
       val processOid = new ObjectId(parameters("process_id"))
       val theProcess: DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
-      ProcessApi.delete(theProcess, request)
+      ProcessApi.delete(theProcess)
       response.setStatus(HttpServletResponse.SC_OK)
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

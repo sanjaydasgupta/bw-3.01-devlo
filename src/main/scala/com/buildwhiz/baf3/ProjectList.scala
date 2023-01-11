@@ -35,8 +35,9 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
       val projects = ProjectList.getList(userOid, scope = scope, optCustomerOid = optCustomerOid, request = request)
       val projectsInfo: Many[Document] = projects.map(project => projectInfo(project, user, request)).asJava
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
+      val hostName = getHostName(request)
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
-          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), starting = true))
+          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), hostName, starting = true))
       if (isPageDisplayRequest) {
         uiContextSelectedManaged(request, Some((false, false)))
       }

@@ -227,12 +227,13 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
     val estimatedDatesExist = timestamps.has("date_start_estimated") && timestamps.has("date_end_estimated")
     val displayStartButton = editable && estimatedDatesExist &&
         (phase.get[Boolean]("started") match {case Some(sv) => !sv; case None => true})
+    val hostName = getHostName(request)
     val phaseDoc = new Document("name", name).append("description", description).append("status", status).
         append("display_status", displayStatus).append("managers", phaseManagers).append("goals", goals).
         append("deliverable_info", deliverableInfo).append("display_edit_buttons", editable).
         append("display_start_button", displayStartButton).append("counters", counters).
         append("task_info", taskInformation(deliverables, phase, request)).append("bpmn_name", bpmnName).
-        append("menu_items", displayedMenuItems(userIsAdmin, PhaseApi.canManage(user._id[ObjectId], phase)))
+        append("menu_items", displayedMenuItems(userIsAdmin, hostName, PhaseApi.canManage(user._id[ObjectId], phase)))
     phaseDatesAndDurations(phase, editable, rawDisplayStatus, request).foreach(pair => phaseDoc.append(pair._1, pair._2))
     phaseDoc.append("kpis", phaseKpis(phase))
     phaseDoc.toJson

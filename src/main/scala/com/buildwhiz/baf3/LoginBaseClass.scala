@@ -14,12 +14,13 @@ import javax.servlet.http.{Cookie, HttpServlet, HttpServletRequest, HttpServletR
 
 abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  protected def cookieSessionSet(userNameEmail: String, person: Document, request: HttpServletRequest,
+  protected def cookieSessionSet(userNameEmail: String, person: Document, hostName: String, request: HttpServletRequest,
         response: HttpServletResponse): Unit = {
     val session = request.getSession
     Entry.sessionCache.put(session.getId, session)
     session.setAttribute("bw-user", person)
     session.setMaxInactiveInterval(0)
+    session.setAttribute("host-name", hostName)
     val cookie = new Cookie("UserNameEmail", userNameEmail)
     cookie.setHttpOnly(false)
     cookie.setMaxAge(30 * 24 * 60 * 60)
@@ -119,9 +120,10 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
                 case _ => new Document()
               }
               personRecord.put("single_project_indicator", singleProjectIndicator)
-              cookieSessionSet(email, personRecord, request, response)
+              val hostName = getHostName(request)
+              cookieSessionSet(email, personRecord, hostName, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
-              personRecord.put("menu_items", displayedMenuItems(personIsAdmin, starting = true))
+              personRecord.put("menu_items", displayedMenuItems(personIsAdmin, hostName, starting = true))
               if (!personRecord.containsKey("document_filter_labels"))
                 personRecord.put("document_filter_labels", Seq.empty[String])
               if (!personRecord.containsKey("selected_project_id")) {

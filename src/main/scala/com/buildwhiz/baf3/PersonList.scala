@@ -31,9 +31,10 @@ class PersonList extends HttpServlet with HttpUtils {
       }).sortBy(p => p.getString("name")).asJava
       val user: DynDoc = getPersona(request)
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+      val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
-        case None => displayedMenuItems(isAdmin, starting = true)
-        case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
+        case None => displayedMenuItems(isAdmin, hostName, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
       }
       val result = new Document("person_list", personDocuments).append("menu_items", menuItems)
       response.getWriter.print(result.toJson)

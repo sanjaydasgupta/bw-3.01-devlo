@@ -110,9 +110,10 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
           case _ => allOrganizations
         }
       val partnerDetails: Many[Document] = partners.sortBy(_.name[String]).map(orgDynDocToDocument).distinct.asJava
+      val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
-        case None => displayedMenuItems(isAdmin, starting = true)
-        case Some((selected, managed)) => displayedMenuItems(isAdmin, managed, !selected)
+        case None => displayedMenuItems(isAdmin, hostName, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
       }
       val result = new Document("partner_list", partnerDetails).append("can_add_partner", isAdmin).
           append("menu_items", menuItems)

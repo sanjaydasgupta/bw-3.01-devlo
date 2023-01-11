@@ -31,6 +31,8 @@ trait HttpUtils {
     }
   }
 
+  def getHostName(request: HttpServletRequest): String = request.getRequestURL.toString.split("/+")(1)
+
   def getSessionAlternatives(request: HttpServletRequest): HttpSession = {
     getParameterMap(request).get("JSESSIONID") match {
       case Some(sessionId) => Entry.sessionCache.getOrElse(sessionId, request.getSession)

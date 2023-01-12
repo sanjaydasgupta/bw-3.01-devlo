@@ -204,8 +204,9 @@ package object baf3 {
 
   def displayedMenuItems(userIsAdmin: Boolean, hostName: String, userIsManager: Boolean = false,
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
-    val menuItemsList0 = if (hostName == "www.550of.com") {
-      menuItemsList.filter(_.getString("navLabel").matches("Home|Issues|Calendar|Reports"))
+    val issuesSites = Seq("www.550of.com", "issues.430forest.com", "test.buildwhiz.com")
+    val menuItemsList0 = if (issuesSites.contains(hostName)) {
+      menuItemsList.filter(_.getString("navLabel").matches("Issues|Calendar|Reports"))
     } else {
       menuItemsList
     }
@@ -214,7 +215,7 @@ package object baf3 {
     } else {
       menuItemsList0.filterNot(_.getString("navLabel") == "Home")
     }
-    val menuItemsList2 = if (starting) {
+    val menuItemsList2 = if (starting && !issuesSites.contains(hostName)) {
       menuItemsList1.filter(_.getString("access").contains("I"))
     } else {
       menuItemsList1

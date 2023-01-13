@@ -57,8 +57,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
   private val oidRegex = """[{]"[$]oid": ("[0-9a-f]{24}")[}]"""
   case class FldSpec(name: String, asString: Any => String)
 
-  private def projectsData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val projects: Seq[DynDoc] = BWMongoDB3.projects.find(query)
+  private def projectsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val projects: Seq[DynDoc] = BWMongoDB3.projects.aggregate(query)
     if (json) {
       val jsons = projects.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -76,8 +76,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def phasesData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val phases: Seq[DynDoc] = BWMongoDB3.phases.find(query)
+  private def phasesData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val phases: Seq[DynDoc] = BWMongoDB3.phases.aggregate(query)
     if (json) {
       val jsons = phases.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -102,8 +102,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def processesData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val processes: Seq[DynDoc] = BWMongoDB3.processes.find(query)
+  private def processesData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val processes: Seq[DynDoc] = BWMongoDB3.processes.aggregate(query)
     if (json) {
       val jsons = processes.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -122,8 +122,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def personsData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val persons: Seq[DynDoc] = BWMongoDB3.persons.find(query)
+  private def personsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val persons: Seq[DynDoc] = BWMongoDB3.persons.aggregate(query)
     if (json) {
       val jsons = persons.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -144,8 +144,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def organizationsData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val organizations: Seq[DynDoc] = BWMongoDB3.organizations.find(query)
+  private def organizationsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val organizations: Seq[DynDoc] = BWMongoDB3.organizations.aggregate(query)
     if (json) {
       val jsons = organizations.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -166,8 +166,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def teamsData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val teams: Seq[DynDoc] = BWMongoDB3.teams.find(query)
+  private def teamsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val teams: Seq[DynDoc] = BWMongoDB3.teams.aggregate(query)
     if (json) {
       val jsons = teams.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -195,8 +195,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def tasksData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val tasks: Seq[DynDoc] = BWMongoDB3.tasks.find(query)
+  private def tasksData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val tasks: Seq[DynDoc] = BWMongoDB3.tasks.aggregate(query)
     for (aTask <- tasks) {
       for (entry <- aTask.asDoc.entrySet().asScala) {
         entry.getValue match {
@@ -227,8 +227,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def deliverablesData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(query)
+  private def deliverablesData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.aggregate(query)
     if (json) {
       val jsons = deliverables.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -268,8 +268,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def constraintsData(writer: PrintWriter, json: Boolean, query: Document = new Document()): Unit = {
-    val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find(query)
+  private def constraintsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val constraints: Seq[DynDoc] = BWMongoDB3.constraints.aggregate(query)
     if (json) {
       val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
       writer.print(jsons)
@@ -289,8 +289,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def traceLogData(writer: PrintWriter, query: Document = new Document()): Unit = {
-    val constraints: Seq[DynDoc] = BWMongoDB3.trace_log.find(query)
+  private def traceLogData(writer: PrintWriter, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val constraints: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(query)
     val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
     writer.print(jsons)
   }
@@ -313,8 +313,8 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
-  private def documentMasterData(writer: PrintWriter, query: Document = new Document()): Unit = {
-    val docs: Seq[DynDoc] = BWMongoDB3.document_master.find(query)
+  private def documentMasterData(writer: PrintWriter, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val docs: Seq[DynDoc] = BWMongoDB3.document_master.aggregate(query)
     for (aDoc <- docs) {
       fixDoc(aDoc.asDoc)
     }
@@ -338,30 +338,41 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.print("</body></html>")
   }
 
-  private def q(oq: Option[String]): Document = oq match {
-    case Some(qry) => Document.parse(qry)
-    case None => new Document()
+  private def aggregationSpecification(key: String): (String, Many[Document]) = {
+    val aggSpecDoc = Document.parse(key)
+    val entries = aggSpecDoc.entrySet().asScala
+    if (entries.size == 1) {
+      val collectionName = entries.head.getKey
+      val aggregation = entries.head.getValue.asInstanceOf[Many[Document]]
+      (collectionName, aggregation)
+    } else {
+      throw new IllegalArgumentException(s"Bad key (need '{coll-name: agg-pipeline}'): '$key'")
+    }
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     val parameterMap = getParameterMap(request)
     val writer = response.getWriter
     response.setContentType("text/plain")
-    (parameterMap.get("key"), parameterMap.get("query")) match {
-      case (None, _) =>
+    parameterMap.get("key") match {
+      case None =>
         reportData(response)
-      case (Some("projects"), optQuery) => projectsData(writer, json = true, q(optQuery))
-      case (Some("phases"), optQuery) => phasesData(writer, json = true, q(optQuery))
-      case (Some("processes"), optQuery) => processesData(writer, json = true, q(optQuery))
-      case (Some("organizations"), optQuery) => organizationsData(writer, json = true, q(optQuery))
-      case (Some("persons"), optQuery) => personsData(writer, json = true, q(optQuery))
-      case (Some("teams"), optQuery) => teamsData(writer, json = true, q(optQuery))
-      case (Some("tasks"), optQuery) => tasksData(writer, json = true, q(optQuery))
-      case (Some("deliverables"), optQuery) => deliverablesData(writer, json = true, q(optQuery))
-      case (Some("constraints"), optQuery) => constraintsData(writer, json = true, q(optQuery))
-      case (Some("trace_log"), optQuery) => traceLogData(writer, q(optQuery))
-      case (Some("document_master"), optQuery) => documentMasterData(writer, q(optQuery))
-      case (Some(x), _) => throw new IllegalArgumentException(s"Unsupported collection '$x'")
+      case Some(key) =>
+        val (collectionName, aggregationPipeline) = aggregationSpecification(key)
+        collectionName match {
+          case "projects" => projectsData(writer, json = true, aggregationPipeline)
+          case "organizations" => organizationsData(writer, json = true, aggregationPipeline)
+          case "phases" => phasesData(writer, json = true, aggregationPipeline)
+          case "processes" => processesData(writer, json = true, aggregationPipeline)
+          case "persons" => personsData(writer, json = true, aggregationPipeline)
+          case "teams" => teamsData(writer, json = true, aggregationPipeline)
+          case "tasks" => tasksData(writer, json = true, aggregationPipeline)
+          case "deliverables" => deliverablesData(writer, json = true, aggregationPipeline)
+          case "constraints" => constraintsData(writer, json = true, aggregationPipeline)
+          case "trace_log" => traceLogData(writer, aggregationPipeline)
+          case "document_master" => documentMasterData(writer, aggregationPipeline)
+          case _ => throw new IllegalArgumentException(s"Unsupported collection '$collectionName'")
+        }
     }
     writer.flush()
   }

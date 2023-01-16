@@ -1,7 +1,10 @@
 package com.buildwhiz
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import org.bson.Document
+import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
+import com.buildwhiz.infra.BWMongoDB3._
 
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
@@ -202,10 +205,36 @@ package object baf3 {
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
   )
 
+  private val issuesSitesInfo: Seq[(String, String)] = Seq(
+    ("issues.430forest.com", "430 Forest"),
+    ("test.buildwhiz.com", "Multiple-Processes-Trial")
+  )
+
+  def landingPageInfo(hostName: String): Document = {
+    issuesSitesInfo.find(_._1 == hostName).map(_._2) match {
+      case None =>
+        Map("name" -> "Home", "params" -> Map())
+      case Some(projectName) =>
+        BWMongoDB3.projects.find(Map("name" -> projectName)).headOption match {
+          case Some(project) =>
+            val phaseOids = project.phase_ids[Many[ObjectId]]
+            BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids), "name" -> "Operations")).headOption match {
+              case Some(opsPhase) =>
+                Map("name" -> "Issues", "params" -> Map("project_name" -> projectName,
+                  "project_id" -> project._id[ObjectId], "phase_id" -> opsPhase._id[ObjectId]))
+              case None =>
+                throw new IllegalAccessException(s"Not found phase 'Operations' in project '$projectName'")
+            }
+          case None =>
+            throw new IllegalAccessException(s"Not found project '$projectName'")
+        }
+    }
+  }
+
   def displayedMenuItems(userIsAdmin: Boolean, hostName: String, userIsManager: Boolean = false,
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
-    val issuesSites = Seq("www.550of.com", "issues.430forest.com", "test.buildwhiz.com")
-    val menuItemsList0 = if (issuesSites.contains(hostName)) {
+    val issuesHosts = issuesSitesInfo.map(_._1)
+    val menuItemsList0 = if (issuesHosts.contains(hostName)) {
       menuItemsList.filter(_.getString("navLabel").matches("Issues|Calendar|Reports"))
     } else {
       menuItemsList
@@ -215,7 +244,7 @@ package object baf3 {
     } else {
       menuItemsList0.filterNot(_.getString("navLabel") == "Home")
     }
-    val menuItemsList2 = if (starting && !issuesSites.contains(hostName)) {
+    val menuItemsList2 = if (starting && !issuesHosts.contains(hostName)) {
       menuItemsList1.filter(_.getString("access").contains("I"))
     } else {
       menuItemsList1

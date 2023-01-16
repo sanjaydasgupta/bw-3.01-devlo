@@ -61,7 +61,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 
   def validateIdToken(idTokenString: String, emailParameter: String): Boolean
 
-  protected def dates(request: HttpServletRequest): Map[String, String] = {
+  private def dates(request: HttpServletRequest): Map[String, String] = {
     new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
       case Some(tomcatDirectory) =>
         tomcatDirectory.listFiles.find(_.getName.startsWith("webapps")) match {
@@ -107,8 +107,8 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
         val email = parameters.email[String]
         val idTokenOk = validateIdToken(idToken, email)
         if (idTokenOk) {
-          val person: Option[Document] =
-            BWMongoDB3.persons.find(Map("emails" -> Map("type" -> "work", "email" -> email))).headOption.map(_.asDoc)
+          val person: Option[Document] = BWMongoDB3.persons.find(Map("enabled" -> true,
+              "emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption.map(_.asDoc)
           val result = person match {
             case None =>
               BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR unknown work-email: $email", request)
@@ -142,7 +142,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
-                 dates(request))
+                  Map("landing_page" -> landingPageInfo(hostName)) ++ dates(request))
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
               recordLoginTime(personRecord)

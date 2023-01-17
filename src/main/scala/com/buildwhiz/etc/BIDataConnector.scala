@@ -377,4 +377,26 @@ class BIDataConnector extends HttpServlet with RestUtils {
     writer.flush()
   }
 
+  override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val writer = response.getWriter
+    response.setContentType("text/plain")
+    val postData = getStreamData(request)
+    val (collectionName, aggregationPipeline) = aggregationSpecification(postData)
+    collectionName match {
+      case "projects" => projectsData(writer, json = true, aggregationPipeline)
+      case "organizations" => organizationsData(writer, json = true, aggregationPipeline)
+      case "phases" => phasesData(writer, json = true, aggregationPipeline)
+      case "processes" => processesData(writer, json = true, aggregationPipeline)
+      case "persons" => personsData(writer, json = true, aggregationPipeline)
+      case "teams" => teamsData(writer, json = true, aggregationPipeline)
+      case "tasks" => tasksData(writer, json = true, aggregationPipeline)
+      case "deliverables" => deliverablesData(writer, json = true, aggregationPipeline)
+      case "constraints" => constraintsData(writer, json = true, aggregationPipeline)
+      case "trace_log" => traceLogData(writer, aggregationPipeline)
+      case "document_master" => documentMasterData(writer, aggregationPipeline)
+      case _ => throw new IllegalArgumentException(s"Unsupported collection '$collectionName'")
+    }
+    writer.flush()
+  }
+
 }

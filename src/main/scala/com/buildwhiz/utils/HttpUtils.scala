@@ -8,6 +8,7 @@ import com.buildwhiz.infra.DynDoc._
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import java.net.URLEncoder
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.io.Source
@@ -71,6 +72,8 @@ trait HttpUtils {
     val source = Source.fromInputStream(request.getInputStream)
     source.getLines().mkString("\n")
   }
+
+  def urlEncode(s: String): String = URLEncoder.encode(s, "utf8")
 
   def bson2json(document: Document): String = {
     def obj2str(obj: Any): String = obj match {

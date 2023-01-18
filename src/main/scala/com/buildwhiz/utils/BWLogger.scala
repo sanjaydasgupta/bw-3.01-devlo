@@ -87,6 +87,8 @@ object BWLogger extends HttpUtils {
       parameters("BW-Session-ID") = "None"
     } else {
       parameters("BW-Session-ID") = request.getSession.getId
+      val sessionCode = "%x".format(request.getSession.getId.hashCode)
+      parameters("BW-Session-Code") = urlEncode(sessionCode)
     }
     if (isLogin) {
       parameters("BW-X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
@@ -94,7 +96,7 @@ object BWLogger extends HttpUtils {
     }
     val paramsWithName = getUser(request) match {
       case null => parameters
-      case user => parameters ++ Map("u$nm" -> userNameAndId(request))
+      case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user))
     }
     val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
     val query = request.getQueryString

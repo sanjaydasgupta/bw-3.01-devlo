@@ -12,14 +12,11 @@ import org.apache.http.impl.client.HttpClients
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import java.net.URLEncoder
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.jdk.CollectionConverters._
 import scala.io.Source
 
 object NodeConnector extends HttpServlet with HttpUtils {
-
-  private def enc(s: String): String = URLEncoder.encode(s, "utf8")
 
   private def nodeUri(request: HttpServletRequest): String = {
     if (request.getParameter("uid") != null)
@@ -28,14 +25,14 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val loggedInUser: DynDoc = getUser(request)
     val loggedInUserName = PersonApi.fullName(loggedInUser)
     val sessionCode = "%x".format(request.getSession.getId.hashCode)
-    val userParam = s"uid=${enc(user._id[ObjectId].toString)}" + s"&u$$nm=${enc(loggedInUserName)}" +
-        s"""&${enc("BW-Session-Code")}=${enc(sessionCode)}"""
+    val userParam = s"uid=${urlEncode(user._id[ObjectId].toString)}" + s"&u$$nm=${urlEncode(loggedInUserName)}" +
+        s"""&${urlEncode("BW-Session-Code")}=${urlEncode(sessionCode)}"""
     val urlParts = request.getRequestURL.toString.split("/")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)
     val serviceNameWithParameters = request.getParameterMap.asScala.filterNot(_._1 == "JSESSIONID") match {
       case params if params.nonEmpty =>
-        serviceName + params.map(kv => s"${enc(kv._1)}=${enc(kv._2.head)}").mkString("?", "&", "&") + userParam
+        serviceName + params.map(kv => s"${urlEncode(kv._1)}=${urlEncode(kv._2.head)}").mkString("?", "&", "&") + userParam
       case _ => serviceName + "?" + userParam
     }
     s"http://localhost:3000/$serviceNameWithParameters"

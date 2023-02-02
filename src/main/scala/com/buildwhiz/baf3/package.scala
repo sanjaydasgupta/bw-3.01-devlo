@@ -1,5 +1,6 @@
 package com.buildwhiz
 
+import com.buildwhiz.baf2.ProjectApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -210,10 +211,16 @@ package object baf3 {
     ("test.buildwhiz.com", "Multiple-Processes-Trial")
   )
 
-  def landingPageInfo(hostName: String): Document = {
+  def landingPageInfo(hostName: String, user: DynDoc): Document = {
     issuesSitesInfo.find(_._1 == hostName).map(_._2) match {
       case None =>
-        Map("name" -> "Home", "params" -> Map())
+        ProjectApi.projectsByUser30(user._id[ObjectId]) match {
+          case Seq(project) =>
+            Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
+              "project_id" -> project._id[ObjectId]))
+          case _ =>
+            Map("name" -> "Home", "params" -> Map())
+          }
       case Some(projectName) =>
         BWMongoDB3.projects.find(Map("name" -> projectName)).headOption match {
           case Some(project) =>

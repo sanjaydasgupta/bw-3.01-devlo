@@ -114,12 +114,6 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR unknown work-email: $email", request)
               """{"_id": "", "first_name": "", "last_name": ""}"""
             case Some(personRecord) =>
-              val singleProjectIndicator = ProjectApi.projectsByUser30(personRecord.getObjectId("_id")) match {
-                case Seq(project) =>
-                  new Document("project_id", project._id[ObjectId].toString).append("project_name", project.name[String])
-                case _ => new Document()
-              }
-              personRecord.put("single_project_indicator", singleProjectIndicator)
               val hostName = getHostName(request)
               cookieSessionSet(email, personRecord, hostName, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
@@ -140,13 +134,14 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
                 "selected_project_id", "selected_phase_id", "single_project_indicator").
                 filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
+              val landingInfo = landingPageInfo(hostName, personRecord)
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
-                  Map("landing_page" -> landingPageInfo(hostName)) ++ dates(request))
+                  Map("landing_page" -> landingInfo) ++ dates(request))
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
               recordLoginTime(personRecord)
-              val message = s"Login OK ($email). SPI=${singleProjectIndicator.toJson}"
+              val message = s"Login OK ($email). Landing-Page: $landingInfo"
               BWLogger.audit(getClass.getName, request.getMethod, message, request)
               bson2json(resultPerson)
           }

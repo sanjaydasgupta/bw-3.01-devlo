@@ -7,7 +7,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 
 class GLogin extends LoginBaseClass {
 
-  override def validateIdToken(idTokenString: String, emailParameter: String): Boolean = {
+  override def validateIdToken(idTokenString: String, optEmail: Option[String]): (Boolean, String) = {
     val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
     val jsonFactory = JacksonFactory.getDefaultInstance
     val clientId = "318594985671-gfojh2kiendld330k65eajmjdifudpct.apps.googleusercontent.com"
@@ -18,9 +18,9 @@ class GLogin extends LoginBaseClass {
       val payload = idToken.getPayload
       val email = payload.getEmail
       val emailVerified: Boolean = payload.getEmailVerified
-      emailVerified && (email == emailParameter)
+      (emailVerified, email)
     } else {
-      false
+      (false, "")
     }
   }
 

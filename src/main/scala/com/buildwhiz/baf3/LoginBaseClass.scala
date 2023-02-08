@@ -59,7 +59,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
     }
   }
 
-  def validateIdToken(idTokenString: String, emailParameter: String): Boolean
+  def validateIdToken(idTokenString: String, optEmail: Option[String] = None): (Boolean, String)
 
   private def dates(request: HttpServletRequest): Map[String, String] = {
     new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
@@ -102,10 +102,8 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
       val postData = getStreamData(request)
       //BWLogger.log(getClass.getName, request.getMethod, s"POST-data: '$postData'", request, isLogin = true)
       val parameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
-      if (parameters.has("idtoken") && parameters.has("email")) {
-        val idToken = parameters.idtoken[String]
-        val email = parameters.email[String]
-        val idTokenOk = validateIdToken(idToken, email)
+      if (parameters.has("idtoken")) {
+        val (idTokenOk, email) = validateIdToken(parameters.idtoken[String], parameters.get[String]("email"))
         if (idTokenOk) {
           val person: Option[Document] = BWMongoDB3.persons.find(Map("enabled" -> true,
               "emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption.map(_.asDoc)

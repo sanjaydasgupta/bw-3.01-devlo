@@ -26,6 +26,7 @@ class Entry extends HttpServlet with HttpUtils {
       case ("Logout", "baf2") => true
       case ("GLogin", "baf3") => true
       case ("MSLogin", "baf3") => true
+      case ("LoginWithSlack", "baf3") => true
       case ("Logout", "baf3") => true
       case ("SlackSlashCommand", "slack") => true
       case ("SlackEventCallback", "slack") => true

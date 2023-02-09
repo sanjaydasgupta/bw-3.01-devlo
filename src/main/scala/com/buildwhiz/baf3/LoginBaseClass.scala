@@ -59,7 +59,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
     }
   }
 
-  def validateIdToken(idTokenString: String, optEmail: Option[String] = None): (Boolean, String)
+  def validateIdToken(idTokenString: String, optEmail: Option[String] = None): (Boolean, String, DynDoc => Boolean)
 
   private def dates(request: HttpServletRequest): Map[String, String] = {
     new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
@@ -103,15 +103,12 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
       //BWLogger.log(getClass.getName, request.getMethod, s"POST-data: '$postData'", request, isLogin = true)
       val parameters: DynDoc = if (postData.nonEmpty) Document.parse(postData) else new Document()
       if (parameters.has("idtoken")) {
-        val (idTokenOk, email) = validateIdToken(parameters.idtoken[String], parameters.get[String]("email"))
+        val (idTokenOk, email, validator) = validateIdToken(parameters.idtoken[String], parameters.get[String]("email"))
         if (idTokenOk) {
           val person: Option[Document] = BWMongoDB3.persons.find(Map("enabled" -> true,
               "emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption.map(_.asDoc)
           val result = person match {
-            case None =>
-              BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR unknown work-email: $email", request)
-              """{"_id": "", "first_name": "", "last_name": ""}"""
-            case Some(personRecord) =>
+            case Some(personRecord) if validator(personRecord) =>
               val hostName = getHostName(request)
               cookieSessionSet(email, personRecord, hostName, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
@@ -142,6 +139,9 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               val message = s"Login OK ($email). Landing-Page: $landingInfo"
               BWLogger.audit(getClass.getName, request.getMethod, message, request)
               bson2json(resultPerson)
+            case _ =>
+              BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR unknown work-email: $email", request)
+              """{"_id": "", "first_name": "", "last_name": ""}"""
           }
           response.getWriter.print(result)
         } else {

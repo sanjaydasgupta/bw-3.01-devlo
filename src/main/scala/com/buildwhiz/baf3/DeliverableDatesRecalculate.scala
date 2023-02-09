@@ -28,8 +28,13 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     dateString(ms, timezone)
   }
 
-  private def dName(deliverable: DynDoc) =
-    s"${deliverable.name[String]}[${deliverable.takt_unit_no[Int]}] (${deliverable._id[ObjectId]})"
+  private def dName(deliverable: DynDoc) = {
+    val tun = deliverable.get[Int]("takt_unit_no") match {
+      case None => -1
+      case Some(t) => t
+    }
+    s"${deliverable.name[String]}[$tun] (${deliverable._id[ObjectId]})"
+  }
 
   private def startDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
@@ -226,53 +231,53 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         (phase, process)
       case _ => throw new IllegalArgumentException(s"Incomplete arguments")
     }
-    if (theProcess.`type`[String] != "Template") {
-      val timezone = PhaseApi.timeZone(thePhase)
-      val activities = ProcessApi.allActivities(Right(theProcess))
-      val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
-      val deliverableOids = deliverables.map(_._id[ObjectId])
-      val deliverablesByOid: Map[ObjectId, DynDoc] = deliverableOids.zip(deliverables).toMap
-      val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
-      val constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]] = constraints.groupBy(_.owner_deliverable_id[ObjectId])
-      val procurementsByOid: Map[ObjectId, DynDoc] = {
-        val procurements: Seq[DynDoc] =
-          BWMongoDB3.procurements.find(Map("activity_id" -> Map($in -> activities.map(_._id[ObjectId]))))
-        procurements.map(_._id[ObjectId]).zip(procurements).toMap
-      }
-      val keyDataByOid: Map[ObjectId, DynDoc] = {
-        val project = PhaseApi.parentProject(thePhase._id[ObjectId])
-        val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
-        keyData.map(_._id[ObjectId]).zip(keyData).toMap
-      }
-      val timestamps: DynDoc = (theProcess.get[Document]("timestamps"), thePhase.get[Document]("timestamps")) match {
-        case (Some(ts), _) if ts.has("date_start_estimated") => ts
-        case (None, Some(ts)) if ts.has("date_start_estimated") => ts
-        case _ =>
-          BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)
-          new Document()
-      }
-      if (verbose) {
-        respond("<html><br/><tt>")
-        timestamps.get[Long]("date_start_estimated") match {
-          case Some(dse) => respond(s"Phase 'date_start_estimated': ${msToDate(dse, timezone)}<br/>")
-          case None => respond("WARNING: project has no \'date_start_estimated\'")
-        }
-        respond(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
-        respond(s"Procurements: ${procurementsByOid.size}, KeyData: ${keyDataByOid.size} (project)<br/>")
-        val (withDate, withoutDate) = deliverables.partition(_.has("date_end_estimated"))
-        respond(s"With 'date_end_estimated': ${withDate.length}, Without 'date_end_estimated': ${withoutDate.length}<br/>")
-        respond("<br/>")
-      }
-      timestamps.get[Long]("date_start_estimated") match {
-        case Some(phaseStartDate) =>
-          val globals = Globals(timezone, phaseStartDate, activities, deliverables, constraints, deliverablesByOid,
-            constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
-          traverseAllTrees(verbose, globals, request)
-        case None =>
-          BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)
-      }
-      response.setStatus(HttpServletResponse.SC_OK)
+    val timezone = PhaseApi.timeZone(thePhase)
+    val activities = ProcessApi.allActivities(Right(theProcess))
+    val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId]))
+    val deliverableOids = deliverables.map(_._id[ObjectId])
+    val deliverablesByOid: Map[ObjectId, DynDoc] = deliverableOids.zip(deliverables).toMap
+    val constraints: Seq[DynDoc] = BWMongoDB3.constraints.find(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
+    val constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]] = constraints.groupBy(_.owner_deliverable_id[ObjectId])
+    val procurementsByOid: Map[ObjectId, DynDoc] = {
+      val procurements: Seq[DynDoc] =
+        BWMongoDB3.procurements.find(Map("activity_id" -> Map($in -> activities.map(_._id[ObjectId]))))
+      procurements.map(_._id[ObjectId]).zip(procurements).toMap
     }
+    val keyDataByOid: Map[ObjectId, DynDoc] = {
+      val project = PhaseApi.parentProject(thePhase._id[ObjectId])
+      val keyData: Seq[DynDoc] = BWMongoDB3.key_data.find(Map("project_id" -> project._id[ObjectId]))
+      keyData.map(_._id[ObjectId]).zip(keyData).toMap
+    }
+    val optStartDate: Option[Long] = if (theProcess.`type`[String] == "Template") {
+      Some(System.currentTimeMillis)
+    } else {
+      (theProcess.get[Document]("timestamps"), thePhase.get[Document]("timestamps")) match {
+        case (Some(ts), _) if ts.has("date_start_estimated") => Some(ts.y.date_start_estimated[Long])
+        case (None, Some(ts)) if ts.has("date_start_estimated") => Some(ts.y.date_start_estimated[Long])
+        case _ => None
+      }
+    }
+    if (verbose) {
+      respond("<html><br/><tt>")
+      optStartDate match {
+        case Some(dse) => respond(s"Phase 'date_start_estimated': ${msToDate(dse, timezone)}<br/>")
+        case None => respond("WARNING: project has no \'date_start_estimated\'")
+      }
+      respond(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
+      respond(s"Procurements: ${procurementsByOid.size}, KeyData: ${keyDataByOid.size} (project)<br/>")
+      val (withDate, withoutDate) = deliverables.partition(_.has("date_end_estimated"))
+      respond(s"With 'date_end_estimated': ${withDate.length}, Without 'date_end_estimated': ${withoutDate.length}<br/>")
+      respond("<br/>")
+    }
+    optStartDate match {
+      case Some(phaseStartDate) =>
+        val globals = Globals(timezone, phaseStartDate, activities, deliverables, constraints, deliverablesByOid,
+          constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
+        traverseAllTrees(verbose, globals, request)
+      case None =>
+        BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)
+    }
+    response.setStatus(HttpServletResponse.SC_OK)
     val delay = System.currentTimeMillis - t0
     if (verbose) {
       respond(s"time: $delay ms<br/>")

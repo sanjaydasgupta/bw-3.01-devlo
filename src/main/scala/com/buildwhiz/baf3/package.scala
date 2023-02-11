@@ -242,7 +242,7 @@ package object baf3 {
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
     val issuesHosts = issuesSitesInfo.map(_._1)
     val menuItemsList0 = if (issuesHosts.contains(hostName)) {
-      menuItemsList.filter(_.getString("navLabel").matches("Issues|Calendar|Reports"))
+      menuItemsList.filter(_.getString("navLabel").matches("Calendar|Issues|Partners|Reports|Teams"))
     } else {
       menuItemsList
     }

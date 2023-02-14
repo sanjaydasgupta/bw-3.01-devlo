@@ -251,9 +251,11 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     val optStartDate: Option[Long] = if (theProcess.`type`[String] == "Template") {
       Some(System.currentTimeMillis)
     } else {
-      (theProcess.get[Document]("timestamps"), thePhase.get[Document]("timestamps")) match {
-        case (Some(ts), _) if ts.has("date_start_estimated") => Some(ts.y.date_start_estimated[Long])
-        case (None, Some(ts)) if ts.has("date_start_estimated") => Some(ts.y.date_start_estimated[Long])
+      def dse(d: DynDoc): Option[Long] = d.get[Document]("timestamps").
+          flatMap(doc => doc.y.get[Long]("date_start_estimated"))
+      (dse(theProcess), dse(thePhase)) match {
+        case (procStartDate: Some[Long], _) => procStartDate
+        case (_, phaseStartDate: Some[Long]) => phaseStartDate
         case _ => None
       }
     }
@@ -261,7 +263,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       respond("<html><br/><tt>")
       optStartDate match {
         case Some(dse) => respond(s"Phase 'date_start_estimated': ${msToDate(dse, timezone)}<br/>")
-        case None => respond("WARNING: project has no \'date_start_estimated\'")
+        case None => respond("WARNING: phase/process has no \'date_start_estimated\'")
       }
       respond(s"Deliverables: ${deliverables.length}, Constraints: ${constraints.length}<br/>")
       respond(s"Procurements: ${procurementsByOid.size}, KeyData: ${keyDataByOid.size} (project)<br/>")

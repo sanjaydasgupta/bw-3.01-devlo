@@ -1,35 +1,35 @@
 package com.buildwhiz.utils
 
 import com.buildwhiz.baf2.PersonApi
-import com.sendgrid.{Content, Email, Mail, Method, Request, SendGrid}
 import org.bson.Document
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
+import sibApi.TransactionalEmailsApi
+import sibModel.{SendSmtpEmail, SendSmtpEmailReplyTo, SendSmtpEmailSender, SendSmtpEmailTo}
 
 import javax.servlet.http.HttpServletRequest
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
-import java.io.{File => javaFile, BufferedReader, FileReader}
+import java.io.{BufferedReader, FileReader, File => javaFile}
 import java.util.regex.Pattern
 
 trait MailUtils3 {
 
-  private def sendGridKey(): String = {
+  private def fetchApiKey(): String = {
     val tomcatDir = new javaFile("server").listFiles.filter(_.getName.startsWith("apache-tomcat-")).head
     val doNotTouchFolder = new javaFile(tomcatDir, "webapps/bw-3.01/WEB-INF/classes/do-not-touch")
     if (!doNotTouchFolder.exists()) {
       val message = s"No such file: '${doNotTouchFolder.getAbsolutePath}'"
-      BWLogger.log(getClass.getName, "getSendGridKey()", s"ERROR ($message)")
+      BWLogger.log(getClass.getName, "fetchApiKey()", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    val sendGridKeyFile = new javaFile(doNotTouchFolder, "sendgrid-key.txt")
-    if (!sendGridKeyFile.exists()) {
-      val message = s"No such file: '${sendGridKeyFile.getAbsolutePath}'"
-      BWLogger.log(getClass.getName, "getSendGridKey()", s"ERROR ($message)")
+    val emailApiKeyFile = new javaFile(doNotTouchFolder, "sendinblue-key.txt")
+    if (!emailApiKeyFile.exists()) {
+      val message = s"No such file: '${emailApiKeyFile.getAbsolutePath}'"
+      BWLogger.log(getClass.getName, "fetchApiKey()", s"ERROR ($message)")
       throw new IllegalArgumentException(message)
     }
-    val keyFileReader = new BufferedReader(new FileReader(sendGridKeyFile))
+    val keyFileReader = new BufferedReader(new FileReader(emailApiKeyFile))
         keyFileReader.readLine()
   }
 
@@ -40,20 +40,12 @@ trait MailUtils3 {
   }
 
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
-    BWLogger.log(getClass.getName, "sendMail", s"ENTRY", request)
+    BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-sendMail", request)
     val method = request match {
       case Some(req) => req.getMethod
-      case None => "?"
+      case None => "LOCAL"
     }
     try {
-      val fromAddress = new Email("notifications@550of.com")
-      val content = if (isHtml(body)) {
-        new Content("text/html", body.replaceAll("\n", "<br/>"))
-      } else {
-        new Content("text/plain", body)
-      }
-
-      val sendGrid = new SendGrid(sendGridKey())
       BWLogger.log(getClass.getName, method, s"Init-sendMail(${recipientOids.length} destinations)", request)
       for (userOid <- recipientOids) {
         Future {
@@ -61,23 +53,28 @@ trait MailUtils3 {
             BWLogger.log(getClass.getName, method, s"Begin-sendMail($userOid)", request)
             val user = PersonApi.personById(userOid)
             val workEmail = user.emails[Many[Document]].find(_.`type`[String] == "work").get.email[String]
-            val toAddress = new Email(workEmail)
-            val mail = new Mail(fromAddress, subject, toAddress, content)
-            val sendGridRequest = new Request()
-            sendGridRequest.setMethod(Method.POST)
-            sendGridRequest.setEndpoint("mail/send")
-            sendGridRequest.setBody(mail.build())
-            val response = sendGrid.api(sendGridRequest)
-            val statusCode = response.getStatusCode
-            val statusBody = response.getBody
-            if (Seq(200, 202).contains(statusCode)) {
-              BWLogger.log(getClass.getName, method, s"OK-sendMail($userOid)", request)
-            } else {
-              BWLogger.log(getClass.getName, method, s"Error-sendMail($statusCode-$statusBody $userOid)", request)
-            }
+            val api = new TransactionalEmailsApi()
+            api.getApiClient.setApiKey(fetchApiKey())
+            val sender = new SendSmtpEmailSender()
+            sender.setName("BuildWhiz")
+            sender.setEmail("info@buildwhiz.com")
+            val replyTo = new SendSmtpEmailReplyTo()
+            replyTo.setEmail("noreply@buildwhiz.com")
+            replyTo.setName("NoReply")
+            val to = new SendSmtpEmailTo()
+            to.setEmail(workEmail)
+            to.setName(PersonApi.fullName(user))
+            val sendSmtpEmail = new SendSmtpEmail()
+            sendSmtpEmail.setReplyTo(replyTo)
+            sendSmtpEmail.setHtmlContent(if (isHtml(body)) body else s"<html>$body</html>")
+            sendSmtpEmail.setTo(Seq(to))
+            sendSmtpEmail.setSubject(subject)
+            sendSmtpEmail.setSender(sender)
+            val response = api.sendTransacEmail(sendSmtpEmail)
+            BWLogger.log(getClass.getName, method, s"EXIT-sendMail-${response.getMessageId}", request)
           } catch {
             case t: Throwable =>
-              BWLogger.log(getClass.getName, method, s"Error-sendMail: ${t.getClass.getName}(${t.getMessage})", request)
+              BWLogger.log(getClass.getName, method, s"ERROR-sendMail: ${t.getClass.getName}(${t.getMessage})", request)
               t.printStackTrace(System.out)
           }
         }

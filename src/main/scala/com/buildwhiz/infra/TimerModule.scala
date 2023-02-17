@@ -4,7 +4,7 @@ import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 import java.io.File
 import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
@@ -14,12 +14,12 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process._
 
-object TimerModule extends HttpUtils {
+object TimerModule extends HttpUtils with MailUtils3 {
 
   private lazy val adminRecord: Option[DynDoc] =
     BWMongoDB3.persons.find(Map("first_name" -> "Sanjay", "last_name" -> "Admin")).headOption
 
-  val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
+  private val timerTickInMilliseconds: Long = 1 * 60 * 1000L // 1 minute
 
   private def issueTaskStatusUpdateReminders(ms: Long, project: DynDoc): Unit = {
     try {
@@ -123,6 +123,12 @@ object TimerModule extends HttpUtils {
     }
   }
 
+  private def reportToAdmins(): Unit = {
+    val fns = Seq("Sanjay", "Prabhas")
+    val admins: Seq[DynDoc] = BWMongoDB3.persons.find(Map("last_name" -> "Admin", "first_name" -> Map($in -> fns)))
+    sendMail(admins.map(_._id[ObjectId]), "Email ping", "Just a ping to keep email-sender busy", None)
+  }
+
   private def trimTraceLogCollection(ms: Long): Unit = {
     try {
       val millisecondsOneDayAgo = ms - 86400000L
@@ -140,6 +146,7 @@ object TimerModule extends HttpUtils {
       )
       val deleteResult = BWMongoDB3.trace_log.deleteMany(recordsToDeleteQuery)
       val deletedCount = deleteResult.getDeletedCount
+      reportToAdmins()
       BWLogger.log(getClass.getName, "LOCAL", s"trimTraceLogCollection ($deletedCount records deleted)")
     } catch {
       case t: Throwable =>

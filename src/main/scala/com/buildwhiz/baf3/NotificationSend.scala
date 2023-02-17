@@ -1,9 +1,9 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.baf2.ProjectApi
 import com.buildwhiz.infra.DynDoc
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
-import com.buildwhiz.slack.SlackApi
+import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -21,8 +21,15 @@ class NotificationSend extends HttpServlet with HttpUtils {
       val postDataObject: DynDoc = Document.parse(postDataString)
       val message = postDataObject.message[String]
       val optProjectOid = postDataObject.get[String]("project_id").map(new ObjectId(_))
+      val subject = postDataObject.get[String]("subject") match {
+        case None => optProjectOid match {
+          case Some(pOid) => s"Message from project '${ProjectApi.projectById(pOid).name[String]}'"
+          case None => "Message"
+        }
+        case Some(sub) => sub
+      }
       val userOids = postDataObject.user_ids[String].split(",").map(s => new ObjectId(s.trim))
-      NotificationSend.send(message, userOids.toSeq, optProjectOid)
+      NotificationSend.send(subject, message, userOids.toSeq, optProjectOid)
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, "EXIT", request)
@@ -35,13 +42,11 @@ class NotificationSend extends HttpServlet with HttpUtils {
   }
 }
 
-object NotificationSend {
+object NotificationSend extends MailUtils3 {
 
-  def send(message: String, userOids: Seq[ObjectId], optProjectOid: Option[ObjectId]): Unit = {
+  def send(subject: String, message: String, userOids: Seq[ObjectId], optProjectOid: Option[ObjectId]): Unit = {
     Future {
-      for (userOid <- userOids) {
-        SlackApi.sendNotification(message, Right(userOid), optProjectOid)
-      }
+      sendMail(userOids, subject, message, None)
     }
   }
 }

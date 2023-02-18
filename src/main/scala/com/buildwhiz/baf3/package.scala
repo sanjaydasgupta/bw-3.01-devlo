@@ -198,9 +198,9 @@ package object baf3 {
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/contact.svg",
       "navLabel" -> "Partners", "routeUrl" -> "/private/partners", "toolTipLabel" -> "Partners"),
-    /*Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/wand.svg",
-      "navIconActive" -> "assets/images/teenyicons/solid-white/wand.svg",
-      "navLabel" -> "Applications", "routeUrl" -> "/private/applications", "toolTipLabel" -> "Applications"),*/
+    Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
+      "navIconActive" -> "assets/images/teenyicons/solid-white/contact.svg",
+      "navLabel" -> "Tenants", "routeUrl" -> "/private/tenants", "toolTipLabel" -> "Tenants"),
     Map("access" -> "AIM", "navIcon" -> "assets/images/teenyicons/outline-white/list-layout.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/list-layout.svg",
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
@@ -242,7 +242,7 @@ package object baf3 {
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
     val issuesHosts = issuesSitesInfo.map(_._1)
     val menuItemsList0 = if (issuesHosts.contains(hostName)) {
-      menuItemsList.filter(_.getString("navLabel").matches("Calendar|Issues|Partners|Reports|Teams"))
+      menuItemsList.filter(_.getString("navLabel").matches("Calendar|Issues|Partners|Reports|Teams|Tenants"))
     } else {
       menuItemsList
     }

@@ -198,7 +198,7 @@ package object baf3 {
     Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/contact.svg",
       "navLabel" -> "Partners", "routeUrl" -> "/private/partners", "toolTipLabel" -> "Partners"),
-    Map("access" -> "*I", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
+    Map("access" -> "*", "navIcon" -> "assets/images/teenyicons/outline-white/contact.svg",
       "navIconActive" -> "assets/images/teenyicons/solid-white/contact.svg",
       "navLabel" -> "Tenants", "routeUrl" -> "/private/tenants", "toolTipLabel" -> "Tenants"),
     Map("access" -> "AIM", "navIcon" -> "assets/images/teenyicons/outline-white/list-layout.svg",

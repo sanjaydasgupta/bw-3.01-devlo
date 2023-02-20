@@ -63,14 +63,17 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
         val uri = request.getRequestURI
         val params = getParameterMap(request)
-        val selectedManaged = (uri.contains("ProjectInfo"), uri.contains("PhaseInfo"), uri.contains("Home")) match {
-          case (false, false, true) => Some(false, isAdmin)
-          case (true, _, _) =>
+        val selectedManaged = (uri.contains("ProjectInfo"), uri.contains("PhaseInfo"), uri.contains("TenantList"),
+            uri.contains("Home")) match {
+          case (false, false, false, true) => Some(false, isAdmin)
+          case (true, _, _, _) =>
             val project = ProjectApi.projectById(new ObjectId(params("project_id")))
             Some(true, isAdmin || ProjectApi.canManage(user._id[ObjectId], project))
-          case (false, true, _) =>
+          case (false, true, _, _) =>
             val phase = PhaseApi.phaseById(new ObjectId(params("phase_id")))
             Some(true, isAdmin || PhaseApi.canManage(user._id[ObjectId], phase))
+          case (false, false, true, _) =>
+            Some(true, isAdmin)
           case _ => uiContextSelectedManaged(request) match {
             case None => Some(false, isAdmin)
             case Some((selected, _)) => Some(selected, isAdmin)

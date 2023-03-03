@@ -25,11 +25,13 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val loggedInUser: DynDoc = getUser(request)
     val loggedInUserName = PersonApi.fullName(loggedInUser)
     val sessionCode = "%x".format(request.getSession.getId.hashCode)
-    val userParam = s"uid=${urlEncode(user._id[ObjectId].toString)}" + s"&u$$nm=${urlEncode(loggedInUserName)}" +
-        s"""&${urlEncode("BW-Session-Code")}=${urlEncode(sessionCode)}"""
-    val urlParts = request.getRequestURL.toString.split("/")
+    val urlParts = request.getRequestURL.toString.split("/+")
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)
+    val siteName = urlParts(1)
+    val userParam = s"uid=${urlEncode(user._id[ObjectId].toString)}" + s"&u$$nm=${urlEncode(loggedInUserName)}" +
+      s"""&${urlEncode("BW-Session-Code")}=${urlEncode(sessionCode)}""" +
+      s"""&${urlEncode("BW-Site-Name")}=${urlEncode(siteName)}"""
     val serviceNameWithParameters = request.getParameterMap.asScala.filterNot(_._1 == "JSESSIONID") match {
       case params if params.nonEmpty =>
         serviceName + params.map(kv => s"${urlEncode(kv._1)}=${urlEncode(kv._2.head)}").mkString("?", "&", "&") + userParam

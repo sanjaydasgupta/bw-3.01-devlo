@@ -9,6 +9,7 @@ import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.slack.SlackApi
+import org.bson.Document
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -124,9 +125,26 @@ object TimerModule extends HttpUtils with MailUtils3 {
   }
 
   private def reportToAdmins(): Unit = {
+    val t0 = System.currentTimeMillis() - 86400000L
+    val usersAggregator: Many[Document] = Seq(
+      new Document("$match",
+        new Document("milliseconds", new Document($gte, t0)).append("variables.u$nm", new Document($exists, true))),
+      new Document("$group", new Document("_id", "$variables.u$nm").append("count", new Document("$sum", 1))),
+      new Document("$sort", new Document("count", -1))
+    )
+    val users: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(usersAggregator)
+    val message = if (users.nonEmpty) {
+      s"""The following users were active in the past 24 hours:\n${users.map(_._id[String]).mkString(", ")}"""
+    } else {
+      "No users were active in the past 24 hours"
+    }
+    val instanceName = BWMongoDB3.instance_info.find().headOption match {
+      case Some(ii) => ii.instance[String]
+      case None => "Unknown"
+    }
     val fns = Seq("Sanjay", "Prabhas")
     val admins: Seq[DynDoc] = BWMongoDB3.persons.find(Map("last_name" -> "Admin", "first_name" -> Map($in -> fns)))
-    sendMail(admins.map(_._id[ObjectId]), "Email ping", "Just a ping to keep email-sender busy", None)
+    sendMail(admins.map(_._id[ObjectId]), s"Report from '$instanceName'", message, None)
   }
 
   private def trimTraceLogCollection(ms: Long): Unit = {

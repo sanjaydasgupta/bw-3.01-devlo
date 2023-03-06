@@ -28,8 +28,19 @@ object BWLogger extends HttpUtils {
       className.substring(classNamePrefix.length)
     else
       className
-    val record: Map[String, Any] = Map("milliseconds" -> System.currentTimeMillis(), "process_id" -> shortClassName,
-      "activity_name" -> methodName, "event_name" -> eventName, "variables" -> javaMap)
+    val hostname = if (javaMap.containsKey("BW-Site-Name")) {
+      javaMap.remove("BW-Site-Name")
+    } else {
+      "unknown"
+    }
+    val clientIp = if (javaMap.containsKey("BW-Client-Ip")) {
+      javaMap.remove("BW-Client-Ip")
+    } else {
+      "unknown"
+    }
+    val record: Map[String, Any] = Map("milliseconds" -> System.currentTimeMillis(), "service_name" -> shortClassName,
+      "method" -> methodName, "event_info" -> eventName, "hostname" -> hostname, "ip" -> clientIp,
+      "variables" -> javaMap)
     traceLogCollection.insertOne(record)
   }
 
@@ -94,11 +105,14 @@ object BWLogger extends HttpUtils {
       parameters("BW-X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
       parameters("BW-User-Agent") = request.getHeader("User-Agent")
     }
+    val urlParts = request.getRequestURL.toString.split("/+")
+    val siteName = urlParts(1)
     val paramsWithName = getUser(request) match {
       case null => parameters
-      case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user))
+      case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user), "BW-Site-Name" -> siteName,
+        "BW-Client-Ip" -> clientIp)
     }
-    val path = request.getRequestURL.toString.split("/+").drop(3).mkString("/")
+    val path = urlParts.drop(3).mkString("/")
     val query = request.getQueryString
     log(className, methodName,
       s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp""",

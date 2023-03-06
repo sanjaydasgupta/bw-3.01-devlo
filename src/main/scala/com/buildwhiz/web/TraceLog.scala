@@ -7,16 +7,11 @@ import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
 import org.bson.Document
 
-import java.util.regex.Pattern
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
-
-  private val ipPattern = "(?:\\d{1,3}\\.){3}\\d{1,3}|(?:[\\da-fA-F]{1,4}\\:){7}[\\da-fA-F]{1,4}"
-  private val reverseEventPattern = Pattern.compile("^\\s*(%s)\\s*[:=]\\s*tneil[cC](.+)$".format(ipPattern),
-      Pattern.DOTALL)
 
   private def addSpaces(line: String): String = {
     if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*") || line.split("%20").length > 2 || line.split(",\\S").length > 1)
@@ -49,17 +44,18 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val logType = parameters.getOrElse("type", "any")
       val user: DynDoc = getUser(request)
       val (typeQuery, logTypeName) = logType.toLowerCase match {
-        case "error" => (Map("event_name" -> Map($regex -> "^ERROR.+")), "Error")
-        case "audit" => (Map("event_name" -> Map($regex -> "^AUDIT.+")), "Audit")
-        case "check" => (Map("event_name" -> Map($regex -> "^(AUDIT|ERROR).+")), "Check")
-        case "full" => (Map.empty[String, AnyRef], "Full")
-        case "any" | _ => (Map("event_name" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+")), "Any")
+        case "error" => (Map("event_info" -> Map($regex -> "^ERROR.+"), "ip" -> Map($exists -> true)), "Error")
+        case "audit" => (Map("event_info" -> Map($regex -> "^AUDIT.+"), "ip" -> Map($exists -> true)), "Audit")
+        case "check" => (Map("event_info" -> Map($regex -> "^(AUDIT|ERROR).+"), "ip" -> Map($exists -> true)), "Check")
+        case "full" => (Map("ip" -> Map($exists -> true)), "Full")
+        case "any" | _ =>
+          (Map("event_info" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+"), "ip" -> Map($exists -> true)), "Any")
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(10, 10, 10, 10, 10, 2, 34, 34)
-      writer.println(List("Timestamp", "Process", "Session", "User", "IP", "Activity", "Event", "Variables").zip(widths).
-          map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
+      val widths = Seq(10, 10, 10, 10, 10, 10, 2, 34, 34)
+      writer.println(List("Timestamp", "Process", "Session", "User", "IP", "Site", "Method", "Event", "Variables").
+          zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
 
       val millisNow = System.currentTimeMillis
@@ -79,8 +75,9 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val traceLogCollection = BWMongoDB3.trace_log
       val grouper = Map("$group" ->
           Map("_id" -> Map("$subtract" -> Seq("$milliseconds", Map("$mod" -> Seq("$milliseconds", 900000L)))),
-          "details" -> Map($push -> Map("event" -> "$event_name", "process" -> "$process_id", "variables" -> "$variables",
-          "milliseconds" -> Map("$toString" -> "$milliseconds"), "activity" -> "$activity_name"))))
+          "details" -> Map($push -> Map("event" -> "$event_info", "process" -> "$service_name",
+          "variables" -> "$variables", "milliseconds" -> Map("$toString" -> "$milliseconds"),
+          "activity" -> "$method", "ip" -> "$ip", "hostname" -> "$hostname"))))
 
       val traceLogDocs: Seq[DynDoc] = durationUnit match {
         case "hours" =>
@@ -131,18 +128,14 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           case None => ""
         }
         val process = detail.process[String]
-        val rawEvent = addSpaces(detail.event[String])
-        val reverseEventPatternMatcher = reverseEventPattern.matcher(rawEvent.reverse)
-        val (ip, event) = if (reverseEventPatternMatcher.matches()) {
-          (reverseEventPatternMatcher.group(1).reverse, reverseEventPatternMatcher.group(2).reverse.trim())
-        } else {
-          ("127.0.0.1", rawEvent)
-        }
+        val event = addSpaces(detail.event[String])
+        val ip = addSpaces(detail.ip[String])
+        val hostname = addSpaces(detail.hostname[String])
         val timestamp = dateTimeString(detail.milliseconds[String].toLong,
             parameters.get("tz").orElse(Some("Asia/Calcutta")), withMilliseconds = true)
         val color = if (event.toLowerCase.contains("error")) "red" else "black"
-        val htmlRowData = Seq(timestamp, process, session, user, ip, activity, event, variablesString).zip(widths).
-            map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
+        val htmlRowData = Seq(timestamp, process, session, user, ip, hostname, activity, event, variablesString).
+            zip(widths).map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
           writer.println(s"""<tr style="background-color: beige;color: $color" align="center">$htmlRowData</tr>""")
         else

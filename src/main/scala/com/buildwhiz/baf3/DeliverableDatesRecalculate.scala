@@ -19,8 +19,8 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
   private val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
   private val margin = "|&nbsp;&nbsp;&nbsp;"
 
-  case class Globals(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc], deliverables: Seq[DynDoc],
-      constraints: Seq[DynDoc], deliverablesByOid: Map[ObjectId, DynDoc],
+  private case class Globals(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc],
+      deliverables: Seq[DynDoc], constraints: Seq[DynDoc], deliverablesByOid: Map[ObjectId, DynDoc],
       constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]], procurementsByOid: Map[ObjectId, DynDoc],
       keyDataByOid: Map[ObjectId, DynDoc], respond: String => Unit)
 
@@ -116,12 +116,18 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
   }
 
+  private def deliverableBypassed(d: DynDoc): Boolean = d.status[String] == "Deliverable-Bypassed"
+
   private def endDate(deliverable: DynDoc, level: Int, verbose: Boolean, g: Globals): Long = {
     if (verbose) {
       g.respond(margin * level + s"EndDate ${dName(deliverable)}<br/>")
     }
     def setDates(deliverable: DynDoc, startDate: Long, endDate: Long, optFloatDays: Option[Long]): Unit = {
-      val baseValues: Document = Map("date_start_estimated" -> startDate, "date_end_estimated" -> endDate)
+      val baseValues: Document = if (deliverableBypassed(deliverable)) {
+        Map("date_start_estimated" -> startDate, "date_end_estimated" -> endDate, "date_end_actual" -> endDate)
+      } else {
+        Map("date_start_estimated" -> startDate, "date_end_estimated" -> endDate)
+      }
       val setterValues = optFloatDays match {
         case Some(floatDays) => baseValues.append("float_days", floatDays)
         case None => baseValues
@@ -131,12 +137,18 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
     val dateEnd = deliverable.get[Long]("end$date") match {
       case None =>
-        val dt = Seq("date_end_actual", "commit_date").map(deliverable.get[Long]) match {
-          case Seq(Some(dateEndActual), _) =>
+        val dt = (Seq("date_end_actual", "commit_date").map(deliverable.get[Long]),
+            deliverableBypassed(deliverable)) match {
+          case (Seq(Some(dateEndActual), _), false) =>
             dateEndActual
-          case Seq(None, optCommitDate) =>
+          case (Seq(_, optCommitDate), isBypassed) =>
             val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
-            val cumulativeEndDate = addWeekdays(estimatedStartDate, deliverable.duration[Int], g.timezone)
+            val duration = if (isBypassed) {
+              0
+            } else {
+              deliverable.duration[Int]
+            }
+            val cumulativeEndDate = addWeekdays(estimatedStartDate, duration, g.timezone)
             val displayedEndDate = addWeekdays(cumulativeEndDate, -1, g.timezone)
             val newOptFloatDays: Option[Long] = optCommitDate match {
               case Some(commitDate) => Some(weekDaysBetween(estimatedStartDate, commitDate, g.timezone) -
@@ -304,7 +316,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         t.printStackTrace(writer)
-        //throw t
+        throw t
     }
   }
 
@@ -329,7 +341,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         t.printStackTrace(response.getWriter)
-      //throw t
+      throw t
     }
   }
 

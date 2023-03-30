@@ -115,8 +115,7 @@ object BWLogger extends HttpUtils {
     val path = urlParts.drop(3).mkString("/")
     val query = request.getQueryString
     log(className, methodName,
-      s"""$eventName ($path${if (query == null) "" else "?" + query}) client=$clientIp""",
-      paramsWithName.toSeq: _*)
+      s"""$eventName ($path${if (query == null) "" else "?" + query})""", paramsWithName.toSeq: _*)
   }
 
 }

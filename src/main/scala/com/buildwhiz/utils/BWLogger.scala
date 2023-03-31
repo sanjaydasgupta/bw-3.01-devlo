@@ -108,7 +108,7 @@ object BWLogger extends HttpUtils {
     val urlParts = request.getRequestURL.toString.split("/+")
     val siteName = urlParts(1)
     val paramsWithName = getUser(request) match {
-      case null => parameters
+      case null => parameters ++ Map("BW-Site-Name" -> siteName, "BW-Client-Ip" -> clientIp)
       case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user), "BW-Site-Name" -> siteName,
         "BW-Client-Ip" -> clientIp)
     }

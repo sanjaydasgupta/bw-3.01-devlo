@@ -42,26 +42,16 @@ class Entry extends HttpServlet with HttpUtils {
 
   private def log(event: String, request: HttpServletRequest): Unit = {
     val urlParts = request.getRequestURL.toString.split("/")
-    val hasSession = request.getSession(false) != null
     urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")) match {
       case Some((_, pkgIdx)) =>
         val apiPath = s"${urlParts(pkgIdx)}/${urlParts(pkgIdx + 1)}"
-        if (hasSession) {
-          BWLogger.log(apiPath, request.getMethod, event, request)
-        } else {
-          BWLogger.log(apiPath, request.getMethod, event)
-        }
+        BWLogger.log(apiPath, request.getMethod, event, request)
       case None =>
-        if (hasSession) {
-          BWLogger.log("Unknown", request.getMethod, event, request)
-        } else {
-          BWLogger.log("Unknown", request.getMethod, event)
-        }
+        BWLogger.log("Unknown", request.getMethod, event, request)
     }
   }
 
-  private def handleRequest(request: HttpServletRequest, response: HttpServletResponse,
-        delegateTo: Entry.BWServlet => Unit): Unit = {
+  private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
       val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
@@ -108,7 +98,7 @@ class Entry extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, response, servlet => servlet.doPost(request, response))
+      handleRequest(request, servlet => servlet.doPost(request, response))
     } catch {
       case t: Throwable =>
         handleError(t, request, response)
@@ -117,7 +107,7 @@ class Entry extends HttpServlet with HttpUtils {
 
   override def doPut(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, response, servlet => servlet.doPut(request, response))
+      handleRequest(request, servlet => servlet.doPut(request, response))
     } catch {
       case t: Throwable =>
         log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -128,7 +118,7 @@ class Entry extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, response, servlet => servlet.doGet(request, response))
+      handleRequest(request, servlet => servlet.doGet(request, response))
     } catch {
       case t: Throwable =>
         handleError(t, request, response)
@@ -137,7 +127,7 @@ class Entry extends HttpServlet with HttpUtils {
 
   override def doDelete(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     try {
-      handleRequest(request, response, servlet => servlet.doDelete(request, response))
+      handleRequest(request, servlet => servlet.doDelete(request, response))
     } catch {
       case t: Throwable =>
         log(s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -150,11 +140,11 @@ class Entry extends HttpServlet with HttpUtils {
 
 object Entry {
 
-  type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit
+  private type BWServlet = {def doGet(req: HttpServletRequest, res: HttpServletResponse): Unit
     def doPost(req: HttpServletRequest, res: HttpServletResponse): Unit
     def doPut(req: HttpServletRequest, res: HttpServletResponse): Unit
     def doDelete(req: HttpServletRequest, res: HttpServletResponse): Unit}
 
-  val cache: mutable.Map[String, BWServlet] = mutable.Map.empty[String, BWServlet]
+  private val cache: mutable.Map[String, BWServlet] = mutable.Map.empty[String, BWServlet]
   val sessionCache: mutable.Map[String, HttpSession] = mutable.Map.empty[String, HttpSession]
 }

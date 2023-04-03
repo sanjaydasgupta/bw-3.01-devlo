@@ -15,6 +15,8 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
 import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent, IntermediateThrowEvent, MultiInstanceLoopCharacteristics, Process, StartEvent, Task, TimeDuration, TimerEventDefinition, UserTask}
 
+import scala.collection.immutable.Seq
+
 class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
@@ -521,6 +523,19 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     responseWriter.flush()
   }
 
+  private def addTeam(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId): ObjectId = {
+    val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
+      "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
+      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "_id" -> new ObjectId()))
+    val teamRecord: DynDoc = Map("project_id" -> projectOid, "team_name" -> "Default PM Team",
+      "organization_id" -> organizationOid, "group" -> "Project Management",
+      "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",
+      "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))),
+      "own_doc_categories" -> ownDocCategories, "__v" -> 0)
+    BWMongoDB3.teams.insertOne(teamRecord.asDoc)
+    teamRecord._id[ObjectId]
+  }
+
   private def addPhase(user: DynDoc, phaseName: String, parentProjectOid: ObjectId, description: String,
                        phaseManagerOids: Seq[ObjectId]): ObjectId = {
 
@@ -547,10 +562,11 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     calendar.set(Calendar.SECOND, 0)
     val startEstimatedMs = calendar.getTimeInMillis
     val timestamps = Map("created" -> createdMs, "date_start_estimated" -> startEstimatedMs)
-
+    val defaultTeamOid = addTeam(parentProjectOid, phaseManagerOids.head, user.organization_id[ObjectId])
     val newPhaseRecord: DynDoc = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
       "assigned_roles" -> managersInRoles, "status" -> "defined", "admin_person_id" -> phaseManagerOids.head,
-      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord))
+      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord),
+      "team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)))
     BWMongoDB3.phases.insertOne(newPhaseRecord.asDoc)
 
     val newPhaseOid = newPhaseRecord._id[ObjectId]

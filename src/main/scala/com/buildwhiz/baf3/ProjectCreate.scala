@@ -16,10 +16,14 @@ import scala.jdk.CollectionConverters._
 class ProjectCreate extends HttpServlet with HttpUtils {
 
   private def createProjectTeams(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId): Unit = {
+    val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
+      "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
+      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "_id" -> new ObjectId()))
     BWMongoDB3.teams.insertOne(
         Map("project_id" -> projectOid, "team_name" -> "Default PM Team", "organization_id" -> organizationOid,
         "group" -> "Project Management", "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",
-        "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))), "__v" -> 0))
+        "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))),
+        "own_doc_categories" -> ownDocCategories,  "__v" -> 0))
   }
 
   private def createProjectTags(projectOid: ObjectId): Unit = {
@@ -108,7 +112,8 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         "max_building_height_ft" -> 0.0, "address" -> address, "process_ids" -> Seq.empty[ObjectId],
         "phase_ids" -> Seq.empty[ObjectId], "assigned_roles" -> assignedRoles,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "total_floor_area" -> 0.0,
-        "status" -> "defined", "customer_organization_id" -> customerOid, "tz" -> "GMT")
+        "status" -> "defined", "customer_organization_id" -> customerOid, "tz" -> "GMT",
+        "enum_definitions" -> Map("Apt" -> Map("items" -> Seq.empty[String], "removable" -> false)))
       BWMongoDB3.projects.insertOne(projectDocument)
       val projectOid = projectDocument.get("_id").asInstanceOf[ObjectId]
       createProjectTags(projectOid)

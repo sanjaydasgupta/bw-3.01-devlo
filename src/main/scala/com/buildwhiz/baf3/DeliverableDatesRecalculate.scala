@@ -137,11 +137,11 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
     val dateEnd = deliverable.get[Long]("end$date") match {
       case None =>
-        val dt = (Seq("date_end_actual", "commit_date").map(deliverable.get[Long]),
+        val dt = (deliverable.get[Long]("date_end_actual"), deliverable.get[Long]("commit_date"),
             deliverableBypassed(deliverable)) match {
-          case (Seq(Some(dateEndActual), _), false) =>
+          case (Some(dateEndActual), _, false) =>
             dateEndActual
-          case (Seq(_, optCommitDate), isBypassed) =>
+          case (_, optCommitDate, isBypassed) =>
             val estimatedStartDate = startDate(deliverable, level + 1, verbose, g)
             val duration = if (isBypassed) {
               0

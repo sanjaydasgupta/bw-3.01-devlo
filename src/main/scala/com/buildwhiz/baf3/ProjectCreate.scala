@@ -18,7 +18,7 @@ class ProjectCreate extends HttpServlet with HttpUtils {
   private def createProjectTeams(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId): Unit = {
     val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
       "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
-      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "_id" -> new ObjectId()))
+      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "editable" -> false, "_id" -> new ObjectId()))
     BWMongoDB3.teams.insertOne(
         Map("project_id" -> projectOid, "team_name" -> "Default PM Team", "organization_id" -> organizationOid,
         "group" -> "Project Management", "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",

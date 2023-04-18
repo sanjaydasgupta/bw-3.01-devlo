@@ -122,6 +122,26 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
+  private def processSchedulesData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val processSchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.aggregate(query)
+    if (json) {
+      val jsons = processSchedules.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
+      writer.print(jsons)
+    } else {
+      val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("title", primitiveFormatter),
+        FldSpec("description", primitiveFormatter), FldSpec("frequency", primitiveFormatter),
+        FldSpec("status", primitiveFormatter))
+      writer.println("<h2>Processes-Schedules</h2>")
+      writer.println("""<table id="processSchedules" border="1" types="s,s,s,s,s">""")
+      writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      for (process <- processSchedules) {
+        val tds = fields.map(f => (f.name, f.asString(fieldValue(process, f.name))))
+        writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      }
+      writer.println("</table>")
+    }
+  }
+
   private def personsData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
     val persons: Seq[DynDoc] = BWMongoDB3.persons.aggregate(query)
     if (json) {
@@ -329,6 +349,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     projectsData(writer, json = false)
     phasesData(writer, json = false)
     processesData(writer, json = false)
+    processSchedulesData(writer, json = false)
     organizationsData(writer, json = false)
     personsData(writer, json = false)
     teamsData(writer, json = false)
@@ -364,6 +385,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
           case "organizations" => organizationsData(writer, json = true, aggregationPipeline)
           case "phases" => phasesData(writer, json = true, aggregationPipeline)
           case "processes" => processesData(writer, json = true, aggregationPipeline)
+          case "process_schedules" => processSchedulesData(writer, json = true, aggregationPipeline)
           case "persons" => personsData(writer, json = true, aggregationPipeline)
           case "teams" => teamsData(writer, json = true, aggregationPipeline)
           case "tasks" => tasksData(writer, json = true, aggregationPipeline)
@@ -387,6 +409,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       case "organizations" => organizationsData(writer, json = true, aggregationPipeline)
       case "phases" => phasesData(writer, json = true, aggregationPipeline)
       case "processes" => processesData(writer, json = true, aggregationPipeline)
+      case "process_schedules" => processSchedulesData(writer, json = true, aggregationPipeline)
       case "persons" => personsData(writer, json = true, aggregationPipeline)
       case "teams" => teamsData(writer, json = true, aggregationPipeline)
       case "tasks" => tasksData(writer, json = true, aggregationPipeline)

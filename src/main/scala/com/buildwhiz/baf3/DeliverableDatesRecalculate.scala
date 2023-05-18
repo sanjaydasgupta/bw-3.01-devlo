@@ -228,6 +228,41 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     }
   }
 
+  private def setKeyDataDates(globals: Globals, request: HttpServletRequest): Unit = {
+    val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
+    for (kd <- globals.keyDataByOid.values) {
+      val duration = kd.get[Int]("duration") match {
+        case Some(d) => d
+        case None => 7
+      }
+      val endDate = addWeekdays(globals.phaseStartDate, duration, globals.timezone)
+      val displayEndDate = addWeekdays(endDate, -1, globals.timezone)
+      val existingEndDate = kd.get[Long]("date_end_estimated") match {
+        case Some(dee) => dee
+        case None => -1
+      }
+      if (displayEndDate != existingEndDate) {
+        bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", kd._id[ObjectId]),
+          new Document($set, new Document("date_end_estimated", displayEndDate))))
+      }
+    }
+    if (bulkWriteBuffer.nonEmpty) {
+      BWLogger.log(getClass.getName, request.getMethod,
+        s"setKeyDataDates() - MongoDB Bulk-Write: will attempt ${bulkWriteBuffer.length} updates", request)
+      val bulkWriteResult = BWMongoDB3.key_data.bulkWrite(bulkWriteBuffer.asJava)
+      if (bulkWriteResult.getModifiedCount == 0) {
+        BWLogger.log(getClass.getName, request.getMethod, "ERROR: MongoDB Bulk-Write FAILED", request)
+        globals.respond("""<font color="red">ERROR: MongoDB Bulk-Write FAILED<font/><br/>""")
+      } else {
+        BWLogger.log(getClass.getName, request.getMethod,
+          s"setKeyDataDates() - MongoDB Bulk-Write: updated ${bulkWriteResult.getModifiedCount} records", request)
+      }
+    } else {
+      BWLogger.log(getClass.getName, request.getMethod,
+        "setKeyDataDates() - MongoDB Bulk-Write: NO updates needed", request)
+    }
+  }
+
   private def handleDeliverables(respond: String => Unit, request: HttpServletRequest, response: HttpServletResponse,
       verbose: Boolean): Long = {
     val t0 = System.currentTimeMillis
@@ -287,6 +322,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       case Some(phaseStartDate) =>
         val globals = Globals(timezone, phaseStartDate, activities, deliverables, constraints, deliverablesByOid,
           constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
+        setKeyDataDates(globals, request)
         traverseAllTrees(verbose, globals, request)
       case None =>
         BWLogger.log(getClass.getName, request.getMethod, "WARN: 'date_start_estimated' undefined. Dates NOT calculated", request)

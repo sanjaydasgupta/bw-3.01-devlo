@@ -208,22 +208,23 @@ package object baf3 {
 
   private val issuesSitesInfo: Seq[(String, String)] = Seq(
     ("issues.430forest.com", "430 Forest"),
-    ("test.buildwhiz.com", "Multiple-Processes-Trial")
+    ("test.buildwhiz.com", "Development-Two")
   )
 
   def landingPageInfo(hostName: String, user: DynDoc): Document = {
+    val userProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
     issuesSitesInfo.find(_._1 == hostName).map(_._2) match {
       case None =>
-        ProjectApi.projectsByUser30(user._id[ObjectId]) match {
+        userProjects match {
           case Seq(project) =>
             Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
               "project_id" -> project._id[ObjectId]))
           case _ =>
             Map("name" -> "Home", "params" -> Map())
-          }
+        }
       case Some(projectName) =>
         BWMongoDB3.projects.find(Map("name" -> projectName)).headOption match {
-          case Some(project) =>
+          case Some(project) if userProjects.exists(_._id[ObjectId] == project._id[ObjectId]) =>
             val phaseOids = project.phase_ids[Many[ObjectId]]
             BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids), "name" -> "Operations")).headOption match {
               case Some(opsPhase) =>
@@ -232,6 +233,8 @@ package object baf3 {
               case None =>
                 throw new IllegalAccessException(s"Not found phase 'Operations' in project '$projectName'")
             }
+          case Some(_) =>
+            Map("name" -> "Home", "params" -> Map())
           case None =>
             throw new IllegalAccessException(s"Not found project '$projectName'")
         }

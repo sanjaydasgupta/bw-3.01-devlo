@@ -183,9 +183,8 @@ object ProcessApi {
   def checkProcessSchedules(scheduleMs: Long): Unit = {
     //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-checkProcessSchedules")
     def createNewTransientProcess(schedule: DynDoc): Unit = {
-      def createRequest(schedule: DynDoc): HttpPost = {
+      def createRequest(schedule: DynDoc): Option[HttpPost] = {
         val systemUser = PersonApi.systemUser()
-        val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=${systemUser._id[ObjectId]}")
         val parameterEntity = Document.parse(schedule.asDoc.toJson)
         def oid2string(oid: Any): Any = oid.toString
         def s2s(s: Any): Any = s
@@ -235,50 +234,82 @@ object ProcessApi {
         if (missingParameters.nonEmpty) {
           throw new IllegalArgumentException(s"Missing parameters: ${missingParameters.toSeq.mkString(", ")}")
         }
-        val newParmEntity: Document = parameterEntity.entrySet().asScala.
+        def validate(key: String, value: Any): Boolean = {
+          val isValid = (key, value) match {
+            case ("project_id", projectOid: String) => ProjectApi.exists(new ObjectId(projectOid))
+            case ("phase_id", phaseOid: String) => PhaseApi.exists(new ObjectId(phaseOid))
+            case ("template_process_id", templateProcessOid: String) =>
+              ProcessApi.exists(new ObjectId(templateProcessOid))
+            case ("template_parameters", templateParameters: Seq[Any]) => templateParameters.nonEmpty
+            case _ => true
+          }
+          isValid
+        }
+        val parmEntityValid: Document = parameterEntity.entrySet().asScala.
             filter(e => requiredKeyInfos.contains(e.getKey)).map(e => {
           val (key, value) = (e.getKey, e.getValue)
           val newValue = requiredKeyInfos(key)(value)
-          (key, newValue)
+          (key, (validate(key, newValue), newValue))
         }).toMap
 
-        val parameterEntityJson = newParmEntity.toJson
-        request.setHeader("Content-Type", "application/json; charset=utf-8")
-        request.setEntity(new StringEntity(parameterEntityJson))
-        request
+        val badParamNames: Seq[String] = parmEntityValid.asScala.toSeq.map(_.asInstanceOf[(String, (Boolean, Any))]).
+          filterNot(_._2._1).map(_._1)
+
+        val optRequest = if (badParamNames.nonEmpty) {
+          val message: String = s"""Bad value for parameter(s): ${badParamNames.mkString(", ")}"""
+          BWLogger.log(getClass.getName, "LOCAL", s"ERROR: checkProcessSchedules " +
+            s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $message")
+          BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+            Map($set -> Map("timestamps.last_failure" -> scheduleMs,
+              "timestamps.last_message" -> message)))
+          None
+        } else {
+          val newParamEntities: Document = parmEntityValid.asScala.toSeq.map(_.asInstanceOf[(String, (Boolean, Any))]).
+            map(e => (e._1, e._2._2)).toMap
+          val parameterEntityJson = newParamEntities.toJson
+          val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=${systemUser._id[ObjectId]}")
+          request.setHeader("Content-Type", "application/json; charset=utf-8")
+          request.setEntity(new StringEntity(parameterEntityJson))
+          Some(request)
+        }
+        optRequest
       }
       val t0 = System.currentTimeMillis()
-      val nodeResponse = HttpClients.createDefault().execute(createRequest(schedule))
-      val delay = System.currentTimeMillis() - t0
-      val nodeEntity = nodeResponse.getEntity
-      val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
-      val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
-      if (nodeEntityDoc.ok[Int] == 1) {
-        val calendar = Calendar.getInstance()
-        calendar.setTimeInMillis(scheduleMs)
-        val runNext: Long = schedule.frequency[String].toLowerCase match {
-          case "quarter-hourly" => calendar.add(Calendar.MINUTE, 15); calendar.getTimeInMillis
-          case "half-hourly" => calendar.add(Calendar.MINUTE, 30); calendar.getTimeInMillis
-          case "hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
-          case "twice-daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
-          case "daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
-          case "weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
-          case "monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
-          case "quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
-          case "half-yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
-          case "yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
-        }
-        BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
-            Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
-            "timestamps.last_message" -> nodeEntityDoc.message[String])))
-        BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-checkProcessSchedules(time: $delay): " +
-          s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $runNext")
-      } else {
-        BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
-            Map($set -> Map("timestamps.last_failure" -> scheduleMs,
-            "timestamps.last_message" -> nodeEntityDoc.message[String])))
-        BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
-          s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")
+      createRequest(schedule) match {
+        case Some(postRequest) =>
+          val nodeResponse = HttpClients.createDefault().execute(postRequest)
+          val delay = System.currentTimeMillis() - t0
+          val nodeEntity = nodeResponse.getEntity
+          val nodeEntityString = Source.fromInputStream(nodeEntity.getContent).getLines().mkString("\n")
+          val nodeEntityDoc: DynDoc = Document.parse(nodeEntityString)
+          if (nodeEntityDoc.ok[Int] == 1) {
+            val calendar = Calendar.getInstance()
+            calendar.setTimeInMillis(scheduleMs)
+            val runNext: Long = schedule.frequency[String].toLowerCase match {
+              case "quarter-hourly" => calendar.add(Calendar.MINUTE, 15); calendar.getTimeInMillis
+              case "half-hourly" => calendar.add(Calendar.MINUTE, 30); calendar.getTimeInMillis
+              case "hourly" => calendar.add(Calendar.HOUR, 1); calendar.getTimeInMillis
+              case "twice-daily" => calendar.add(Calendar.HOUR, 12); calendar.getTimeInMillis
+              case "daily" => calendar.add(Calendar.DAY_OF_MONTH, 1); calendar.getTimeInMillis
+              case "weekly" => calendar.add(Calendar.DAY_OF_MONTH, 7); calendar.getTimeInMillis
+              case "monthly" => calendar.add(Calendar.MONTH, 1); calendar.getTimeInMillis
+              case "quarterly" => calendar.add(Calendar.MONTH, 3); calendar.getTimeInMillis
+              case "half-yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
+              case "yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
+            }
+            BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+              Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
+                "timestamps.last_message" -> nodeEntityDoc.message[String])))
+            BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-checkProcessSchedules(time: $delay): " +
+              s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $runNext")
+          } else {
+            BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+              Map($set -> Map("timestamps.last_failure" -> scheduleMs,
+                "timestamps.last_message" -> nodeEntityDoc.message[String])))
+            BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
+              s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $nodeEntityString")
+          }
+        case None =>
       }
     }
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
@@ -293,6 +324,12 @@ object ProcessApi {
             s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> ${t.getClass.getSimpleName}(${t.getMessage})")
       }
     }
+  }
+
+  def main(args: Array[String]): Unit = {
+    val processOid = new ObjectId("6464737c1540061c1491c76a")
+    val found = ProcessApi.exists(processOid)
+    println(processOid, found)
   }
 
 }

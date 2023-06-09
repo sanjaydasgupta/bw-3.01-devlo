@@ -139,7 +139,7 @@ package object baf3 {
     "Team__group_skill_mapping" -> OmniClass33.omniClass33skillsByGroup(),
     "Team__role" -> Seq("Contributor", "Finance-Contact", "Principal", "Team-Admin", "Team-Lead"),
     "Team__individual_role" -> Seq("Contributor", "Finance-Contact", "Manager", "Principal", "Team-Admin", "Team-Lead"),
-    "Team__team_role" -> Seq("Listener", "Responsible", "Reviewer", "Support"),
+    "Team__team_role" -> Seq("Observer", "Responsible", "Reviewer", "Support"),
     "Team__omniclass33" -> OmniClass33.omniClass33skills()
   )
 

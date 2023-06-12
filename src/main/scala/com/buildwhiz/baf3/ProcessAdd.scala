@@ -447,6 +447,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     var optProcessOid: Option[ObjectId] = None
+    response.setContentType("application/json")
     try {
       val parameters = getParameterMap(request)
       val parentPhaseOid = new ObjectId(parameters("phase_id"))
@@ -466,15 +467,18 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         val processOid = addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
         optProcessOid = Some(processOid)
       })
+      response.getWriter.print(successJson(fields = Map("process_id" -> optProcessOid.get.toString)))
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
+      case iae: IllegalArgumentException =>
+        val errorMessage = iae.getMessage
+        response.getWriter.print(new Document("ok", 2).append("message", errorMessage).toJson)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $errorMessage", request)
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
         //t.printStackTrace()
         throw t
     }
-    response.getWriter.print(successJson(fields = Map("process_id" -> optProcessOid.get.toString)))
-    response.setContentType("application/json")
-    BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
   }
 
 }

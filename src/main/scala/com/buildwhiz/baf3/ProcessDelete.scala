@@ -32,7 +32,7 @@ class ProcessDelete extends HttpServlet with HttpUtils {
           response.getWriter.print(successJson(message=msg))
           BWLogger.audit(getClass.getName, request.getMethod, msg, request)
         case Left(msg) =>
-          response.getWriter.print(new Document("ok", 0).append("message", msg).toJson)
+          response.getWriter.print(new Document("ok", 2).append("message", msg).toJson)
           BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $msg", request)
       }
     } catch {

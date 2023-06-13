@@ -48,9 +48,9 @@ object ProcessApi {
     val processOid = process._id[ObjectId]
     val isTemplate = process.`type`[String] == "Template"
     val transientProcesses: Seq[DynDoc] = if (isTemplate) {
-      Seq.empty[DynDoc]
+      BWMongoDB3.processes.find(Map("type" -> "Transient", "template_process_id" -> processOid))
     } else {
-      BWMongoDB3.processes.find(Map("template_process_id" -> processOid))
+      Seq.empty[DynDoc]
     }
     if (isTemplate && transientProcesses.nonEmpty) {
       Left(s"Process '${process.name[String]}' has ${transientProcesses.length} transient child processes")

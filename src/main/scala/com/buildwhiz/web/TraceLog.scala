@@ -44,12 +44,12 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       val logType = parameters.getOrElse("type", "any")
       val user: DynDoc = getUser(request)
       val (typeQuery, logTypeName) = logType.toLowerCase match {
-        case "error" => (Map("event_info" -> Map($regex -> "^ERROR.+"), "ip" -> Map($exists -> true)), "Error")
+        case "error" => (Map("event_info" -> Map($regex -> "^(ERROR|WARN).+"), "ip" -> Map($exists -> true)), "Error")
         case "audit" => (Map("event_info" -> Map($regex -> "^AUDIT.+"), "ip" -> Map($exists -> true)), "Audit")
-        case "check" => (Map("event_info" -> Map($regex -> "^(AUDIT|ERROR).+"), "ip" -> Map($exists -> true)), "Check")
+        case "check" => (Map("event_info" -> Map($regex -> "^(AUDIT|ERROR|WARN).+"), "ip" -> Map($exists -> true)), "Check")
         case "full" => (Map("ip" -> Map($exists -> true)), "Full")
         case "any" | _ =>
-          (Map("event_info" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT).+"), "ip" -> Map($exists -> true)), "Any")
+          (Map("event_info" -> Map($regex -> "^(AUDIT|ENTRY|ERROR|EXIT|INFO|WARN).+"), "ip" -> Map($exists -> true)), "Any")
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")

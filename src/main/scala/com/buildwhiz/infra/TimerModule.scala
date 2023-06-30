@@ -157,7 +157,7 @@ object TimerModule extends HttpUtils with MailUtils3 {
           Map(
             $and -> Seq(
               Map("milliseconds" -> Map($lt -> millisecondsOneDayAgo)),
-              Map("event_name" -> Map($not -> Map($regex -> "^(?:AUDIT|ENTRY|ERROR|EXIT).+")))
+              Map("event_info" -> Map($not -> Map($regex -> "^(?:AUDIT|ENTRY|ERROR|EXIT).+")))
             )
           )
         )

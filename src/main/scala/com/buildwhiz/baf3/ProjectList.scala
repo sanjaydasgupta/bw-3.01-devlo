@@ -134,6 +134,6 @@ object ProjectList extends HttpUtils {
     }
     if (doLog)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${projects.length})", request)
-    projects
+    projects.sortBy(_._id[ObjectId].getTimestamp * -1)
   }
 }

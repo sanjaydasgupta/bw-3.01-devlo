@@ -309,6 +309,31 @@ class BIDataConnector extends HttpServlet with RestUtils {
     }
   }
 
+  private def progressInfosData(writer: PrintWriter, json: Boolean, query: Many[Document] = Seq.empty[Document]): Unit = {
+    val progressInfos: Seq[DynDoc] = BWMongoDB3.deliverables_progress_infos.aggregate(query)
+    if (json) {
+      val jsons = progressInfos.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
+      writer.print(jsons)
+    } else {
+      val fields = Seq[FldSpec](FldSpec("_id", primitiveFormatter), FldSpec("type", primitiveFormatter),
+        FldSpec("deliverable_id", primitiveFormatter), FldSpec("activity_id", primitiveFormatter),
+        FldSpec("process_id", primitiveFormatter), FldSpec("phase_id", primitiveFormatter),
+        FldSpec("team_id", primitiveFormatter), FldSpec("project_id", primitiveFormatter),
+        FldSpec("timestamp", primitiveFormatter), FldSpec("event_type", primitiveFormatter),
+        FldSpec("comment", primitiveFormatter), FldSpec("system_comment", primitiveFormatter),
+        FldSpec("total_quantity2", primitiveFormatter), FldSpec("completed_quantity2", primitiveFormatter),
+        FldSpec("percent_complete2", primitiveFormatter), FldSpec("event_type", primitiveFormatter))
+      writer.println("<h2>ProgressInfosData</h2>")
+      writer.println("""<table id="progressinfos" border="1" types="i,s,i,i,i,i,i,i,l,s,s,s,f,f,f,s">""")
+      writer.println(fields.map(_.name).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      for (progressInfo <- progressInfos) {
+        val tds = fields.map(f => (f.name, f.asString(fieldValue(progressInfo, f.name))))
+        writer.println(tds.map(td => td._2).mkString("<tr><td>", "</td><td>", "</td></tr>"))
+      }
+      writer.println("</table>")
+    }
+  }
+
   private def traceLogData(writer: PrintWriter, query: Many[Document] = Seq.empty[Document]): Unit = {
     val constraints: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(query)
     val jsons = constraints.map(_.asDoc.toJson.replaceAll(oidRegex, "$1")).mkString("\n")
@@ -356,6 +381,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
     tasksData(writer, json = false)
     deliverablesData(writer, json = false)
     constraintsData(writer, json = false)
+    progressInfosData(writer, json = false)
     writer.print("</body></html>")
   }
 
@@ -415,6 +441,7 @@ class BIDataConnector extends HttpServlet with RestUtils {
       case "tasks" => tasksData(writer, json = true, aggregationPipeline)
       case "deliverables" => deliverablesData(writer, json = true, aggregationPipeline)
       case "constraints" => constraintsData(writer, json = true, aggregationPipeline)
+      case "deliverables_progress_infos" => progressInfosData(writer, json = true, aggregationPipeline)
       case "trace_log" => traceLogData(writer, aggregationPipeline)
       case "document_master" => documentMasterData(writer, aggregationPipeline)
       case _ => throw new IllegalArgumentException(s"Unsupported collection '$collectionName'")

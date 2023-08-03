@@ -210,6 +210,11 @@ object ProcessApi {
                   case b: Boolean => Map(true -> "1", false -> "0")(b)
                   case x => x
                 }
+                case "Unit" => p.value[Any] match {
+                  case oid: ObjectId => oid.toString
+                  case x => x
+                }
+                case "Date and Time" => p.value[Any]
                 case "List" => p.value[Any]
                 case "Number" => p.value[Any] match {
                   case nbr: BigDecimal => nbr.toDouble.toString
@@ -273,7 +278,7 @@ object ProcessApi {
           val newParamEntities: Document = parmEntityValid.asScala.toSeq.map(_.asInstanceOf[(String, (Boolean, Any))]).
             map(e => (e._1, e._2._2)).toMap
           val parameterEntityJson = newParamEntities.toJson
-          val request = new HttpPost(s"http://localhost:3000/ProcessClone4?uid=${systemUser._id[ObjectId]}")
+          val request = new HttpPost(s"http://localhost:3000/ProcessClone7?uid=${systemUser._id[ObjectId]}")
           request.setHeader("Content-Type", "application/json; charset=utf-8")
           request.setEntity(new StringEntity(parameterEntityJson))
           Some(request)

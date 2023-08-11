@@ -125,23 +125,11 @@ object TimerModule extends HttpUtils with MailUtils3 {
   }
 
   private def reportToAdmins(): Unit = {
-    val t0 = System.currentTimeMillis() - 86400000L
-    val usersAggregator: Many[Document] = Seq(
-      new Document("$match",
-        new Document("milliseconds", new Document($gte, t0)).append("variables.u$nm", new Document($exists, true))),
-      new Document("$group", new Document("_id", "$variables.u$nm").append("count", new Document("$sum", 1))),
-      new Document("$sort", new Document("count", -1))
-    )
-    val users: Seq[DynDoc] = BWMongoDB3.trace_log.aggregate(usersAggregator)
-    val message = if (users.nonEmpty) {
-      s"""The following users were active in the past 24 hours:\n${users.map(_._id[String]).mkString(", ")}"""
-    } else {
-      "No users were active in the past 24 hours"
-    }
     val instanceName = BWMongoDB3.instance_info.find().headOption match {
       case Some(ii) => ii.instance[String]
       case None => "Unknown"
     }
+    val message = Process("/home/ubuntu/anaconda3/bin/python  /home/ubuntu/report-one.py").!!
     val fns = Seq("Sanjay", "Prabhas")
     val admins: Seq[DynDoc] = BWMongoDB3.persons.find(Map("last_name" -> "Admin", "first_name" -> Map($in -> fns)))
     sendMail(admins.map(_._id[ObjectId]), s"Report from '$instanceName'", message, None)
@@ -291,6 +279,8 @@ object TimerModule extends HttpUtils with MailUtils3 {
           // at midnight of PST timezone
           Future {
             saveDatabases(calendarPST)
+          }
+          Future {
             trimTraceLogCollection(ms)
           }
         }

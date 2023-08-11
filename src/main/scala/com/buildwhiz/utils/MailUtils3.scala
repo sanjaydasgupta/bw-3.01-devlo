@@ -34,9 +34,13 @@ trait MailUtils3 {
   }
 
   private def isHtml(text: String): Boolean = {
-    val tagRe = Pattern.compile("</?[^>]+>")
+    val tagRe = Pattern.compile("<(/?[^>]+|[^>]+/)>")
     val parts = tagRe.split(text)
-    parts.length > 1
+    parts.length > 1 && text.toLowerCase().startsWith("<html>")
+  }
+
+  private def toHtml(text: String): String = {
+    s"""<html>${text.replace("\n", "<br/>\n")}</html>"""
   }
 
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
@@ -56,7 +60,7 @@ trait MailUtils3 {
             val api = new TransactionalEmailsApi()
             api.getApiClient.setApiKey(fetchApiKey())
             val sender = new SendSmtpEmailSender()
-            sender.setName("BuildWhiz")
+            sender.setName("Mozaik")
             sender.setEmail("info@430forest.com")
             val replyTo = new SendSmtpEmailReplyTo()
             replyTo.setEmail("noreply@430forest.com")
@@ -66,7 +70,7 @@ trait MailUtils3 {
             to.setName(PersonApi.fullName(user))
             val sendSmtpEmail = new SendSmtpEmail()
             sendSmtpEmail.setReplyTo(replyTo)
-            sendSmtpEmail.setHtmlContent(if (isHtml(body)) body else s"<html>$body</html>")
+            sendSmtpEmail.setHtmlContent(if (isHtml(body)) body else toHtml(body))
             sendSmtpEmail.setTo(Seq(to))
             sendSmtpEmail.setSubject(subject)
             sendSmtpEmail.setSender(sender)

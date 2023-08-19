@@ -1,6 +1,6 @@
 package com.buildwhiz
 
-import com.buildwhiz.baf3.NodeConnector
+import com.buildwhiz.baf3.{MediaServer, NodeConnector}
 
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
@@ -54,22 +54,27 @@ class Entry extends HttpServlet with HttpUtils {
   private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit): Unit = {
     if (permitted(request)) {
       val urlParts = request.getRequestURL.toString.split("/")
-      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
-      val simpleClassName = urlParts(pkgIdx + 1)
-      val className = s"com.buildwhiz.${urlParts(pkgIdx)}.$simpleClassName"
-      Entry.cache.get(className) match {
-        case Some(httpServlet) => delegateTo(httpServlet)
-        case None => Try(Class.forName(className)) match {
-          case Success(clazz) =>
-            Try(clazz.getDeclaredConstructor().newInstance()) match {
-              case Success(httpServlet: Entry.BWServlet @ unchecked) =>
-                Entry.cache(className) = httpServlet
-                delegateTo(httpServlet)
-              case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
-              case Failure(t) => throw t
-            }
-          case Failure(_) =>
-            delegateTo(NodeConnector)
+      val pkgIdx = urlParts.zipWithIndex.find(_._1.matches(
+          "api|baf[23]?|dot|etc|graphql|media|slack|tools|web")).head._2
+      if (urlParts(pkgIdx) == "media") {
+        delegateTo(MediaServer)
+      } else {
+        val simpleClassName = urlParts(pkgIdx + 1)
+        val className = s"com.buildwhiz.${urlParts(pkgIdx)}.$simpleClassName"
+        Entry.cache.get(className) match {
+          case Some(httpServlet) => delegateTo(httpServlet)
+          case None => Try(Class.forName(className)) match {
+            case Success(clazz) =>
+              Try(clazz.getDeclaredConstructor().newInstance()) match {
+                case Success(httpServlet: Entry.BWServlet@unchecked) =>
+                  Entry.cache(className) = httpServlet
+                  delegateTo(httpServlet)
+                case Success(_) => throw new IllegalArgumentException(s"Not a HttpServlet: $className")
+                case Failure(t) => throw t
+              }
+            case Failure(_) =>
+              delegateTo(NodeConnector)
+          }
         }
       }
     } else {

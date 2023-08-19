@@ -35,6 +35,7 @@
     <url-pattern>/api/*</url-pattern>
     <url-pattern>/web/*</url-pattern>
     <url-pattern>/etc/*</url-pattern>
+    <url-pattern>/media/*</url-pattern>
     <url-pattern>/tools/*</url-pattern>
     <url-pattern>/old/baf/*</url-pattern>
     <url-pattern>/old/api/*</url-pattern>

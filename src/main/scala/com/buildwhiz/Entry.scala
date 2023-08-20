@@ -31,6 +31,7 @@ class Entry extends HttpServlet with HttpUtils {
       case ("SlackSlashCommand", "slack") => true
       case ("SlackEventCallback", "slack") => true
       case ("SlackInteractiveCallback", "slack") => true
+      case (_, "media") => true
       case _ => false
     }
     try {

@@ -253,20 +253,34 @@ object TimerModule extends HttpUtils with MailUtils3 {
     BWLogger.log(getClass.getName, "LOCAL", logMessage)
   }
 
+  private def projectSpecificDaybreak(ms: Long): Unit = {
+    val projects = ProjectApi.listProjects()
+    //val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
+    //BWLogger.log(getClass.getName, "fifteenMinutes", message, performanceData(): _*)
+    for (project <- projects) {
+      val calendar = Calendar.getInstance(TimeZone.getTimeZone(ProjectApi.timeZone(project)))
+      calendar.setTimeInMillis(ms)
+      //activityDelayedCheck(ms, project, calendar)
+      val hours = calendar.get(Calendar.HOUR_OF_DAY)
+      if (hours == 0) {
+        val minutes = calendar.get(Calendar.MINUTE)
+        if (minutes == 0)
+          newDay(ms, project, calendar)
+      }
+    }
+  }
+
+  private def everyHour(ms: Long): Unit = {
+  }
+
   private def fifteenMinutes(ms: Long): Unit = {
     try {
-      val projects = ProjectApi.listProjects()
-      //val message = projects.map(_.name[String]).mkString("15-Minute-Tick projects: ", ", ", "")
-      //BWLogger.log(getClass.getName, "fifteenMinutes", message, performanceData(): _*)
-      for (project <- projects) {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone(ProjectApi.timeZone(project)))
-        calendar.setTimeInMillis(ms)
-        //activityDelayedCheck(ms, project, calendar)
-        val hours = calendar.get(Calendar.HOUR_OF_DAY)
-        if (hours == 0) {
-          val minutes = calendar.get(Calendar.MINUTE)
-          if (minutes == 0)
-            newDay(ms, project, calendar)
+      Future {
+        projectSpecificDaybreak(ms)
+      }
+      if (ms % 3600000L <= 5000) {
+        Future {
+          everyHour(ms)
         }
       }
       // Database archival etc (at 3 AM PST)

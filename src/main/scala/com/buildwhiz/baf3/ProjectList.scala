@@ -90,6 +90,8 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
       case None => s"Summary for '$name'"
       case Some(theSummary) => theSummary
     }
+    val projectManagerNames = project.assigned_roles[Many[Document]].filter(_.y.role_name == "Project-Manager").
+        map(ar => PersonApi.fullName(PersonApi.personById(ar.person_id[ObjectId]))).mkString(", ")
     val distinctPhaseStatusValues: Seq[String] = phases.map(_.display_status[String]).distinct
     val displayStatus3 = distinctPhaseStatusValues.length match {
       case 0 => "Unknown"
@@ -103,7 +105,8 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
         "postal_code" -> address.postal_code[String], "country" -> address.country[Document],
         "state" -> address.state[Document], "gps_location" -> address.gps_location[Document],
         "phases" -> phases.map(_.asDoc).asJava, "description" -> project.description[String],
-        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName
+        "image_url" -> ProjectApi.imageUrl(Right(project)), "customer" -> customerName,
+        "project_manager_names" -> projectManagerNames
     )
   }
 }

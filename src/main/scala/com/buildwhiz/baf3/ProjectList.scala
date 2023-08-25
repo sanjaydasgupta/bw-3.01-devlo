@@ -90,8 +90,15 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
       case None => s"Summary for '$name'"
       case Some(theSummary) => theSummary
     }
+    def safePersonName(personOid: ObjectId): String = {
+      if (PersonApi.exists(personOid)) {
+        PersonApi.fullName(PersonApi.personById(personOid))
+      } else {
+        "???"
+      }
+    }
     val projectManagerNames = project.assigned_roles[Many[Document]].filter(_.y.role_name == "Project-Manager").
-        map(ar => PersonApi.fullName(PersonApi.personById(ar.person_id[ObjectId]))).mkString(", ")
+        map(ar => safePersonName(ar.person_id[ObjectId])).mkString(", ")
     val distinctPhaseStatusValues: Seq[String] = phases.map(_.display_status[String]).distinct
     val displayStatus3 = distinctPhaseStatusValues.length match {
       case 0 => "Unknown"

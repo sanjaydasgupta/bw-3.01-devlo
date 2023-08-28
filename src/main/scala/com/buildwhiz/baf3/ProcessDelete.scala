@@ -29,7 +29,7 @@ class ProcessDelete extends HttpServlet with HttpUtils {
       response.setContentType("application/json")
       processDelete(processOid) match {
         case Right(msg) =>
-          response.getWriter.print(successJson(message=msg))
+          response.getWriter.print(successJson())
           BWLogger.audit(getClass.getName, request.getMethod, msg, request)
         case Left(msg) =>
           response.getWriter.print(new Document("ok", 2).append("message", msg).toJson)

@@ -97,7 +97,7 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
         "???"
       }
     }
-    val projectManagerNames = project.assigned_roles[Many[Document]].filter(_.y.role_name == "Project-Manager").
+    val projectManagerNames = project.assigned_roles[Many[Document]].filter(_.y.role_name[String] == "Project-Manager").
         map(ar => safePersonName(ar.person_id[ObjectId])).mkString(", ")
     val distinctPhaseStatusValues: Seq[String] = phases.map(_.display_status[String]).distinct
     val displayStatus3 = distinctPhaseStatusValues.length match {

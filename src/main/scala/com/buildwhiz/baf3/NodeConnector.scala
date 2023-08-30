@@ -67,25 +67,25 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val params = getParameterMap(request)
         val selectedManaged = (uri.contains("ProjectInfo"), uri.contains("PhaseInfo"), uri.contains("TenantList"),
             uri.contains("Home")) match {
-          case (false, false, false, true) => Some(false, isAdmin)
+          case (false, false, false, true) => Some((false, isAdmin))
           case (true, _, _, _) =>
             val project = ProjectApi.projectById(new ObjectId(params("project_id")))
-            Some(true, isAdmin || ProjectApi.canManage(user._id[ObjectId], project))
+            Some((true, isAdmin || ProjectApi.canManage(user._id[ObjectId], project)))
           case (false, true, _, _) =>
             val phase = PhaseApi.phaseById(new ObjectId(params("phase_id")))
-            Some(true, isAdmin || PhaseApi.canManage(user._id[ObjectId], phase))
+            Some((true, isAdmin || PhaseApi.canManage(user._id[ObjectId], phase)))
           case (false, false, true, _) =>
-            Some(true, isAdmin)
+            Some((true, isAdmin))
           case _ => uiContextSelectedManaged(request) match {
-            case None => Some(false, isAdmin)
-            case Some((selected, _)) => Some(selected, isAdmin)
+            case None => Some((false, isAdmin))
+            case Some((selected, _)) => Some((selected, isAdmin))
           }
         }
         val hostName = getHostName(request)
         val menuItems = selectedManaged match {
           //case None => displayedMenuItems(isAdmin, starting = true)
-          // case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
-          case Some((_, _)) => displayedMenuItems(userIsAdmin = true, hostName, userIsManager = true)
+          case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
+          // case Some((_, _)) => displayedMenuItems(userIsAdmin = true, hostName, userIsManager = true)
         }
         uiContextSelectedManaged(request, selectedManaged)
         nodeEntityDocument.append("menu_items", menuItems)

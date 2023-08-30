@@ -129,7 +129,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
                 "selected_project_id", "selected_phase_id", "single_project_indicator").
                 filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
-              val landingInfo = landingPageInfo(hostName, personRecord)
+              val landingInfo = landingPageInfo(hostName, personRecord, request)
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
                   Map("landing_page" -> landingInfo) ++ dates(request))

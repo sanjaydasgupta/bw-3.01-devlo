@@ -6,7 +6,9 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
+import com.buildwhiz.utils.BWLogger
 
+import javax.servlet.http.HttpServletRequest
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 
@@ -208,10 +210,10 @@ package object baf3 {
 
   private val issuesSitesInfo: Seq[(String, String)] = Seq(
     ("issues.430forest.com", "430 Forest"),
-    ("test.buildwhiz.com", "Development-Two")
+    ("test.buildwhiz.com", "March-23-Development")
   )
 
-  def landingPageInfo(hostName: String, user: DynDoc): Document = {
+  def landingPageInfo(hostName: String, user: DynDoc, request: HttpServletRequest): Document = {
     val userProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
     issuesSitesInfo.find(_._1 == hostName).map(_._2) match {
       case None =>
@@ -234,6 +236,10 @@ package object baf3 {
                 throw new IllegalAccessException(s"Not found phase 'Operations' in project '$projectName'")
             }
           case Some(_) =>
+            val userEmails: Seq[DynDoc] = user.emails[Many[Document]]
+            val userEmail = userEmails(0).email[String]
+            BWLogger.log(getClass.getName, request.getMethod,
+                s"WARN project '$projectName' not accessible by user '$userEmail'", request)
             Map("name" -> "Home", "params" -> Map())
           case None =>
             throw new IllegalAccessException(s"Not found project '$projectName'")

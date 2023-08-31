@@ -231,13 +231,14 @@ package object baf3 {
             BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids), "name" -> "Operations")).headOption match {
               case Some(opsPhase) =>
                 Map("name" -> "Issues", "params" -> Map("project_name" -> projectName,
-                  "project_id" -> project._id[ObjectId], "phase_id" -> opsPhase._id[ObjectId]))
+                  "project_id" -> project._id[ObjectId], "phase_id" -> opsPhase._id[ObjectId],
+                  "phase_name" -> opsPhase.name[String]))
               case None =>
                 throw new IllegalAccessException(s"Not found phase 'Operations' in project '$projectName'")
             }
           case Some(_) =>
             val userEmails: Seq[DynDoc] = user.emails[Many[Document]]
-            val userEmail = userEmails(0).email[String]
+            val userEmail = userEmails.head.email[String]
             BWLogger.log(getClass.getName, request.getMethod,
                 s"WARN project '$projectName' not accessible by user '$userEmail'", request)
             Map("name" -> "Home", "params" -> Map())

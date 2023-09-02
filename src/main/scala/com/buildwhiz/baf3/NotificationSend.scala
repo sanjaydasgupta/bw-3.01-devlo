@@ -1,7 +1,7 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.ProjectApi
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
@@ -10,6 +10,8 @@ import org.bson.types.ObjectId
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+
+import scala.jdk.CollectionConverters._
 
 class NotificationSend extends HttpServlet with HttpUtils {
 
@@ -28,8 +30,31 @@ class NotificationSend extends HttpServlet with HttpUtils {
         }
         case Some(sub) => sub
       }
-      val userOids = postDataObject.user_ids[String].split(",").map(s => new ObjectId(s.trim))
-      NotificationSend.send(subject, message, userOids.toSeq, optProjectOid)
+      val notifications: Seq[DynDoc] = postDataObject.user_ids[Any] match {
+        case csv: String => csv.split(",").toSeq.map(uid => new ObjectId(uid.trim)).
+            map(oid => Map("person_id" -> oid, "subject" -> subject, "message" -> message, "urgent" -> false))
+        case docs: Many[Document@unchecked] =>
+          for (doc <- docs) {
+            doc.subject = subject
+            doc.message = message
+          }
+          docs
+      }
+      val (urgentMsgs, nonUrgentMsgs) = notifications.partition(_.urgent[Boolean])
+      if (urgentMsgs.nonEmpty) {
+        urgentMsgs.groupBy(msg => (msg.subject[String], msg.message[String])).
+          foreach(smg => NotificationSend.send(smg._1._1, smg._1._2, smg._2.map(_.person_id[ObjectId])))
+      }
+      if (nonUrgentMsgs.nonEmpty) {
+        val timestamps = new Document("created", System.currentTimeMillis())
+        nonUrgentMsgs.foreach(num => {
+          num.sent = false
+          num.timestamps = timestamps
+        })
+        val insertManyResult = BWMongoDB3.batched_notifications.insertMany(nonUrgentMsgs.map(_.asDoc).asJava)
+        if (insertManyResult.getInsertedIds.size() != nonUrgentMsgs.length)
+          throw new IllegalArgumentException(s"MongoDB update failed: $insertManyResult")
+      }
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, "EXIT", request)
@@ -44,7 +69,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
 
 object NotificationSend extends MailUtils3 {
 
-  def send(subject: String, message: String, userOids: Seq[ObjectId], optProjectOid: Option[ObjectId]): Unit = {
+  def send(subject: String, message: String, userOids: Seq[ObjectId]): Unit = {
     Future {
       sendMail(userOids, subject, message, None)
     }

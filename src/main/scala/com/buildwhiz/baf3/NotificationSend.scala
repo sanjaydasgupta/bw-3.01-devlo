@@ -18,6 +18,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
+      val t0 = System.currentTimeMillis()
       val postDataString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"POST-Data: postDataString")
       val postDataObject: DynDoc = Document.parse(postDataString)
@@ -44,14 +45,18 @@ class NotificationSend extends HttpServlet with HttpUtils {
         uir.timestamps = timestamps
       })
       for (urm <- userMessages.filter(_.urgent[Boolean])) {
-        NotificationSend.send(urm.subject[String], urm.message[String], Seq(urm.person_id[ObjectId]))
+        NotificationSend.send(urm.subject[String], urm.message[String], Seq(new ObjectId(urm.person_id[String])))
       }
       val insertManyResult = BWMongoDB3.batched_notifications.insertMany(userMessages.map(_.asDoc).asJava)
       if (insertManyResult.getInsertedIds.size() != userMessages.length)
         throw new IllegalArgumentException(s"MongoDB update failed: $insertManyResult")
       response.getWriter.print(successJson())
       response.setContentType("application/json")
-      BWLogger.log(getClass.getName, request.getMethod, "EXIT", request)
+      val delay = System.currentTimeMillis() - t0
+      val urgentCount = userMessages.count(_.urgent[Boolean])
+      val nonUrgentCount = userMessages.length - urgentCount
+      BWLogger.log(getClass.getName, request.getMethod,
+          s"EXIT (time: $delay ms, urgent: $urgentCount, non-urgent: $nonUrgentCount) ", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

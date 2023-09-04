@@ -30,31 +30,25 @@ class NotificationSend extends HttpServlet with HttpUtils {
         }
         case Some(sub) => sub
       }
-      val notifications: Seq[DynDoc] = postDataObject.user_ids[Any] match {
+      val userMessages: Seq[DynDoc] = postDataObject.user_ids[Any] match {
         case csv: String => csv.split(",").toSeq.map(uid => new ObjectId(uid.trim)).
-            map(oid => Map("person_id" -> oid, "subject" -> subject, "message" -> message, "urgent" -> false))
+            map(oid => Map("person_id" -> oid, "urgent" -> false))
         case docs: Many[Document@unchecked] =>
-          for (doc <- docs) {
-            doc.subject = subject
-            doc.message = message
-          }
           docs
       }
-      val (urgentMsgs, nonUrgentMsgs) = notifications.partition(_.urgent[Boolean])
-      if (urgentMsgs.nonEmpty) {
-        urgentMsgs.groupBy(msg => (msg.subject[String], msg.message[String])).
-          foreach(smg => NotificationSend.send(smg._1._1, smg._1._2, smg._2.map(_.person_id[ObjectId])))
+      val timestamps = new Document("created", System.currentTimeMillis())
+      userMessages.foreach(uir => {
+        uir.subject = subject
+        uir.message = message
+        uir.sent = uir.urgent[Boolean]
+        uir.timestamps = timestamps
+      })
+      for (urm <- userMessages.filter(_.urgent[Boolean])) {
+        NotificationSend.send(urm.subject[String], urm.message[String], Seq(urm.person_id[ObjectId]))
       }
-      if (nonUrgentMsgs.nonEmpty) {
-        val timestamps = new Document("created", System.currentTimeMillis())
-        nonUrgentMsgs.foreach(num => {
-          num.sent = false
-          num.timestamps = timestamps
-        })
-        val insertManyResult = BWMongoDB3.batched_notifications.insertMany(nonUrgentMsgs.map(_.asDoc).asJava)
-        if (insertManyResult.getInsertedIds.size() != nonUrgentMsgs.length)
-          throw new IllegalArgumentException(s"MongoDB update failed: $insertManyResult")
-      }
+      val insertManyResult = BWMongoDB3.batched_notifications.insertMany(userMessages.map(_.asDoc).asJava)
+      if (insertManyResult.getInsertedIds.size() != userMessages.length)
+        throw new IllegalArgumentException(s"MongoDB update failed: $insertManyResult")
       response.getWriter.print(successJson())
       response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, "EXIT", request)

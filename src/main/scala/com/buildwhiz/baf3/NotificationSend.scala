@@ -7,10 +7,10 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import java.util.TimeZone
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import scala.jdk.CollectionConverters._
 
 class NotificationSend extends HttpServlet with HttpUtils {
@@ -37,11 +37,20 @@ class NotificationSend extends HttpServlet with HttpUtils {
         case docs: Many[Document@unchecked] =>
           docs
       }
-      val timestamps = new Document("created", System.currentTimeMillis())
+      val currentMillis = System.currentTimeMillis()
+      val timestamps = new Document("created", currentMillis)
       userMessages.foreach(uir => {
         uir.subject = subject
         uir.message = message
-        uir.sent = uir.urgent[Boolean]
+        val urgent = uir.urgent[Boolean]
+        uir.sent = urgent
+        if (!urgent) {
+          val project = ProjectApi.projectById(new ObjectId(uir.project_id[String]))
+          val timeZoneName = ProjectApi.timeZone(project)
+          val timeZone = TimeZone.getTimeZone(timeZoneName)
+          val timeZoneOffset = timeZone.getRawOffset
+          uir.tz_offset = timeZoneOffset
+        }
         uir.timestamps = timestamps
       })
       for (urm <- userMessages.filter(_.urgent[Boolean])) {

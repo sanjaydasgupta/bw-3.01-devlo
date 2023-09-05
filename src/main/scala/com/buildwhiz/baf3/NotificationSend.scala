@@ -2,6 +2,7 @@ package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.ProjectApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
@@ -76,6 +77,33 @@ class NotificationSend extends HttpServlet with HttpUtils {
 }
 
 object NotificationSend extends MailUtils3 {
+
+  def bulkSend(ms: Long): Unit = {
+    try {
+      val pendingNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
+      val notificationsByUser = pendingNotifications.groupBy(pn => new ObjectId(pn.person_id[String]))
+      for ((uid: ObjectId, notifications: Seq[DynDoc]) <- notificationsByUser) {
+        if (notifications.length == 1) {
+          val notification = notifications.head
+          send(notification.subject[String], notification.message[String], Seq(uid))
+        } else {
+          val message = notifications.map(_.message[String]).mkString("\n")
+          send(s"Mozaik: ${notifications.length} messages", message, Seq(uid))
+        }
+      }
+      val batchIds = pendingNotifications.map(_._id[ObjectId])
+      val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),
+        Map($set -> Map("sent" -> true)))
+      if (updateResult.getMatchedCount != batchIds.length) {
+        BWLogger.log(getClass.getName, "bulkSend",
+          s"ERROR (Failed to update 'batched_notifications': $updateResult) ")
+      }
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, "bulkSend",
+          s"ERROR (${t.getLocalizedMessage}) ")
+    }
+  }
 
   def send(subject: String, message: String, userOids: Seq[ObjectId]): Unit = {
     Future {

@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory
 import java.util.{Calendar, TimeZone, Timer, TimerTask}
 import java.io.File
 import com.buildwhiz.baf2.{ActivityApi, PersonApi, PhaseApi, ProcessApi, ProjectApi}
+import com.buildwhiz.baf3.NotificationSend
 import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
@@ -271,6 +272,7 @@ object TimerModule extends HttpUtils with MailUtils3 {
   }
 
   private def everyHour(ms: Long): Unit = {
+    NotificationSend.bulkSend(ms)
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
@@ -278,7 +280,9 @@ object TimerModule extends HttpUtils with MailUtils3 {
       Future {
         projectSpecificDaybreak(ms)
       }
-      if (ms % 3600000L <= 5000) {
+      val msPerHour = 3600000L
+      val msModuloHour = ms % msPerHour
+      if (msModuloHour <= 5000 || msModuloHour >= msPerHour - 5000) {
         Future {
           everyHour(ms)
         }

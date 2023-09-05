@@ -44,7 +44,7 @@ trait MailUtils3 {
   }
 
   def sendMail(recipientOids: Seq[ObjectId], subject: String, body: String, request: Option[HttpServletRequest]): Unit = {
-    BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-sendMail", request)
+    // BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-sendMail", request)
     val method = request match {
       case Some(req) => req.getMethod
       case None => "LOCAL"
@@ -75,7 +75,7 @@ trait MailUtils3 {
             sendSmtpEmail.setSubject(subject)
             sendSmtpEmail.setSender(sender)
             val response = api.sendTransacEmail(sendSmtpEmail)
-            BWLogger.log(getClass.getName, method, s"EXIT-sendMail-${response.getMessageId}", request)
+            BWLogger.log(getClass.getName, method, s"End-sendMail-${response.getMessageId}", request)
           } catch {
             case t: Throwable =>
               BWLogger.log(getClass.getName, method, s"ERROR-sendMail: ${t.getClass.getName}(${t.getMessage})", request)

@@ -8,6 +8,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
+import java.util.regex.Pattern
 import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.concurrent.Future
@@ -78,10 +79,25 @@ class NotificationSend extends HttpServlet with HttpUtils {
 
 object NotificationSend extends MailUtils3 {
 
+  private def myTrim(str: String): String = {
+    val pattern = Pattern.compile("[. ]*(.+)")
+
+    def innerTrim(s2: String): String = {
+      val matcher = pattern.matcher(s2)
+      if (matcher.matches()) {
+        matcher.group(1)
+      } else {
+        s2
+      }
+    }
+
+    innerTrim(innerTrim(str).reverse).reverse
+  }
+
   private def groups(notifications: Seq[DynDoc]): Seq[(ObjectId, String, String)] = {
     val pattern = "Project:|[, ]+Phase:|[, ]+Issue:|[, ]+Activity:|[, ]+Message:"
     notifications.foreach(n => {
-      val messageParts = n.message[String].split(pattern).map(_.trim).drop(1)
+      val messageParts = n.message[String].split(pattern).drop(1).map(myTrim)
       n.project_name = messageParts(0)
       n.phase_name = messageParts(1)
       n.issue_title = messageParts(2)

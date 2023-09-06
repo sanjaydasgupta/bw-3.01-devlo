@@ -78,26 +78,42 @@ class NotificationSend extends HttpServlet with HttpUtils {
 
 object NotificationSend extends MailUtils3 {
 
-  def bulkSend(ms: Long): Unit = {
+  def bulkSend(currentMillis: Long): Unit = {
     try {
-      val pendingNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
-      val notificationsByUser = pendingNotifications.groupBy(pn => new ObjectId(pn.person_id[String]))
-      for ((uid: ObjectId, notifications: Seq[DynDoc]) <- notificationsByUser) {
-        if (notifications.length == 1) {
-          val notification = notifications.head
-          send(notification.subject[String], notification.message[String], Seq(uid))
-        } else {
-          val message = notifications.map(_.message[String]).mkString("\n")
-          send(s"Mozaik: ${notifications.length} messages", message, Seq(uid))
+      def sendBatch(notifications: Seq[DynDoc]): Unit = {
+        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-ENTRY")
+        val notificationsByUser = notifications.groupBy(pn => new ObjectId(pn.person_id[String]))
+        for ((uid: ObjectId, notifications: Seq[DynDoc]) <- notificationsByUser) {
+          if (notifications.length == 1) {
+            val notification = notifications.head
+            send(notification.subject[String], notification.message[String], Seq(uid))
+          } else {
+            val message = notifications.map(_.message[String]).mkString("\n")
+            send(s"Mozaik: ${notifications.length} messages", message, Seq(uid))
+          }
         }
+        val batchIds = notifications.map(_._id[ObjectId])
+        val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),
+          Map($set -> Map("sent" -> true)))
+        if (updateResult.getMatchedCount != batchIds.length) {
+          BWLogger.log(getClass.getName, "bulkSend",
+            s"ERROR (Failed to update 'batched_notifications': $updateResult) ")
+        }
+        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-EXIT")
       }
-      val batchIds = pendingNotifications.map(_._id[ObjectId])
-      val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),
-        Map($set -> Map("sent" -> true)))
-      if (updateResult.getMatchedCount != batchIds.length) {
-        BWLogger.log(getClass.getName, "bulkSend",
-          s"ERROR (Failed to update 'batched_notifications': $updateResult) ")
+
+      val info: DynDoc = BWMongoDB3.instance_info.find().head
+      val allNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
+      val selectedNotifications: Seq[DynDoc] = if (info.instance[String] == "www.buildwhiz.com") {
+        val when = 20 * 3600000L
+        allNotifications.map(n => {n.ms = (currentMillis + n.tz_offset[Int]) % 86400000L; n}).
+            filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
+      } else {
+        val when = 1800000L
+        allNotifications.map(n => {n.ms = currentMillis % 3600000L; n}).
+          filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
       }
+      sendBatch(selectedNotifications)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "bulkSend",

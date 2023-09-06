@@ -272,11 +272,13 @@ object TimerModule extends HttpUtils with MailUtils3 {
   }
 
   private def everyHour(ms: Long): Unit = {
-    NotificationSend.bulkSend(ms)
   }
 
   private def fifteenMinutes(ms: Long): Unit = {
     try {
+      Future {
+        NotificationSend.bulkSend(ms)
+      }
       Future {
         projectSpecificDaybreak(ms)
       }

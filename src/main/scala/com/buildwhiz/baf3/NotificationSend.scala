@@ -81,13 +81,12 @@ object NotificationSend extends MailUtils3 {
   private def groups(notifications: Seq[DynDoc]): Seq[(ObjectId, String, String)] = {
     val pattern = "Project:|[, ]+Phase:|[, ]+Issue:|[, ]+Activity:|[, ]+Message:"
     notifications.foreach(n => {
-      val Array(_, project, phase, issue, activity, message) = n.message[String].
-        split(pattern).map(_.trim)
-      n.project_name = project
-      n.phase_name = phase
-      n.issue_title = issue
-      n.activity_name = activity
-      n.message_text = message
+      val messageParts = n.message[String].split(pattern).map(_.trim).drop(1)
+      n.project_name = messageParts(0)
+      n.phase_name = messageParts(1)
+      n.issue_title = messageParts(2)
+      n.activity_name = if (messageParts.length == 5) messageParts(3) else ""
+      n.message_text = if (messageParts.length == 5) messageParts(4) else messageParts(3)
     })
     notifications.groupBy(n => (n.project_name[String], n.phase_name[String], n.person_id[String])).map(kv => {
       val rows = kv._2.map(msg => {

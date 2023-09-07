@@ -54,8 +54,8 @@ class NotificationSend extends HttpServlet with HttpUtils {
         }
         uir.timestamps = timestamps
       })
-      for (urm <- userMessages.filter(_.urgent[Boolean])) {
-        NotificationSend.send(urm.subject[String], urm.message[String], Seq(new ObjectId(urm.person_id[String])))
+      for ((uid: ObjectId, subject, body) <- NotificationSend.groups(userMessages.filter(_.urgent[Boolean]))) {
+        NotificationSend.send(subject, body, Seq(uid))
       }
       val insertManyResult = BWMongoDB3.batched_notifications.insertMany(userMessages.map(_.asDoc).asJava)
       if (insertManyResult.getInsertedIds.size() != userMessages.length)
@@ -78,19 +78,33 @@ class NotificationSend extends HttpServlet with HttpUtils {
 
 object NotificationSend extends MailUtils3 {
 
+  private def groups(notifications: Seq[DynDoc]): Seq[(ObjectId, String, String)] = {
+    val pattern = "Project:|[, ]+Phase:|[, ]+Issue:|[, ]+Activity:|[, ]+Message:"
+    notifications.foreach(n => {
+      val Array(_, project, phase, issue, activity, message) = n.message[String].
+        split(pattern).map(_.trim)
+      n.project_name = project
+      n.phase_name = phase
+      n.issue_title = issue
+      n.activity_name = activity
+      n.message_text = message
+    })
+    notifications.groupBy(n => (n.project_name[String], n.phase_name[String], n.person_id[String])).map(kv => {
+      val rows = kv._2.map(msg => {
+        s"""<tr><td>${msg.issue_title[String]}</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
+      }).mkString
+      val columnHeader = """<tr><td align="center">Issue</td><td align="center">Activity</td><td align="center">Message</td></tr>"""
+      val html = s"""<html><table border="1">$columnHeader$rows</table></html>"""
+      (new ObjectId(kv._1._3), s"Mozaik (Project: ${kv._1._1}, Phase: ${kv._1._2})", html)
+    }).toSeq
+  }
+
   def bulkSend(currentMillis: Long): Unit = {
     try {
       def sendBatch(notifications: Seq[DynDoc]): Unit = {
         BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-ENTRY")
-        val notificationsByUser = notifications.groupBy(pn => new ObjectId(pn.person_id[String]))
-        for ((uid: ObjectId, notifications: Seq[DynDoc]) <- notificationsByUser) {
-          if (notifications.length == 1) {
-            val notification = notifications.head
-            send(notification.subject[String], notification.message[String], Seq(uid))
-          } else {
-            val message = notifications.map(_.message[String]).mkString("\n")
-            send(s"Mozaik: ${notifications.length} messages", message, Seq(uid))
-          }
+        for ((uid: ObjectId, subject, body) <- groups(notifications)) {
+          send(subject, body, Seq(uid))
         }
         val batchIds = notifications.map(_._id[ObjectId])
         val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),

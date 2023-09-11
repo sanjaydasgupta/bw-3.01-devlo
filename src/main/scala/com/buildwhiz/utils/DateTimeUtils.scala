@@ -11,6 +11,17 @@ trait DateTimeUtils {
     simpleDateFormat.format(new Date(milliSeconds))
   }
 
+  def dateString2(milliSeconds: Long, timeZoneCode: String): String = {
+    val timeZone = TimeZone.getTimeZone(timeZoneCode)
+    val simpleDateFormat = if (timeZone.getRawOffset < 0) {
+      new SimpleDateFormat("MMM dd, YYYY")
+    } else {
+      new SimpleDateFormat("dd MMM YYYY")
+    }
+    simpleDateFormat.setTimeZone(timeZone)
+    simpleDateFormat.format(new Date(milliSeconds))
+  }
+
   def dateTimeString(milliSeconds: Long, timeZoneCode: Option[String] = Some("GMT"),
       withMilliseconds: Boolean = false): String = {
     val simpleDateFormat = if (withMilliseconds) {

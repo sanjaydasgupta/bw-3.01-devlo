@@ -61,37 +61,51 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 
   def validateIdToken(idTokenString: String, optEmail: Option[String] = None): (Boolean, String, DynDoc => Boolean)
 
-  private def lastModified(f: javaFile): Long = {
+  private def lastModified2(f: javaFile): Long = {
     if (f.isDirectory) {
-      f.listFiles().map(_.lastModified()).max
+      val files = f.listFiles()
+      if (files.isEmpty) {
+        f.lastModified()
+      } else {
+        files.map(lastModified2).max
+      }
     } else {
       f.lastModified()
     }
   }
 
   private def dates(request: HttpServletRequest): Map[String, String] = {
+    val allUnknown = Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown",
+      "date_java2" -> "Unknown", "date_node2" -> "Unknown", "date_ui2" -> "Unknown")
     new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
       case Some(tomcatDirectory) =>
         tomcatDirectory.listFiles.find(_.getName.startsWith("webapps")) match {
           case Some(webapps) =>
             val user: DynDoc = getUser(request)
             val tz = user.tz[String]
-            val javaDate = webapps.listFiles.find(f => f.getName == "bw-3.01" && f.isDirectory) match {
-              case Some(javaWarDir) => dateString(javaWarDir.listFiles.map(_.lastModified).max, tz)
-              case None => "Unknown"
+            val (javaDate, javaDate2) = webapps.listFiles.find(f => f.getName == "bw-3.01" && f.isDirectory) match {
+              case Some(javaWarDir) =>
+                val maxTime = javaWarDir.listFiles.map(_.lastModified).max
+                (dateString(maxTime, tz), dateString2(maxTime, tz))
+              case None => ("Unknown", "Unknown")
             }
-            val nodeDate = Seq(new javaFile("/home/ubuntu/node/src")).find(f => f.exists && f.isDirectory) match {
-              case Some(nodeDir) => dateString(lastModified(nodeDir), tz)
-              case None => "Unknown"
+            val (nodeDate, nodeDate2) = Seq(new javaFile("/home/ubuntu/node/src")).find(f => f.exists && f.isDirectory) match {
+              case Some(nodeDir) =>
+                val maxTime = lastModified2(nodeDir)
+                (dateString(maxTime, tz), dateString2(maxTime, tz))
+              case None => ("Unknown", "Unknown")
             }
-            val uiDate = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {
-              case Some(uiDir) => dateString(uiDir.listFiles.map(_.lastModified).max, tz)
-              case None => "Unknown"
+            val (uiDate, uiDate2) = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {
+              case Some(uiDir) =>
+                val maxTime = uiDir.listFiles.map(_.lastModified).max
+                (dateString(maxTime, tz), dateString2(maxTime, tz))
+              case None => ("Unknown", "Unknown")
             }
-            Map("date_java" -> javaDate, "date_node" -> nodeDate, "date_ui" -> uiDate)
-          case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")
+            Map("date_java" -> javaDate, "date_node" -> nodeDate, "date_ui" -> uiDate,
+                "date_java2" -> javaDate2, "date_node2" -> nodeDate2, "date_ui2" -> uiDate2)
+          case None => allUnknown
         }
-      case None => Map("date_java" -> "Unknown", "date_node" -> "Unknown", "date_ui" -> "Unknown")
+      case None => allUnknown
     }
   }
 

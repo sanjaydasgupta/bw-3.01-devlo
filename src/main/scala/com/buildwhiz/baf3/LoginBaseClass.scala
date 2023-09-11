@@ -61,6 +61,14 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 
   def validateIdToken(idTokenString: String, optEmail: Option[String] = None): (Boolean, String, DynDoc => Boolean)
 
+  private def lastModified(f: javaFile): Long = {
+    if (f.isDirectory) {
+      f.listFiles().map(_.lastModified()).max
+    } else {
+      f.lastModified()
+    }
+  }
+
   private def dates(request: HttpServletRequest): Map[String, String] = {
     new javaFile("server").listFiles.find(_.getName.startsWith("apache-tomcat-")) match {
       case Some(tomcatDirectory) =>
@@ -73,7 +81,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               case None => "Unknown"
             }
             val nodeDate = Seq(new javaFile("/home/ubuntu/node/src")).find(f => f.exists && f.isDirectory) match {
-              case Some(nodeDir) => dateString(nodeDir.lastModified, tz)
+              case Some(nodeDir) => dateString(lastModified(nodeDir), tz)
               case None => "Unknown"
             }
             val uiDate = webapps.listFiles.find(f => f.getName == "vv" && f.isDirectory) match {

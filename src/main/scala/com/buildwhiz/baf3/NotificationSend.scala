@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.ProjectApi
+import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -8,7 +8,7 @@ import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
-import java.util.TimeZone
+import java.util.{Calendar, TimeZone}
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -90,10 +90,18 @@ object NotificationSend extends MailUtils3 {
     })
     notifications.groupBy(n => (n.project_name[String], n.phase_name[String], n.person_id[String])).map(kv => {
       val rows = kv._2.map(msg => {
-        val title = msg.issue_title[String].split("-\\d{4}-\\d{2}-\\d{2}").head
-        s"""<tr><td>$title</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
+        val rawTitle = msg.issue_title[String]
+        val title = rawTitle.splitAt(rawTitle.length - 17)._1
+        val person = PersonApi.personById(new ObjectId(kv._1._3))
+        val timeZone = TimeZone.getTimeZone(person.tz[String])
+        val cal = Calendar.getInstance(timeZone)
+        val timestamps: DynDoc = msg.timestamps[Document]
+        cal.setTimeInMillis(timestamps.created[Long])
+        val time = "%02d:%02d:%02d".format(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
+        s"""<tr><td>$time</td><td>$title</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
       }).mkString
-      val columnHeader = """<tr><td align="center">Issue</td><td align="center">Activity</td><td align="center">Message</td></tr>"""
+      val td = """<td align="center">"""
+      val columnHeader = s"""<tr>${td}Time</td>${td}Issue</td>${td}Activity</td>${td}Message</td></tr>"""
       val html = s"""<html><table border="1">$columnHeader$rows</table></html>"""
       (new ObjectId(kv._1._3), s"Mozaik (Project: ${kv._1._1}, Phase: ${kv._1._2})", html)
     }).toSeq

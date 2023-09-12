@@ -90,7 +90,8 @@ object NotificationSend extends MailUtils3 {
     })
     notifications.groupBy(n => (n.project_name[String], n.phase_name[String], n.person_id[String])).map(kv => {
       val rows = kv._2.map(msg => {
-        s"""<tr><td>${msg.issue_title[String]}</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
+        val title = msg.issue_title[String].split("-\\d{4}-\\d{2}-\\d{2}").head
+        s"""<tr><td>$title</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
       }).mkString
       val columnHeader = """<tr><td align="center">Issue</td><td align="center">Activity</td><td align="center">Message</td></tr>"""
       val html = s"""<html><table border="1">$columnHeader$rows</table></html>"""

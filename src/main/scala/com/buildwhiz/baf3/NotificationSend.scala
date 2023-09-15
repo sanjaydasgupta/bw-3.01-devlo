@@ -24,7 +24,9 @@ class NotificationSend extends HttpServlet with HttpUtils {
       val postDataString = getStreamData(request)
       BWLogger.log(getClass.getName, request.getMethod, s"POST-Data: postDataString")
       val postDataObject: DynDoc = Document.parse(postDataString)
-      val message = postDataObject.message[String]
+      val issueNbr = postDataObject.issue_no[String]
+      val receivedMessage = postDataObject.message[String]
+      val message = receivedMessage.split("Issue:").mkString(s"Issue: [$issueNbr]")
       val optProjectOid = postDataObject.get[String]("project_id").map(new ObjectId(_))
       val subject = postDataObject.get[String]("subject") match {
         case None => optProjectOid match {

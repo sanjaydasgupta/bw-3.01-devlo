@@ -185,25 +185,32 @@ object OrphanRecordsDelete extends HttpUtils {
     val writer = response.getWriter
     writer.println("<html><body><tt>")
     writer.println(s"ENTRY ${getClass.getName}:main()<br/><br/>")
-    val user: DynDoc = getUser(request)
-    if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
-      throw new IllegalArgumentException("Not permitted")
+    try {
+      val user: DynDoc = getUser(request)
+      if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
+        throw new IllegalArgumentException("Not permitted")
+      }
+      val (go, detail) = if (args.length == 0) {
+        (false, false)
+      } else {
+        (args(0).contains("GO"), args(0).contains("DETAIL"))
+      }
+      deleteOrphanedPhases(request, writer, go, detail)
+      deleteOrphanedProcesses(request, writer, go, detail)
+      deleteOrphanedActivities(writer, go, detail)
+      deleteOrphanedDeliverables(writer, go, detail)
+      deleteOrphanedConstraints(writer, go, detail)
+      deleteOrphanedDocs(writer, go, detail)
+      deleteOrphanedProjectTags(writer, go, detail)
+      writer.println(s"EXIT ${getClass.getName}:main()<br/>")
+    } catch {
+      case t: Throwable =>
+        writer.println(s"${t.getClass.getName}(${t.getMessage})")
+        writer.println(t.getStackTrace.map(_.toString).mkString("<br/>"))
+    } finally {
+      writer.println("</tt></body></html>")
+      writer.flush()
     }
-    val (go, detail) = if (args.length == 0) {
-      (false, false)
-    } else {
-      (args(0).contains("GO"), args(0).contains("DETAIL"))
-    }
-    deleteOrphanedPhases(request, writer, go, detail)
-    deleteOrphanedProcesses(request, writer, go, detail)
-    deleteOrphanedActivities(writer, go, detail)
-    deleteOrphanedDeliverables(writer, go, detail)
-    deleteOrphanedConstraints(writer, go, detail)
-    deleteOrphanedDocs(writer, go, detail)
-    deleteOrphanedProjectTags(writer, go, detail)
-    writer.println(s"EXIT ${getClass.getName}:main()<br/>")
-    writer.println("</tt></body></html>")
-    writer.flush()
   }
 
 }

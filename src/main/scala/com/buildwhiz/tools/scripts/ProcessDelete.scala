@@ -12,34 +12,41 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 object ProcessDelete extends HttpServlet with HttpUtils {
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
-    response.getWriter.println(s"${getClass.getName}:main() ENTRY")
-    val user: DynDoc = getUser(request)
-    if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
-      throw new IllegalArgumentException("Not permitted")
-    }
-    if (args.length >= 1) {
-      val go: Boolean = args.length == 2 && args(1) == "GO"
-      val processOid = new ObjectId(args(0))
-      BWMongoDB3.processes.find(Map("_id" -> processOid)).headOption match {
-        case None =>
-          response.getWriter.println(s"No such process ID: '${args(0)}'")
-        case Some(theProcess) =>
-          response.getWriter.println(s"Found process: '${theProcess.asDoc.toJson}'")
-          if (go) {
-            response.getWriter.println(s"DELETING process ...")
-            processDelete(processOid) match {
-              case Right(msg) =>
-                response.getWriter.println(msg)
-                response.getWriter.println(s"DELETE process complete")
-              case Left(msg) =>
-                response.getWriter.println(msg)
-                response.getWriter.println(s"DELETE process failed")
-            }
-          }
+    val writer = response.getWriter
+    def output(s: String): Unit = writer.println(s)
+    try {
+      output(s"${getClass.getName}:main() ENTRY")
+      val user: DynDoc = getUser(request)
+      if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
+        throw new IllegalArgumentException("Not permitted")
       }
-      response.getWriter.println(s"${getClass.getName}:main() EXIT-OK")
-    } else {
-      response.getWriter.println(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} process-id [,GO]")
+      if (args.length >= 1) {
+        val go: Boolean = args.length == 2 && args(1) == "GO"
+        val processOid = new ObjectId(args(0))
+        BWMongoDB3.processes.find(Map("_id" -> processOid)).headOption match {
+          case None =>
+            output(s"No such process ID: '${args(0)}'")
+          case Some(theProcess) =>
+            output(s"Found process: '${theProcess.asDoc.toJson}'")
+            if (go) {
+              output(s"DELETING process ...")
+              processDelete(processOid) match {
+                case Right(msg) =>
+                  output(msg)
+                  output(s"DELETE process complete")
+                case Left(msg) =>
+                  output(msg)
+                  output(s"DELETE process failed")
+              }
+            }
+        }
+        output(s"${getClass.getName}:main() EXIT-OK")
+      } else {
+        output(s"${getClass.getName}:main() EXIT-ERROR Usage: ${getClass.getName} process-id [,GO]")
+      }
+    } catch {
+      case t: Throwable =>
+        output(t.getStackTrace.map(_.toString).mkString("\n"))
     }
   }
 

@@ -61,7 +61,12 @@ object StatusMailer extends DateTimeUtils {
 
   private def issueHtmlAndEmails(info: Seq[DynDoc]): (String, Seq[String]) = {
     val issueNo = "I-%06d".format(info.head.issue_no[Int])
-    val issueName = info.head.issue_name[String]
+    val issueNameRaw = info.head.issue_name[String]
+    val issueName = if (issueNameRaw.reverse.matches("\\d{2}:\\d{2}-\\d{2}-\\d{2}-\\d{4}-.+")) {
+      issueNameRaw.substring(0, issueNameRaw.length - 17)
+    } else {
+      issueNameRaw
+    }
     val timeZoneName = info.head.tz[String]
     val timeZone = TimeZone.getTimeZone(timeZoneName)
     val calendar = Calendar.getInstance(timeZone)

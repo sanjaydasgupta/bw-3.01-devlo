@@ -144,16 +144,37 @@ object NotificationSend extends MailUtils3 {
 
       val info: DynDoc = BWMongoDB3.instance_info.find().head
       val allNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
-      val selectedNotifications: Seq[DynDoc] = if (info.instance[String] == "www.buildwhiz.com") {
+      if (info.instance[String] == "www.buildwhiz.com") {
         val when = 20 * 3600000L
-        allNotifications.map(n => {n.ms = (currentMillis + n.tz_offset[Int]) % 86400000L; n}).
+        val selectedNotifications: Seq[DynDoc] = allNotifications.map(n => {n.ms = (currentMillis + n.tz_offset[Int]) % 86400000L; n}).
             filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
+        sendBatch(selectedNotifications)
       } else {
-        val when = 1800000L
-        allNotifications.map(n => {n.ms = currentMillis % 3600000L; n}).
-          filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
+//        val when = 1800000L
+//        val selectedNotifications: Seq[DynDoc] = allNotifications.map(n => {n.ms = currentMillis % 3600000L; n}).
+//          filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
+//        sendBatch(selectedNotifications)
+        val mod = currentMillis % 3600000L
+        if (mod >= 1800000L && mod < 1820000L) {
+          val phaseOid = new ObjectId("64b11c027dc4d10231175db4")
+          val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid)
+          val allEmails: Seq[String] = htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
+          BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() allEmails-count: ${allEmails.length}")
+          for (email <- allEmails) {
+            val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
+            //BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() $email-htmlCount: ${htmls.length}")
+            val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
+            BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
+              case Some(user) =>
+                val userOid = user._id[ObjectId]
+                //BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() send $email (_id: $userOid)")
+                send("Mozaik [Mozaik-Development/Development] Status Update", fullHtml, Seq(userOid))
+              case None =>
+                BWLogger.log(getClass.getName, "LOCAL", s"ERROR bulkSend() NO user for $email")
+            }
+          }
+        }
       }
-      sendBatch(selectedNotifications)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, "bulkSend",

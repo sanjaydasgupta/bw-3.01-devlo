@@ -71,7 +71,7 @@ object StatusMailer extends DateTimeUtils {
     val emails = getEmails(teamOids)
     val htmlBuffer = mutable.Buffer[String]()
     htmlBuffer.append(s"""<table border="1" width="100%">\n<tr align="center"><td align="center" colspan="4" bgcolor="orange"><b>[$issueNo] $issueName</b></td></tr>""")
-    htmlBuffer.append(s"""<tr bgcolor="yellow"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center">Activity</td><td align="center">Message</td></tr>""")
+    htmlBuffer.append(s"""<tr bgcolor="yellow"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center">Activity</td><td align="center">Update</td></tr>""")
     for (i <- info.sortBy(_.timestamp[Long] * -1)) {
       val gmTime = i.timestamp[Long]
       val date = dateString2(gmTime, timeZoneName)
@@ -93,18 +93,18 @@ object StatusMailer extends DateTimeUtils {
     htmlTablesAndEmails
   }
 
-  private def toHtmlTable(issueInfo: Seq[DynDoc]): String = {
-    val infoByIssues: Seq[(Int, Seq[DynDoc])] = issueInfo.groupBy(_.issue_no[Int]).toSeq.sortBy(_._1 * -1)
-    val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
-    htmlTablesAndEmails.map(p => s"""<p>${p._2.mkString(", ")}</p>${p._1}""").mkString("<br/><br/>\n")
-  }
-
+//  private def toHtmlTable(issueInfo: Seq[DynDoc]): String = {
+//    val infoByIssues: Seq[(Int, Seq[DynDoc])] = issueInfo.groupBy(_.issue_no[Int]).toSeq.sortBy(_._1 * -1)
+//    val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
+//    htmlTablesAndEmails.map(p => s"""<p>${p._2.mkString(", ")}</p>${p._1}""").mkString("<br/><br/>\n")
+//  }
+//
   def main(args: Array[String]): Unit = {
 //    val phaseInfo = getPhaseInfo(new ObjectId("64b11c027dc4d10231175db4"))
 //    val (withDid, withoutDid) = phaseInfo.partition(_.has("deliverable_id"))
 //    println(s"With deliv: ${withDid.length}, Without deliv: ${withoutDid.length}\n")
 //    val tables = toHtmlTable(phaseInfo)
-val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"))
+    val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"))
     val tables = htmlsEmails.map(_._1).mkString("<br/><br/>")
     val of = new FileOutputStream("html.html")
     of.write("<html>".getBytes)

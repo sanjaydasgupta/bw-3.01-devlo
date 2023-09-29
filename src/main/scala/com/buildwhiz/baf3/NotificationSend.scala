@@ -159,18 +159,20 @@ object NotificationSend extends MailUtils3 {
           val phaseOid = new ObjectId("64b11c027dc4d10231175db4")
           val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid)
           val allEmails: Seq[String] = htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
-          BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() allEmails-count: ${allEmails.length}")
+          BWLogger.log(getClass.getName, "LOCAL",
+              s"""INFO bulkSend() issue-reports exist for: ${allEmails.mkString(", ")}""")
           for (email <- allEmails) {
-            val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
-            //BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() $email-htmlCount: ${htmls.length}")
-            val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
             BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
               case Some(user) =>
                 val userOid = user._id[ObjectId]
-                //BWLogger.log(getClass.getName, "LOCAL", s"INFO bulkSend() send $email (_id: $userOid)")
+                val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
+                BWLogger.log(getClass.getName, "LOCAL",
+                  s"INFO bulkSend() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
+                val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
                 send("Mozaik [Mozaik-Development/Development] Status Update", fullHtml, Seq(userOid))
               case None =>
-                BWLogger.log(getClass.getName, "LOCAL", s"ERROR bulkSend() NO user for $email")
+                BWLogger.log(getClass.getName, "LOCAL",
+                    s"ERROR bulkSend() NO user found for email '$email''")
             }
           }
         }

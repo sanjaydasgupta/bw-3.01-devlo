@@ -93,7 +93,8 @@ object StatusMailer extends DateTimeUtils {
 
   def htmlsAndEmails(phaseOid: ObjectId): Seq[(String, Seq[String])] = {
     val phaseInfo = getPhaseInfo(phaseOid)
-    val infoByIssues: Seq[(Int, Seq[DynDoc])] = phaseInfo.groupBy(_.issue_no[Int]).toSeq.sortBy(_._1 * -1)
+    val infoByIssues: Seq[(Int, Seq[DynDoc])] = phaseInfo.groupBy(_.issue_no[Int]).toSeq.
+        sortBy(_._2.map(_.timestamp[Long]).max * -1)
     val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
     htmlTablesAndEmails
   }

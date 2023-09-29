@@ -76,16 +76,16 @@ object StatusMailer extends DateTimeUtils {
     val emails = getEmails(teamOids)
     val htmlBuffer = mutable.Buffer[String]()
     htmlBuffer.append(s"""<table border="1" width="100%">\n<tr align="center"><td align="center" colspan="4" bgcolor="orange"><b>[$issueNo] $issueName</b></td></tr>""")
-    htmlBuffer.append(s"""<tr bgcolor="yellow"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center">Activity</td><td align="center">Update</td></tr>""")
+    htmlBuffer.append(s"""<tr bgcolor="yellow"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center" width="25%">Activity</td><td align="center">Update</td></tr>""")
     for (i <- info.sortBy(_.timestamp[Long] * -1)) {
       val gmTime = i.timestamp[Long]
-      val date = dateString2(gmTime, timeZoneName)
+      val date = dateString2(gmTime, timeZoneName).replace(" ", "&nbsp;")
       calendar.setTime(new Date(gmTime))
       val time = "%02d:%02d:%02d".format(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND))
       val (activity, status) = if (i.has("deliverable_name")) (i.deliverable_name[String], i.status[String]) else ("-", "")
       val message = i.system_comment[String] + ". " + (if (i.has("comment")) i.comment[String] else "")
       val as = if (activity == "-") "-" else s"""$activity (${status.split("Deliverable-").last})"""
-      htmlBuffer.append(s"""<tr><td align="center" width="5%">$date</td><td align="center" width="5%">$time</td><td align="center">$as</td><td>$message</td></tr>""")
+      htmlBuffer.append(s"""<tr><td align="center" width="5%">$date</td><td align="center" width="5%">$time</td><td align="center" width="25%">$as</td><td>$message</td></tr>""")
     }
     htmlBuffer.append("""</table>""")
     (htmlBuffer.mkString("\n"), emails)

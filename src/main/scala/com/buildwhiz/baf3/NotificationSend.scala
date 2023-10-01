@@ -125,56 +125,80 @@ object NotificationSend extends MailUtils3 {
     }).toSeq
   }
 
+  private def sendPhaseEmails(phaseOid: ObjectId, minTime: Long, subject: String, allowedEmails: Seq[String]): Unit = {
+    val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid, minTime)
+    val allEmails: Seq[String] = if (htmlsAndEmails.nonEmpty) {
+      htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
+    } else {
+      Seq.empty[String]
+    }
+    BWLogger.log(getClass.getName, "LOCAL",
+      s"""INFO bulkSend() issue-reports exist for: ${allEmails.mkString(", ")}""")
+    for (email <- allEmails if allowedEmails.contains(email)) {
+      BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
+        case Some(user) =>
+          val userOid = user._id[ObjectId]
+          val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
+          BWLogger.log(getClass.getName, "LOCAL",
+            s"INFO bulkSend() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
+          val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
+          send(subject, fullHtml, Seq(userOid))
+        case None =>
+          BWLogger.log(getClass.getName, "LOCAL",
+            s"ERROR bulkSend() NO user found for email '$email''")
+      }
+    }
+  }
+
   def bulkSend(currentMillis: Long): Unit = {
     try {
-      def sendBatch(notifications: Seq[DynDoc]): Unit = {
-        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-ENTRY")
-        for ((uid: ObjectId, subject, body) <- groups(notifications)) {
-          send(subject, body, Seq(uid))
-        }
-        val batchIds = notifications.map(_._id[ObjectId])
-        val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),
-          Map($set -> Map("sent" -> true)))
-        if (updateResult.getMatchedCount != batchIds.length) {
-          BWLogger.log(getClass.getName, "bulkSend",
-            s"ERROR (Failed to update 'batched_notifications': $updateResult) ")
-        }
-        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-EXIT")
-      }
+//      def sendBatch(notifications: Seq[DynDoc]): Unit = {
+//        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-ENTRY")
+//        for ((uid: ObjectId, subject, body) <- groups(notifications)) {
+//          send(subject, body, Seq(uid))
+//        }
+//        val batchIds = notifications.map(_._id[ObjectId])
+//        val updateResult = BWMongoDB3.batched_notifications.updateMany(Map("_id" -> Map($in -> batchIds)),
+//          Map($set -> Map("sent" -> true)))
+//        if (updateResult.getMatchedCount != batchIds.length) {
+//          BWLogger.log(getClass.getName, "bulkSend",
+//            s"ERROR (Failed to update 'batched_notifications': $updateResult) ")
+//        }
+//        BWLogger.log(getClass.getName, "LOCAL", "bulkSend:sendBatch()-EXIT")
+//      }
 
       val info: DynDoc = BWMongoDB3.instance_info.find().head
-      val allNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
+//      val allNotifications: Seq[DynDoc] = BWMongoDB3.batched_notifications.find(Map("sent" -> false))
       if (info.instance[String] == "www.buildwhiz.com") {
-        val when = 20 * 3600000L
-        val selectedNotifications: Seq[DynDoc] = allNotifications.map(n => {n.ms = (currentMillis + n.tz_offset[Int]) % 86400000L; n}).
-            filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
-        sendBatch(selectedNotifications)
+//        val when = 20 * 3600000L
+//        val selectedNotifications: Seq[DynDoc] = allNotifications.map(n => {n.ms = (currentMillis + n.tz_offset[Int]) % 86400000L; n}).
+//            filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
+//        sendBatch(selectedNotifications)
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("PST"))
+        calendar.setTimeInMillis(currentMillis)
+        val hours = calendar.get(Calendar.HOUR_OF_DAY)
+        val minutes = calendar.get(Calendar.MINUTE)
+        if (hours == 20 && minutes == 0) {
+          val phaseOid = new ObjectId("635cf87a70c9ab15ee6a4006")
+          val allowedEmails = Seq("sanjay.dasgupta@buildwhiz.com", "prabhas@buildwhiz.com", "prabhask@gmail.com",
+            "sanjay_dasgupta@hotmail.com")
+          val startTime = currentMillis - 86400000L
+          sendPhaseEmails(phaseOid, startTime, "Mozaik [430 Forest/Operations] Status Update", allowedEmails)
+        }
       } else {
 //        val when = 1800000L
 //        val selectedNotifications: Seq[DynDoc] = allNotifications.map(n => {n.ms = currentMillis % 3600000L; n}).
 //          filter(n => n.ms[Long] >= when && n.ms[Long] < when + 10000)
 //        sendBatch(selectedNotifications)
-        val mod = currentMillis % 3600000L
-        if (mod >= 1800000L && mod < 1820000L) {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata"))
+        calendar.setTimeInMillis(currentMillis)
+        val hours = calendar.get(Calendar.HOUR_OF_DAY)
+        val minutes = calendar.get(Calendar.MINUTE)
+        if (minutes == 0) {
           val phaseOid = new ObjectId("64b11c027dc4d10231175db4")
-          val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid)
-          val allEmails: Seq[String] = htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
-          BWLogger.log(getClass.getName, "LOCAL",
-              s"""INFO bulkSend() issue-reports exist for: ${allEmails.mkString(", ")}""")
-          for (email <- allEmails) {
-            BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
-              case Some(user) =>
-                val userOid = user._id[ObjectId]
-                val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
-                BWLogger.log(getClass.getName, "LOCAL",
-                  s"INFO bulkSend() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
-                val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
-                send("Mozaik [Mozaik-Development/Development] Status Update", fullHtml, Seq(userOid))
-              case None =>
-                BWLogger.log(getClass.getName, "LOCAL",
-                    s"ERROR bulkSend() NO user found for email '$email''")
-            }
-          }
+          val allowedEmails = Seq("shubhankar.saha@viavitae.co.in", "sanjay.dasgupta@buildwhiz.com", "timir.das@viavitae.co.in")
+          val startTime = currentMillis - 3600000L
+          sendPhaseEmails(phaseOid, startTime, "Mozaik [Mozaik-Development/Development] Status Update", allowedEmails)
         }
       }
     } catch {

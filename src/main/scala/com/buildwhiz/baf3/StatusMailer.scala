@@ -14,7 +14,7 @@ import scala.jdk.CollectionConverters._
 
 object StatusMailer extends DateTimeUtils {
 
-  private def getPhaseInfo(phaseOid: ObjectId): Seq[DynDoc] = {
+  private def getPhaseInfo(phaseOid: ObjectId, startTime: Long): Seq[DynDoc] = {
     val pipeline: Seq[DynDoc] = Seq(
       Map("$match" -> Map("_id" -> phaseOid)),
       Map("$project" -> Map("process_ids" -> true, "tz" -> true, "_id" -> false)),
@@ -35,7 +35,8 @@ object StatusMailer extends DateTimeUtils {
       Map("$project" -> Map("process_id" -> true, "issue_name" -> true, "issue_no" -> true, "phase_id" -> true,
         "project_id" -> true, "system_comment" -> true, "comment" -> true, "timestamp" -> true, "tz" -> true,
         "deliverable_id" -> true, "team_assignments" -> "$deliv.team_assignments", "deliverable_name" -> "$deliv.name",
-        "status" -> "$deliv.status"))
+        "status" -> "$deliv.status")),
+      Map("$match" -> Map("timestamp" -> Map($gte -> startTime)))
     )
     val phaseInfo: Seq[DynDoc] = BWMongoDB3.phases.aggregate(pipeline.map(_.asDoc).asJava)
     phaseInfo
@@ -75,8 +76,8 @@ object StatusMailer extends DateTimeUtils {
     val teamOids: Seq[ObjectId] = teamAssignments.map(_.map(_.team_id[ObjectId])).reduceLeft(_ ++ _).distinct
     val emails = getEmails(teamOids)
     val htmlBuffer = mutable.Buffer[String]()
-    htmlBuffer.append(s"""<table border="1" width="100%">\n<tr align="center"><td align="center" colspan="4" bgcolor="orange"><b>[$issueNo] $issueName</b></td></tr>""")
-    htmlBuffer.append(s"""<tr bgcolor="yellow"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center" width="25%">Activity</td><td align="center">Update</td></tr>""")
+    htmlBuffer.append(s"""<table border="1" width="100%">\n<tr align="center"><td align="center" colspan="4" bgcolor="PowderBlue"><b>[$issueNo] $issueName</b></td></tr>""")
+    htmlBuffer.append(s"""<tr bgcolor="LightSteelBlue"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center" width="25%">Activity</td><td align="center">Update</td></tr>""")
     for (i <- info.sortBy(_.timestamp[Long] * -1)) {
       val gmTime = i.timestamp[Long]
       val date = dateString2(gmTime, timeZoneName).replace(" ", "&nbsp;")
@@ -91,8 +92,8 @@ object StatusMailer extends DateTimeUtils {
     (htmlBuffer.mkString("\n"), emails)
   }
 
-  def htmlsAndEmails(phaseOid: ObjectId): Seq[(String, Seq[String])] = {
-    val phaseInfo = getPhaseInfo(phaseOid)
+  def htmlsAndEmails(phaseOid: ObjectId, startTime: Long): Seq[(String, Seq[String])] = {
+    val phaseInfo = getPhaseInfo(phaseOid, startTime)
     val infoByIssues: Seq[(Int, Seq[DynDoc])] = phaseInfo.groupBy(_.issue_no[Int]).toSeq.
         sortBy(_._2.map(_.timestamp[Long]).max * -1)
     val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
@@ -110,7 +111,7 @@ object StatusMailer extends DateTimeUtils {
 //    val (withDid, withoutDid) = phaseInfo.partition(_.has("deliverable_id"))
 //    println(s"With deliv: ${withDid.length}, Without deliv: ${withoutDid.length}\n")
 //    val tables = toHtmlTable(phaseInfo)
-    val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"))
+    val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"), System.currentTimeMillis())
     val tables = htmlsEmails.map(_._1).mkString("<br/><br/>")
     val of = new FileOutputStream("html.html")
     of.write("<html>".getBytes)

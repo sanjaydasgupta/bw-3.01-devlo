@@ -4,7 +4,7 @@ import com.buildwhiz.baf2.{PersonApi, ProjectApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.utils.{BWLogger, HttpUtils, MailUtils3}
+import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils, MailUtils3}
 import org.bson.Document
 import org.bson.types.ObjectId
 
@@ -79,7 +79,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
   }
 }
 
-object NotificationSend extends MailUtils3 {
+object NotificationSend extends MailUtils3 with DateTimeUtils {
 
   private def myTrim(str: String): String = {
     val pattern = Pattern.compile("[. ]*(.+)")
@@ -109,19 +109,25 @@ object NotificationSend extends MailUtils3 {
     notifications.groupBy(n => (n.project_name[String], n.phase_name[String], n.person_id[String])).map(kv => {
       val rows = kv._2.map(msg => {
         val rawTitle = msg.issue_title[String]
-        val title = rawTitle.splitAt(rawTitle.length - 17)._1
+        val title = if (rawTitle.reverse.matches("\\d{2}:\\d{2}-\\d{2}-\\d{2}-\\d{4}-.+")) {
+          rawTitle.splitAt(rawTitle.length - 17)._1
+        } else {
+          rawTitle
+        }
+//        val title = rawTitle.splitAt(rawTitle.length - 17)._1
         val person = PersonApi.personById(new ObjectId(kv._1._3))
         val timeZone = TimeZone.getTimeZone(person.tz[String])
         val cal = Calendar.getInstance(timeZone)
         val timestamps: DynDoc = msg.timestamps[Document]
         cal.setTimeInMillis(timestamps.created[Long])
         val time = "%02d:%02d:%02d".format(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
-        s"""<tr><td>$time</td><td>$title</td><td>${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>"""
-      }).mkString
-      val td = """<td align="center">"""
-      val columnHeader = s"""<tr>${td}Time</td>${td}Issue</td>${td}Activity</td>${td}Message</td></tr>"""
-      val html = s"""<html><table border="1">$columnHeader$rows</table></html>"""
-      (new ObjectId(kv._1._3), s"Mozaik (Project: ${kv._1._1}, Phase: ${kv._1._2})", html)
+        val date = dateString2(timestamps.created[Long], person.tz[String]).replace(" ", "&nbsp;")
+        s"""<tr align="center"><td align="center" colspan="4" bgcolor="PowderBlue"><b>$title</b></td></tr>
+           |<tr bgcolor="LightSteelBlue"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center" width="25%">Activity</td><td align="center">Update</td></tr>
+           |<tr><td align="center" width="5%">$date</td><td align="center" width="5%">$time</td><td align="center" width="25%">${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>""".stripMargin
+      }).mkString("\n")
+      val html = s"""<html><table border="1" width="100%">$rows</table></html>"""
+      (new ObjectId(kv._1._3), s"Mozaik [${kv._1._1}/${kv._1._2}]", html)
     }).toSeq
   }
 

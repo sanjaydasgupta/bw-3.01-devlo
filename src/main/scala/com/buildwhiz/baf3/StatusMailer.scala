@@ -73,7 +73,18 @@ object StatusMailer extends DateTimeUtils {
     val calendar = Calendar.getInstance(timeZone)
     val teamAssignments: Seq[Seq[DynDoc]] = info.filter(_.has("team_assignments")).
       map(_.team_assignments[Many[Document]])
-    val teamOids: Seq[ObjectId] = teamAssignments.map(_.map(_.team_id[ObjectId])).reduceLeft(_ ++ _).distinct
+    val allTeamOids: Seq[Seq[ObjectId]] = teamAssignments.map(_.map(_.team_id[ObjectId]))
+    val teamOids: Seq[ObjectId] = allTeamOids.length match {
+      case 0 =>
+        val process: DynDoc = BWMongoDB3.deliverables.find(Map("process_id" -> info.head.process_id[ObjectId])).head
+        val teamsOids: Seq[ObjectId] = process.get[Many[Document]]("team_assignments") match {
+          case Some(ta) => ta.map(_.team_id[ObjectId])
+          case None => Seq.empty[ObjectId]
+        }
+        teamsOids
+      case 1 => allTeamOids.head
+      case _ => allTeamOids.reduceLeft(_ ++ _).distinct
+    }
     val emails = getEmails(teamOids)
     val htmlBuffer = mutable.Buffer[String]()
     htmlBuffer.append(s"""<table border="1" width="100%">\n<tr align="center"><td align="center" colspan="4" bgcolor="PowderBlue"><b>[$issueNo] $issueName</b></td></tr>""")
@@ -111,7 +122,9 @@ object StatusMailer extends DateTimeUtils {
 //    val (withDid, withoutDid) = phaseInfo.partition(_.has("deliverable_id"))
 //    println(s"With deliv: ${withDid.length}, Without deliv: ${withoutDid.length}\n")
 //    val tables = toHtmlTable(phaseInfo)
-    val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"), System.currentTimeMillis())
+    val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"),
+        System.currentTimeMillis() - 14400000L)
+    println(htmlsEmails.map(_._2))
     val tables = htmlsEmails.map(_._1).mkString("<br/><br/>")
     val of = new FileOutputStream("html.html")
     of.write("<html>".getBytes)

@@ -127,25 +127,28 @@ object NotificationSend extends MailUtils3 {
 
   private def sendPhaseEmails(phaseOid: ObjectId, minTime: Long, subject: String, allowedEmails: Seq[String]): Unit = {
     val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid, minTime)
-    val allEmails: Seq[String] = if (htmlsAndEmails.nonEmpty) {
-      htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
-    } else {
-      Seq.empty[String]
-    }
     BWLogger.log(getClass.getName, "LOCAL",
-      s"""INFO bulkSend() issue-reports exist for: ${allEmails.mkString(", ")}""")
+      s"""INFO sendPhaseEmails() htmlsAndEmails-length: ${htmlsAndEmails.length}""")
+    val allEmails: Seq[String] = htmlsAndEmails.length match {
+      case 0 => Seq.empty[String]
+      case 1 => htmlsAndEmails.map(_._2).head
+      case _ =>
+        htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
+    }
+      BWLogger.log(getClass.getName, "LOCAL",
+      s"""INFO sendPhaseEmails() issue-reports exist for: ${allEmails.mkString(", ")}""")
     for (email <- allEmails if allowedEmails.contains(email)) {
       BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
         case Some(user) =>
           val userOid = user._id[ObjectId]
           val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
           BWLogger.log(getClass.getName, "LOCAL",
-            s"INFO bulkSend() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
+            s"INFO sendPhaseEmails() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
           val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
           send(subject, fullHtml, Seq(userOid))
         case None =>
           BWLogger.log(getClass.getName, "LOCAL",
-            s"ERROR bulkSend() NO user found for email '$email''")
+            s"ERROR sendPhaseEmails() NO user found for email '$email''")
       }
     }
   }
@@ -192,7 +195,7 @@ object NotificationSend extends MailUtils3 {
 //        sendBatch(selectedNotifications)
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata"))
         calendar.setTimeInMillis(currentMillis)
-        val hours = calendar.get(Calendar.HOUR_OF_DAY)
+//        val hours = calendar.get(Calendar.HOUR_OF_DAY)
         val minutes = calendar.get(Calendar.MINUTE)
         if (minutes == 0) {
           val phaseOid = new ObjectId("64b11c027dc4d10231175db4")

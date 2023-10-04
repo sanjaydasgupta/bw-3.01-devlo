@@ -1,6 +1,6 @@
 package com.buildwhiz.baf3
 
-import com.buildwhiz.baf2.{PersonApi, ProjectApi}
+import com.buildwhiz.baf2.ProjectApi
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -48,9 +48,10 @@ class NotificationSend extends HttpServlet with HttpUtils {
         uir.message = message
         val urgent = uir.urgent[Boolean]
         uir.sent = urgent
+        val project = ProjectApi.projectById(new ObjectId(uir.project_id[String]))
+        val timeZoneName = ProjectApi.timeZone(project)
+        uir.timeZoneName = timeZoneName
         if (!urgent) {
-          val project = ProjectApi.projectById(new ObjectId(uir.project_id[String]))
-          val timeZoneName = ProjectApi.timeZone(project)
           val timeZone = TimeZone.getTimeZone(timeZoneName)
           val timeZoneOffset = timeZone.getRawOffset
           uir.tz_offset = timeZoneOffset
@@ -115,19 +116,20 @@ object NotificationSend extends MailUtils3 with DateTimeUtils {
           rawTitle
         }
 //        val title = rawTitle.splitAt(rawTitle.length - 17)._1
-        val person = PersonApi.personById(new ObjectId(kv._1._3))
-        val timeZone = TimeZone.getTimeZone(person.tz[String])
+//        val person = PersonApi.personById(new ObjectId(kv._1._3))
+        val timeZoneName = msg.timeZoneName[String]
+        val timeZone = TimeZone.getTimeZone(timeZoneName)
         val cal = Calendar.getInstance(timeZone)
         val timestamps: DynDoc = msg.timestamps[Document]
         cal.setTimeInMillis(timestamps.created[Long])
         val time = "%02d:%02d:%02d".format(cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
-        val date = dateString2(timestamps.created[Long], person.tz[String]).replace(" ", "&nbsp;")
+        val date = dateString2(timestamps.created[Long], timeZoneName).replace(" ", "&nbsp;")
         s"""<tr align="center"><td align="center" colspan="4" bgcolor="PowderBlue"><b>$title</b></td></tr>
            |<tr bgcolor="LightSteelBlue"><td align="center" width="5%">Date</td><td align="center" width="5%">Time</td><td align="center" width="25%">Activity</td><td align="center">Update</td></tr>
            |<tr><td align="center" width="5%">$date</td><td align="center" width="5%">$time</td><td align="center" width="25%">${msg.activity_name[String]}</td><td>${msg.message_text[String]}</td></tr>""".stripMargin
       }).mkString("\n")
       val html = s"""<html><table border="1" width="100%">$rows</table></html>"""
-      (new ObjectId(kv._1._3), s"Mozaik [${kv._1._1}/${kv._1._2}]", html)
+      (new ObjectId(kv._1._3), s"Mozaik [${kv._1._1}/${kv._1._2}] Status Update", html)
     }).toSeq
   }
 

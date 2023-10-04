@@ -14,32 +14,42 @@ import scala.jdk.CollectionConverters._
 
 object StatusMailer extends DateTimeUtils {
 
-  private def getPhaseInfo(phaseOid: ObjectId, startTime: Long): Seq[DynDoc] = {
+  private def getPhaseProgressInfo(phaseOid: ObjectId, startTime: Long): Seq[DynDoc] = {
     val pipeline: Seq[DynDoc] = Seq(
       Map("$match" -> Map("_id" -> phaseOid)),
-      Map("$project" -> Map("process_ids" -> true, "tz" -> true, "_id" -> false)),
-      Map("$unwind" -> "$process_ids"),
-      Map("$lookup" -> Map("from" -> "processes", "localField" -> "process_ids", "foreignField" -> "_id", "as" -> "process")),
-      Map("$unwind" -> "$process"),
-      Map("$match" -> Map("process.type" -> "Transient", "process.status" -> Map("$ne" -> "completed"))),
-      Map("$lookup" -> Map("from" -> "deliverables_progress_infos", "localField" -> "process._id",
-          "foreignField" -> "process_id", "as" -> "dpi")),
+      Map("$project" -> Map("phase_id" -> "$_id", "tz" -> true, "_id" -> false)),
+      Map("$lookup" -> Map("from" -> "deliverables_progress_infos", "localField" -> "phase_id",
+        "foreignField" -> "phase_id", "as" -> "dpi")),
       Map("$unwind" -> "$dpi"),
-      Map("$project" -> Map("process_id" -> "$process._id", "issue_name" -> "$process.name", "tz" -> "$tz",
-        "issue_no" -> "$process.issue_no", "comment" -> "$dpi.comment", "system_comment" -> "$dpi.system_comment",
-        "timestamp" -> "$dpi.timestamp", "deliverable_id" -> "$dpi.deliverable_id", "project_id" -> "$dpi.project_id",
-        "phase_id" -> "$dpi.phase_id")),
+      Map("$project" -> Map("tz" -> true, "phase_id" -> true, "timestamp" -> "$dpi.timestamp",
+        "process_id" -> "$dpi.process_id")),
+      Map("$match" -> Map("timestamp" -> Map($gte -> startTime))),
+      Map("$group" -> Map("_id" -> "$process_id", "tz" -> Map("$first" -> "$tz"), "phase_id" -> Map("$first" -> "$phase_id"))),
+      Map("$project" -> Map("tz" -> true, "phase_id" -> true, "process_id" -> "$_id", "_id" -> false)),
+      Map("$lookup" -> Map("from" -> "processes", "localField" -> "process_id", "foreignField" -> "_id",
+        "as" -> "process")),
+      Map("$unwind" -> "$process"),
+      Map("$project" -> Map("tz" -> true, "phase_id" -> true, "process_id" -> true,
+        "issue_no" -> "$process.issue_no", "issue_name" -> "$process.name")),
+      Map("$lookup" -> Map("from" -> "deliverables_progress_infos", "localField" -> "process_id",
+        "foreignField" -> "process_id", "as" -> "dpi")),
+      Map("$unwind" -> "$dpi"),
+      Map("$project" -> Map("tz" -> true, "phase_id" -> true, "process_id" -> true,
+        "issue_no" -> true, "issue_name" -> true,
+        "comment" -> "$dpi.comment", "system_comment" -> "$dpi.system_comment", "timestamp" -> "$dpi.timestamp",
+        "deliverable_id" -> "$dpi.deliverable_id", "project_id" -> "$dpi.project_id")),
       Map("$lookup" -> Map("from" -> "deliverables", "localField" -> "deliverable_id", "foreignField" -> "_id",
         "as" -> "deliv")),
       Map("$unwind" -> Map("path" -> "$deliv", "preserveNullAndEmptyArrays" -> true)),
-      Map("$project" -> Map("process_id" -> true, "issue_name" -> true, "issue_no" -> true, "phase_id" -> true,
-        "project_id" -> true, "system_comment" -> true, "comment" -> true, "timestamp" -> true, "tz" -> true,
-        "deliverable_id" -> true, "team_assignments" -> "$deliv.team_assignments", "deliverable_name" -> "$deliv.name",
-        "status" -> "$deliv.status")),
-      Map("$match" -> Map("timestamp" -> Map($gte -> startTime)))
+      Map("$project" -> Map("tz" -> true, "phase_id" -> true, "process_id" -> true,
+        "issue_no" -> true, "issue_name" -> true,
+        "comment" -> true, "system_comment" -> true, "timestamp" -> true,
+        "deliverable_id" -> true, "project_id" -> true,
+        "team_assignments" -> "$deliv.team_assignments", "deliverable_name" -> "$deliv.name",
+        "status" -> "$deliv.status"))
     )
-    val phaseInfo: Seq[DynDoc] = BWMongoDB3.phases.aggregate(pipeline.map(_.asDoc).asJava)
-    phaseInfo
+    val progressInfo: Seq[DynDoc] = BWMongoDB3.phases.aggregate(pipeline.map(_.asDoc).asJava)
+    progressInfo
   }
 
   private def getEmails(teamOids: Seq[ObjectId]): Seq[String] = {
@@ -104,26 +114,20 @@ object StatusMailer extends DateTimeUtils {
   }
 
   def htmlsAndEmails(phaseOid: ObjectId, startTime: Long): Seq[(String, Seq[String])] = {
-    val phaseInfo = getPhaseInfo(phaseOid, startTime)
-    val infoByIssues: Seq[(Int, Seq[DynDoc])] = phaseInfo.groupBy(_.issue_no[Int]).toSeq.
+    val phaseProgressInfo = getPhaseProgressInfo(phaseOid, startTime)
+    val infoByIssues: Seq[(Int, Seq[DynDoc])] = phaseProgressInfo.groupBy(_.issue_no[Int]).toSeq.
         sortBy(_._2.map(_.timestamp[Long]).max * -1)
     val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
     htmlTablesAndEmails
   }
 
-//  private def toHtmlTable(issueInfo: Seq[DynDoc]): String = {
-//    val infoByIssues: Seq[(Int, Seq[DynDoc])] = issueInfo.groupBy(_.issue_no[Int]).toSeq.sortBy(_._1 * -1)
-//    val htmlTablesAndEmails = infoByIssues.map(ibi => issueHtmlAndEmails(ibi._2))
-//    htmlTablesAndEmails.map(p => s"""<p>${p._2.mkString(", ")}</p>${p._1}""").mkString("<br/><br/>\n")
-//  }
-//
   def main(args: Array[String]): Unit = {
 //    val phaseInfo = getPhaseInfo(new ObjectId("64b11c027dc4d10231175db4"))
 //    val (withDid, withoutDid) = phaseInfo.partition(_.has("deliverable_id"))
 //    println(s"With deliv: ${withDid.length}, Without deliv: ${withoutDid.length}\n")
 //    val tables = toHtmlTable(phaseInfo)
     val htmlsEmails = htmlsAndEmails(new ObjectId("64b11c027dc4d10231175db4"),
-        System.currentTimeMillis() - 14400000L)
+        System.currentTimeMillis() - (86400000L * 2))
     println(htmlsEmails.map(_._2))
     val tables = htmlsEmails.map(_._1).mkString("<br/><br/>")
     val of = new FileOutputStream("html.html")

@@ -15,17 +15,6 @@ import scala.jdk.CollectionConverters._
 
 class ProjectCreate extends HttpServlet with HttpUtils {
 
-  private def createProjectTeams(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId): Unit = {
-    val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
-      "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
-      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "editable" -> false, "_id" -> new ObjectId()))
-    BWMongoDB3.teams.insertOne(
-        Map("project_id" -> projectOid, "team_name" -> "Default PM Team", "organization_id" -> organizationOid,
-        "group" -> "Project Management", "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",
-        "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))),
-        "own_doc_categories" -> ownDocCategories,  "__v" -> 0))
-  }
-
   private def createProjectTags(projectOid: ObjectId): Unit = {
     val projectTags = Seq("Architecture", "Contract", "Current-Plan", "EIR", "Geotech", "HRE", "Invoice",
         "Land-Use", "Meeting-Notes", "Other", "Pre-App-Meeting", "Preservation-Alternatives", "Public-Health",
@@ -90,11 +79,6 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         case None => s"This is the description of the '$projectName' project."
       }
 
-      val adminPersonOid = parameters.get("admin_person_id") match {
-        case None => userOid
-        case Some(id) => new ObjectId(id)
-      }
-
       val customerOid = new ObjectId(parameters("customer_id"))
       if (!OrganizationApi.exists(customerOid))
         throw new IllegalArgumentException(s"Bad customer_id: $customerOid")
@@ -104,21 +88,20 @@ class ProjectCreate extends HttpServlet with HttpUtils {
         "country" -> Map("name" -> "United States", "code" -> "US"), "postal_code" -> "94102",
         "gps_location" -> Map("latitude" -> 37.7857971, "longitude" -> -122.4142195))
 
-      val assignedRoles = Seq(Map("role_name" -> "Project-Manager", "person_id" -> adminPersonOid))
+      val assignedRoles = Seq.empty[Document]
       val projectDocument: Document = Map("name" -> projectName, "summary" -> projectName, "description" -> description,
-        "admin_person_id" -> adminPersonOid, "type" -> "Building", "construction_type" -> "Concrete",
+        "type" -> "Building", "construction_type" -> "Concrete",
         "budget_mm_usd" -> 0.0, "construction_area_sqft" -> 0.0, "land_area_acres" -> 0.0,
         "building_use" -> "Mixed-Use Facility",
         "max_building_height_ft" -> 0.0, "address" -> address, "process_ids" -> Seq.empty[ObjectId],
         "phase_ids" -> Seq.empty[ObjectId], "assigned_roles" -> assignedRoles,
         "timestamps" -> Map("created" -> System.currentTimeMillis), "total_floor_area" -> 0.0,
-        "status" -> "defined", "customer_organization_id" -> customerOid, "tz" -> "GMT",
+        "status" -> "defined", "customer_organization_id" -> customerOid, "tz" -> "PST",
         "enum_definitions" -> Map("Apt" -> Map("items" -> Seq.empty[String], "removable" -> false)))
       BWMongoDB3.projects.insertOne(projectDocument)
       val projectOid = projectDocument.get("_id").asInstanceOf[ObjectId]
       createProjectTags(projectOid)
       createProjectSkills(projectOid)
-      createProjectTeams(projectOid, userOid, user.organization_id[ObjectId])
 
       response.getWriter.print(successJson())
       response.setContentType("application/json")

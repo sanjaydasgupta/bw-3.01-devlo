@@ -540,8 +540,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
                        phaseManagerOids: Seq[ObjectId]): ObjectId = {
 
     val userOid = user._id[ObjectId]
-    val isProjectAdmin = ProjectApi.isAdmin(userOid, ProjectApi.projectById(parentProjectOid))
-    if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isProjectAdmin)
+    val isParentProjectManager = ProjectApi.isManager(userOid, ProjectApi.projectById(parentProjectOid))
+    if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isParentProjectManager)
       throw new IllegalArgumentException("Not permitted")
 
     val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)
@@ -562,19 +562,23 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     calendar.set(Calendar.SECOND, 0)
     val startEstimatedMs = calendar.getTimeInMillis
     val timestamps = Map("created" -> createdMs, "date_start_estimated" -> startEstimatedMs)
-    val defaultTeamOid = addTeam(parentProjectOid, phaseManagerOids.head, user.organization_id[ObjectId])
-    val newPhaseRecord: DynDoc = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
-      "assigned_roles" -> managersInRoles, "status" -> "defined", "admin_person_id" -> phaseManagerOids.head,
-      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord),
-      "team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)))
-    BWMongoDB3.phases.insertOne(newPhaseRecord.asDoc)
+    val basePhaseRecord = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
+      "assigned_roles" -> managersInRoles, "status" -> "defined",
+      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord))
+    val newPhaseRecord = if (phaseManagerOids.nonEmpty) {
+      val defaultTeamOid = addTeam(parentProjectOid, phaseManagerOids.head, user.organization_id[ObjectId])
+      basePhaseRecord ++ Map("team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)),
+          "admin_person_id" -> phaseManagerOids.head)
+    } else {
+      basePhaseRecord ++ Map("team_assignments" -> Seq.empty[Document])
+    }
+    val insertOneResult = BWMongoDB3.phases.insertOne(newPhaseRecord)
 
-    val newPhaseOid = newPhaseRecord._id[ObjectId]
+    val newPhaseOid = insertOneResult.getInsertedId.asObjectId().getValue
     val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> parentProjectOid),
       Map("$addToSet" -> Map("phase_ids" -> newPhaseOid)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
-
     newPhaseOid
   }
 
@@ -593,7 +597,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
         case None => s"No description provided for '$phaseName'"
       }
       val phaseManagerOids: Seq[ObjectId] = parameters.get("manager_ids") match {
-        case None => Seq(user._id[ObjectId])
+        case None => Seq.empty[ObjectId]
         case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_)).toSeq
       }
       val bpmnName = "Phase-" + parameters("bpmn_name")

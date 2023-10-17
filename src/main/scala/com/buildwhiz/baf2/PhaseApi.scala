@@ -11,7 +11,6 @@ import org.bson.Document
 import org.bson.types.ObjectId
 
 import scala.collection.immutable.Map.WithDefault
-import scala.util.Either
 
 object PhaseApi {
 
@@ -80,10 +79,10 @@ object PhaseApi {
 
   def phaseLevelUsers(phase: DynDoc): Seq[ObjectId] = {
     if (phase.has("assigned_roles")) {
-      (phase.admin_person_id[ObjectId] +:
-          phase.assigned_roles[Many[Document]].map(_.person_id[ObjectId])).distinct
+      /*(phase.admin_person_id[ObjectId] +:*/
+          phase.assigned_roles[Many[Document]].map(_.person_id[ObjectId]).distinct
     } else {
-      Seq(phase.admin_person_id[ObjectId])
+      Seq.empty[ObjectId]/*Seq(phase.admin_person_id[ObjectId])*/
     }
   }
 
@@ -124,19 +123,19 @@ object PhaseApi {
   }
 
   def hasRole(personOid: ObjectId, phase: DynDoc): Boolean = {
-    isAdmin(personOid, phase) || phase.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
+    /*isAdmin(personOid, phase) || */phase.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
       allProcesses(phase).exists(process => ProcessApi.hasRole(personOid, process))
   }
 
-  def isAdmin(personOid: ObjectId, phase: DynDoc): Boolean =
-    phase.admin_person_id[ObjectId] == personOid
-
+//  def isAdmin(personOid: ObjectId, phase: DynDoc): Boolean =
+//    phase.admin_person_id[ObjectId] == personOid
+//
   def isManager(personOid: ObjectId, phase: DynDoc): Boolean = phase.assigned_roles[Many[Document]].
     exists(ar => ar.person_id[ObjectId] == personOid &&
       ar.role_name[String].matches("(?i)(?:project-|phase-)?manager"))
 
   def canManage(personOid: ObjectId, phase: DynDoc): Boolean =
-      isManager(personOid, phase) || isAdmin(personOid, phase) ||
+      isManager(personOid, phase) || /*isAdmin(personOid, phase) ||*/
       ProjectApi.canManage(personOid, parentProject(phase._id[ObjectId]))
 
   def phasesByUser(personOid: ObjectId, optParentProject: Option[DynDoc] = None): Seq[DynDoc] = {

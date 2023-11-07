@@ -272,12 +272,30 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       }
 
       val status = activityStatusValues(activityOid)
-
+      val isMilestone = activity.get[Boolean]("is_milestone") match {
+        case None => false
+        case Some(isMilestone) => isMilestone
+      }
+      val milestoneInfo = new Document("editable", canManage).append("is_milestone", isMilestone)
+      if (isMilestone) {
+        val phaseTimestamps: DynDoc = phase.timestamps[Document]
+        val phaseStartDate = phaseTimestamps.getOrElse[Long]("date_start_estimated", 0)
+        val (milestoneCompleted, milestoneDate) = activityDeliverables.find(_.is_milestone[Boolean]) match {
+          case None => (false, phaseStartDate)
+          case Some(milestoneDeliverable) =>
+            val endDateMs = milestoneDeliverable.getOrElse[Long]("date_end_actual",
+              milestoneDeliverable.getOrElse[Long]("date_end_estimated", phaseStartDate))
+            val milestoneEndDate = dateTimeStringAmerican(endDateMs, Some(PhaseApi.timeZone(phase))).split(" ").head
+            (milestoneDeliverable.status[String].contains("Completed"), milestoneEndDate)
+        }
+        milestoneInfo.append("completed", milestoneCompleted).append("date_end", milestoneDate)
+      }
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("tasks", Seq.empty[Document]).append("start", activityStart).append("end", activityEnd).
         append("status", status).append("duration_is_editable", status != "Completed").
         append("duration", durationLikely).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
+        append("milestone_info", milestoneInfo).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
         append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
         append("duration_likely", durationLikely).append("duration_actual", "NA").

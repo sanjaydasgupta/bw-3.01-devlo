@@ -153,8 +153,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     (startAndLabel, endAndLabel)
   }
 
-  private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, processActivities: Seq[DynDoc],
-      bpmnNameFull: String): Seq[Document] = {
+  private def getSubProcessCalls(phase: DynDoc, process: DynDoc, processName: String, perTaktUnitActivities: Seq[DynDoc],
+      allActivities: Seq[DynDoc], bpmnNameFull: String): Seq[Document] = {
     val bpmnStamps: Seq[DynDoc] = process.bpmn_timestamps[Many[Document]].filter(
       stamp => if (stamp.has("bpmn_name_full2")) {
         stamp.bpmn_name_full2[String] == bpmnNameFull
@@ -168,9 +168,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val calledBpmnName = stamp.name[String]
       val bpmnNameFull = stamp.getOrElse("bpmn_name_full", "")
       val bpmnActivities = if (bpmnNameFull.isEmpty) {
-        processActivities.filter(_.bpmn_name[String] == calledBpmnName)
+        perTaktUnitActivities.filter(_.bpmn_name[String] == calledBpmnName)
       } else {
-        processActivities.filter(_.bpmn_name_full[String] == bpmnNameFull)
+        perTaktUnitActivities.filter(_.bpmn_name_full[String] == bpmnNameFull)
       }
       val deliverables = DeliverableApi.deliverablesByActivityOids(bpmnActivities.map(_._id[ObjectId])).
           filter(_.deliverable_type[String] != "Milestone")
@@ -203,6 +203,22 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => false
       }
 
+      val milestoneInfo = allActivities.filter(_.getOrElse[Boolean]("is_milestone", false)).
+        filter(_.bpmn_name_full[String].startsWith(bpmnNameFull)).
+        map(a => (deliverables.find(d => d.activity_id[ObjectId] == a._id[ObjectId] && d.is_milestone[Boolean]), a)).
+        map({
+          case (Some(deliverable), task) =>
+            val endDateMs = deliverable.getOrElse[Long]("date_end_actual",
+              deliverable.getOrElse[Long]("date_end_estimated", phaseStartDate.getOrElse(System.currentTimeMillis())))
+            val endDate = dateTimeStringAmerican(endDateMs, Some(PhaseApi.timeZone(phase))).split(" ").head
+            new Document("name", s"${task.name[String]} : ${task.takt_unit_no[Int]}").append("date_end", endDate).
+              append("completed", deliverable.status[String].contains("Completed"))
+          case (None, task) =>
+            new Document("name", s"${task.name[String]} : ${task.takt_unit_no[Int]}").append("completed", false).
+              append("date_end", dateTimeStringAmerican(phaseStartDate.getOrElse(System.currentTimeMillis()),
+              Some(PhaseApi.timeZone(phase))).split(" ").head)
+        })
+
       new Document("bpmn_id", stamp.parent_activity_id[String]).append("id", stamp.name[String]).
         append("duration", durationLikely).
         append("start", startDate).append("end", endDate).append("status", aggregatedStatus).
@@ -213,7 +229,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("duration_likely", durationLikely).append("is_takt", isTakt).
         //append("on_critical_path", if (stamp.has("on_critical_path")) stamp.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount).
-        append("bpmn_name_full", stamp.getOrElse[String]("bpmn_name_full", ""))
+        append("bpmn_name_full", stamp.getOrElse[String]("bpmn_name_full", "")).
+        append("milestone_info", milestoneInfo)
     })
   }
 
@@ -279,9 +296,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val milestoneInfo = new Document("editable", canManage).append("is_milestone", isMilestone)
       if (isMilestone) {
         val phaseTimestamps: DynDoc = phase.timestamps[Document]
-        val phaseStartDate = phaseTimestamps.getOrElse[Long]("date_start_estimated", 0)
+        val phaseStartDate = phaseTimestamps.getOrElse[Long]("date_start_estimated", System.currentTimeMillis())
         val (milestoneCompleted, milestoneDate) = activityDeliverables.find(_.is_milestone[Boolean]) match {
-          case None => (false, phaseStartDate)
+          case None => (false, dateTimeStringAmerican(phaseStartDate, Some(PhaseApi.timeZone(phase))).split(" ").head)
           case Some(milestoneDeliverable) =>
             val endDateMs = milestoneDeliverable.getOrElse[Long]("date_end_actual",
               milestoneDeliverable.getOrElse[Long]("date_end_estimated", phaseStartDate))
@@ -381,11 +398,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val processVariables = getVariables(theProcess, bpmnFileName, bpmnNameFull)
       val processTimers = getTimers(theProcess, bpmnFileName, bpmnNameFull)
       val milestones = getMilestones(theProcess, bpmnFileName, bpmnNameFull)
-      val allActivities = ActivityApi.activitiesByIds(theProcess.activity_ids[Many[ObjectId]],
-          Map("takt_unit_no" -> taktUnitNo))
-      val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, allActivities, request)
+      val allActivities = ActivityApi.activitiesByIds(theProcess.activity_ids[Many[ObjectId]])
+      val perTaktUnitActivities = allActivities.filter(_.takt_unit_no[Int] == taktUnitNo)
+      val processActivities = getActivities(thePhase, bpmnFileName, canManage, bpmnNameFull, perTaktUnitActivities, request)
       val repetitionCount = PhaseApi.getTaktUnitCount(phaseOid, bpmnNameFull, processActivities.length)
-      val processCalls = getSubProcessCalls(thePhase, theProcess, bpmnFileName, allActivities, bpmnNameFull)
+      val processCalls = getSubProcessCalls(thePhase, theProcess, bpmnFileName, perTaktUnitActivities, allActivities,
+        bpmnNameFull)
       val startDateTime: String = if (theProcess.has("timestamps")) {
         val timestamps: DynDoc = theProcess.timestamps[Document]
         if (timestamps.has("planned_start"))

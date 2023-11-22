@@ -214,7 +214,15 @@ object ProcessApi {
                   case oid: ObjectId => oid.toString
                   case x => x
                 }
-                case "Date and Time" => p.value[Any]
+                case "Date and Time" => p.value[Any] match {
+                  case ms: Long =>
+                    val cal = Calendar.getInstance()
+                    cal.setTimeInMillis(ms)
+                    "%02d/%02d/%4d %02d:%02d:%02d".format(cal.get(Calendar.DAY_OF_MONTH),
+                      cal.get(Calendar.MONTH) + 1, cal.get(Calendar.YEAR), cal.get(Calendar.HOUR_OF_DAY),
+                      cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND))
+                  case x => x.toString
+                }
                 case "List" => p.value[Any]
                 case "Number" => p.value[Any] match {
                   case nbr: BigDecimal => nbr.toDouble.toString

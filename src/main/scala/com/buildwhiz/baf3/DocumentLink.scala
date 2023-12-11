@@ -34,7 +34,7 @@ class DocumentLink extends HttpServlet with HttpUtils {
       val documentRecord: DynDoc = DocumentApi.documentById(documentOid)
       val fileName = parameters.get("file_name") match {
         case Some(fn) => fn
-        case None => s"""${documentRecord.name[String].replaceAll("\\s+", "-")}.${documentRecord.`type`[String]}}"""
+        case None => s"""${documentRecord.name[String].replaceAll("\\s+", "-")}.${documentRecord.`type`[String]}"""
       }
       val timestamp = System.currentTimeMillis
 

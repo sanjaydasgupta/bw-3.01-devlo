@@ -6,6 +6,7 @@ import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.types.ObjectId
 
+import java.util.regex.Pattern
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DocumentLink extends HttpServlet with HttpUtils {
@@ -31,10 +32,21 @@ class DocumentLink extends HttpServlet with HttpUtils {
         throw new IllegalArgumentException(s"unknown author-id: ${authorOid.toString}")
 
       val linkUrl = parameters("link_url")
+
+      val optLinkFileName = {
+        val regex = Pattern.compile("(?i)(?:[^/]*/+)+(.+[.][a-z]{2,4})")
+        val matcher = regex.matcher(linkUrl)
+        if (matcher.matches()) {
+          Some(matcher.group(1))
+        } else {
+          None
+        }
+      }
       val documentRecord: DynDoc = DocumentApi.documentById(documentOid)
-      val fileName = parameters.get("file_name") match {
-        case Some(fn) => fn
-        case None => s"""${documentRecord.name[String].replaceAll("\\s+", "-")}.${documentRecord.`type`[String]}"""
+      val fileName = (parameters.get("file_name"), optLinkFileName) match {
+        case (Some(inputFileName), _) => inputFileName
+        case (None, Some(linkFileName)) => linkFileName
+        case _ => s"""${documentRecord.name[String].replaceAll("\\s+", "-")}.${documentRecord.`type`[String]}"""
       }
       val timestamp = System.currentTimeMillis
 

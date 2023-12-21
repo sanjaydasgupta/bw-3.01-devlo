@@ -29,8 +29,10 @@ object NodeConnector extends HttpServlet with HttpUtils {
     val pkgIdx = urlParts.zipWithIndex.find(_._1.matches("api|baf[23]?|dot|etc|graphql|slack|tools|web")).head._2
     val serviceName = urlParts(pkgIdx + 1)
     val siteName = urlParts(1)
+    val (clientIp, _) = clientIpInfo(request)
     val userParam = s"uid=${urlEncode(user._id[ObjectId].toString)}" + s"&u$$nm=${urlEncode(loggedInUserName)}" +
       s"""&${urlEncode("BW-Session-Code")}=${urlEncode(sessionCode)}""" +
+      s"""&${urlEncode("BW-Client-IP")}=${urlEncode(clientIp)}""" +
       s"""&${urlEncode("BW-Site-Name")}=${urlEncode(siteName)}"""
     val serviceNameWithParameters = request.getParameterMap.asScala.filterNot(_._1 == "JSESSIONID") match {
       case params if params.nonEmpty =>
@@ -108,16 +110,20 @@ object NodeConnector extends HttpServlet with HttpUtils {
     delayNode
   }
 
+  private def clientIpInfo(request: HttpServletRequest): (String, String) = {
+    request.getHeader("X-FORWARDED-FOR") match {
+      case null => (request.getRemoteAddr, "getRemoteAddr")
+      case ip => (ip, "X-FORWARDED-FOR")
+    }
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, ":ENTRY", request)
     val t0 = System.currentTimeMillis()
     try {
       val httpGet = new HttpGet(nodeUri(request))
       request.getHeaderNames.asScala.foreach(hdrName => httpGet.setHeader(hdrName, request.getHeader(hdrName)))
-      val (clientIp, clientIpSource) = request.getHeader("X-FORWARDED-FOR") match {
-        case null => (request.getRemoteAddr, "getRemoteAddr")
-        case ip => (ip, "X-FORWARDED-FOR")
-      }
+      val (clientIp, clientIpSource) = clientIpInfo(request)
       httpGet.setHeader("X-FORWARDED-FOR", clientIp)
       val delay1 = executeNodeRequest(request, response, httpGet, t0)
       val delay = System.currentTimeMillis() - t0
@@ -162,10 +168,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
           throw new IllegalArgumentException(s"unknown contentType: '$contentType'")
       }
       httpPost.removeHeaders("Content-Length")
-      val (clientIp, clientIpSource) = request.getHeader("X-FORWARDED-FOR") match {
-        case null => (request.getRemoteAddr, "getRemoteAddr")
-        case ip => (ip, "X-FORWARDED-FOR")
-      }
+      val (clientIp, clientIpSource) = clientIpInfo(request)
       httpPost.setHeader("X-FORWARDED-FOR", clientIp)
       val delay1 = executeNodeRequest(request, response, httpPost, t0)
       val delay = System.currentTimeMillis() - t0

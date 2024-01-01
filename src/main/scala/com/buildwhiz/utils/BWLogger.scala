@@ -33,8 +33,8 @@ object BWLogger extends HttpUtils {
     } else {
       "unknown"
     }
-    val clientIp = if (javaMap.containsKey("BW-Client-Ip")) {
-      javaMap.remove("BW-Client-Ip")
+    val clientIp = if (javaMap.containsKey("BW-Client-IP")) {
+      javaMap.remove("BW-Client-IP")
     } else {
       "unknown"
     }
@@ -108,9 +108,9 @@ object BWLogger extends HttpUtils {
     val urlParts = request.getRequestURL.toString.split("/+")
     val siteName = urlParts(1)
     val paramsWithName = getUser(request) match {
-      case null => parameters ++ Map("BW-Site-Name" -> siteName, "BW-Client-Ip" -> clientIp)
+      case null => parameters ++ Map("BW-Site-Name" -> siteName, "BW-Client-IP" -> clientIp)
       case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user), "BW-Site-Name" -> siteName,
-        "BW-Client-Ip" -> clientIp)
+        "BW-Client-IP" -> clientIp)
     }
     val path = urlParts.drop(3).mkString("/")
     val query = request.getQueryString

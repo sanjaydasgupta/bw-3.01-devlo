@@ -14,7 +14,7 @@ import scala.collection.mutable
 class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def addSpaces(line: String): String = {
-    if (line.matches(".*([\\?&][^=]+=[^&\\)]*){2,}.*") || line.split("%20").length > 2 || line.split(",\\S").length > 1)
+    if (line.matches(".*([?&][^=]+=[^&)]*){2,}.*") || line.split("%20").length > 2 || line.split(",\\S").length > 1)
       line.replaceAll("&", "&amp; ").replaceAll("%20", " ").replaceAll(",(\\S)", ", $1")
     else
       line
@@ -114,7 +114,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           case Some(doc) => doc.asScala.toSeq
           case None => Seq.empty[(String, AnyRef)]
         }
-        val variablesString = variables.filter(v => !v._1.startsWith("BW-Session-") && v._1 != "u$nm").
+        val nonVarNames = Seq("u$nm", "BW-Session-ID", "BW-Session-Code", "BW-Client-IP", "BW-Site-Name")
+        val variablesString = variables.filterNot(variable => nonVarNames.contains(variable._1)).
             map(p => s"${p._1}: ${p._2}").mkString(", ")
         val session = variables.find(_._1 == "BW-Session-ID") match {
           case Some(sessionId) => "%x".format(sessionId._2.hashCode)

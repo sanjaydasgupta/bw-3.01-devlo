@@ -55,7 +55,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         throw new IllegalArgumentException(s"Not found TimeDuration($bpmnName, '$name', $bpmnId): $timerInfo")
     }
 
-    val timerVariableName = if (timeDuration.getTextContent.matches("\\$\\{.+\\}")) {
+    val timerVariableName = if (timeDuration.getTextContent.matches("\\$\\{.+}")) {
       timeDuration.getTextContent.replaceAll("[${}]", "")
     } else {
       val textContent = timeDuration.getTextContent

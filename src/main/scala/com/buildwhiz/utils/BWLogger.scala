@@ -86,13 +86,13 @@ object BWLogger extends HttpUtils {
       case Some(req) => log(className, methodName, eventName, req)
       case None => log(className, methodName, eventName)
     }
-
+BWLogger
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest,
           isLogin: Boolean = false): Unit = {
     val parameters = getParameterMap(request)
     val clientIp = request.getHeader("X-FORWARDED-FOR") match {
       case null => request.getRemoteAddr
-      case ip => ip
+      case ips => ips.split(",").head
     }
     if (request.getSession(false) == null) {
       parameters("BW-Session-ID") = "None"

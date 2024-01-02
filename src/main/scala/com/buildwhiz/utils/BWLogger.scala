@@ -86,7 +86,7 @@ object BWLogger extends HttpUtils {
       case Some(req) => log(className, methodName, eventName, req)
       case None => log(className, methodName, eventName)
     }
-BWLogger
+
   def log(className: String, methodName: String, eventName: String, request: HttpServletRequest,
           isLogin: Boolean = false): Unit = {
     val parameters = getParameterMap(request)

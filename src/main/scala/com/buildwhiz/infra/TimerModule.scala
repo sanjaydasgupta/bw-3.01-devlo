@@ -130,7 +130,7 @@ object TimerModule extends HttpUtils with MailUtils3 {
       case Some(ii) => ii.instance[String]
       case None => "Unknown"
     }
-    val message = Process("/home/ubuntu/anaconda3/bin/python  /home/ubuntu/report-one.py").!!
+    val message = Process(Seq("/home/ubuntu/anaconda3/bin/python", "/home/ubuntu/report-one.py", instanceName)).!!
     val fns = Seq("Sanjay", "Prabhas")
     val admins: Seq[DynDoc] = BWMongoDB3.persons.find(Map("last_name" -> "Admin", "first_name" -> Map($in -> fns)))
     sendMail(admins.map(_._id[ObjectId]), s"Report from '$instanceName'", message, None)

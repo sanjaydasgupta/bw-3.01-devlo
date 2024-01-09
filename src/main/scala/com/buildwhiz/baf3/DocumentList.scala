@@ -96,8 +96,8 @@ class DocumentList extends HttpServlet with HttpUtils with DateTimeUtils {
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
-        case None => displayedMenuItems(isAdmin, hostName, starting = true)
-        case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
+        case None => displayedMenuItems(isAdmin, request, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, request, managed, !selected)
       }
       val result = new Document("document_list", allDocuments).append("can_rename", canManage).
           append("can_delete", canDelete).append("can_add", canAdd).append("menu_items", menuItems)

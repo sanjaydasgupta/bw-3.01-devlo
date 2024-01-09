@@ -1,11 +1,10 @@
 package com.buildwhiz
 
-import com.buildwhiz.baf2.ProjectApi
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.baf2.{PhaseApi, ProjectApi}
+import com.buildwhiz.infra.DynDoc
 import org.bson.Document
 import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.BWLogger
 
 import javax.servlet.http.HttpServletRequest
@@ -208,61 +207,88 @@ package object baf3 {
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
   )
 
-  private val issuesSitesInfo: Seq[(String, String)] = Seq(
-    ("issues.430forest.com", "430 Forest"),
-    ("test.buildwhiz.com", "March-23-Development")
-  )
-
-  def landingPageInfo(hostName: String, user: DynDoc, request: HttpServletRequest): Document = {
-    val userProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
-    issuesSitesInfo.find(_._1 == hostName).map(_._2) match {
-      case None =>
-        userProjects match {
-          case Seq(project) =>
-            Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
-              "project_id" -> project._id[ObjectId]))
-          case _ =>
-            Map("name" -> "Home", "params" -> Map())
-        }
-      case Some(projectName) =>
-        BWMongoDB3.projects.find(Map("name" -> projectName)).headOption match {
-          case Some(project) if userProjects.exists(_._id[ObjectId] == project._id[ObjectId]) =>
-            val phaseOids = project.phase_ids[Many[ObjectId]]
-            BWMongoDB3.phases.find(Map("_id" -> Map($in -> phaseOids), "name" -> "Operations")).headOption match {
-              case Some(opsPhase) =>
-                Map("name" -> "Issues", "params" -> Map("project_name" -> projectName,
-                  "project_id" -> project._id[ObjectId], "phase_id" -> opsPhase._id[ObjectId],
-                  "phase_name" -> opsPhase.name[String]))
-              case None =>
-                throw new IllegalAccessException(s"Not found phase 'Operations' in project '$projectName'")
-            }
-          case Some(_) =>
-            val userEmails: Seq[DynDoc] = user.emails[Many[Document]]
-            val userEmail = userEmails.head.email[String]
-            BWLogger.log(getClass.getName, request.getMethod,
-                s"WARN project '$projectName' not accessible by user '$userEmail'", request)
-            Map("name" -> "Home", "params" -> Map())
-          case None =>
-            throw new IllegalAccessException(s"Not found project '$projectName'")
-        }
+  def landingPageInfo(user: DynDoc, request: HttpServletRequest): Document = {
+    try {
+      val userProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
+      val siteConfigInfos = request.getSession.getAttribute("siteConfigInfos").asInstanceOf[Seq[DynDoc]]
+      BWLogger.log(getClass.getName, request.getMethod,
+        s"INFO landingPageInfo() found ${siteConfigInfos.length} global_configs records", request)
+      siteConfigInfos.headOption match {
+        case None =>
+          userProjects match {
+            case Seq(project) =>
+              Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
+                "project_id" -> project._id[ObjectId]))
+            case _ =>
+              Map("name" -> "Home", "params" -> Map())
+          }
+        case Some(siteConfig) =>
+          val options: DynDoc = siteConfig.options[Document]
+          val landingPage: DynDoc = options.landing_page[Document]
+          val params: DynDoc = landingPage.params[Document]
+          val projectOid = params.project_id[ObjectId]
+          val phaseOid = params.phase_id[ObjectId]
+          userProjects.find(_._id[ObjectId] == projectOid) match {
+            case Some(project) =>
+              if (project.phase_ids[Many[ObjectId]].contains(phaseOid) && PhaseApi.exists(phaseOid)) {
+                val phaseName = PhaseApi.phaseById(phaseOid).name[String]
+                Map("name" -> landingPage.name[String], "params" -> Map("project_name" -> project.name[String],
+                  "project_id" -> project._id[ObjectId], "phase_id" -> phaseOid, "phase_name" -> phaseName))
+              } else {
+                BWLogger.log(getClass.getName, request.getMethod,
+                  s"ERROR Bad phase_id in global_configs record ${siteConfig._id[ObjectId]}", request)
+                Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
+                  "project_id" -> project._id[ObjectId]))
+              }
+            case _ =>
+              if (ProjectApi.exists(projectOid)) {
+                val project = ProjectApi.projectById(projectOid)
+                if (PhaseApi.exists(phaseOid)) {
+                  val phase = PhaseApi.phaseById(phaseOid)
+                  BWLogger.log(getClass.getName, request.getMethod,
+                    s"WARN User has no role in project_id in global_configs record ${siteConfig._id[ObjectId]}", request)
+                  Map("name" -> landingPage.name[String], "params" -> Map("project_name" -> project.name[String],
+                    "project_id" -> project._id[ObjectId], "phase_id" -> phaseOid, "phase_name" -> phase.name[String]))
+                } else {
+                  BWLogger.log(getClass.getName, request.getMethod,
+                    s"ERROR Bad phase_id in global_configs record ${siteConfig._id[ObjectId]}", request)
+                  Map("name" -> "Project", "params" -> Map("project_name" -> project.name[String],
+                    "project_id" -> project._id[ObjectId]))
+                }
+              } else {
+                BWLogger.log(getClass.getName, request.getMethod,
+                  s"ERROR Bad project_id in global_configs record ${siteConfig._id[ObjectId]}", request)
+                Map("name" -> "Home", "params" -> Map())
+              }
+          }
+      }
+    } catch {
+      case t: Throwable =>
+        BWLogger.log(getClass.getName, request.getMethod,
+          s"""ERROR ${t.getStackTrace.map(_.toString).mkString("\n")}""", request)
+        Map("name" -> "Home", "params" -> Map())
     }
   }
 
-  def displayedMenuItems(userIsAdmin: Boolean, hostName: String, userIsManager: Boolean = false,
+  def displayedMenuItems(userIsAdmin: Boolean, request: HttpServletRequest, userIsManager: Boolean = false,
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
-    val issuesHosts = issuesSitesInfo.map(_._1)
-    val menuItemsList0 = if (issuesHosts.contains(hostName)) {
-      val shortList = Seq("Docs", "Issues", "Partners", "Reports", "Teams", "Tenants")
-      menuItemsList.filter(m => shortList.contains(m.getString("navLabel")))
-    } else {
-      menuItemsList
+    val siteConfigInfos = request.getSession.getAttribute("siteConfigInfos").asInstanceOf[Seq[DynDoc]]
+    BWLogger.log(getClass.getName, request.getMethod,
+      s"INFO displayedMenuItems(): found ${siteConfigInfos.length} global_configs records", request)
+    val menuItemsList0 = siteConfigInfos.headOption match {
+      case Some(siteConfig) =>
+        val options: DynDoc = siteConfig.options[Document]
+        val siteMenuList: Seq[String] = options.main_menu_items[Many[String]]
+        menuItemsList.filter(m => siteMenuList.contains(m.getString("navLabel")))
+      case None =>
+        menuItemsList
     }
     val menuItemsList1 = if (includeHome) {
       menuItemsList0
     } else {
       menuItemsList0.filterNot(_.getString("navLabel") == "Home")
     }
-    val menuItemsList2 = if (starting && !issuesHosts.contains(hostName)) {
+    val menuItemsList2 = if (starting && siteConfigInfos.isEmpty) {
       menuItemsList1.filter(_.getString("access").contains("I"))
     } else {
       menuItemsList1

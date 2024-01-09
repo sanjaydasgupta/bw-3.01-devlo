@@ -86,7 +86,7 @@ object NodeConnector extends HttpServlet with HttpUtils {
         val hostName = getHostName(request)
         val menuItems = selectedManaged match {
           //case None => displayedMenuItems(isAdmin, starting = true)
-          case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
+          case Some((selected, managed)) => displayedMenuItems(isAdmin, request, managed, !selected)
           // case Some((_, _)) => displayedMenuItems(userIsAdmin = true, hostName, userIsManager = true)
         }
         uiContextSelectedManaged(request, selectedManaged)

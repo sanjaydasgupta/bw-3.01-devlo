@@ -33,8 +33,8 @@ class PersonList2 extends HttpServlet with HttpUtils {
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
-        case None => displayedMenuItems(isAdmin, hostName, starting = true)
-        case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
+        case None => displayedMenuItems(isAdmin, request, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, request, managed, !selected)
       }
       val result = new Document("person_list", personDocuments).append("menu_items", menuItems)
       response.getWriter.print(result.toJson)

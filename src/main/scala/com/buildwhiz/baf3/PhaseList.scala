@@ -31,7 +31,7 @@ class PhaseList extends HttpServlet with HttpUtils {
       }
       val phaseInfoList: Many[Document] = phases.map(phase2json).map(_.asDoc).asJava
       val hostName = getHostName(request)
-      val menuItems = displayedMenuItems(isAdmin, hostName, ProjectApi.canManage(personOid, parentProject))
+      val menuItems = displayedMenuItems(isAdmin, request, ProjectApi.canManage(personOid, parentProject))
       val result = new Document("menu_items", menuItems).append("phases", phaseInfoList)
       response.getWriter.print(result.toJson)
       response.setContentType("application/json")

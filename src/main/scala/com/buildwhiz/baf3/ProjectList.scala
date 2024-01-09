@@ -37,7 +37,7 @@ class ProjectList extends HttpServlet with HttpUtils with DateTimeUtils {
       val canCreateNewProject = PersonApi.isBuildWhizAdmin(Left(userOid))
       val hostName = getHostName(request)
       val result = new Document("can_create_new_project", canCreateNewProject).append("projects", projectsInfo).
-          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), hostName, starting = true))
+          append("menu_items", displayedMenuItems(PersonApi.isBuildWhizAdmin(Right(user)), request, starting = true))
       if (isPageDisplayRequest) {
         uiContextSelectedManaged(request, Some((false, false)))
       }

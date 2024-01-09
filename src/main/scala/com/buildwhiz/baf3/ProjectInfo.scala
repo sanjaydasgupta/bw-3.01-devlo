@@ -184,7 +184,7 @@ object ProjectInfo extends HttpUtils with DateTimeUtils {
         append("address_line1", line1).append("address_line2", line2).append("address_line3", line3).
         append("gps_latitude", latitude).append("gps_longitude", longitude).append("display_edit_buttons", editable).
         append("country_name", countryName).append("state_name", stateName).append("postal_code", postalCode).
-        append("menu_items", displayedMenuItems(userIsAdmin, hostName, userCanManageProject)).
+        append("menu_items", displayedMenuItems(userIsAdmin, request, userCanManageProject)).
         append("canUploadImage", userCanManageProject).append("phase_info2", phaseInfo2).
         append("can_create_phase", canCreatePhase)
     if(doLog)

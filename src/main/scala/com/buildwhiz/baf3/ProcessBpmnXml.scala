@@ -421,8 +421,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
-        case None => displayedMenuItems(isAdmin, hostName, starting = true)
-        case Some((selected, managed)) => displayedMenuItems(isAdmin, hostName, managed, !selected)
+        case None => displayedMenuItems(isAdmin, request, starting = true)
+        case Some((selected, managed)) => displayedMenuItems(isAdmin, request, managed, !selected)
       }
       val cycleTime = if (globalTakt) {
         processActivities.head.getString("duration")

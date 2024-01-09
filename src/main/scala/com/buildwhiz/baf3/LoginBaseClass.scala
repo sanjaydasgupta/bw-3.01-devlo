@@ -18,6 +18,11 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
         response: HttpServletResponse): Unit = {
     val session = request.getSession
     Entry.sessionCache.put(session.getId, session)
+    val siteConfigInfos: Seq[DynDoc] = BWMongoDB3.global_configs.find(Map("site_name" -> hostName,
+      "control_name" -> "landing-page-and-menu-definition"))
+    BWLogger.log(getClass.getName, request.getMethod,
+      s"INFO cookieSessionSet(): Stored ${siteConfigInfos.length} global_configs records", request)
+    session.setAttribute("siteConfigInfos", siteConfigInfos)
     session.setAttribute("bw-user", person)
     session.setMaxInactiveInterval(0)
     session.setAttribute("host-name", hostName)
@@ -134,7 +139,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               val hostName = getHostName(request)
               cookieSessionSet(email, personRecord, hostName, request, response)
               val personIsAdmin = PersonApi.isBuildWhizAdmin(Right(personRecord))
-              personRecord.put("menu_items", displayedMenuItems(personIsAdmin, hostName, starting = true))
+              personRecord.put("menu_items", displayedMenuItems(personIsAdmin, request, starting = true))
               if (!personRecord.containsKey("document_filter_labels"))
                 personRecord.put("document_filter_labels", Seq.empty[String])
               if (!personRecord.containsKey("selected_project_id")) {
@@ -151,7 +156,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
                 "selected_project_id", "selected_phase_id", "single_project_indicator").
                 filter(f => personRecord.containsKey(f))
               val roles = if (personIsAdmin) Seq("BW-Admin") else Seq("NA")
-              val landingInfo = landingPageInfo(hostName, personRecord, request)
+              val landingInfo = landingPageInfo(personRecord, request)
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
                   Map("landing_page" -> landingInfo) ++ dates(request))

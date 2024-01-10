@@ -272,7 +272,10 @@ package object baf3 {
 
   def displayedMenuItems(userIsAdmin: Boolean, request: HttpServletRequest, userIsManager: Boolean = false,
       starting: Boolean = false, includeHome: Boolean = true): Many[Document] = {
-    val siteConfigInfos = request.getSession.getAttribute("siteConfigInfos").asInstanceOf[Seq[DynDoc]]
+    val siteConfigInfos = request.getSession.getAttribute("siteConfigInfos").asInstanceOf[Seq[DynDoc]] match {
+      case null => Nil
+      case other => other
+    }
     BWLogger.log(getClass.getName, request.getMethod,
       s"INFO displayedMenuItems(): found ${siteConfigInfos.length} global_configs records", request)
     val menuItemsList0 = siteConfigInfos.headOption match {

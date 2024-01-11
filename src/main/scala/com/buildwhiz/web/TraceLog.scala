@@ -134,7 +134,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val hostname = addSpaces(detail.hostname[String])
         val timestamp = dateTimeString(detail.milliseconds[String].toLong,
             parameters.get("tz").orElse(Some("Asia/Calcutta")), withMilliseconds = true)
-        val color = if (event.toLowerCase.contains("error")) "red" else "black"
+        val color = if (event.toLowerCase.matches("^(ERROR|WARN)")) "red" else "black"
         val htmlRowData = Seq(timestamp, process, session, user, ip, hostname, activity, event, variablesString).
             zip(widths).map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))

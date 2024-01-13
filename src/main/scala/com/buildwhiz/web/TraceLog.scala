@@ -134,13 +134,19 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val hostname = addSpaces(detail.hostname[String])
         val timestamp = dateTimeString(detail.milliseconds[String].toLong,
             parameters.get("tz").orElse(Some("Asia/Calcutta")), withMilliseconds = true)
-        val color = if (event.matches("^(?i)(ERROR|WARN).*")) "red" else "black"
+        val fontColor = if (event.matches("^(?i)ERROR.*")) {
+          "red"
+        } else if (event.matches("^(?i)WARN.*")) {
+          "brown"
+        } else {
+          "black"
+        }
         val htmlRowData = Seq(timestamp, process, session, user, ip, hostname, activity, event, variablesString).
             zip(widths).map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
-          writer.println(s"""<tr style="background-color: beige;color: $color" align="center">$htmlRowData</tr>""")
+          writer.println(s"""<tr style="background-color: beige;color: $fontColor" align="center">$htmlRowData</tr>""")
         else
-          writer.println(s"""<tr style="color: $color" align="center">$htmlRowData</tr>""")
+          writer.println(s"""<tr style="color: $fontColor" align="center">$htmlRowData</tr>""")
       })
       if (traceLogDocs.isEmpty)
         writer.println(s"""<tr><td colspan="8" align="center">No data for this selection!</td></tr>""")

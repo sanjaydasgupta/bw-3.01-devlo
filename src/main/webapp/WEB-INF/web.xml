@@ -91,7 +91,7 @@
     <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
     <init-param>
       <param-name>cors.allowed.origins</param-name>
-      <param-value>http://buildwhiz.vvsindia.com,http://localhost:4200,http://localhost:8080,https://issues.430forest.com,https://www.buildwhiz.com,https://www.550of.com,https://test.buildwhiz.com,https://dev.buildwhiz.com,https://test2.buildwhiz.com,https://accounts.google.com,http://buildwhiz.vvsindia.com</param-value>
+      <param-value>http://buildwhiz.vvsindia.com,http://localhost:4200,http://localhost:8080,https://issues.430forest.com,https://www.buildwhiz.com,https://www.550of.com,https://test.buildwhiz.com,https://dev.buildwhiz.com,https://issues.dev.buildwhiz.com,https://test2.buildwhiz.com,https://accounts.google.com,http://buildwhiz.vvsindia.com</param-value>
     </init-param>
     <init-param>
       <param-name>cors.allowed.methods</param-name>

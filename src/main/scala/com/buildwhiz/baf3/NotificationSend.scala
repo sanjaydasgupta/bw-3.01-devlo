@@ -22,7 +22,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
     try {
       val t0 = System.currentTimeMillis()
       val postDataString = getStreamData(request)
-      BWLogger.log(getClass.getName, request.getMethod, s"POST-Data: $postDataString")
+      BWLogger.log(getClass.getName, request.getMethod, s"POST-Data: $postDataString", request)
       val postDataObject: DynDoc = Document.parse(postDataString)
       val issueNbr = postDataObject.issue_no[String]
       val receivedMessage = postDataObject.message[String]

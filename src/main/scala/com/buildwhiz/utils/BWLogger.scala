@@ -36,7 +36,7 @@ object BWLogger extends HttpUtils {
     val clientIp = if (javaMap.containsKey("BW-Client-IP")) {
       javaMap.remove("BW-Client-IP")
     } else {
-      "unknown"
+      "LOCAL"
     }
     val record: Map[String, Any] = Map("milliseconds" -> System.currentTimeMillis(), "service_name" -> shortClassName,
       "method" -> methodName, "event_info" -> eventName, "hostname" -> hostname, "ip" -> clientIp,

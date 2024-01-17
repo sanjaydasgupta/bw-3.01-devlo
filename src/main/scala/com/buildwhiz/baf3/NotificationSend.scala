@@ -135,23 +135,23 @@ object NotificationSend extends MailUtils3 with DateTimeUtils {
 
   private def sendPhaseEmails(phaseOid: ObjectId, minTime: Long, subject: String, allowedEmails: Seq[String]): Unit = {
     val htmlsAndEmails: Seq[(String, Seq[String])] = StatusMailer.htmlsAndEmails(phaseOid, minTime)
-    BWLogger.log(getClass.getName, "LOCAL",
-      s"""INFO sendPhaseEmails() htmlsAndEmails-length: ${htmlsAndEmails.length}""")
+    BWLogger.log(getClass.getName, "sendPhaseEmails()",
+      s"""htmlsAndEmails-length: ${htmlsAndEmails.length}""")
     val allEmails: Seq[String] = htmlsAndEmails.length match {
       case 0 => Seq.empty[String]
       case 1 => htmlsAndEmails.map(_._2).head
       case _ =>
         htmlsAndEmails.map(_._2).reduceLeft(_ ++ _).distinct
     }
-      BWLogger.log(getClass.getName, "LOCAL",
-      s"""INFO sendPhaseEmails() issue-reports exist for: ${allEmails.mkString(", ")}""")
+      BWLogger.log(getClass.getName, "sendPhaseEmails()",
+      s"""issue-reports exist for: ${allEmails.mkString(", ")}""")
     for (email <- allEmails if allowedEmails.contains(email)) {
       BWMongoDB3.persons.find(Map("emails" -> Map($elemMatch -> Map("type" -> "work", "email" -> email)))).headOption match {
         case Some(user) =>
           val userOid = user._id[ObjectId]
           val htmls = htmlsAndEmails.filter(_._2.contains(email)).map(_._1)
-          BWLogger.log(getClass.getName, "LOCAL",
-            s"INFO sendPhaseEmails() sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
+          BWLogger.log(getClass.getName, "sendPhaseEmails()",
+            s"sending ${htmls.length} issue-reports to '$email' (_id: $userOid)")
           val fullHtml = htmls.mkString("<html>", "<br/>", "</html>")
           send(subject, fullHtml, Seq(userOid))
         case None =>

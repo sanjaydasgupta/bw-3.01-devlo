@@ -94,12 +94,17 @@ object BWLogger extends HttpUtils {
       case null => request.getRemoteAddr
       case ips => ips.split(",").head
     }
-    if (request.getSession(false) == null) {
-      parameters("BW-Session-ID") = "None"
-    } else {
-      parameters("BW-Session-ID") = request.getSession.getId
-      val sessionCode = "%x".format(request.getSession.getId.hashCode)
-      parameters("BW-Session-Code") = urlEncode(sessionCode)
+    (parameters.get("BW-Session-Code"), parameters.get("BW-Session-ID")) match {
+      case (Some(_), Some(_)) => // Do nothing
+      case (None, Some(sessionId)) =>
+        val sessionCode = "%x".format(sessionId.hashCode)
+        parameters("BW-Session-Code") = urlEncode(sessionCode)
+      case (Some(_), None) =>
+        parameters("BW-Session-ID") = request.getSession.getId
+      case (None, None) =>
+        parameters("BW-Session-ID") = request.getSession.getId
+        val sessionCode = "%x".format(request.getSession.getId.hashCode)
+        parameters("BW-Session-Code") = urlEncode(sessionCode)
     }
     if (isLogin) {
       parameters("BW-X-FORWARDED-FOR") = request.getHeader("X-FORWARDED-FOR")
@@ -107,15 +112,23 @@ object BWLogger extends HttpUtils {
     }
     val urlParts = request.getRequestURL.toString.split("/+")
     val siteName = urlParts(1)
-    val paramsWithName = getUser(request) match {
-      case null => parameters ++ Map("BW-Site-Name" -> siteName, "BW-Client-IP" -> clientIp)
-      case user => parameters ++ Map("u$nm" -> PersonApi.fullName(user), "BW-Site-Name" -> siteName,
-        "BW-Client-IP" -> clientIp)
+    if (!parameters.contains("BW-Site-Name")) {
+      parameters("BW-Site-Name") = siteName
+    }
+    if (!parameters.contains("u$nm")) {
+      getUser(request) match {
+        case null => // Do nothing
+        case user =>
+          parameters("u$nm") = PersonApi.fullName(user)
+      }
+    }
+    if (!parameters.contains("BW-Client-IP")) {
+      parameters("BW-Client-IP") = clientIp
     }
     val path = urlParts.drop(3).mkString("/")
     val query = request.getQueryString
     log(className, methodName,
-      s"""$eventName ($path${if (query == null) "" else "?" + query})""", paramsWithName.toSeq: _*)
+      s"""$eventName ($path${if (query == null) "" else "?" + query})""", parameters.toSeq: _*)
   }
 
 }

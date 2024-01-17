@@ -117,10 +117,10 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val nonVarNames = Seq("u$nm", "BW-Session-ID", "BW-Session-Code", "BW-Client-IP", "BW-Site-Name")
         val variablesString = variables.filterNot(variable => nonVarNames.contains(variable._1)).
             map(p => s"${p._1}: ${p._2}").mkString(", ")
-        val session = variables.find(_._1 == "BW-Session-ID") match {
-          case Some(sessionId) => "%x".format(sessionId._2.hashCode)
-          case None => variables.find(_._1 == "BW-Session-Code") match {
-            case Some(sessionCode) => sessionCode._2
+        val session = variables.find(_._1 == "BW-Session-Code") match {
+          case Some(sessionCode) => sessionCode._2
+          case None => variables.find(_._1 == "BW-Session-ID") match {
+            case Some(sessionId) => "%x".format(sessionId._2.hashCode)
             case None => ""
           }
         }

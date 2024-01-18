@@ -138,8 +138,10 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           "red"
         } else if (event.matches("^(?i)WARN.*")) {
           "brown"
-        } else {
+        } else if (event.matches("^(?i)(ENTRY|EXIT|AUDIT|INFO).*")) {
           "black"
+        } else {
+          "blue"
         }
         val htmlRowData = Seq(timestamp, process, session, user, ip, hostname, activity, event, variablesString).
             zip(widths).map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString

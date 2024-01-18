@@ -252,9 +252,15 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
       val ((activityStart, startLabel), (activityEnd, endLabel)) = activityStartEndAndLabel(phase, activity, request)
 
-      val hoverInfo = activityDeliverables.map(d =>
-        new Document("name", d.name[String]).append("status", d.status[String]).append("end_date", "__/__/____")
-      )
+      val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
+      val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
+      val hoverInfo = activityDeliverables.map(deliverable => {
+        val endDateMs = deliverable.getOrElse[Long]("date_end_actual",
+          deliverable.getOrElse[Long]("date_end_estimated", phaseStartDate.getOrElse(System.currentTimeMillis())))
+        val endDate = dateTimeStringAmerican(endDateMs, Some(PhaseApi.timeZone(phase))).split(" ").head
+        new Document("name", deliverable.name[String]).append("status", deliverable.status[String]).
+          append("end_date", endDate)
+      })
 
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
           find(_.role[String] == activity.role[String]) match {
@@ -269,14 +275,14 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
       }
 
-      val durationOptimistic = ActivityApi.durationOptimistic3(activity) match {
-        case Some(value) => value.toString
-        case None => "NA"
-      }
-      val durationPessimistic = ActivityApi.durationPessimistic3(activity) match {
-        case Some(value) => value.toString
-        case None => "NA"
-      }
+//      val durationOptimistic = ActivityApi.durationOptimistic3(activity) match {
+//        case Some(value) => value.toString
+//        case None => "NA"
+//      }
+//      val durationPessimistic = ActivityApi.durationPessimistic3(activity) match {
+//        case Some(value) => value.toString
+//        case None => "NA"
+//      }
       val durationLikely = ActivityApi.durationLikely3(activity) match {
         case Some(value) => value.toString
         case None => "NA"
@@ -306,14 +312,15 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
         milestoneInfo.append("completed", milestoneCompleted).append("date_end", milestoneDate)
       }
+      val fullName = s"$bpmnNameFull/${activity.name[String]}"
       new Document("id", activity._id[ObjectId]).append("bpmn_id", activity.bpmn_id[String]).
         append("tasks", Seq.empty[Document]).append("start", activityStart).append("end", activityEnd).
         append("status", status).append("duration_is_editable", status != "Completed").
         append("duration", durationLikely).append("elementType", "activity").
         append("hover_info", hoverInfo).append("assignee_initials", assigneeInitials).
-        append("milestone_info", milestoneInfo).
+        append("milestone_info", milestoneInfo).append("name_full", fullName).
         append("name", activity.name[String]).append("bpmn_name", activity.bpmn_name[String]).
-        append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
+        //append("duration_optimistic", durationOptimistic).append("duration_pessimistic", durationPessimistic).
         append("duration_likely", durationLikely).append("duration_actual", "NA").
         append("date_start", activityStart).append("date_finish", activityEnd).append("date_late_start", "NA").
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
@@ -349,7 +356,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getPersona(request)
-      //val userOid = user._id[ObjectId]
+      // val userOid = user._id[ObjectId]
       val bpmnFileName = parameters("bpmn_name").replaceAll(" ", "-")
       val bpmnNameFull = parameters.getOrElse("bpmn_name_full", bpmnFileName)
       val (thePhase: DynDoc, theProcess: DynDoc) = (parameters.get("phase_id"), parameters.get("process_id")) match {
@@ -419,7 +426,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, theProcess, 0, bpmnNameFull,
         Seq.empty[(String, String, Int)], request)
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
-      val hostName = getHostName(request)
+      // val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {
         case None => displayedMenuItems(isAdmin, request, starting = true)
         case Some((selected, managed)) => displayedMenuItems(isAdmin, request, managed, !selected)

@@ -191,11 +191,9 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => "__/__/____"
       }
       val endLabel = "Scheduled End Date"
-      val hoverInfo = deliverables.map(deliverable => {
-        def statusConverter(a: Array[String]): String = if (a.head == "Completed") a.head else a.mkString(" ")
-        val status = statusConverter(deliverable.status[String].split("-").tail)
-        new Document("name", deliverable.name[String]).append("status", status).append("end_date", "__/__/____")
-      })
+      val hoverInfo = deliverables.map(d =>
+        new Document("name", d.name[String]).append("status", d.status[String]).append("end_date", "__/__/____")
+      )
       val durationLikely = stamp.get[Long]("duration_scheduled") match {
         case Some(d) => d.toString
         case None => "NA"
@@ -257,11 +255,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
       val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
       val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
       val hoverInfo = activityDeliverables.map(deliverable => {
+        def statusConverter(a: Array[String]): String = if (a.head == "Completed") a.head else a.mkString(" ")
+        val status = statusConverter(deliverable.status[String].split("-").tail)
         val endDateMs = deliverable.getOrElse[Long]("date_end_actual",
           deliverable.getOrElse[Long]("date_end_estimated", phaseStartDate.getOrElse(System.currentTimeMillis())))
         val endDate = dateTimeStringAmerican(endDateMs, Some(PhaseApi.timeZone(phase))).split(" ").head
-        new Document("name", deliverable.name[String]).append("status", deliverable.status[String]).
-          append("end_date", endDate)
+        new Document("name", deliverable.name[String]).append("status", status).append("end_date", endDate)
       })
 
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).

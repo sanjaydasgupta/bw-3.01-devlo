@@ -244,7 +244,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
     )
     val deliverables = DeliverableApi.deliverablesByActivityOids(activities.map(_._id[ObjectId])).
         filter(_.deliverable_type[String] != "Milestone")
-    val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
+    // val activityStatusValues = DeliverableApi.taskStatusMap(deliverables)
     val returnActivities = activities.map(activity => {
       val activityOid = activity._id[ObjectId]
       val activityDeliverables = deliverables.filter(_.activity_id[ObjectId] == activityOid)
@@ -260,7 +260,8 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         val endDateMs = deliverable.getOrElse[Long]("date_end_actual",
           deliverable.getOrElse[Long]("date_end_estimated", phaseStartDate.getOrElse(System.currentTimeMillis())))
         val endDate = dateTimeStringAmerican(endDateMs, Some(PhaseApi.timeZone(phase))).split(" ").head
-        new Document("name", deliverable.name[String]).append("status", status).append("end_date", endDate)
+        new Document("name", deliverable.name[String]).append("status", status).append("end_date", endDate).
+          append("delayed", endDateMs < System.currentTimeMillis())
       })
 
       val assigneeInitials = ActivityApi.teamAssignment.list(activity._id[ObjectId]).
@@ -276,14 +277,6 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
       }
 
-//      val durationOptimistic = ActivityApi.durationOptimistic3(activity) match {
-//        case Some(value) => value.toString
-//        case None => "NA"
-//      }
-//      val durationPessimistic = ActivityApi.durationPessimistic3(activity) match {
-//        case Some(value) => value.toString
-//        case None => "NA"
-//      }
       val durationLikely = ActivityApi.durationLikely3(activity) match {
         case Some(value) => value.toString
         case None => "NA"
@@ -293,8 +286,18 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case Some(d) => new Document("editable", canManage).append("value", d)
         case None => new Document("editable", canManage).append("value", "")
       }
-
-      val status = activityStatusValues(activityOid)
+      val deliverableStatusValues = hoverInfo.map(_.y.status[String]).distinct
+      val delayedDeliverablesExist = hoverInfo.exists(hi => {
+        val info: DynDoc = hi
+        info.status[String] != "Completed" && info.delayed[Boolean]
+      })
+      val status = (deliverableStatusValues, delayedDeliverablesExist) match {
+        case (Nil, _) | (Seq("Planned"), false) => "Upcoming"
+        case (Seq("Bypassed"), _) | (Seq("Completed"), _) => "Completed"
+        case (Seq("Bypassed", "Completed"), _) | (Seq("Completed", "Bypassed"), _) => "Completed"
+        case (_, true) => "Delayed"
+        case (_, false) => "Current"
+      }
       val isMilestone = activity.get[Boolean]("is_milestone") match {
         case None => false
         case Some(isMilestone) => isMilestone

@@ -47,18 +47,18 @@ object ProcessApi {
   def delete(process: DynDoc): Either[String, String] = {
     val processOid = process._id[ObjectId]
     val isTemplate = process.`type`[String] == "Template"
-    val dependantProcesses: Seq[DynDoc] = if (isTemplate) {
-      BWMongoDB3.processes.find(Map("type" -> "Transient", "template_process_id" -> processOid))
+    val dependantProcessCount: Long = if (isTemplate) {
+      BWMongoDB3.processes.countDocuments(Map("type" -> "Transient", "template_process_id" -> processOid))
     } else {
-      Seq.empty[DynDoc]
+      0
     }
-    val dependantSchedules: Seq[DynDoc] = if (isTemplate) {
-      BWMongoDB3.process_schedules.find(Map("template_process_id" -> processOid))
+    val dependantScheduleCount: Long = if (isTemplate) {
+      BWMongoDB3.process_schedules.countDocuments(Map("template_process_id" -> processOid))
     } else {
-      Seq.empty[DynDoc]
+      0
     }
-    if (isTemplate && (dependantProcesses.nonEmpty || dependantSchedules.nonEmpty)) {
-      val dependentCount = dependantProcesses.length + dependantSchedules.length
+    if (isTemplate && (dependantProcessCount > 0 || dependantScheduleCount > 0)) {
+      val dependentCount = dependantProcessCount + dependantScheduleCount
       Left(s"Process '${process.name[String]}' has $dependentCount transient process or schedule dependents")
     } else {
       if (isActive(process)) {

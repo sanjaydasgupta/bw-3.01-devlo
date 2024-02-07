@@ -11,7 +11,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class ProcessDurationRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-
+    response.setContentType("application/json")
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     try {
       val user: DynDoc = getPersona(request)
@@ -59,14 +59,15 @@ class ProcessDurationRecalculate extends HttpServlet with HttpUtils with DateTim
         returnedValues.append("estimated_finish_date", estimatedFinishDate)
       }
       val returnedJson = returnedValues.toJson
-      response.getWriter.print(returnedJson)
       response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($returnedJson)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
+        val message = s"${t.getClass.getName}(${t.getMessage})"
+        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: $message", request)
+        response.getWriter.print(new Document("ok", 2).append("message", message).toJson)
         //t.printStackTrace()
-        throw t
+        //throw t
     }
   }
 

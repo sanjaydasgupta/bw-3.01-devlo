@@ -59,7 +59,7 @@ class ProcessDurationRecalculate extends HttpServlet with HttpUtils with DateTim
         returnedValues.append("estimated_finish_date", estimatedFinishDate)
       }
       val returnedJson = returnedValues.toJson
-      response.setContentType("application/json")
+      response.getWriter.print(returnedJson)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK ($returnedJson)", request)
     } catch {
       case t: Throwable =>

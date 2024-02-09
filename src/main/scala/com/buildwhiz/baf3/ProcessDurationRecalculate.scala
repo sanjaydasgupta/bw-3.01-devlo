@@ -47,12 +47,12 @@ class ProcessDurationRecalculate extends HttpServlet with HttpUtils with DateTim
       if (postData.has("selected_activity_id")) {
         val phase = ProcessApi.parentPhase(processOid)
         val activity = ActivityApi.activityById(new ObjectId(postData.selected_activity_id[String]))
-        val estimatedStartDate = ActivityApi.scheduledStart31(phase, activity) match {
+        val estimatedStartDate = ActivityApi.scheduledStart31(phase, activity, None) match {
           case Some(ms) => dateString(ms, user.tz[String])
           case None => "NA"
         }
         returnedValues.append("estimated_start_date", estimatedStartDate)
-        val estimatedFinishDate = ActivityApi.scheduledEnd31(phase, activity) match {
+        val estimatedFinishDate = ActivityApi.scheduledEnd31(phase, activity, None) match {
           case Some(ms) => dateString(ms, user.tz[String])
           case None => "NA"
         }

@@ -140,7 +140,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
         if (activityDurations.contains(theActivity._id[ObjectId])) {
           activityDurations(theActivity._id[ObjectId])
         } else {
-          ActivityApi.durationLikely3(theActivity) match {
+          ActivityApi.durationLikely3(theActivity, None) match {
             case Some(days) => days
             case None => 0
           }

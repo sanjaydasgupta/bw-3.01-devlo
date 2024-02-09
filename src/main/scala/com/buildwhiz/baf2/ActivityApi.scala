@@ -69,22 +69,28 @@ object ActivityApi extends DateTimeUtils {
       None
   }
 
-  def scheduledStart31(phase: DynDoc, activity: DynDoc): Option[Long] = {
+  def scheduledStart31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)]): Option[Long] = {
     try {
       val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
       val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
-      val activityOffset: Option[Long] = activity.get[Long]("offset")
+      val activityOffset: Option[Long] = optArchivedActivity match {
+        case Some(durOff) => Some(durOff._2)
+        case None => activity.get[Long]("offset")
+      }
       phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off, PhaseApi.timeZone(phase))))
     } catch {
       case _: Throwable => None
     }
   }
 
-  def scheduledEnd31(phase: DynDoc, activity: DynDoc): Option[Long] = {
-    val activityDurations: Option[DynDoc] = activity.get[Document]("durations")
-    val activityLikelyDuration: Option[Long] =
+  def scheduledEnd31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)]): Option[Long] = {
+    val activityLikelyDuration: Option[Long] = optArchivedActivity match {
+      case Some(durOff) => Some(durOff._1)
+      case None =>
+        val activityDurations: Option[DynDoc] = activity.get[Document]("durations")
         activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d)})
-    scheduledStart31(phase, activity).flatMap(startDate => activityLikelyDuration.
+    }
+    scheduledStart31(phase, activity, optArchivedActivity).flatMap(startDate => activityLikelyDuration.
         map(dur => addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase))))
   }
 
@@ -344,9 +350,13 @@ object ActivityApi extends DateTimeUtils {
     val durations: Option[DynDoc] = activity.get[Document]("durations")
     durations.flatMap(_.get[Int]("pessimistic") match {case Some(-1) => None; case someOtherD => someOtherD})
   }
-  def durationLikely3(activity: DynDoc): Option[Int] = {
-    val durations: Option[DynDoc] = activity.get[Document]("durations")
-    durations.flatMap(_.get[Int]("likely") match {case Some(-1) => None; case someOtherD => someOtherD})
+  def durationLikely3(activity: DynDoc, optArchivedActivity: Option[(Int, Long)]): Option[Int] = {
+    optArchivedActivity match {
+      case None =>
+        val durations: Option[DynDoc] = activity.get[Document]("durations")
+        durations.flatMap(_.get[Int]("likely") match {case Some(-1) => None; case someOtherD => someOtherD})
+      case Some(aa) => Some(aa._1)
+    }
   }
 
   def durationsSet3(activityOids: Seq[ObjectId], optDurationOptimistic: Option[Int] = None,

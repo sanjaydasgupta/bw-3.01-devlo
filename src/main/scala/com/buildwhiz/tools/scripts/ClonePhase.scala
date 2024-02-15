@@ -12,27 +12,31 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
 object ClonePhase extends HttpUtils {
 
-  private def cloneTeams(phaseSrc: DynDoc, phaseDest: DynDoc, go: Boolean, output: String => Unit): Unit = {
+  private def cloneOneProcess(processToClone: DynDoc, phaseDest: DynDoc, output: String => Unit): Unit = {
+    output(s"${getClass.getName}:cloneOneProcess() ENTRY<br/>")
+    output(s"${getClass.getName}:cloneOneProcess() EXIT<br/>")
+  }
 
-    def cloneOneTeam(teamToClone: DynDoc): Unit = {
-      output(s"${getClass.getName}:cloneOneTeam() ENTRY<br/>")
-      teamToClone.remove("_id")
-      val destPhaseOid = phaseDest._id[ObjectId]
-      if (teamToClone.has("phase_id")) {
-        teamToClone.phase_id = destPhaseOid.toString
-      }
-      val insertOneResult = BWMongoDB3.teams.insertOne(teamToClone.asDoc)
-      val newTeamOid = insertOneResult.getInsertedId.asObjectId()
-      val updatResult = BWMongoDB3.phases.updateOne(Map("_id" -> destPhaseOid),
-        Map($push -> Map("team_assignments" -> new Document("team_id", newTeamOid))))
-      if (updatResult.getModifiedCount == 1) {
-        output(s"""<font color="green">${getClass.getName}:cloneOneTeam() cloned OK: ${teamToClone.team_name[String]}</font><br/>""")
-      } else {
-        output(s"""<font color="red">${getClass.getName}:cloneOneTeam() clone linking FAILED: ${teamToClone.team_name[String]}</font><br/>""")
-      }
-      output(s"${getClass.getName}:cloneOneTeam() EXIT<br/>")
+  private def cloneOneTeam(teamToClone: DynDoc, phaseDest: DynDoc, output: String => Unit): Unit = {
+    output(s"${getClass.getName}:cloneOneTeam() ENTRY<br/>")
+    teamToClone.remove("_id")
+    val destPhaseOid = phaseDest._id[ObjectId]
+    if (teamToClone.has("phase_id")) {
+      teamToClone.phase_id = destPhaseOid.toString
     }
+    val insertOneResult = BWMongoDB3.teams.insertOne(teamToClone.asDoc)
+    val newTeamOid = insertOneResult.getInsertedId.asObjectId()
+    val updatResult = BWMongoDB3.phases.updateOne(Map("_id" -> destPhaseOid),
+      Map($push -> Map("team_assignments" -> new Document("team_id", newTeamOid))))
+    if (updatResult.getModifiedCount == 1) {
+      output(s"""<font color="green">${getClass.getName}:cloneOneTeam() cloned OK: ${teamToClone.team_name[String]}</font><br/>""")
+    } else {
+      output(s"""<font color="red">${getClass.getName}:cloneOneTeam() clone linking FAILED: ${teamToClone.team_name[String]}</font><br/>""")
+    }
+    output(s"${getClass.getName}:cloneOneTeam() EXIT<br/>")
+  }
 
+  private def cloneTeams(phaseSrc: DynDoc, phaseDest: DynDoc, go: Boolean, output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneTeams() ENTRY<br/><br/>")
     val sourceTeamOids: Seq[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/><br/>""")
@@ -46,7 +50,7 @@ object ClonePhase extends HttpUtils {
     output(s"""<font color="green">${getClass.getName}:cloneTeams() teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
     if (go && teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
-        cloneOneTeam(teamToCopy)
+        cloneOneTeam(teamToCopy, phaseDest, output)
       }
     } else {
       output(s"""<font color="green">${getClass.getName}:cloneTeams() EXITING - Nothing to do</font><br/><br/>""")

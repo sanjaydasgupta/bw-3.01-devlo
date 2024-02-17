@@ -15,7 +15,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
+object ProcessAdd extends BpmnUtils {
   //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
   //  private def extensionProperties(e: Element, name: String): Seq[Node] = e.getElementsByTagName("camunda:property").
@@ -383,7 +383,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
     }
   }
 
-  private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
+  def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
       processType: String, request: HttpServletRequest): ObjectId = {
     val thePhase = PhaseApi.phaseById(phaseOid)
     if (processType.matches("Transient|Template")) {
@@ -443,6 +443,9 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     processOid
   }
+}
+
+class ProcessAdd extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
@@ -464,7 +467,7 @@ class ProcessAdd extends HttpServlet with HttpUtils with BpmnUtils {
         case x => throw new IllegalArgumentException(s"Unknown type: '$x'")
       }
       BWMongoDB3.withTransaction({
-        val processOid = addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
+        val processOid = ProcessAdd.addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
         optProcessOid = Some(processOid)
       })
       response.getWriter.print(successJson(fields = Map("process_id" -> optProcessOid.get.toString)))

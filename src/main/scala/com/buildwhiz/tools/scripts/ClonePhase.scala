@@ -1,20 +1,87 @@
 package com.buildwhiz.tools.scripts
 
-import com.buildwhiz.baf2.PersonApi
+import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.HttpUtils
 import org.bson.types.ObjectId
 import org.bson.Document
-
+import com.buildwhiz.baf3.ProcessAdd
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import scala.jdk.CollectionConverters._
 
 object ClonePhase extends HttpUtils {
 
-  private def cloneOneProcess(processToClone: DynDoc, phaseDest: DynDoc, output: String => Unit): Unit = {
+  private def realignTaskTeams(task: DynDoc, destPhase: DynDoc, output: String => Unit): Unit = {
+    output(s"${getClass.getName}:realignTaskTeams() ENTRY<br/>")
+    val oldTeamAssignments = task.team_assignments[Many[Document]]
+    val newTeamAssignments: Many[Document] = oldTeamAssignments.map(teamAssignment => {
+      val oldTeamOid = teamAssignment.team_id[ObjectId]
+      val oldTeam = BWMongoDB3.teams.find(Map("_id" -> oldTeamOid)).head
+      BWMongoDB3.teams.find(Map("phase_id" -> destPhase._id[ObjectId],
+          "team_name" -> oldTeam.team_name[String])).headOption match {
+        case Some(newTeam) =>
+          teamAssignment.team_id = newTeam._id[ObjectId]
+        case None =>
+          output(s"""<font color="red">${getClass.getName}:realignTaskTeams() named team NOT FOUND: ${oldTeam.team_name[String]}</font><br/>""")
+      }
+      teamAssignment
+    }).map(_.asDoc).asJava
+    task.team_assignments = newTeamAssignments
+    output(s"${getClass.getName}:realignTaskTeams() EXIT<br/>")
+  }
+
+  private def cloneOneProcess(srcProcess: DynDoc, destPhase: DynDoc, request: HttpServletRequest,
+      output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneOneProcess() ENTRY<br/>")
+    // create new template process
+    val destPhaseManager = PhaseApi.phaseById(PhaseApi.managers(Right(destPhase)).head)
+    val newProcessOid = ProcessAdd.addProcess(destPhaseManager, srcProcess.bpmn_name[String], srcProcess.name[String],
+        destPhase._id[ObjectId], srcProcess.`type`[String], request)
+    // copy extra fields from source process
+    val newProcess = ProcessApi.processById(newProcessOid)
+    val srcProcessCopy = new Document(srcProcess.asDoc)
+    val srcProcessFields: Set[String] = srcProcessCopy.asDoc.keySet().toArray.map(_.asInstanceOf[String]).toSet
+    for (srcField <- srcProcessFields) {
+      if (newProcess.has(srcField)) {
+        srcProcessCopy.remove(srcField)
+      }
+    }
+    val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> newProcessOid), Map($set -> srcProcessCopy))
+    if (updateResult.getModifiedCount != 1) {
+      output(s"""<font color="red">${getClass.getName}:cloneOneProcess() update process-clone FAILED: ${srcProcess.name[String]}</font><br/>""")
+    }
+    // set team-assignments of each task
+    val srcTasks: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> newProcess.activity_ids[Many[Document]])))
+    srcTasks.foreach(tsk => realignTaskTeams(tsk, destPhase, output))
+    // for each task replicate activities (deliverables)
+    // re-align teams of each activities
+    // clone constraint records, re-align activity-id values in constraints
     output(s"${getClass.getName}:cloneOneProcess() EXIT<br/>")
+  }
+
+  private def cloneProcesses(phaseSrc: DynDoc, phaseDest: DynDoc, go: Boolean, request: HttpServletRequest,
+      output: String => Unit): Unit = {
+    output(s"${getClass.getName}:cloneProcesses() ENTRY<br/>")
+    val srcProcessOids = phaseSrc.process_ids[Many[Document]]
+    val srcTemplateProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> srcProcessOids),
+      "type" -> "Template"))
+    output(s"""<font color="green">${getClass.getName}:cloneProcesses() Source Template process names: ${srcTemplateProcesses.map(_.name[String]).mkString(", ")}</font><br/>""")
+    val destProcessOids = phaseDest.process_ids[Many[Document]]
+    val destTemplateProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> destProcessOids),
+      "type" -> "Template"))
+    val destProcessNames = destTemplateProcesses.map(_.name[String]).toSet
+    output(s"""<font color="green">${getClass.getName}:cloneProcesses() Dest Template process names: $destProcessNames</font><br/>""")
+    val processesToCopy = srcTemplateProcesses.filterNot(stp => destProcessNames.contains(stp.name[String]))
+    if (go && processesToCopy.nonEmpty) {
+      for (templateProcess <- processesToCopy) {
+        cloneOneProcess(templateProcess, phaseDest, request, output)
+      }
+    } else {
+      output(s"""<font color="green">${getClass.getName}:cloneProcesses() EXITING - Nothing to do</font><br/><br/>""")
+    }
+    output(s"${getClass.getName}:cloneProcesses() EXIT<br/>")
   }
 
   private def cloneOneTeam(teamToClone: DynDoc, phaseDest: DynDoc, output: String => Unit): Unit = {
@@ -85,6 +152,7 @@ object ClonePhase extends HttpUtils {
                 output(s"Found dest phase: '${phaseDest.name[String]}'<br/>")
                 val go: Boolean = args.length == 3 && args(2) == "GO"
                 cloneTeams(phaseSource, phaseDest, go, output)
+                cloneProcesses(phaseSource, phaseDest, go, request, output)
             }
         }
         output(s"${getClass.getName}:main() EXIT-OK<br/>")

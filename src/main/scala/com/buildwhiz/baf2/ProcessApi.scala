@@ -259,7 +259,7 @@ object ProcessApi {
             case ("phase_id", phaseOid: String) => PhaseApi.exists(new ObjectId(phaseOid))
             case ("template_process_id", templateProcessOid: String) =>
               ProcessApi.exists(new ObjectId(templateProcessOid))
-            case ("template_parameters", templateParameters: Seq[Any]) => templateParameters.nonEmpty
+            // case ("template_parameters", templateParameters: Seq[Any]) => templateParameters.nonEmpty
             case _ => true
           }
           isValid

@@ -17,21 +17,24 @@ class Entry extends HttpServlet with HttpUtils {
   private def permitted(request: HttpServletRequest): Boolean = {
     val session: HttpSession = getSessionAlternatives(request)
     val uriParts = request.getRequestURI.split("/")
-    val loggingIn = (uriParts.last, uriParts.init.last) match {
-      case ("Status", "etc") => true
-      case ("LoginPost", "etc") => true
-      case ("Environment", "etc") => true
-      case ("BIDataConnector", "etc") => true
-      case ("Login", "baf2") => true
-      case ("Logout", "baf2") => true
-      case ("GLogin", "baf3") => true
-      case ("MSLogin", "baf3") => true
-      case ("LoginWithSlack", "baf3") => true
-      case ("Logout", "baf3") => true
-      case ("SlackSlashCommand", "slack") => true
-      case ("SlackEventCallback", "slack") => true
-      case ("SlackInteractiveCallback", "slack") => true
-      case (_, "media") => true
+    val internalCall = request.getRemoteAddr == request.getLocalAddr
+    val loggingIn = (uriParts.last, uriParts.init.last, internalCall) match {
+      case ("Status", "etc", _) => true
+      case ("LoginPost", "etc", _) => true
+      case ("Environment", "etc", _) => true
+      case ("BIDataConnector", "etc", _) => true
+      case ("Login", "baf2", _) => true
+      case ("Logout", "baf2", _) => true
+      case ("GLogin", "baf3", _) => true
+      case ("MSLogin", "baf3", _) => true
+      case ("LoginWithSlack", "baf3", _) => true
+      case ("DeliverableDatesRecalculate", "baf3", true) => true
+      case ("NotificationSend", "baf3", true) => true
+      case ("Logout", "baf3", _) => true
+      case ("SlackSlashCommand", "slack", _) => true
+      case ("SlackEventCallback", "slack", _) => true
+      case ("SlackInteractiveCallback", "slack", _) => true
+      case (_, "media", _) => true
       case _ => false
     }
     try {

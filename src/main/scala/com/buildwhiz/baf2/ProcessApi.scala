@@ -192,6 +192,9 @@ object ProcessApi {
       def createRequest(schedule: DynDoc): Option[HttpPost] = {
         val systemUser = PersonApi.systemUser()
         val parameterEntity = Document.parse(schedule.asDoc.toJson)
+        if (!parameterEntity.containsKey("template_parameters")) {
+          parameterEntity.append("template_parameters", Seq.empty[Any].asJava)
+        }
         def oid2string(oid: Any): Any = oid.toString
         def s2s(s: Any): Any = s
         def ms2string(ms: Any): Any = {

@@ -13,75 +13,131 @@ import scala.jdk.CollectionConverters._
 
 object ClonePhase extends HttpUtils {
 
-  private def realignTaskTeams(task: DynDoc, destPhase: DynDoc, output: String => Unit): Unit = {
-    output(s"${getClass.getName}:realignTaskTeams() ENTRY<br/>")
-    val oldTeamAssignments = task.team_assignments[Many[Document]]
-    val newTeamAssignments: Many[Document] = oldTeamAssignments.map(teamAssignment => {
-      val oldTeamOid = teamAssignment.team_id[ObjectId]
-      val oldTeam = BWMongoDB3.teams.find(Map("_id" -> oldTeamOid)).head
-      BWMongoDB3.teams.find(Map("phase_id" -> destPhase._id[ObjectId],
-          "team_name" -> oldTeam.team_name[String])).headOption match {
-        case Some(newTeam) =>
-          teamAssignment.team_id = newTeam._id[ObjectId]
-        case None =>
-          output(s"""<font color="red">${getClass.getName}:realignTaskTeams() named team NOT FOUND: ${oldTeam.team_name[String]}</font><br/>""")
+  private def replicateDeliverables(srcProcess: DynDoc, destProcess: DynDoc, destPhase: DynDoc,
+      teamsTable: Map[ObjectId, ObjectId], output: String => Unit): Unit = {
+    output(s"${getClass.getName}:replicateDeliverables() ENTRY<br/>")
+    val destPhaseOid = destPhase._id[ObjectId]
+    val destProject = PhaseApi.parentProject(destPhaseOid)
+    val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
+    val srcTasks: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
+    val destTaskOids = destProcess.activity_ids[Many[ObjectId]]
+    val destTasks: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> destTaskOids)))
+    val destTaskOidByBpmn = destTasks.map(dt => (dt.bpmn_name_full[String], dt._id[ObjectId])).toMap
+    val aggPipe = Seq(new Document("$group", new Document("_id", null).append("max_common_instance_no",
+      new Document("$max", "$common_instance_no"))))
+    val aggResult: Seq[DynDoc] = BWMongoDB3.deliverables.aggregate(aggPipe)
+    var maxCommonInstanceNo = aggResult.head.max_common_instance_no[Int]
+    for (task <- srcTasks) {
+      val taskOid = task._id[ObjectId]
+      val srcDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("activity_id" -> taskOid))
+      if (srcDeliverables.nonEmpty) {
+        val migrationInfo: DynDoc = Map("src_task_id" -> taskOid, "bpmn_name_full" -> task.bpmn_name_full[String])
+        for (taskDeliverable <- srcDeliverables) {
+          taskDeliverable.migration_info = migrationInfo.asDoc
+          taskDeliverable.project_id = destProject._id[ObjectId]
+          taskDeliverable.phase_id = destPhaseOid
+          taskDeliverable.process_id = destProcess._id[ObjectId]
+          taskDeliverable.activity_id = destTaskOidByBpmn(task.bpmn_name_full[String])
+          maxCommonInstanceNo += 1
+          taskDeliverable.common_instance_no = maxCommonInstanceNo
+          if (taskDeliverable.has("team_assignments")) {
+            val teamAssignments: Seq[DynDoc] = taskDeliverable.team_assignments[Many[Document]]
+            val newTeams = teamAssignments.filter(t => teamsTable.contains(t.team_id[ObjectId])).
+              map(t => {t.team_id = teamsTable(t.team_id[ObjectId]); t.remove("contact_person_id"); t})
+            taskDeliverable.team_assignments = newTeams.map(_.asDoc).asJava
+          }
+          taskDeliverable.remove("_id")
+        }
+        val result = BWMongoDB3.deliverables.insertMany(srcDeliverables.map(_.asDoc).asJava)
+        if (result.getInsertedIds.size() == srcDeliverables.length) {
+          output(s"""${getClass.getName}:replicateDeliverables()<font color="green"> ${task.bpmn_name_full[String]} SUCCESS</font><br/>""")
+        } else {
+          output(s"""${getClass.getName}:replicateDeliverables()<font color="red"> ${task.bpmn_name_full[String]} FAILED</font><br/>""")
+        }
+      } else {
+        output(s"""${getClass.getName}:replicateDeliverables()<font color="green"> No deliverables to copy in: ${task.bpmn_name_full[String]} </font><br/>""")
       }
-      teamAssignment
-    }).map(_.asDoc).asJava
-    task.team_assignments = newTeamAssignments
-    output(s"${getClass.getName}:realignTaskTeams() EXIT<br/>")
+    }
+    output(s"${getClass.getName}:replicateDeliverables() EXIT<br/>")
   }
 
-  private def cloneOneProcess(srcProcess: DynDoc, destPhase: DynDoc, request: HttpServletRequest,
-      output: String => Unit): Unit = {
+  private def cloneOneProcess(srcProcess: DynDoc, destPhase: DynDoc, teamsTable: Map[ObjectId, ObjectId],
+      request: HttpServletRequest, output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneOneProcess() ENTRY<br/>")
     // create new template process
-    val destPhaseManager = PhaseApi.phaseById(PhaseApi.managers(Right(destPhase)).head)
+    val destPhaseManager = PersonApi.personById(PhaseApi.managers(Right(destPhase)).head)
     val newProcessOid = ProcessAdd.addProcess(destPhaseManager, srcProcess.bpmn_name[String], srcProcess.name[String],
         destPhase._id[ObjectId], srcProcess.`type`[String], request)
+    output(s"""${getClass.getName}:cloneOneProcess()<font color="green"> ProcessAdd.addProcess SUCCESS: ${srcProcess.name[String]}</font><br/>""")
     // copy extra fields from source process
     val newProcess = ProcessApi.processById(newProcessOid)
-    val srcProcessCopy = new Document(srcProcess.asDoc)
-    val srcProcessFields: Set[String] = srcProcessCopy.asDoc.keySet().toArray.map(_.asInstanceOf[String]).toSet
+    val srcProcessCopy = Document.parse(srcProcess.asDoc.toJson)
+    val srcProcessFields = srcProcessCopy.asDoc.keySet().toArray.map(_.asInstanceOf[String]).toSeq
     for (srcField <- srcProcessFields) {
       if (newProcess.has(srcField)) {
         srcProcessCopy.remove(srcField)
       }
     }
-    val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> newProcessOid), Map($set -> srcProcessCopy))
-    if (updateResult.getModifiedCount != 1) {
-      output(s"""<font color="red">${getClass.getName}:cloneOneProcess() update process-clone FAILED: ${srcProcess.name[String]}</font><br/>""")
+    if (!srcProcessCopy.isEmpty) {
+      val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> newProcessOid), Map($set -> srcProcessCopy))
+      if (updateResult.getModifiedCount == 1) {
+        output(s"""${getClass.getName}:cloneOneProcess()<font color="green"> update process-clone SUCCESS: ${srcProcess.name[String]}</font><br/>""")
+      } else {
+        output(s"""${getClass.getName}:cloneOneProcess()<font color="red"> update process-clone FAILED: ${srcProcess.name[String]}</font><br/>""")
+      }
     }
-    // set team-assignments of each task
-    val srcTasks: Seq[DynDoc] = BWMongoDB3.tasks.find(Map("_id" -> Map($in -> newProcess.activity_ids[Many[Document]])))
-    srcTasks.foreach(tsk => realignTaskTeams(tsk, destPhase, output))
-    // for each task replicate activities (deliverables)
-    // re-align teams of each activities
+    // set default team-assignments of each task (NOT needed)
+    // for each task replicate activities (deliverables) and realign teams
+    replicateDeliverables(srcProcess, newProcess, destPhase, teamsTable, output)
     // clone constraint records, re-align activity-id values in constraints
-    output(s"${getClass.getName}:cloneOneProcess() EXIT<br/>")
+    output(s"${getClass.getName}:cloneOneProcess() EXIT<br/><br/>")
+  }
+
+  private def getTeamsTable(phaseSrc: DynDoc, phaseDest: DynDoc): Map[ObjectId, ObjectId] = {
+    val srcTeamOids: Many[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
+    val srcAggrPipe: Many[Document] = Seq(
+      new Document("$match", new Document("_id", new Document($in, srcTeamOids))),
+      new Document("$project", new Document("team_name", 1).append("group", 1))
+    )
+    val srcTeams: Seq[DynDoc] = BWMongoDB3.teams.aggregate(srcAggrPipe)
+
+    val destTeamOids: Many[ObjectId] = phaseDest.team_assignments[Many[Document]].map(_.team_id[ObjectId])
+    val destAggrPipe: Many[Document] = Seq(
+      new Document("$match", new Document("_id", new Document($in, destTeamOids))),
+      new Document("$project", new Document("team_name", 1).append("group", 1))
+    )
+    val destTeams: Seq[DynDoc] = BWMongoDB3.teams.aggregate(destAggrPipe)
+    val destTeamDict = destTeams.map(dt => ((dt.group[String], dt.team_name[String]), dt._id[ObjectId])).toMap
+    val t2tMap: Map[ObjectId, ObjectId] = srcTeams.map(st => {
+      (st._id[ObjectId], destTeamDict.getOrElse((st.group[String], st.team_name[String]), null))
+    }).filterNot(_._2 == null).toMap
+    t2tMap
   }
 
   private def cloneProcesses(phaseSrc: DynDoc, phaseDest: DynDoc, go: Boolean, request: HttpServletRequest,
       output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneProcesses() ENTRY<br/>")
+    val teamsTable = getTeamsTable(phaseSrc, phaseDest)
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
     val srcTemplateProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> srcProcessOids),
       "type" -> "Template"))
-    output(s"""<font color="green">${getClass.getName}:cloneProcesses() Source Template process names: ${srcTemplateProcesses.map(_.name[String]).mkString(", ")}</font><br/>""")
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Source Template process names: ${srcTemplateProcesses.map(_.name[String]).mkString(", ")}</font><br/><br/>""")
     val destProcessOids = phaseDest.process_ids[Many[Document]]
     val destTemplateProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> destProcessOids),
       "type" -> "Template"))
-    val destProcessNames = destTemplateProcesses.map(_.name[String]).toSet
-    output(s"""<font color="green">${getClass.getName}:cloneProcesses() Dest Template process names: $destProcessNames</font><br/>""")
+    val destProcessNames = destTemplateProcesses.map(_.name[String])
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Dest Template process names: $destProcessNames</font><br/><br/>""")
     val processesToCopy = srcTemplateProcesses.filterNot(stp => destProcessNames.contains(stp.name[String]))
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Processes to copy: ${processesToCopy.map(_.name[String])}</font><br/><br/>""")
     if (go && processesToCopy.nonEmpty) {
       for (templateProcess <- processesToCopy) {
-        cloneOneProcess(templateProcess, phaseDest, request, output)
+        cloneOneProcess(templateProcess, phaseDest, teamsTable, request, output)
       }
     } else {
-      output(s"""<font color="green">${getClass.getName}:cloneProcesses() EXITING - Nothing to do</font><br/><br/>""")
+      output(s"""${getClass.getName}:cloneProcesses()<font color="green"> EXITING - Nothing to do</font><br/><br/>""")
     }
-    output(s"${getClass.getName}:cloneProcesses() EXIT<br/>")
+    output(s"${getClass.getName}:cloneProcesses() EXIT<br/><br/>")
   }
 
   private def cloneOneTeam(teamToClone: DynDoc, phaseDest: DynDoc, output: String => Unit): Unit = {
@@ -96,33 +152,33 @@ object ClonePhase extends HttpUtils {
     val updatResult = BWMongoDB3.phases.updateOne(Map("_id" -> destPhaseOid),
       Map($push -> Map("team_assignments" -> new Document("team_id", newTeamOid))))
     if (updatResult.getModifiedCount == 1) {
-      output(s"""<font color="green">${getClass.getName}:cloneOneTeam() cloned OK: ${teamToClone.team_name[String]}</font><br/>""")
+      output(s"""${getClass.getName}:cloneOneTeam()<font color="green"> cloned OK: ${teamToClone.team_name[String]}</font><br/>""")
     } else {
-      output(s"""<font color="red">${getClass.getName}:cloneOneTeam() clone linking FAILED: ${teamToClone.team_name[String]}</font><br/>""")
+      output(s"""${getClass.getName}:cloneOneTeam()<font color="red"> clone linking FAILED: ${teamToClone.team_name[String]}</font><br/>""")
     }
-    output(s"${getClass.getName}:cloneOneTeam() EXIT<br/>")
+    output(s"${getClass.getName}:cloneOneTeam() EXIT<br/><br/>")
   }
 
   private def cloneTeams(phaseSrc: DynDoc, phaseDest: DynDoc, go: Boolean, output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneTeams() ENTRY<br/><br/>")
     val sourceTeamOids: Seq[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
-    output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/><br/>""")
+    // output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/><br/>""")
     val sourceTeams: Seq[DynDoc] = BWMongoDB3.teams.find(Map("_id" -> Map($in -> sourceTeamOids)))
-    output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Names: ${sourceTeams.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> sourceTeam Names: ${sourceTeams.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
     val destinationTeamOids: Seq[ObjectId] = phaseDest.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     val destinationTeams: Seq[DynDoc] = BWMongoDB3.teams.find(Map("_id" -> Map($in -> destinationTeamOids)))
     val destinationTeamNames = destinationTeams.map(_.team_name[String]).toSet
-    output(s"""<font color="green">${getClass.getName}:cloneTeams() destinationTeam Names: $destinationTeamNames</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> destinationTeam Names: $destinationTeamNames</font><br/><br/>""")
     val teamsToCopy = sourceTeams.filterNot(t => destinationTeamNames.contains(t.team_name[String]))
-    output(s"""<font color="green">${getClass.getName}:cloneTeams() teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
     if (go && teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
         cloneOneTeam(teamToCopy, phaseDest, output)
       }
     } else {
-      output(s"""<font color="green">${getClass.getName}:cloneTeams() EXITING - Nothing to do</font><br/><br/>""")
+      output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/><br/>""")
     }
-    output(s"${getClass.getName}:cloneTeams() EXIT<br/>")
+    output(s"${getClass.getName}:cloneTeams() EXIT<br/><br/>")
   }
 
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
@@ -161,6 +217,7 @@ object ClonePhase extends HttpUtils {
       }
     } catch {
       case t: Throwable =>
+        output("%s(%s)<br/>".format(t.getClass.getName, t.getMessage))
         output(t.getStackTrace.map(_.toString).mkString("<br/>"))
     } finally {
       output("</body></html>")

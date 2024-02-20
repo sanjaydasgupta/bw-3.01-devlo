@@ -13,7 +13,7 @@ import scala.jdk.CollectionConverters._
 
 object ClonePhase extends HttpUtils {
 
-  private def replicateConstraints(srcProcess: DynDoc, destProcess: DynDoc, output: String => Unit): Unit = {
+  private def replicateConstraints(destProcess: DynDoc, output: String => Unit): Unit = {
     output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) ENTRY<br/>""")
     val destDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("process_id" -> destProcess._id[ObjectId]))
     if (destDeliverables.nonEmpty) {
@@ -91,9 +91,9 @@ object ClonePhase extends HttpUtils {
         val result = BWMongoDB3.deliverables.insertMany(srcDeliverables.map(_.asDoc).asJava)
         if (result.getInsertedIds.size() == srcDeliverables.length) {
           val len = srcDeliverables.length
-          output(s"""${getClass.getName}:replicateDeliverables()<font color="green"> Cloned $len deliverables SUCCESS</font><br/>""")
+          output(s"""${getClass.getName}:replicateDeliverables()<font color="green"> Cloned $len deliverables (task: ${task.name[String]}) SUCCESS</font><br/>""")
         } else {
-          output(s"""${getClass.getName}:replicateDeliverables()<font color="red"> Cloning FAILED</font><br/>""")
+          output(s"""${getClass.getName}:replicateDeliverables()<font color="red"> Cloning (task: ${task.name[String]}) FAILED</font><br/>""")
         }
       } else {
         output(s"""${getClass.getName}:replicateDeliverables()<font color="green"> No deliverables found! EXITING </font><br/>""")
@@ -131,7 +131,7 @@ object ClonePhase extends HttpUtils {
     // for each task replicate activities (deliverables) and realign teams
     replicateDeliverables(srcProcess, newProcess, destPhase, teamsTable, output)
     // clone constraint records, re-align activity-id values in constraints
-    replicateConstraints(srcProcess, newProcess, output)
+    replicateConstraints(newProcess, output)
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/><br/>")
   }
 

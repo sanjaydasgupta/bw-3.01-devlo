@@ -134,11 +134,11 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
         val hostname = addSpaces(detail.hostname[String])
         val timestamp = dateTimeString(detail.milliseconds[String].toLong,
             parameters.get("tz").orElse(Some("Asia/Calcutta")), withMilliseconds = true)
-        val fontColor = if (event.matches("^(?i)ERROR.*")) {
+        val fontColor = if (event.matches("^(?i)(EXIT-)?ERROR.*")) {
           "red"
-        } else if (event.matches("^(?i)WARN.*")) {
+        } else if (event.matches("^(?i)(EXIT-)?WARN.*")) {
           "brown"
-        } else if (event.matches("^(?i)(ENTRY|EXIT|AUDIT|INFO).*")) {
+        } else if (event.matches("^(?i)(ENTRY|EXIT-OK|AUDIT|INFO).*")) {
           "black"
         } else {
           "blue"

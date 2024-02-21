@@ -72,17 +72,26 @@ object ProcessApi {
           val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
             Map("$pull" -> Map("process_ids" -> processOid)))
           val activityOids: Seq[ObjectId] = allActivities(Right(process)).map(_._id[ObjectId])
-          val activityDeleteCount = if (activityOids.nonEmpty)
+          val activityDeleteCount = if (activityOids.nonEmpty) {
             BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
-          else
+          } else {
             0
-          val deliverableDeleteCount = if (activityOids.nonEmpty)
-            BWMongoDB3.deliverables.deleteMany(Map("activity_id" -> Map("$in" -> activityOids))).getDeletedCount
-          else
+          }
+          val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("activity_id" -> Map("$in" -> activityOids)))
+          val deliverableOids = deliverables.map(_._id[ObjectId])
+          val deliverableDeleteCount = if (deliverables.nonEmpty) {
+            BWMongoDB3.deliverables.deleteMany(Map("_id" -> Map("$in" -> deliverableOids))).getDeletedCount
+          } else {
             0
+          }
+          val constraintDeleteCount = if (deliverables.nonEmpty) {
+            BWMongoDB3.constraints.deleteMany(Map("owner_deliverable_id" -> Map("$in" -> deliverableOids))).getDeletedCount
+          } else {
+            0
+          }
           val message = s"Deleted process '${process.name[String]}' (${process._id[ObjectId]}). " +
             s"Also updated ${phaseUpdateResult.getModifiedCount} phase records, " +
-            s"and deleted $activityDeleteCount activities, $deliverableDeleteCount deliverables"
+            s"and deleted $activityDeleteCount activities, $deliverableDeleteCount deliverables, $constraintDeleteCount constraints"
           Right(message)
         }
       }

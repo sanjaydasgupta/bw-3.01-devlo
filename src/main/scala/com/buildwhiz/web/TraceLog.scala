@@ -138,7 +138,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           "red"
         } else if (event.matches("^(?i)(EXIT-)?WARN.*")) {
           "brown"
-        } else if (event.matches("^(?i)(ENTRY|EXIT-OK|AUDIT|INFO).*")) {
+        } else if (event.matches("^(?i)(ENTRY|EXIT(-OK)?|AUDIT|INFO).*")) {
           "black"
         } else {
           "blue"

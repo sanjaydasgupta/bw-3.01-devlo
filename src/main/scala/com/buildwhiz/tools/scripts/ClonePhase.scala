@@ -8,9 +8,12 @@ import com.buildwhiz.utils.HttpUtils
 import org.bson.types.ObjectId
 import org.bson.Document
 import com.buildwhiz.baf3.ProcessAdd
+
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import scala.annotation.unused
 import scala.jdk.CollectionConverters._
 
+@unused
 object ClonePhase extends HttpUtils {
 
   private def replicateConstraints(destProcess: DynDoc, output: String => Unit): Unit = {
@@ -18,6 +21,13 @@ object ClonePhase extends HttpUtils {
     val destDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("process_id" -> destProcess._id[ObjectId]))
     if (destDeliverables.nonEmpty) {
       output(s"""${getClass.getName}:replicateConstraints()<font color="green"> found ${destDeliverables.length} deliverables</font><br/>""")
+      val aggPipe = Seq(new Document("$group", new Document("_id", null).
+        append("max_common_instance_no", new Document("$max", "$common_instance_no"))))
+      val aggResult: Seq[DynDoc] = BWMongoDB3.constraints.aggregate(aggPipe)
+      var maxCommonInstanceNo = aggResult.headOption match {
+        case Some(r) => r.max_common_instance_no[Int]
+        case None => 0
+      }
       val srcDestDeliverablesDict = destDeliverables.map(dd => {
         val migrationInfo: DynDoc = dd.migration_info[Document]
         val srcDeliverableOid = migrationInfo.src_deliverable_id[ObjectId]
@@ -28,6 +38,8 @@ object ClonePhase extends HttpUtils {
       if (srcConstraints.nonEmpty) {
         output(s"""${getClass.getName}:replicateConstraints()<font color="green"> found ${srcConstraints.length} constraints</font><br/>""")
         for (constraint <- srcConstraints) {
+          maxCommonInstanceNo += 1
+          constraint.common_instance_no = maxCommonInstanceNo
           constraint.owner_deliverable_id = srcDestDeliverablesDict(constraint.owner_deliverable_id[ObjectId])
           val constraintOid = constraint.constraint_id[ObjectId]
           if (srcDestDeliverablesDict.contains(constraintOid)) {
@@ -65,7 +77,10 @@ object ClonePhase extends HttpUtils {
     val aggPipe = Seq(new Document("$group", new Document("_id", null).append("max_common_instance_no",
       new Document("$max", "$common_instance_no"))))
     val aggResult: Seq[DynDoc] = BWMongoDB3.deliverables.aggregate(aggPipe)
-    var maxCommonInstanceNo = aggResult.head.max_common_instance_no[Int]
+    var maxCommonInstanceNo = aggResult.headOption match {
+      case Some(r) => r.max_common_instance_no[Int]
+      case None => 0
+    }
     for (task <- srcTasks) {
       val taskOid = task._id[ObjectId]
       val srcDeliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("activity_id" -> taskOid))
@@ -223,6 +238,7 @@ object ClonePhase extends HttpUtils {
     output(s"${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) EXIT<br/><br/>")
   }
 
+  @unused
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     response.setContentType("text/html")
     val writer = response.getWriter

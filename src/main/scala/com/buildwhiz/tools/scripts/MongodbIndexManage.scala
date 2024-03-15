@@ -13,8 +13,21 @@ import scala.jdk.CollectionConverters._
 object MongodbIndexManage extends HttpUtils {
 
   private val allIndexDefinitions: Map[String, Seq[Map[String, Int]]] = Map(
-    "deliverables" -> Seq(Map("phase_id" -> 1, "activity_id" -> 1), Map("common_instance_no" -> 1), Map("deliverable_type" -> 1)),
-    "deliverables_progress_infos" -> Seq(Map("person_id" -> 1), Map("activity_id" -> 1, "deliverable_id" -> 1))
+    "constraints" -> Seq(Map("common_set_no" -> 1), Map("constraint_id" -> 1), Map("owner_deliverable_id" -> 1)),
+    "deliverables" -> Seq(Map("phase_id" -> 1), Map("activity_id" -> 1), Map("common_instance_no" -> 1),
+        Map("deliverable_type" -> 1), Map("is_milestone" -> 1), Map("is_takt" -> 1), Map("phase_id" -> 1),
+        Map("process_id" -> 1), Map("process_type" -> 1), Map("project_id" -> 1), Map("takt_unit_no" -> 1),
+        Map("team_assignments.team_id" -> 1), Map("specfication_document_id" -> 1)),
+    "deliverables_progress_infos" -> Seq(Map("person_id" -> 1), Map("activity_id" -> 1), Map("deliverable_id" -> 1),
+        Map("phase_id" -> 1), Map("process_id" -> 1), Map("project_id" -> 1), Map("team_id" -> 1)),
+    "tasks" -> Seq(Map("bpmn_id" -> 1), Map("bpmn_name_full" -> 1), Map("bpmn_name" -> 1), Map("full_path_name" -> 1),
+        Map("is_milestone" -> 1), Map("is_takt" -> 1), Map("takt_unit_no" -> 1), Map("team_assignments.team_id" -> 1)),
+    "teams" -> Seq(Map("phase_id" -> 1), Map("project_id" -> 1), Map("team_members.person_id" -> 1),
+        Map("organization_id" -> 1)),
+    "issues" -> Seq(Map("project_id" -> 1), Map("requestor_person_id" -> 1), Map("responses.person_id" -> 1)),
+    "projects" -> Seq(Map("phase_ids" -> 1), Map("assigned_roles.person_id" -> 1), Map("customer_organization_id" -> 1)),
+    "phases" -> Seq(Map("process_ids" -> 1), Map("team_assignments.team_id" -> 1)),
+    "processes" -> Seq(Map("activity_ids" -> 1)),
   )
 
   private def manageIndices(go: Boolean, output: String => Unit): Unit = {
@@ -23,7 +36,11 @@ object MongodbIndexManage extends HttpUtils {
     for (collectionName <- collectionNames) {
       val collection = BWMongoDB3(collectionName)
       val existingIndexDefs: Seq[Document] = collection.listIndexes().asScala.toSeq
-      val existingIndexString = existingIndexDefs.map(_.toJson).mkString(", ")
+      val existingIndexString = if (existingIndexDefs.length == 1) {
+        "<b>Only default index</b>"
+      } else {
+        existingIndexDefs.map(_.toJson).mkString(", ")
+      }
       val existingIndexMessage = s"(${existingIndexDefs.length}) = $existingIndexString"
       output(s"""<br/><b>$collectionName</b>: Existing indexes $existingIndexMessage<br/>""")
       val existingIndexes: Seq[Map[String, Int]] = existingIndexDefs.map({idx =>

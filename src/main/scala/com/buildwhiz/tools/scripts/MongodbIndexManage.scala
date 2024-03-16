@@ -27,7 +27,7 @@ object MongodbIndexManage extends HttpUtils {
     "issues" -> Seq(Map("project_id" -> 1), Map("requestor_person_id" -> 1), Map("responses.person_id" -> 1)),
     "projects" -> Seq(Map("phase_ids" -> 1), Map("assigned_roles.person_id" -> 1), Map("customer_organization_id" -> 1)),
     "phases" -> Seq(Map("process_ids" -> 1), Map("team_assignments.team_id" -> 1)),
-    "processes" -> Seq(Map("activity_ids" -> 1)),
+    "processes" -> Seq(Map("activity_ids" -> 1), Map("type" -> 1)),
   )
 
   private def manageIndices(go: Boolean, output: String => Unit): Unit = {

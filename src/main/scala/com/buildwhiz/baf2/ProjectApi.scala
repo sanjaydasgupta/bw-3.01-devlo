@@ -1,7 +1,7 @@
 package com.buildwhiz.baf2
 
 import com.buildwhiz.baf3.TeamApi
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDriveRepository}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
@@ -209,7 +209,7 @@ object ProjectApi extends HttpUtils {
 
   def updateGoogleDriveTags(projectId: String, documentId: String, tagNames: Seq[String], operation: String): Unit = {
     BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"ENTRY ($projectId, $documentId, $tagNames, $operation)")
-    val files = GoogleDrive.listObjects(Some(s"$projectId-$documentId"))
+    val files = GoogleDriveRepository.listObjects(Some(s"$projectId-$documentId"))
     for (file <- files) {
       val existingProperties = file.properties
       val (tags, others) = existingProperties.partition(_._1 == "tags")
@@ -221,7 +221,7 @@ object ProjectApi extends HttpUtils {
       }
       val newProperties = Map("tags" -> newTagSet.mkString(",")) ++ others
       BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"properties: ($existingProperties, $newProperties)")
-      GoogleDrive.updateObjectById(file.id, newProperties)
+      GoogleDriveRepository.updateObjectById(file.id, newProperties)
       BWLogger.log(getClass.getName, "updateGoogleDriveTags", "EXIT-OK")
     }
   }

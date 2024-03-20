@@ -29,7 +29,7 @@ import com.google.api.services.drive.model.File.ShortcutDetails
 import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
 
-object GoogleDrive {
+object GoogleDriveRepository {
   private val storageFolderContainerId = "12b05HM6OzkAXNnnxIu3jMV3XBjq6Pey_"
 
   private val jsonFactory = JacksonFactory.getDefaultInstance

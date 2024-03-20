@@ -1,7 +1,7 @@
 package com.buildwhiz.web
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import com.buildwhiz.infra.{FileMetadata, GoogleDrive}
+import com.buildwhiz.infra.{FileMetadata, GoogleDriveRepository}
 import com.buildwhiz.utils.DateTimeUtils
 
 class BrowseDocumentStorage extends HttpServlet with DateTimeUtils {
@@ -15,7 +15,7 @@ class BrowseDocumentStorage extends HttpServlet with DateTimeUtils {
     sb.append(List("Created", "Modified", "MIME-Type", "Size", "Key", "Id", "Properties").
       mkString("<tr bgcolor=\"cyan\"><td align=\"center\">", "</td><td align=\"center\">", "</td></tr>"))
     //val objectSummaries: Seq[FileMetadata] = AS3.listObjects
-    val objectSummaries: Seq[FileMetadata] = GoogleDrive.listObjects()
+    val objectSummaries: Seq[FileMetadata] = GoogleDriveRepository.listObjects()
     val objectRows = objectSummaries.map(objSummary => {
       val created = dateTimeString(objSummary.createdTime)
       val modified = dateTimeString(objSummary.modifiedTime)

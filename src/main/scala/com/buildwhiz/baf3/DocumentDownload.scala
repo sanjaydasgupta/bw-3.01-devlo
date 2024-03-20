@@ -1,7 +1,7 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{DynDoc, GoogleDrive}
+import com.buildwhiz.infra.{DynDoc, GoogleDriveRepository}
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -102,7 +102,7 @@ class DocumentDownload extends HttpServlet with HttpUtils {
         case None =>
         val storageKey = f"$projectOid-$documentOid-$timestamp%x"
         BWLogger.log(getClass.getName, request.getMethod, s"Fetching Google-Drive storage-key: $storageKey", request)
-        GoogleDrive.getObject(storageKey)
+        GoogleDriveRepository.getObject(storageKey)
       }
       val outputStream = response.getOutputStream
       val buffer = new Array[Byte](4096)

@@ -3,7 +3,7 @@ package com.buildwhiz.tools.scripts
 import java.io.PrintWriter
 
 import com.buildwhiz.baf2.{DocumentApi, PersonApi, PhaseApi}
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDrive}
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc, GoogleDriveRepository}
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
@@ -41,7 +41,7 @@ object AddDocMetadataTrial extends HttpUtils with DateTimeUtils {
         case Some(processOid) => processIdNameMap.contains(processOid)
       }
     }
-    val files: Seq[FileMetadata] = GoogleDrive.listObjects(Some(projectOid.toString))
+    val files: Seq[FileMetadata] = GoogleDriveRepository.listObjects(Some(projectOid.toString))
     files.map(file => {
       val Array(_, documentId, timestampHex) = file.key.split("-")
       val timestamp = java.lang.Long.parseLong(timestampHex, 16)
@@ -78,7 +78,7 @@ object AddDocMetadataTrial extends HttpUtils with DateTimeUtils {
       val fileIdsAndMetadatas = fileIdAndProperties(projectOid)
       for ((fid, properties) <- fileIdsAndMetadatas) {
         respWriter.println(s"fileId: $fid, properties: $properties")
-        GoogleDrive.updateObjectById(fid, properties)
+        GoogleDriveRepository.updateObjectById(fid, properties)
       }
     }
   }

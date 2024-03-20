@@ -6,7 +6,7 @@ import DynDoc._
 import com.buildwhiz.baf3.TeamApi
 import org.bson.types.ObjectId
 import org.bson.Document
-import com.buildwhiz.infra.GoogleDrive
+import com.buildwhiz.infra.GoogleDriveRepository
 import com.buildwhiz.utils.BWLogger
 
 import scala.jdk.CollectionConverters._
@@ -304,7 +304,7 @@ object PersonApi {
       user.g_drive_folder_id[String]
     } else {
       val folderName = userGDriveFolderName(user)
-      val userFolderId = GoogleDrive.getUserFolderId(folderName, userGoogleLoginEmail(user))
+      val userFolderId = GoogleDriveRepository.getUserFolderId(folderName, userGoogleLoginEmail(user))
       val userOid = user._id[ObjectId]
       BWMongoDB3.persons.updateOne(Map("_id" -> userOid), Map($set -> Map("g_drive_folder_id" -> userFolderId)))
       Future {populateGDriveFolder(user, userFolderId)}
@@ -325,9 +325,9 @@ object PersonApi {
       for ((projectOid, phaseOids) <- projects2phases) {
         val project = ProjectApi.projectById(projectOid)
         val projectName = project.name[String]
-        lazy val gDriveProjectFolderId = GoogleDrive.
+        lazy val gDriveProjectFolderId = GoogleDriveRepository.
             getOrCreateFolder(usersGFolderId, projectName, userGoogleLoginEmail(user))
-        lazy val projectFiles = GoogleDrive.listObjects(Some(s"$projectOid-"))
+        lazy val projectFiles = GoogleDriveRepository.listObjects(Some(s"$projectOid-"))
         BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)",
             s"Project '$projectName' has ${projectFiles.length} files")
         val nonPhaseFiles = projectFiles.filterNot(_.properties.contains("phase"))
@@ -336,12 +336,12 @@ object PersonApi {
         for (nonPhaseFile <- nonPhaseFiles) {
           val timestamp = nonPhaseFile.key.split("-").last
           val nonPhaseFileName = s"${nonPhaseFile.properties("name")} ($timestamp)"
-          GoogleDrive.createShortcut(gDriveProjectFolderId, nonPhaseFile.id, nonPhaseFileName)
+          GoogleDriveRepository.createShortcut(gDriveProjectFolderId, nonPhaseFile.id, nonPhaseFileName)
         }
         for (phaseOid <- phaseOids) {
           val phase = PhaseApi.phaseById(phaseOid)
           val phaseName = phase.name[String]
-          lazy val gDrivePhaseFolderId = GoogleDrive.
+          lazy val gDrivePhaseFolderId = GoogleDriveRepository.
               getOrCreateFolder(gDriveProjectFolderId, phaseName, userGoogleLoginEmail(user))
           val phaseFiles = projectFiles.
               filter(file => file.properties.contains("phase") && file.properties("phase") == phaseName)
@@ -350,7 +350,7 @@ object PersonApi {
           for (phaseFile <- phaseFiles) {
             val timestamp = phaseFile.key.split("-").last
             val phaseFileName = s"${phaseFile.properties("name")} ($timestamp)"
-            GoogleDrive.createShortcut(gDrivePhaseFolderId, phaseFile.id, phaseFileName)
+            GoogleDriveRepository.createShortcut(gDrivePhaseFolderId, phaseFile.id, phaseFileName)
           }
         }
         BWLogger.log(getClass.getName, s"populateGDriveFolder($fullName, $usersGFolderId)", s"EXIT-OK")

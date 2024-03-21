@@ -11,6 +11,7 @@ class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils 
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
     try {
+      val t0 = System.currentTimeMillis()
       val googleFolderId = parameters("google_folder_id")
       val folderNames = GoogleFolderAdapter.listObjects(googleFolderId).
           filter(_.mimeType == "application/vnd.google-apps.folder").map(_.key)
@@ -19,6 +20,8 @@ class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils 
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
       response.getWriter.print(returnJson)
       response.setContentType("application/json")
+      val delay = System.currentTimeMillis() - t0
+      BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, length=${folderNames.length})", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)

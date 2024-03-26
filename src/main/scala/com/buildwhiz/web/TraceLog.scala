@@ -4,7 +4,7 @@ import com.buildwhiz.baf2.PersonApi
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
-import com.buildwhiz.utils.{DateTimeUtils, HttpUtils}
+import com.buildwhiz.utils.{DateTimeUtils, HttpUtils, BWLogger}
 import org.bson.Document
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -21,6 +21,8 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    BWLogger.log(getClass.getName, request.getMethod, ":ENTRY", request)
+    val t0 = System.currentTimeMillis()
     val writer = response.getWriter
     try {
       val parameters: mutable.Map[String, String] = getParameterMap(request)
@@ -53,7 +55,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(10, 10, 10, 10, 10, 10, 2, 34, 34)
+      val widths = Seq(5, 10, 5, 10, 10, 10, 3, 35, 12)
       writer.println(List("Timestamp", "Process", "Session", "User", "IP", "Site", "Method", "Event", "Variables").
           zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))
@@ -144,7 +146,13 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
           "blue"
         }
         val htmlRowData = Seq(timestamp, process, session, user, ip, hostname, activity, event, variablesString).
-            zip(widths).map(dd => s"""<td style="width: ${dd._2}%">${dd._1}</td>""").mkString
+            zip(widths).map(dd => {
+            if (dd._2 > 25 || dd._2 == 12) {
+              s"""<td style="width: ${dd._2}%; word-break: break-all;">${dd._1}</td>"""
+            } else {
+              s"""<td style="width: ${dd._2}%;">${dd._1}</td>"""
+            }
+          }).mkString
         if (htmlRowData.contains(clientIp) || htmlRowData.contains(s"u$$nm: $fullName"))
           writer.println(s"""<tr style="background-color: beige;color: $fontColor" align="center">$htmlRowData</tr>""")
         else
@@ -190,6 +198,9 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
 
       writer.println("</body></html>")
       response.setStatus(HttpServletResponse.SC_OK)
+      val delay = System.currentTimeMillis() - t0
+      val message = s":EXIT-OK (time: $delay ms)"
+      BWLogger.log(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable => t.printStackTrace(writer)
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)

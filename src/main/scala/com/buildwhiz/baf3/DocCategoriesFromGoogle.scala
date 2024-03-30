@@ -27,20 +27,25 @@ class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
     val parameters = getParameterMap(request)
+    response.setContentType("application/json")
     try {
       val t0 = System.currentTimeMillis()
       val googleFolderId = parameters("google_folder_id")
       val (categories, count) = getFolderCategories(googleFolderId)
       val returnJson = new Document("ok", 1).append("folders", categories).toJson
       response.getWriter.print(returnJson)
-      response.setContentType("application/json")
       val delay = System.currentTimeMillis() - t0
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, count: $count)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
+        val errorMessage = s"${t.getClass.getSimpleName}(${t.getMessage})"
+        val returnJson = new Document("ok", 0).append("message", s"${t.getClass.getSimpleName}").toJson
+        response.getWriter.print(returnJson)
+        val trace = (s"${t.getClass.getSimpleName}(${t.getMessage})" +:
+            t.getStackTrace.map(_.toString).filter(_.contains(getClass.getSimpleName))).mkString("\n")
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $trace", request)
         //t.printStackTrace()
-        throw t
+        //throw t
     }
   }
 }

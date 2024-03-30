@@ -55,7 +55,7 @@ class TraceLog extends HttpServlet with HttpUtils with DateTimeUtils {
       }
       writer.println(s"""<body><h2 align="center">$logTypeName Log ($duration $durationUnit)</h2>""")
       writer.println("<table border=\"1\" style=\"width: 100%;\">")
-      val widths = Seq(5, 10, 5, 10, 10, 10, 3, 35, 12)
+      val widths = Seq(5, 15, 5, 7, 7, 11, 3, 35, 12)
       writer.println(List("Timestamp", "Process", "Session", "User", "IP", "Site", "Method", "Event", "Variables").
           zip(widths).map(p => s"""<td style="width: ${p._2}%;" align="center">${p._1}</td>""").
           mkString("<tr bgcolor=\"cyan\">", "", "</tr>"))

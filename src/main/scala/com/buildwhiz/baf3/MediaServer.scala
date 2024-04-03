@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 object MediaServer extends HttpServlet with HttpUtils {
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, s":ENTRY", request)
     try {
       val t0 = System.currentTimeMillis()
       response.setContentType("image/x-png")
@@ -30,7 +30,7 @@ object MediaServer extends HttpServlet with HttpUtils {
         val totLen = transfer()
         fos.flush()
         val delay = System.currentTimeMillis() - t0
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, length=$totLen)", request)
+        BWLogger.log(getClass.getName, request.getMethod, s":EXIT-OK (time: $delay ms, length=$totLen)", request)
       } else {
         BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: '$fileName' not found", request)
       }

@@ -13,11 +13,11 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils {
 
   private def getFolderCategories(folderId: String): (Many[Document], Int) = {
-    val folders = GoogleFolderAdapter.listObjects(folderId).filter(_.mimeType == "application/vnd.google-apps.folder")
-    if (folders.nonEmpty) {
-      val childNames = folders.map(_.key)
-      val descendants = folders.map(folder => getFolderCategories(folder.id))
-      val count = folders.length + descendants.map(_._2).sum
+    val children = GoogleFolderAdapter.listObjects(folderId).filter(_.mimeType == "application/vnd.google-apps.folder")
+    if (children.nonEmpty) {
+      val childNames = children.map(_.key)
+      val descendants = children.map(child => getFolderCategories(child.id))
+      val count = children.length + descendants.map(_._2).sum
       (childNames.zip(descendants.map(_._1)).map(nd => new Document("name", nd._1).append("children", nd._2)).asJava, count)
     } else {
       (Seq.empty[Document].asJava, 0)
@@ -38,7 +38,6 @@ class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils 
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, count: $count)", request)
     } catch {
       case t: Throwable =>
-        val errorMessage = s"${t.getClass.getSimpleName}(${t.getMessage})"
         val returnJson = new Document("ok", 0).append("message", s"${t.getClass.getSimpleName}").toJson
         response.getWriter.print(returnJson)
         val trace = (s"${t.getClass.getSimpleName}(${t.getMessage})" +:

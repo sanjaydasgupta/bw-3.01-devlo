@@ -12,14 +12,19 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DocCategoriesSave extends HttpServlet with HttpUtils with MailUtils {
 
+  private def getExistingRecords(teamOid: ObjectId, projectOid: ObjectId): Seq[DynDoc] = {
+    val teamRec: DynDoc = BWMongoDB3.teams.find(Map("_id" -> teamOid, "project_id" -> projectOid)).head
+    teamRec.own_doc_categories[Many[Document]]
+  }
+
   private def foldersToRecords(folders: Seq[DynDoc], path: Seq[String] = Seq.empty[String]): Seq[DynDoc] = {
     folders.flatMap(folder => {
       val folderPath = folder.name[String] +: path
       val children: Seq[DynDoc] = folder.children[Many[Document]]
+      folder.path = folderPath.reverse
       if (children.nonEmpty) {
-        foldersToRecords(children, folderPath)
+        folder +: foldersToRecords(children, folderPath)
       } else {
-        folder.path = folderPath.reverse
         Seq(folder)
       }
     })

@@ -1,7 +1,8 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.{ActivityApi, PhaseApi}
-import com.buildwhiz.infra.DynDoc
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, HttpUtils}
 import org.bson.Document
@@ -32,6 +33,10 @@ class PhaseDurationCommit extends HttpServlet with HttpUtils {
       val groupLengths = activitiesByBpmnNameFullAndId.values.map(_.length).toSeq
       BWLogger.log(getClass.getName, request.getMethod, s"""takt-unit-counts: ${groupLengths.mkString(", ")}""", request)
       for (durationValue <- durationValues) {
+        val theProcess = PhaseApi.allProcesses(phaseOid).headOption match {
+          case Some(proc) => proc
+          case None => throw new IllegalArgumentException(s"Bad phase: $phaseOid")
+        }
         if (durationValue.has("activity_id")) {
           val activityOid = new ObjectId(durationValue.activity_id[String])
           val theActivity = activityByOid(activityOid)
@@ -43,14 +48,15 @@ class PhaseDurationCommit extends HttpServlet with HttpUtils {
             durationValue.get[String]("duration_pessimistic").map(_.toInt),
             durationValue.get[String]("duration_likely").map(_.toInt))
         } else if (durationValue.has("timer_id")) {
-          val theProcess = PhaseApi.allProcesses(phaseOid).headOption match {
-            case Some(proc) => proc
-            case None => throw new IllegalArgumentException(s"Bad phase: $phaseOid")
-          }
           TimerDurationSet.set(request, theProcess, Some(durationValue.timer_id[String]), None, bpmnName,
               durationValue.duration[String])
         } else {
           throw new IllegalArgumentException("\"found duration_values without expected fields\"")
+        }
+        val updateResult = BWMongoDB3.processes.updateOne(Map("_id" -> theProcess._id[ObjectId]),
+            Map($set -> Map("unsaved_changes_exist" -> true)))
+        if (updateResult.getMatchedCount != 1) {
+          throw new IllegalArgumentException(s"MongoDB error: $updateResult")
         }
       }
       response.getWriter.print(successJson())

@@ -438,7 +438,7 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
-      "variables" -> variableBuffer.asJava, "type" -> "Primary",
+      "variables" -> variableBuffer.asJava, "type" -> "Primary", "unsaved_changes_exist" -> true,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
       "assigned_roles" -> managersInRoles, "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)

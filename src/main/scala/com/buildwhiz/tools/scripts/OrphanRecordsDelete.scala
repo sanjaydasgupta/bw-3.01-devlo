@@ -5,15 +5,46 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.HttpUtils
+import org.bson.Document
 import org.bson.types.ObjectId
 
 import java.io.PrintWriter
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import scala.annotation.unused
+import scala.jdk.CollectionConverters._
 
+@unused
 object OrphanRecordsDelete extends HttpUtils {
 
   private val sp2 = "&nbsp;" * 2
   private val sp4 = sp2 * 2
+
+  private def deleteOrphanedFolderAccessGrants(writer: PrintWriter, go: Boolean, detail: Boolean): Unit = {
+    writer.println(s"${sp2}ENTRY deleteOrphanedFolderAccessGrants()<br/>")
+    val aggrPipe: Seq[Document] = Seq(
+      Map("$group" -> Map("_id" -> "$phase_id", "use_count" -> Map("$sum" -> 1))),
+      Map("$lookup" -> Map("from" -> "phases", "localField" -> "_id", "foreignField" -> "_id", "as" -> "phase")),
+      Map("$project" -> Map("phase_id" -> "$_id", "use_count" -> true, "phase_exists" -> Map("$size" -> "$phase")))
+    )
+    val aggr: Seq[DynDoc] = BWMongoDB3.folder_access_grants.aggregate(aggrPipe)
+    val orphanPhaseRecords = aggr.filter(_.phase_exists[Int] == 0)
+    val orphanRecordCount = orphanPhaseRecords.map(_.use_count[Int]).sum
+    writer.println(s"${sp4}Found $orphanRecordCount orphaned records associated with ${orphanPhaseRecords.length} phases ...<br/>")
+    for (opr <- orphanPhaseRecords) {
+      writer.println(s"""$sp4 - Non-existing phase with _id=${opr._id[ObjectId]} => ${opr.use_count[Int]} records <br/>""")
+    }
+    if (go && orphanPhaseRecords.nonEmpty) {
+      writer.println(s"${sp4}Deleting $orphanRecordCount orphaned records ...<br/>")
+      val orphanedPhaseOids: Many[ObjectId] = orphanPhaseRecords.map(_.phase_id[ObjectId]).asJava
+      val deleteResult = BWMongoDB3.folder_access_grants.deleteMany(Map("phase_id" -> Map($in -> orphanedPhaseOids)))
+      if (deleteResult.getDeletedCount != orphanRecordCount) {
+        writer.println(s"${sp4}Deleted only ${deleteResult.getDeletedCount} orphaned records<br/>")
+      } else {
+        writer.println(s"${sp4}Deleted ALL $orphanRecordCount orphaned records<br/>")
+      }
+    }
+    writer.println(s"${sp2}EXIT deleteOrphanedFolderAccessGrants()<br/><br/>")
+  }
 
   private def deleteOrphanedPhases(request: HttpServletRequest, writer: PrintWriter, go: Boolean,
       detail: Boolean): Unit = {
@@ -38,8 +69,7 @@ object OrphanRecordsDelete extends HttpUtils {
     writer.println(s"${sp2}EXIT deleteOrphanedPhases()<br/><br/>")
   }
 
-  private def deleteOrphanedProcesses(request: HttpServletRequest, writer: PrintWriter, go: Boolean,
-      detail: Boolean): Unit = {
+  private def deleteOrphanedProcesses(writer: PrintWriter, go: Boolean, detail: Boolean): Unit = {
     writer.println(s"${sp2}ENTRY deleteOrphanedProcesses()<br/>")
     val phases: Seq[DynDoc] = BWMongoDB3.phases.find()
     val expectedProcessOids: Many[ObjectId] = phases.flatMap(_.process_ids[Many[ObjectId]]).distinct
@@ -54,8 +84,8 @@ object OrphanRecordsDelete extends HttpUtils {
       writer.println(s"${sp4}Deleting ${orphanedProcessOids.length} orphaned processes<br/>")
       val processByOid = existingProcesses.map(p => (p._id[ObjectId], p)).toMap
       orphanedProcessOids.foreach(oid => ProcessApi.delete(processByOid(oid)) match {
-        case Right(msg) => writer.println(s"Ok: $msg")
-        case Left(msg) => writer.println(s"ERROR: $msg")
+        case Right(msg) => writer.println(s"Ok: $msg<br/>")
+        case Left(msg) => writer.println(s"ERROR: $msg<br/>")
       })
     }
     val missingProcessOids: Seq[ObjectId] = expectedProcessOids.filterNot(existingProcessOids.toSet.contains)
@@ -180,6 +210,7 @@ object OrphanRecordsDelete extends HttpUtils {
     writer.println(s"${sp2}EXIT deleteOrphanedProjectTags()<br/><br/>")
   }
 
+  @unused
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     response.setContentType("text/html")
     val writer = response.getWriter
@@ -195,8 +226,9 @@ object OrphanRecordsDelete extends HttpUtils {
       } else {
         (args(0).contains("GO"), args(0).contains("DETAIL"))
       }
+      deleteOrphanedFolderAccessGrants(writer, go, detail)
       deleteOrphanedPhases(request, writer, go, detail)
-      deleteOrphanedProcesses(request, writer, go, detail)
+      deleteOrphanedProcesses(writer, go, detail)
       deleteOrphanedActivities(writer, go, detail)
       deleteOrphanedDeliverables(writer, go, detail)
       deleteOrphanedConstraints(writer, go, detail)

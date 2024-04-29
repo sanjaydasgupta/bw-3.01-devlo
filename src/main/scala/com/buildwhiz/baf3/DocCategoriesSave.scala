@@ -71,7 +71,7 @@ class DocCategoriesSave extends HttpServlet with HttpUtils with MailUtils {
           val statusMessage = optSameNames match {
             case None => s"Stored ${categories.length} categories from " +
               s"Google folder '$googleFolderId' with team '$teamOid'"
-            case Some(dupCount) => s"Stored ${categories.length} categories ($dupCount unchanged)" +
+            case Some(dupCount) => s"Stored ${categories.length} categories ($dupCount unchanged) " +
               s"from Google folder '$googleFolderId' with team '$teamOid'"
           }
           BWLogger.audit(getClass.getName, request.getMethod, "(time: $delay ms) " + statusMessage, request)

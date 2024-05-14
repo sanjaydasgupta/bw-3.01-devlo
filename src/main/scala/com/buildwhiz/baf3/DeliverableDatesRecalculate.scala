@@ -16,13 +16,14 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  private val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
+  // private val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
   private val margin = "|&nbsp;&nbsp;&nbsp;"
 
   private case class Globals(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc],
       deliverables: Seq[DynDoc], constraints: Seq[DynDoc], deliverablesByOid: Map[ObjectId, DynDoc],
       constraintsByOwnerOid: Map[ObjectId, Seq[DynDoc]], procurementsByOid: Map[ObjectId, DynDoc],
-      keyDataByOid: Map[ObjectId, DynDoc], respond: String => Unit)
+      keyDataByOid: Map[ObjectId, DynDoc], respond: String => Unit,
+      bulkWriteBuffer: mutable.Buffer[UpdateOneModel[Document]])
 
   private def msToDate(ms: Long, timezone: String): String = {
     dateString(ms, timezone)
@@ -132,7 +133,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
         case Some(floatDays) => baseValues.append("float_days", floatDays)
         case None => baseValues
       }
-      bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
+      g.bulkWriteBuffer.append(new UpdateOneModel(new Document("_id", deliverable._id[ObjectId]),
         new Document($set, setterValues)))
     }
     val dateEnd = deliverable.get[Long]("end$date") match {
@@ -204,17 +205,17 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       g.respond(s"${endDeliverables.length}" +
           s"""End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
     }
-    bulkWriteBuffer.clear()
+    // bulkWriteBuffer.clear()
     for (endDeliverable <- endDeliverables) {
       endDate(endDeliverable, 0, verbose, g)
       if (verbose) {
         g.respond("<br/>")
       }
     }
-    if (bulkWriteBuffer.nonEmpty) {
+    if (g.bulkWriteBuffer.nonEmpty) {
       BWLogger.log(getClass.getName, request.getMethod,
-          s"traverseAllTrees() - MongoDB Bulk-Write: will attempt ${bulkWriteBuffer.length} updates", request)
-      val bulkWriteResult = BWMongoDB3.deliverables.bulkWrite(bulkWriteBuffer.asJava)
+          s"traverseAllTrees() - MongoDB Bulk-Write: will attempt ${g.bulkWriteBuffer.length} updates", request)
+      val bulkWriteResult = BWMongoDB3.deliverables.bulkWrite(g.bulkWriteBuffer.asJava)
       if (bulkWriteResult.getModifiedCount == 0) {
         BWLogger.log(getClass.getName, request.getMethod, "ERROR: MongoDB Bulk-Write FAILED", request)
         g.respond("""<font color="red">ERROR: MongoDB Bulk-Write FAILED<font/><br/>""")
@@ -321,7 +322,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
     optStartDate match {
       case Some(phaseStartDate) =>
         val globals = Globals(timezone, phaseStartDate, activities, deliverables, constraints, deliverablesByOid,
-          constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond)
+          constraintsByOwnerOid, procurementsByOid, keyDataByOid, respond, mutable.Buffer[UpdateOneModel[Document]]())
         setKeyDataDates(globals, request)
         traverseAllTrees(verbose, globals, request)
       case None =>

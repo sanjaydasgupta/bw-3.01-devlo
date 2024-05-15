@@ -16,7 +16,6 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
 
-  // private val bulkWriteBuffer = mutable.Buffer[UpdateOneModel[Document]]()
   private val margin = "|&nbsp;&nbsp;&nbsp;"
 
   private case class Globals(timezone: String, phaseStartDate: Long, activities: Seq[DynDoc],
@@ -205,7 +204,6 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       g.respond(s"${endDeliverables.length}" +
           s"""End-Deliverables: ${endDeliverables.map(_.name[String]).mkString(", ")}<br/><br/>""")
     }
-    // bulkWriteBuffer.clear()
     for (endDeliverable <- endDeliverables) {
       endDate(endDeliverable, 0, verbose, g)
       if (verbose) {

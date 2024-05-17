@@ -39,21 +39,28 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       val budgetEstimatedValues = groupDeliverables.map(_.get[Decimal128]("budget_estimated"))
       val budgetContractedValues = groupDeliverables.map(_.get[Decimal128]("budget_contracted"))
       val budgetCurrentValues = groupDeliverables.map(_.get[Decimal128]("budget_current"))
+      val percentCompleteValues = groupDeliverables.map(_.get[Decimal128]("percent_complete"))
+      val weightedPercentCompleteValues: Seq[Option[Decimal128]] = percentCompleteValues.zip(budgetCurrentValues).
+        map {case (Some(pc), Some(bc)) => Some(pc.bigDecimalValue().multiply(bc.bigDecimalValue())); case _ => None}.
+        map(obd => obd.map(bd => new Decimal128(bd)))
+      val percentComplete = sumOptDecimals(weightedPercentCompleteValues)
+      val percentCompleteCounts = weightedPercentCompleteValues.count(_.nonEmpty)
       val budgetEstimated = sumOptDecimals(budgetEstimatedValues)
       val budgetContracted = sumOptDecimals(budgetContractedValues)
       val budgetCurrent = sumOptDecimals(budgetCurrentValues)
       val estimatedCounts = budgetEstimatedValues.count(_.nonEmpty)
       val contractedCounts = budgetContractedValues.count(_.nonEmpty)
-      val currentCounts =budgetCurrentValues.count(_.nonEmpty)
+      val currentCounts = budgetCurrentValues.count(_.nonEmpty)
       val deliverableCount = groupDeliverables.length
       (mongoOid, budgetEstimated, estimatedCounts, budgetContracted, contractedCounts, budgetCurrent,
-        currentCounts, deliverableCount)
+        currentCounts, deliverableCount, percentComplete, percentCompleteCounts)
     }).toSeq
 
     val bulkWritesBuffer: Many[UpdateOneModel[Document]] = budgetUpdates.map(update => {
       val values: Document = Map(
         "budget_contracted" -> update._4, "budget_contracted_count" -> update._5,
-        "budget_current" -> update._6, "budget_current_count" -> update._7, "budget_items_count" -> update._8
+        "budget_current" -> update._6, "budget_current_count" -> update._7, "budget_items_count" -> update._8,
+        "percent_complete" -> update._9, "percent_complete_count" -> update._10
       )
       if (includeEstimate) {
         values.append("budget_estimated", update._2).append("budget_estimated_count", update._3)
@@ -112,10 +119,12 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
+      response.setContentType("text/plain")
       val t0 = System.currentTimeMillis()
       val message = aggregateDeliverables(request)
       val delay = System.currentTimeMillis() - t0
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) Updated: $message", request)
+      response.getWriter.println(s"EXIT-OK (time: $delay ms) Updated: $message")
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
@@ -140,4 +149,3 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
   }
 
 }
-

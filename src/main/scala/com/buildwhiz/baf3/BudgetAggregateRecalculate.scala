@@ -9,17 +9,18 @@ import org.bson.Document
 import org.bson.types.{Decimal128, ObjectId}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import scala.jdk.CollectionConverters._
 
 class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def updateDeliverablesCurrentBudgets(deliverables: Seq[DynDoc]): (Int, Int) = {
+    val updatePipeline: Many[Document] = Seq(
+      new Document($set, new Document("budget_current", "$budget_contracted"))
+    )
     val bulkWritesBuffer: Many[UpdateOneModel[Document]] = deliverables.map(deliverable => {
       val selector = new Document("budget_contracted", new Document("$exists", true)).
           append("_id", deliverable._id[ObjectId])
-      new UpdateOneModel[Document](selector,
-          new Document($set, new Document("budget_current", deliverable.budget_contracted[Decimal128])))
-    }).asJava
+      new UpdateOneModel[Document](selector,updatePipeline)
+    })
     val result = BWMongoDB3.deliverables.bulkWrite(bulkWritesBuffer)
     (result.getMatchedCount, result.getModifiedCount)
   }
@@ -66,7 +67,7 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
         values.append("budget_estimated", update._2).append("budget_estimated_count", update._3)
       }
       new UpdateOneModel[Document](new Document("_id", update._1), new Document($set, values))
-    }).asJava
+    })
 
     bulkWritesBuffer
   }

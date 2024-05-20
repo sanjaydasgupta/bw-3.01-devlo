@@ -127,19 +127,21 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
     val deliverables = BWMongoDB3.deliverables.find(Map("project_id" -> projectOid, "process_type" -> "Primary",
       "status" -> Map($ne -> "Deliverable-Bypassed"), "deliverable_type" -> Map($regex -> "Work|Document"),
       "budget_contracted" -> Map($exists -> true)))
-
-    val deliverableUpdateResult =updateDeliverablesCurrentBudgets(deliverables)
-    val deliverableMessage = s"${deliverableUpdateResult._2} of ${deliverableUpdateResult._1} deliverables"
-    val taskUpdateResult = updateTasks(deliverables)
-    val taskMessage = s"${taskUpdateResult._2} of ${taskUpdateResult._1} tasks"
-    val processUpdateResult = updateProcesses(deliverables)
-    val processMessage = s"${processUpdateResult._2} of ${processUpdateResult._1} processes"
-    val phaseUpdateResult = updatePhases(deliverables)
-    val phaseMessage = s"${phaseUpdateResult._2} of ${phaseUpdateResult._1} phases"
-    val projectUpdateResult = updateProjects(deliverables)
-    val projectMessage = s"${projectUpdateResult._2} of ${projectUpdateResult._1} projects"
-
-    s"$deliverableMessage, $taskMessage, $processMessage, $phaseMessage, $projectMessage"
+    if (deliverables.nonEmpty) {
+      val deliverableUpdateResult = updateDeliverablesCurrentBudgets(deliverables)
+      val deliverableMessage = s"${deliverableUpdateResult._2} of ${deliverableUpdateResult._1} deliverables"
+      val taskUpdateResult = updateTasks(deliverables)
+      val taskMessage = s"${taskUpdateResult._2} of ${taskUpdateResult._1} tasks"
+      val processUpdateResult = updateProcesses(deliverables)
+      val processMessage = s"${processUpdateResult._2} of ${processUpdateResult._1} processes"
+      val phaseUpdateResult = updatePhases(deliverables)
+      val phaseMessage = s"${phaseUpdateResult._2} of ${phaseUpdateResult._1} phases"
+      val projectUpdateResult = updateProjects(deliverables)
+      val projectMessage = s"${projectUpdateResult._2} of ${projectUpdateResult._1} projects"
+      s"$deliverableMessage, $taskMessage, $processMessage, $phaseMessage, $projectMessage"
+    } else {
+      "No applicable deliverables found!"
+    }
   }
 
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {

@@ -1,8 +1,8 @@
 package com.buildwhiz.baf3
 
+import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, DateTimeUtils, HttpUtils}
 import com.mongodb.client.model.UpdateOneModel
 import org.bson.Document
@@ -13,13 +13,27 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
 
   private def updateDeliverablesCurrentBudgets(deliverables: Seq[DynDoc]): (Int, Int) = {
-    val updatePipeline: Many[Document] = Seq(
-      new Document($set, new Document("budget_current", "$budget_contracted"))
-    )
-    val bulkWritesBuffer: Many[UpdateOneModel[Document]] = deliverables.map(deliverable => {
-      val selector = new Document("budget_contracted", new Document("$exists", true)).
-          append("_id", deliverable._id[ObjectId])
-      new UpdateOneModel[Document](selector,updatePipeline)
+
+    val currentBudgetPipeline: Many[Document] = Seq(
+      Map("$match" -> Map("budget_contracted" -> Map("$exists" -> true), "_id" -> Map($in -> deliverables.map(_._id[ObjectId])))),
+      Map("$lookup" -> Map("from" -> "deliverable_change_orders", "as" -> "changes", "localField" -> "_id",
+        "foreignField" -> "deliverable_id")),
+      Map("$project" -> Map("budget_contracted" -> true,
+        "budget_change_order" -> Map("$sum" -> "$changes.budget_contracted"),
+        "change_order_count" -> Map("$size" -> "$changes.budget_contracted"))),
+      Map("$project" -> Map("budget_contracted" -> true, "budget_change_order" -> true, "change_order_count" -> true,
+        "budget_current" -> Map("$sum" -> Seq("$budget_contracted", "$budget_change_order"))))
+    ).map(mm => {val dd: Document = mm; dd})
+    val budgetCurrentValues: Seq[DynDoc] = BWMongoDB3.deliverables.aggregate(currentBudgetPipeline)
+
+    val bulkWritesBuffer: Many[UpdateOneModel[Document]] = budgetCurrentValues.map(bcv => {
+      val updateParameter: Document = Map($set -> Map("budget_current" -> bcv.budget_current[Decimal128]))
+      if (bcv.change_order_count[Int] != 0) {
+        updateParameter.get($set).asInstanceOf[Document].
+            append("budget_change_order", bcv.budget_change_order[Decimal128]).
+            append("change_order_count", bcv.change_order_count[Int])
+      }
+      new UpdateOneModel[Document](Map("_id" -> bcv._id[ObjectId]), updateParameter)
     })
     val result = BWMongoDB3.deliverables.bulkWrite(bulkWritesBuffer)
     (result.getMatchedCount, result.getModifiedCount)
@@ -37,6 +51,8 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
     val budgetUpdates = dg.map(deliverablesByGroup => {
       val groupDeliverables: Seq[DynDoc] = deliverablesByGroup._2
       val mongoOid: ObjectId = deliverablesByGroup._1
+      val changeOrderCountValues = groupDeliverables.map(_.get[Int]("change_order_count"))
+      val budgetChangeValues = groupDeliverables.map(_.get[Decimal128]("budget_change_order"))
       val budgetEstimatedValues = groupDeliverables.map(_.get[Decimal128]("budget_estimated"))
       val budgetContractedValues = groupDeliverables.map(_.get[Decimal128]("budget_contracted"))
       val budgetCurrentValues = groupDeliverables.map(_.get[Decimal128]("budget_current"))
@@ -46,6 +62,8 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
         map(obd => obd.map(bd => new Decimal128(bd)))
       val percentComplete = sumOptDecimals(weightedPercentCompleteValues)
       val percentCompleteCounts = weightedPercentCompleteValues.count(_.nonEmpty)
+      val changeOrderCounts = changeOrderCountValues.flatten.sum
+      val budgetChangeOrders = sumOptDecimals(budgetChangeValues)
       val budgetEstimated = sumOptDecimals(budgetEstimatedValues)
       val budgetContracted = sumOptDecimals(budgetContractedValues)
       val budgetCurrent = sumOptDecimals(budgetCurrentValues)
@@ -54,14 +72,15 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       val currentCounts = budgetCurrentValues.count(_.nonEmpty)
       val deliverableCount = groupDeliverables.length
       (mongoOid, budgetEstimated, estimatedCounts, budgetContracted, contractedCounts, budgetCurrent,
-        currentCounts, deliverableCount, percentComplete, percentCompleteCounts)
+        currentCounts, deliverableCount, percentComplete, percentCompleteCounts, budgetChangeOrders, changeOrderCounts)
     }).toSeq
 
     val bulkWritesBuffer: Many[UpdateOneModel[Document]] = budgetUpdates.map(update => {
       val values: Document = Map(
         "budget_contracted" -> update._4, "budget_contracted_count" -> update._5,
         "budget_current" -> update._6, "budget_current_count" -> update._7, "budget_items_count" -> update._8,
-        "percent_complete" -> update._9, "percent_complete_count" -> update._10
+        "percent_complete" -> update._9, "percent_complete_count" -> update._10, "budget_change_order" -> update._11,
+        "change_order_count" -> update._12
       )
       if (includeEstimate) {
         values.append("budget_estimated", update._2).append("budget_estimated_count", update._3)

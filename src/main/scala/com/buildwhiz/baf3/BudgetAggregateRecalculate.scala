@@ -28,8 +28,7 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       val setterValues = changesByDeliverable.get(deliverableOid) match {
         case None => new Document("budget_current", dd.budget_current[Decimal128])
         case Some(changes) =>
-          val budgetCurrent: Decimal128 = new Decimal128(dd.budget_contracted[Decimal128].bigDecimalValue().
-              add(changes.change_orders_value[Decimal128].bigDecimalValue()))
+          val budgetCurrent: Decimal128 = dd.budget_contracted[Decimal128] + changes.change_orders_value[Decimal128]
           new Document("budget_current", budgetCurrent).
               append("change_orders_value", dd.change_orders_value[Decimal128]).
               append("change_orders_count", dd.change_orders_count[Int])
@@ -44,33 +43,34 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       Many[UpdateOneModel[Document]] = {
 
     def sumOptDecimals(optDecimals: Seq[Option[Decimal128]]): Decimal128 = {
-      val bdZero = BigDecimal.decimal(0).bigDecimal
-      new Decimal128(optDecimals.map {case Some(b) => b.bigDecimalValue(); case None => bdZero}.
-        foldLeft(bdZero)((a, b) => a.add(b)))
+      val bdZero = Decimal128.POSITIVE_ZERO
+      optDecimals.map {case Some(b) => b; case None => bdZero}.
+        foldLeft(bdZero)((a, b) => a + b)
     }
 
     val budgetUpdates = dg.map(deliverablesByGroup => {
       val groupDeliverables: Seq[DynDoc] = deliverablesByGroup._2
       val mongoOid: ObjectId = deliverablesByGroup._1
       val changeOrderCountValues = groupDeliverables.map(_.get[Int]("change_orders_count"))
-      val budgetChangeValues = groupDeliverables.map(_.get[Decimal128]("change_orders_value"))
-      val budgetEstimatedValues = groupDeliverables.map(_.get[Decimal128]("budget_estimated"))
-      val budgetContractedValues = groupDeliverables.map(_.get[Decimal128]("budget_contracted"))
-      val budgetCurrentValues = groupDeliverables.map(_.get[Decimal128]("budget_current"))
-      val percentCompleteValues = groupDeliverables.map(_.get[Decimal128]("percent_complete"))
-      val weightedPercentCompleteValues: Seq[Option[Decimal128]] = percentCompleteValues.zip(budgetCurrentValues).
-        map {case (Some(pc), Some(bc)) => Some(pc.bigDecimalValue().multiply(bc.bigDecimalValue())); case _ => None}.
-        map(obd => obd.map(bd => new Decimal128(bd)))
-      val percentComplete = sumOptDecimals(weightedPercentCompleteValues)
-      val percentCompleteCounts = weightedPercentCompleteValues.count(_.nonEmpty)
       val changeOrderCounts = changeOrderCountValues.flatten.sum
+      val budgetChangeValues = groupDeliverables.map(_.get[Decimal128]("change_orders_value"))
       val budgetChangeOrders = sumOptDecimals(budgetChangeValues)
+      val budgetEstimatedValues = groupDeliverables.map(_.get[Decimal128]("budget_estimated"))
       val budgetEstimated = sumOptDecimals(budgetEstimatedValues)
-      val budgetContracted = sumOptDecimals(budgetContractedValues)
-      val budgetCurrent = sumOptDecimals(budgetCurrentValues)
       val estimatedCounts = budgetEstimatedValues.count(_.nonEmpty)
+      val budgetContractedValues = groupDeliverables.map(_.get[Decimal128]("budget_contracted"))
+      val budgetContracted = sumOptDecimals(budgetContractedValues)
       val contractedCounts = budgetContractedValues.count(_.nonEmpty)
+      val budgetCurrentValues = groupDeliverables.map(_.get[Decimal128]("budget_current"))
+      val budgetCurrent = sumOptDecimals(budgetCurrentValues)
       val currentCounts = budgetCurrentValues.count(_.nonEmpty)
+      val percentCompleteValues = groupDeliverables.map(_.get[Decimal128]("percent_complete"))
+      val wtdPctCompleteValues: Seq[Option[Decimal128]] = percentCompleteValues.zip(budgetCurrentValues).map {
+          case (Some(pc), Some(bc)) => Some(pc * bc)
+          case _ => None
+      }
+      val percentComplete = sumOptDecimals(wtdPctCompleteValues) / budgetCurrent
+      val percentCompleteCounts = wtdPctCompleteValues.count(_.nonEmpty)
       val deliverableCount = groupDeliverables.length
       (mongoOid, budgetEstimated, estimatedCounts, budgetContracted, contractedCounts, budgetCurrent,
         currentCounts, deliverableCount, percentComplete, percentCompleteCounts, budgetChangeOrders, changeOrderCounts)

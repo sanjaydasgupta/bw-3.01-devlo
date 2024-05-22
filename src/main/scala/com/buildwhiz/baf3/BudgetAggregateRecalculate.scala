@@ -23,7 +23,7 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
     val deliverableChangeInfo: Seq[DynDoc] = BWMongoDB3.deliverable_change_orders.aggregate(coAggrPipe)
     val changesByDeliverable = deliverableChangeInfo.map(dci => (dci._id[ObjectId], dci)).toMap
 
-    val bulkWritesBuffer: Many[UpdateOneModel[Document]] = deliverables.map(dd => {
+    val bulkWritesBuffer: Many[UpdateOneModel[Document]] = deliverables.filter(_.has("budget_contracted")).map(dd => {
       val deliverableOid = dd._id[ObjectId]
       val setterValues = changesByDeliverable.get(deliverableOid) match {
         case None => new Document("budget_current", dd.budget_contracted[Decimal128])
@@ -35,17 +35,21 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       }
       new UpdateOneModel[Document](Map("_id" -> deliverableOid), Map($set -> setterValues))
     })
-    val result = BWMongoDB3.deliverables.bulkWrite(bulkWritesBuffer)
-    (result.getMatchedCount, result.getModifiedCount)
+    if (bulkWritesBuffer.nonEmpty) {
+      val result = BWMongoDB3.deliverables.bulkWrite(bulkWritesBuffer)
+      (result.getMatchedCount, result.getModifiedCount)
+    } else {
+      (0, 0)
+    }
   }
 
   private def deliverableGroupsToBulkWrites(dg: Map[ObjectId, Seq[DynDoc]], includeEstimate: Boolean = true):
       Many[UpdateOneModel[Document]] = {
 
+    val bigDecimalZero = new Decimal128(0)
+
     def sumOptDecimals(optDecimals: Seq[Option[Decimal128]]): Decimal128 = {
-      val bdZero = Decimal128.POSITIVE_ZERO
-      optDecimals.map {case Some(b) => b; case None => bdZero}.
-        foldLeft(bdZero)((a, b) => a + b)
+      optDecimals.map {case Some(b) => b; case None => bigDecimalZero}.foldLeft(bigDecimalZero)((a, b) => a + b)
     }
 
     val budgetUpdates = dg.map(deliverablesByGroup => {
@@ -69,8 +73,12 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
           case (Some(pc), Some(bc)) => Some(pc * bc)
           case _ => None
       }
-      val percentComplete = sumOptDecimals(wtdPctCompleteValues) / budgetCurrent
       val percentCompleteCounts = wtdPctCompleteValues.count(_.nonEmpty)
+      val percentComplete = if (percentCompleteCounts == 0) {
+        bigDecimalZero
+      } else {
+        sumOptDecimals(wtdPctCompleteValues) / budgetCurrent
+      }
       val deliverableCount = groupDeliverables.length
       (mongoOid, budgetEstimated, estimatedCounts, budgetContracted, contractedCounts, budgetCurrent,
         currentCounts, deliverableCount, percentComplete, percentCompleteCounts, budgetChangeOrders, changeOrderCounts)
@@ -125,8 +133,8 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
     val parameters = getParameterMap(request)
     val projectOid = new ObjectId(parameters("project_id"))
     val deliverables = BWMongoDB3.deliverables.find(Map("project_id" -> projectOid, "process_type" -> "Primary",
-      "status" -> Map($ne -> "Deliverable-Bypassed"), "deliverable_type" -> Map($regex -> "Work|Document"),
-      "budget_contracted" -> Map($exists -> true)))
+      "status" -> Map($ne -> "Deliverable-Bypassed"), "deliverable_type" -> Map($regex -> "Work|Document")/*,
+      "budget_contracted" -> Map($exists -> true)*/))
     if (deliverables.nonEmpty) {
       val deliverableUpdateResult = updateDeliverablesCurrentBudgets(deliverables)
       val deliverableMessage = s"${deliverableUpdateResult._2} of ${deliverableUpdateResult._1} deliverables"

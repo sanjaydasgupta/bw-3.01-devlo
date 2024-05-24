@@ -5,7 +5,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, DateTimeUtils, HttpUtils, ProjectUtils}
 import org.bson.Document
-import org.bson.types.ObjectId
+import org.bson.types.{Decimal128, ObjectId}
 
 import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -330,6 +330,21 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         }
         milestoneInfo.append("completed", milestoneCompleted).append("date_end", milestoneDate)
       }
+      val budgetInfo = new Document()
+      for (itemName <- Seq("budget_estimated", "budget_contracted", "budget_current", "percent_complete")) {
+        val itemValue = activity.get[Decimal128](itemName) match {
+          case None => "NA"
+          case Some(val128) => val128.toString
+        }
+        budgetInfo.append(itemName, itemValue)
+      }
+      for (itemName <- Seq("budget_estimated", "budget_contracted", "budget_current")) {
+        val itemValue = (activity.get[Int](itemName + "_count"), activity.get[Int]("budget_items_count")) match {
+          case (Some(count), Some(total)) => count == total
+          case _ => false
+        }
+        budgetInfo.append(itemName + "_completed", itemValue)
+      }
       val fullName = s"$bpmnNameFull/${activity.name[String]}"
       new Document("id", activityOid).append("bpmn_id", activity.bpmn_id[String]).
         append("tasks", Seq.empty[Document]).append("start", activityStart).append("end", activityEnd).
@@ -344,7 +359,7 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         append("date_start_label", startLabel).append("date_end_label", endLabel).append("description", description).
         //append("on_critical_path", if (activity.has("on_critical_path")) activity.on_critical_path[Boolean] else false).
         append("on_critical_path", false).append("deliverable_count", deliverableCount).
-        append("sub_zones", "1").append("start_delay", 0)
+        append("sub_zones", "1").append("start_delay", 0).append("budget_info", budgetInfo)
     })
     returnActivities
   }

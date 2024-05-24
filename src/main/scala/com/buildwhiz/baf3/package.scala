@@ -3,7 +3,7 @@ package com.buildwhiz
 import com.buildwhiz.baf2.{PhaseApi, ProjectApi}
 import com.buildwhiz.infra.DynDoc
 import org.bson.Document
-import org.bson.types.{Decimal128, ObjectId}
+import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 
@@ -12,21 +12,6 @@ import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 
 package object baf3 {
-
-  implicit class Decimal128Ext(d: Decimal128) {
-    def +(n: Decimal128): Decimal128 = {
-      val sum = d.bigDecimalValue().add(n.bigDecimalValue())
-      new Decimal128(sum)
-    }
-    def *(n: Decimal128): Decimal128 = {
-      val product = d.bigDecimalValue().multiply(n.bigDecimalValue())
-      new Decimal128(product)
-    }
-    def /(n: Decimal128): Decimal128 = {
-      val quotient = d.bigDecimalValue().divide(n.bigDecimalValue())
-      new Decimal128(quotient)
-    }
-  }
 
   private object OmniClass33 {
     private val omniClass33text =

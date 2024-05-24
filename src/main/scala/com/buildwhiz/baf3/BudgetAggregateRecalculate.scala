@@ -9,8 +9,19 @@ import org.bson.Document
 import org.bson.types.{Decimal128, ObjectId}
 
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import scala.language.implicitConversions
 
 class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTimeUtils {
+
+  implicit def doubleToDecimal128(d: Double): Decimal128 = {
+    val dstr = f"$d%1.2f"
+    Decimal128.parse(dstr)
+  }
+
+  private def sumOptionalDecimals(optDecimals: Seq[Option[Decimal128]]): Decimal128 = {
+    val total = optDecimals.map {case Some(b) => b.doubleValue(); case None => 0.0 } . sum
+    total
+  }
 
   private def updateDeliverablesCurrentBudgets(deliverables: Seq[DynDoc]): (Int, Int) = {
 
@@ -28,7 +39,8 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       val setterValues = changesByDeliverable.get(deliverableOid) match {
         case None => new Document("budget_current", dd.budget_contracted[Decimal128])
         case Some(changes) =>
-          val budgetCurrent: Decimal128 = dd.budget_contracted[Decimal128] + changes.change_orders_value[Decimal128]
+          val budgetCurrent: Decimal128 = dd.budget_contracted[Decimal128].doubleValue() +
+              changes.change_orders_value[Decimal128].doubleValue()
           new Document("budget_current", budgetCurrent).
               append("change_orders_value", changes.change_orders_value[Decimal128]).
               append("change_orders_count", changes.change_orders_count[Int])
@@ -46,10 +58,8 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
   private def deliverableGroupsToBulkWrites(dg: Map[ObjectId, Seq[DynDoc]], includeEstimate: Boolean = true):
       Many[UpdateOneModel[Document]] = {
 
-    val bigDecimalZero = new Decimal128(0)
-
-    def sumOptDecimals(optDecimals: Seq[Option[Decimal128]]): Decimal128 = {
-      optDecimals.map {case Some(b) => b; case None => bigDecimalZero}.foldLeft(bigDecimalZero)((a, b) => a + b)
+    def sumOptDoubles(optDecimals: Seq[Option[Double]]): Double = {
+      optDecimals.map {case Some(b) => b; case None => 0.0}.sum
     }
 
     val budgetUpdates = dg.map(deliverablesByGroup => {
@@ -58,26 +68,27 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       val changeOrderCountValues = groupDeliverables.map(_.get[Int]("change_orders_count"))
       val changeOrderCounts = changeOrderCountValues.flatten.sum
       val budgetChangeValues = groupDeliverables.map(_.get[Decimal128]("change_orders_value"))
-      val budgetChangeOrders = sumOptDecimals(budgetChangeValues)
+      val budgetChangeOrders = sumOptionalDecimals(budgetChangeValues)
       val budgetEstimatedValues = groupDeliverables.map(_.get[Decimal128]("budget_estimated"))
-      val budgetEstimated = sumOptDecimals(budgetEstimatedValues)
+      val budgetEstimated = sumOptionalDecimals(budgetEstimatedValues)
       val estimatedCounts = budgetEstimatedValues.count(_.nonEmpty)
       val budgetContractedValues = groupDeliverables.map(_.get[Decimal128]("budget_contracted"))
-      val budgetContracted = sumOptDecimals(budgetContractedValues)
+      val budgetContracted = sumOptionalDecimals(budgetContractedValues)
       val contractedCounts = budgetContractedValues.count(_.nonEmpty)
       val budgetCurrentValues = groupDeliverables.map(_.get[Decimal128]("budget_current"))
-      val budgetCurrent = sumOptDecimals(budgetCurrentValues)
+      val budgetCurrent = sumOptionalDecimals(budgetCurrentValues)
       val currentCounts = budgetCurrentValues.count(_.nonEmpty)
       val percentCompleteValues = groupDeliverables.map(_.get[Decimal128]("percent_complete"))
-      val wtdPctCompleteValues: Seq[Option[Decimal128]] = percentCompleteValues.zip(budgetCurrentValues).map {
-          case (Some(pc), Some(bc)) => Some(pc * bc)
+      val wtdPctCompleteValues: Seq[Option[Double]] = percentCompleteValues.zip(budgetCurrentValues).map {
+          case (Some(pc), Some(bc)) => Some(pc.doubleValue() * bc.doubleValue())
           case _ => None
       }
       val percentCompleteCounts = wtdPctCompleteValues.count(_.nonEmpty)
-      val percentComplete = if (percentCompleteCounts == 0) {
-        bigDecimalZero
+      val percentComplete: Decimal128 = if (percentCompleteCounts == 0) {
+        0.0
       } else {
-        sumOptDecimals(wtdPctCompleteValues) / budgetCurrent
+        val pctCompleteDouble: Double = sumOptDoubles(wtdPctCompleteValues) / budgetCurrent.doubleValue()
+        pctCompleteDouble
       }
       val deliverableCount = groupDeliverables.length
       (mongoOid, budgetEstimated, estimatedCounts, budgetContracted, contractedCounts, budgetCurrent,

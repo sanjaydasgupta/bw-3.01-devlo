@@ -21,8 +21,8 @@ class PhaseAdd extends HttpServlet with HttpUtils {
 
       val user: DynDoc = getUser(request)
       val userOid = user._id[ObjectId]
-      val isProjectAdmin = ProjectApi.isAdmin(userOid, ProjectApi.projectById(parentProjectOid))
-      if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isProjectAdmin)
+      val canManageProject = ProjectApi.canManage(userOid, ProjectApi.projectById(parentProjectOid))
+      if (!PersonApi.isBuildWhizAdmin(Right(user)) && !canManageProject)
         throw new IllegalArgumentException("Not permitted")
 
       val phaseName = parameters("phase_name")

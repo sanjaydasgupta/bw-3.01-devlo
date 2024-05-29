@@ -115,28 +115,25 @@ object ProjectApi extends HttpUtils {
     }
   }
 
-  def hasRole30(personOid: ObjectId, project: DynDoc): Boolean = {
+  private def hasRole30(personOid: ObjectId, project: DynDoc): Boolean = {
     val hasProjectRole = project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
         TeamApi.teamsByMemberOid(personOid).exists(_.project_id[ObjectId] == project._id[ObjectId])
     hasProjectRole || allPhases(project).exists(phase => PhaseApi.hasRole30(personOid, phase))
   }
 
   def hasRole(personOid: ObjectId, project: DynDoc): Boolean = {
-    isAdmin(personOid, project) || project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
+    project.assigned_roles[Many[Document]].exists(_.person_id[ObjectId] == personOid) ||
         allPhases(project).exists(phase => PhaseApi.hasRole(personOid, phase)) ||
         BWMongoDB3.teams.countDocuments(Map("project_id" -> project._id[Object],
         "team_members" -> Map($elemMatch -> Map("person_id" -> personOid)))) > 0
   }
-
-  def isAdmin(personOid: ObjectId, project: DynDoc): Boolean =
-      project.admin_person_id[ObjectId] == personOid
 
   def isManager(personOid: ObjectId, project: DynDoc): Boolean = project.assigned_roles[Many[Document]].
       exists(ar => ar.person_id[ObjectId] == personOid &&
       ar.role_name[String].matches("(?i)(?:project-)?manager"))
 
   def canManage(personOid: ObjectId, project: DynDoc): Boolean =
-      isManager(personOid, project) || PersonApi.isBuildWhizAdmin(Left(personOid)) || isAdmin(personOid, project)
+      isManager(personOid, project) || PersonApi.isBuildWhizAdmin(Left(personOid))
 
   def projectsByUser(personOid: ObjectId): Seq[DynDoc] = {
     val projects: Seq[DynDoc] = BWMongoDB3.projects.find()
@@ -207,7 +204,7 @@ object ProjectApi extends HttpUtils {
     // Remove tag from documents?
   }
 
-  def updateGoogleDriveTags(projectId: String, documentId: String, tagNames: Seq[String], operation: String): Unit = {
+  private def updateGoogleDriveTags(projectId: String, documentId: String, tagNames: Seq[String], operation: String): Unit = {
     BWLogger.log(getClass.getName, "updateGoogleDriveTags", s"ENTRY ($projectId, $documentId, $tagNames, $operation)")
     val files = GoogleDriveRepository.listObjects(Some(s"$projectId-$documentId"))
     for (file <- files) {

@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters._
 class NotificationSend extends HttpServlet with HttpUtils {
 
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    BWLogger.log(getClass.getName, request.getMethod, "ENTRY", request)
+    BWLogger.log(getClass.getName, request.getMethod, ":ENTRY", request)
     try {
       val t0 = System.currentTimeMillis()
       val postDataString = getStreamData(request)
@@ -70,7 +70,7 @@ class NotificationSend extends HttpServlet with HttpUtils {
       val urgentCount = userMessages.count(_.urgent[Boolean])
       val nonUrgentCount = userMessages.length - urgentCount
       BWLogger.log(getClass.getName, request.getMethod,
-          s"EXIT (time: $delay ms, urgent: $urgentCount, non-urgent: $nonUrgentCount) ", request)
+          s":EXIT (time: $delay ms, urgent: $urgentCount, non-urgent: $nonUrgentCount) ", request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
@@ -225,5 +225,3 @@ object NotificationSend extends MailUtils3 with DateTimeUtils {
     }
   }
 }
-
-

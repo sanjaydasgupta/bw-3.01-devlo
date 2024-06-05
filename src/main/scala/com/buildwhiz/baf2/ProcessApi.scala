@@ -343,12 +343,19 @@ object ProcessApi {
         case None =>
       }
     }
+
     val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
       find(Map("timestamps.run_next" -> Map($lte -> scheduleMs), "timestamps.end" -> Map($gte -> scheduleMs)))
     //BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules ready-schedules: ${readySchedules.length}")
     for (schedule <- readySchedules) {
       try {
-        createNewTransientProcess(schedule)
+        val timestamps: DynDoc = schedule.timestamps[Document]
+        if (timestamps.has("last_failure")) {
+          BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules (SKIPPING due to prior error): " +
+            s"'${schedule.title[String]}' (${schedule._id[ObjectId]})")
+        } else {
+          createNewTransientProcess(schedule)
+        }
       } catch {
         case t: Throwable =>
           BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules: " +

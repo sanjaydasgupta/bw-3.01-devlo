@@ -19,6 +19,7 @@ class Entry extends HttpServlet with HttpUtils {
     val uriParts = request.getRequestURI.split("/")
     val internalCall = request.getRemoteAddr == request.getLocalAddr
     val loggingIn = (uriParts.last, uriParts.init.last, internalCall) match {
+      case (_, _, true) => true
       case ("Status", "etc", _) => true
       case ("LoginPost", "etc", _) => true
       case ("Environment", "etc", _) => true
@@ -28,10 +29,6 @@ class Entry extends HttpServlet with HttpUtils {
       case ("GLogin", "baf3", _) => true
       case ("MSLogin", "baf3", _) => true
       case ("LoginWithSlack", "baf3", _) => true
-      case ("DeliverableDatesRecalculate", "baf3", true) => true
-      case ("BudgetAggregateRecalculate", "baf3", true) => true
-      case ("DocCategoriesFromGoogle", "baf3", true) => true
-      case ("NotificationSend", "baf3", true) => true
       case ("Logout", "baf3", _) => true
       case ("SlackSlashCommand", "slack", _) => true
       case ("SlackEventCallback", "slack", _) => true

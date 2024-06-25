@@ -331,13 +331,15 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         milestoneInfo.append("completed", milestoneCompleted).append("date_end", milestoneDate)
       }
       val budgetInfo = new Document()
-      for (itemName <- Seq("budget_estimated", "budget_contracted", "budget_current", "percent_complete")) {
+      for (itemName <- Seq("budget_estimated", "budget_estimated_plan", "budget_contracted", "budget_current",
+        "percent_complete")) {
         val itemValue = activity.get[Decimal128](itemName) match {
           case None => "NA"
           case Some(val128) => val128.toString
         }
         budgetInfo.append(itemName, itemValue)
       }
+      budgetInfo.append("budget_estimated_plan_completed", true)
       for (itemName <- Seq("budget_estimated", "budget_contracted", "budget_current")) {
         val itemValue = (activity.get[Int](itemName + "_count"), activity.get[Int]("budget_items_count")) match {
           case (Some(count), Some(total)) => count == total

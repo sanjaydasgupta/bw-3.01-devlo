@@ -159,7 +159,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
               val landingInfo = landingPageInfo(personRecord, request)
               val resultPerson = new Document(resultFields.map(f => (f, personRecord.get(f))).toMap ++
                   Map("roles" -> roles, "JSESSIONID" -> request.getSession.getId, "master_data" -> masterData) ++
-                  Map("landing_page" -> landingInfo) ++ dates(request))
+                  Map("landing_page" -> landingInfo) ++ dates(request) ++ Map("email" -> email))
               if (!resultPerson.containsKey("dummies"))
                 resultPerson.append("dummies", false)
               recordLoginTime(personRecord)

@@ -15,9 +15,9 @@ import org.bson.types.ObjectId
 import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty
 import org.camunda.bpm.model.bpmn.instance.{CallActivity, EndEvent, FlowElement, IntermediateCatchEvent, IntermediateThrowEvent, MultiInstanceLoopCharacteristics, Process, StartEvent, Task, TimeDuration, TimerEventDefinition, UserTask}
 
-import scala.collection.immutable.Seq
+//import scala.collection.immutable.Seq
 
-class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
+object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 //  private implicit def nodeList2nodeSeq(nl: NodeList): Seq[Node] = (0 until nl.getLength).map(nl.item)
 
 //  private def extensionProperties(e: Element, name: String): Seq[Node] = e.getElementsByTagName("camunda:property").
@@ -470,59 +470,6 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }
 
-  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
-    val responseWriter = response.getWriter
-    try {
-      val parameters = getParameterMap(request)
-      val bpmnName = parameters("bpmn_name")
-      response.setContentType("text/html")
-      responseWriter.println("<html><tt><br/>")
-      val activityBuffer = mutable.Buffer[Document]()
-      val timerBuffer: mutable.Buffer[Document] = mutable.Buffer[Document]()
-      val milestoneBuffer = mutable.Buffer[Document]()
-      val endNodeBuffer = mutable.Buffer[Document]()
-      val startNodeBuffer = mutable.Buffer[Document]()
-      val variableBuffer = mutable.Buffer[Document]()
-      val callElementBuffer = mutable.Buffer[Document]()
-
-      analyzeBpmn(bpmnName, ".", ".", responseWriter, activityBuffer, timerBuffer,
-        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false, request)
-      responseWriter.println(s"<b>Total activities: ${activityBuffer.length}</b><br/>")
-      for (activity <- activityBuffer) {
-        responseWriter.println(s"${activity.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total timers: ${timerBuffer.length}</b><br/>")
-      for (timer <- timerBuffer) {
-        responseWriter.println(s"${timer.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total milestones: ${milestoneBuffer.length}</b><br/>")
-      for (milestone <- milestoneBuffer) {
-        responseWriter.println(s"${milestone.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total end-nodes: ${endNodeBuffer.length}</b><br/>")
-      for (endNode <- endNodeBuffer) {
-        responseWriter.println(s"${endNode.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total start-nodes: ${startNodeBuffer.length}</b><br/>")
-      for (startNode <- startNodeBuffer) {
-        responseWriter.println(s"${startNode.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total variable-nodes: ${variableBuffer.length}</b><br/>")
-      for (variableNode <- variableBuffer) {
-        responseWriter.println(s"${variableNode.toJson}<br/>")
-      }
-      responseWriter.println(s"<b>Total call-element-nodes: ${callElementBuffer.length}</b><br/>")
-      for (callElementNode <- callElementBuffer) {
-        responseWriter.println(s"${callElementNode.toJson}<br/>")
-      }
-    } catch {
-      case t: Throwable =>
-        t.printStackTrace(responseWriter)
-    }
-    responseWriter.println("</tt></html><br/>")
-    responseWriter.flush()
-  }
-
   private def addTeam(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId): ObjectId = {
     val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
       "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
@@ -582,6 +529,72 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     newPhaseOid
   }
 
+  def addPhaseWithProcess(user: DynDoc, phaseName: String, parentProjectOid: ObjectId, description: String,
+      phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, request: HttpServletRequest): ObjectId = {
+    BWMongoDB3.withTransaction({
+      val phaseOid = addPhase(user, phaseName, parentProjectOid, description, phaseManagerOids)
+      addProcess(user, bpmnName, processName, phaseOid, request, phaseManagerOids)
+      phaseOid
+    })
+  }
+
+}
+
+class PhaseAdd extends HttpServlet with HttpUtils {
+
+  override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
+    val responseWriter = response.getWriter
+    try {
+      val parameters = getParameterMap(request)
+      val bpmnName = parameters("bpmn_name")
+      response.setContentType("text/html")
+      responseWriter.println("<html><tt><br/>")
+      val activityBuffer = mutable.Buffer[Document]()
+      val timerBuffer: mutable.Buffer[Document] = mutable.Buffer[Document]()
+      val milestoneBuffer = mutable.Buffer[Document]()
+      val endNodeBuffer = mutable.Buffer[Document]()
+      val startNodeBuffer = mutable.Buffer[Document]()
+      val variableBuffer = mutable.Buffer[Document]()
+      val callElementBuffer = mutable.Buffer[Document]()
+
+      PhaseAdd.analyzeBpmn(bpmnName, ".", ".", responseWriter, activityBuffer, timerBuffer,
+        milestoneBuffer, endNodeBuffer, startNodeBuffer, variableBuffer, callElementBuffer, "GMT", isTakt = false, request)
+      responseWriter.println(s"<b>Total activities: ${activityBuffer.length}</b><br/>")
+      for (activity <- activityBuffer) {
+        responseWriter.println(s"${activity.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total timers: ${timerBuffer.length}</b><br/>")
+      for (timer <- timerBuffer) {
+        responseWriter.println(s"${timer.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total milestones: ${milestoneBuffer.length}</b><br/>")
+      for (milestone <- milestoneBuffer) {
+        responseWriter.println(s"${milestone.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total end-nodes: ${endNodeBuffer.length}</b><br/>")
+      for (endNode <- endNodeBuffer) {
+        responseWriter.println(s"${endNode.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total start-nodes: ${startNodeBuffer.length}</b><br/>")
+      for (startNode <- startNodeBuffer) {
+        responseWriter.println(s"${startNode.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total variable-nodes: ${variableBuffer.length}</b><br/>")
+      for (variableNode <- variableBuffer) {
+        responseWriter.println(s"${variableNode.toJson}<br/>")
+      }
+      responseWriter.println(s"<b>Total call-element-nodes: ${callElementBuffer.length}</b><br/>")
+      for (callElementNode <- callElementBuffer) {
+        responseWriter.println(s"${callElementNode.toJson}<br/>")
+      }
+    } catch {
+      case t: Throwable =>
+        t.printStackTrace(responseWriter)
+    }
+    responseWriter.println("</tt></html><br/>")
+    responseWriter.flush()
+  }
+
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
@@ -603,10 +616,8 @@ class PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = s"$phaseName:$bpmnName"
 
-      BWMongoDB3.withTransaction({
-        val phaseOid = addPhase(user, phaseName, parentProjectOid, description, phaseManagerOids)
-        addProcess(user, bpmnName, processName, phaseOid, request, phaseManagerOids)
-      })
+      PhaseAdd.addPhaseWithProcess(user, phaseName, parentProjectOid, description, phaseManagerOids, bpmnName,
+        processName, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

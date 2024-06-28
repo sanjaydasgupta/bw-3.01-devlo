@@ -52,9 +52,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   private def getEndNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String, cycleTime: Int,
       taktUnitNo: Int, optProcessArchive: Option[DynDoc]): Seq[Document] = {
-    val allEndNodes = optProcessArchive match {
+    val allEndNodes: Many[Document] = optProcessArchive match {
       case Some(opa) => opa.end_nodes[Many[Document]]
-      case None => process.end_nodes[Many[Document]]
+      case None => process.get[Many[Document]]("end_nodes") match {
+        case Some(pa) => pa
+        case None => Seq.empty[Document]
+      }
     }
     val endNodes: Seq[DynDoc] = allEndNodes.filter(
         endNode => if (endNode.has("bpmn_name_full")) {
@@ -83,9 +86,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
 
   private def getStartNodes(phase: DynDoc, process: DynDoc, processName: String, bpmnNameFull: String, cycleTime: Int,
       taktUnitNo: Int, optProcessArchive: Option[DynDoc]): Seq[Document] = {
-    val allStartNodes = optProcessArchive match {
+    val allStartNodes: Many[Document] = optProcessArchive match {
       case Some(opa) => opa.start_nodes[Many[Document]]
-      case None => process.start_nodes[Many[Document]]
+      case None => process.get[Many[Document]]("start_nodes") match {
+        case Some(pa) => pa
+        case None => Seq.empty[Document]
+      }
     }
     val startNodes: Seq[DynDoc] = allStartNodes.filter(
         startNode => if (startNode.has("bpmn_name_full")) {
@@ -467,8 +473,12 @@ class ProcessBpmnXml extends HttpServlet with HttpUtils with BpmnUtils with Date
         case None => ""
         case Some(ts: DynDoc) => ts.parent_name[String]
       }
-      val bpmnDuration = ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, theProcess, 0, bpmnNameFull,
-        Seq.empty[(String, String, Int)], request)
+      val bpmnDuration = if (bpmnFileName == "****") {
+        0
+      } else {
+        ProcessBpmnTraverse.processDurationRecalculate(bpmnFileName, theProcess, 0, bpmnNameFull,
+          Seq.empty[(String, String, Int)], request)
+      }
       val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
       // val hostName = getHostName(request)
       val menuItems = uiContextSelectedManaged(request) match {

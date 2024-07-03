@@ -1,7 +1,7 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProjectApi}
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB3, BWMongoDB, DynDoc}
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.buildwhiz.infra.DynDoc._
 
@@ -483,11 +483,14 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     teamRecord._id[ObjectId]
   }
 
-  private def addPhase(user: DynDoc, phaseName: String, parentProjectOid: ObjectId, description: String,
-                       phaseManagerOids: Seq[ObjectId]): ObjectId = {
+  private def addPhase(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
+      phaseManagerOids: Seq[ObjectId], db: BWMongoDB): ObjectId = {
 
     val userOid = user._id[ObjectId]
-    val isParentProjectManager = ProjectApi.isManager(userOid, ProjectApi.projectById(parentProjectOid))
+    val isParentProjectManager = optProjectOid match {
+      case Some(projectOid) => ProjectApi.isManager(userOid, ProjectApi.projectById(projectOid))
+      case None => true
+    }
     if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isParentProjectManager)
       throw new IllegalArgumentException("Not permitted")
 
@@ -499,11 +502,14 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       new Document("role_name", "Project-Manager").append("person_id", oid)
     ).asJava
 
-    val projectRecord = ProjectApi.projectById(parentProjectOid)
+    val projectTimeZone = optProjectOid match {
+      case Some(projectOid) => ProjectApi.timeZone(ProjectApi.projectById(projectOid).tz)
+      case None => "UTC"
+    }
 
     val calendar = Calendar.getInstance()
     val createdMs = calendar.getTimeInMillis
-    calendar.setTimeZone(TimeZone.getTimeZone(ProjectApi.timeZone(projectRecord)))
+    calendar.setTimeZone(TimeZone.getTimeZone(projectTimeZone))
     calendar.set(Calendar.HOUR_OF_DAY, 0)
     calendar.set(Calendar.MINUTE, 0)
     calendar.set(Calendar.SECOND, 0)
@@ -511,28 +517,37 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val timestamps = Map("created" -> createdMs, "date_start_estimated" -> startEstimatedMs)
     val basePhaseRecord = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
       "assigned_roles" -> managersInRoles, "status" -> "defined",
-      "timestamps" -> timestamps, "description" -> description, "tz" -> ProjectApi.timeZone(projectRecord))
+      "timestamps" -> timestamps, "description" -> description, "tz" -> projectTimeZone)
     val newPhaseRecord = if (phaseManagerOids.nonEmpty) {
-      val defaultTeamOid = addTeam(parentProjectOid, phaseManagerOids.head, user.organization_id[ObjectId])
+      val projectOid = optProjectOid match {
+        case Some(projOid) => projOid
+        case None => new ObjectId("0" * 24)
+      }
+      val defaultTeamOid = addTeam(projectOid, phaseManagerOids.head, user.organization_id[ObjectId])
       basePhaseRecord ++ Map("team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)),
           "admin_person_id" -> phaseManagerOids.head)
     } else {
       basePhaseRecord ++ Map("team_assignments" -> Seq.empty[Document])
     }
-    val insertOneResult = BWMongoDB3.phases.insertOne(newPhaseRecord)
+    val insertOneResult = db.phases.insertOne(newPhaseRecord)
 
     val newPhaseOid = insertOneResult.getInsertedId.asObjectId().getValue
-    val updateResult = BWMongoDB3.projects.updateOne(Map("_id" -> parentProjectOid),
-      Map("$addToSet" -> Map("phase_ids" -> newPhaseOid)))
-    if (updateResult.getModifiedCount == 0)
-      throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    optProjectOid match {
+      case Some(projectOid) =>
+        val updateResult = db.projects.updateOne(Map("_id" -> projectOid),
+          Map("$addToSet" -> Map("phase_ids" -> newPhaseOid)))
+        if (updateResult.getModifiedCount == 0) {
+          throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+        }
+      case None =>
+    }
     newPhaseOid
   }
 
-  def addPhaseWithProcess(user: DynDoc, phaseName: String, parentProjectOid: ObjectId, description: String,
-      phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, request: HttpServletRequest): ObjectId = {
+  def addPhaseWithProcess(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
+      phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, db: BWMongoDB, request: HttpServletRequest): ObjectId = {
     BWMongoDB3.withTransaction({
-      val phaseOid = addPhase(user, phaseName, parentProjectOid, description, phaseManagerOids)
+      val phaseOid = addPhase(user, phaseName, optProjectOid, description, phaseManagerOids, db)
       addProcess(user, bpmnName, processName, phaseOid, request, phaseManagerOids)
       phaseOid
     })
@@ -616,8 +631,8 @@ class PhaseAdd extends HttpServlet with HttpUtils {
       val bpmnName = "Phase-" + parameters("bpmn_name")
       val processName = s"$phaseName:$bpmnName"
 
-      PhaseAdd.addPhaseWithProcess(user, phaseName, parentProjectOid, description, phaseManagerOids, bpmnName,
-        processName, request)
+      PhaseAdd.addPhaseWithProcess(user, phaseName, Some(parentProjectOid), description, phaseManagerOids, bpmnName,
+        processName, BWMongoDB3, request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

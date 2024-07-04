@@ -1,6 +1,6 @@
 package com.buildwhiz.tools.scripts
 
-import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
+import com.buildwhiz.baf2.{OrganizationApi, PersonApi, PhaseApi, ProcessApi}
 import com.buildwhiz.baf3.{PhaseAdd, ProcessAdd}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
@@ -71,7 +71,6 @@ private object LibraryOperations extends HttpUtils {
       destPhase: DynDoc, teamsTable: Map[ObjectId, ObjectId], output: String => Unit): Unit = {
     output(s"""${getClass.getName}:replicateDeliverables(${destProcess.name[String]}) ENTRY<br/>""")
     val destPhaseOid = destPhase._id[ObjectId]
-    val destProject = PhaseApi.parentProject(destPhaseOid)
     val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
     val srcTasks: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
     val destTaskOids = destProcess.activity_ids[Many[ObjectId]]
@@ -93,7 +92,13 @@ private object LibraryOperations extends HttpUtils {
           val migrationInfo: DynDoc = Map("src_deliverable_id" -> srcDeliverable._id[ObjectId],
               "bpmn_name_full" -> task.bpmn_name_full[String])
           srcDeliverable.migration_info = migrationInfo.asDoc
-          srcDeliverable.project_id = destProject._id[ObjectId]
+          try {
+            val destProject = PhaseApi.parentProject(destPhaseOid, destDB)
+            srcDeliverable.project_id = destProject._id[ObjectId]
+          } catch {
+            case _: Throwable =>
+              srcDeliverable.project_id = new ObjectId("0" * 24)
+          }
           srcDeliverable.phase_id = destPhaseOid
           srcDeliverable.process_id = destProcess._id[ObjectId]
           srcDeliverable.activity_id = destTaskOidByBpmn("%s/%s".format(task.bpmn_name_full[String], task.bpmn_id[String]))
@@ -127,10 +132,10 @@ private object LibraryOperations extends HttpUtils {
     // create new template process
     val destPhaseManager = PersonApi.personById(PhaseApi.managers(Right(destPhase)).head)
     val newProcessOid = ProcessAdd.addProcess(destPhaseManager, srcProcess.bpmn_name[String], srcProcess.name[String],
-        destPhase._id[ObjectId], srcProcess.`type`[String], request)
+        destPhase._id[ObjectId], srcProcess.`type`[String], destDB, request)
     output(s"""${getClass.getName}:cloneOneProcess()<font color="green"> ProcessAdd.addProcess SUCCESS</font><br/>""")
     // copy extra fields from source process
-    val newProcess = ProcessApi.processById(newProcessOid)
+    val newProcess = ProcessApi.processById(newProcessOid, destDB)
     val srcProcessCopy = Document.parse(srcProcess.asDoc.toJson)
     val srcProcessFields = srcProcessCopy.asDoc.keySet().toArray.map(_.asInstanceOf[String]).toSeq
     for (srcField <- srcProcessFields) {
@@ -183,7 +188,7 @@ private object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
     val processesToClone: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> srcProcessOids),
-      "type" -> Map($or -> Seq("Template", "Primary"))))
+      "type" -> Map($in -> Seq("Template", "Primary"))))
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Source process names: ${processesToClone.map(_.name[String]).mkString(", ")}</font><br/><br/>""")
     val destProcessOids = phaseDest.process_ids[Many[Document]]
     val destProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> destProcessOids),
@@ -245,6 +250,18 @@ private object LibraryOperations extends HttpUtils {
     output(s"${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) EXIT<br/><br/>")
   }
 
+  private def registerUser(user: DynDoc): Unit = {
+    val orgOid = user.organization_id[ObjectId]
+    if (!OrganizationApi.exists(orgOid, BWMongoDBLib)) {
+      val orgRecord = OrganizationApi.organizationById(orgOid, BWMongoDB3)
+      BWMongoDBLib.organizations.insertOne(orgRecord.asDoc)
+    }
+    val userOid = user._id[ObjectId]
+    if (!PersonApi.exists(userOid, BWMongoDBLib)) {
+      BWMongoDBLib.persons.insertOne(user.asDoc)
+    }
+  }
+
   @unused
   def main(request: HttpServletRequest, response: HttpServletResponse, args: Array[String]): Unit = {
     response.setContentType("text/html")
@@ -255,9 +272,10 @@ private object LibraryOperations extends HttpUtils {
     output(s"${getClass.getName}:main() ENTRY<br/>")
     try {
       val user: DynDoc = getUser(request)
-      if (!PersonApi.isBuildWhizAdmin(Right(user)) || user.first_name[String] != "Sanjay") {
+      if (!PersonApi.isBuildWhizAdmin(Right(user)) || !user.first_name[String].matches("Prabhas|Sanjay")) {
         throw new IllegalArgumentException("Not permitted")
       }
+      registerUser(user)
       if (args.length >= 2) {
         val phaseSourceOid = new ObjectId(args(1))
         if (args(0).matches("(?i)EXPORT")) {
@@ -293,27 +311,30 @@ private object LibraryOperations extends HttpUtils {
   }
 
   private def transportPhase(phaseSourceOid: ObjectId, optProjectOid: Option[ObjectId], output: String => Unit,
-                             request: HttpServletRequest): Unit = {
+      request: HttpServletRequest): Unit = {
     val (sourceDB, destDB) = if (optProjectOid.isDefined) {
+      // Import from library
       (BWMongoDBLib, BWMongoDB3)
     } else {
+      // Export to library
       (BWMongoDB3, BWMongoDBLib)
     }
     val phaseSource = sourceDB.phases.find(Map("_id" -> phaseSourceOid)).head
-    output(s"""${getClass.getName}:importPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/>""")
+    val user: DynDoc = getUser(request)
+    output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/>""")
     val phaseDest: DynDoc = {
       val processDest: DynDoc = {
         val processOid = phaseSource.process_ids[Many[ObjectId]].head
         sourceDB.processes.find(Map("_id" -> processOid)).head
       }
       val phaseOid = PhaseAdd.addPhaseWithProcess(getUser(request), phaseSource.name[String], optProjectOid,
-        phaseSource.description[String], Seq.empty[ObjectId],
-        processDest.bpmn_name[String].substring("Phase-".length), processDest.name[String], destDB, request)
-      BWMongoDB3.phases.find(Map("_id" -> phaseOid)).head
+        phaseSource.description[String], Seq(user._id[ObjectId]), processDest.bpmn_name[String], processDest.name[String],
+        destDB, request)
+      destDB.phases.find(Map("_id" -> phaseOid)).head
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
     LibraryOperations.cloneProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)
-    output(s"""${getClass.getName}:importPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
+    output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }
 
 }

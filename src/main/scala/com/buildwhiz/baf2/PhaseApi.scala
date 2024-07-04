@@ -103,8 +103,8 @@ object PhaseApi {
     BWLogger.audit(getClass.getName, request.getMethod, message, request)
   }
 
-  def parentProject(phaseOid: ObjectId): DynDoc = {
-    BWMongoDB3.projects.find(Map("phase_ids" -> phaseOid)).head
+  def parentProject(phaseOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.projects.find(Map("phase_ids" -> phaseOid)).head
   }
 
   def allTeamOids30(phase: DynDoc): Seq[ObjectId] = {

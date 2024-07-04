@@ -123,7 +123,7 @@ object ClonePhase extends HttpUtils {
     // create new template process
     val destPhaseManager = PersonApi.personById(PhaseApi.managers(Right(destPhase)).head)
     val newProcessOid = ProcessAdd.addProcess(destPhaseManager, srcProcess.bpmn_name[String], srcProcess.name[String],
-        destPhase._id[ObjectId], srcProcess.`type`[String], request)
+        destPhase._id[ObjectId], srcProcess.`type`[String], BWMongoDB3, request)
     output(s"""${getClass.getName}:cloneOneProcess()<font color="green"> ProcessAdd.addProcess SUCCESS</font><br/>""")
     // copy extra fields from source process
     val newProcess = ProcessApi.processById(newProcessOid)

@@ -1,7 +1,7 @@
 package com.buildwhiz.baf3
 
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.{BWLogger, BpmnUtils, HttpUtils}
 import com.buildwhiz.baf2.{PersonApi, PhaseApi, ProcessApi}
 import org.bson.Document
@@ -384,8 +384,8 @@ object ProcessAdd extends BpmnUtils {
   }
 
   def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-      processType: String, request: HttpServletRequest): ObjectId = {
-    val thePhase = PhaseApi.phaseById(phaseOid)
+      processType: String, db: BWMongoDB, request: HttpServletRequest): ObjectId = {
+    val thePhase = PhaseApi.phaseById(phaseOid, db)
     if (processType.matches("Transient|Template")) {
       if (!PhaseApi.canManage(user._id[ObjectId], thePhase))
         throw new IllegalArgumentException("Not permitted: Must be phase-manager")
@@ -416,14 +416,14 @@ object ProcessAdd extends BpmnUtils {
       "assigned_roles" -> assignedRoles, "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)
 
-    BWMongoDB3.processes.insertOne(newProcess)
+    db.processes.insertOne(newProcess)
     val processOid = newProcess.y._id[ObjectId]
-    val updateResult = BWMongoDB3.phases.updateOne(Map("_id" -> phaseOid),
+    val updateResult = db.phases.updateOne(Map("_id" -> phaseOid),
       Map("$push" -> Map("process_ids" -> processOid)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
     if (activityBuffer.nonEmpty) {
-      BWMongoDB3.tasks.insertMany(activityBuffer.asJava)
+      db.tasks.insertMany(activityBuffer.asJava)
     }
     val lastActivityOid = activityBuffer.filter(_.y.at_end[Boolean]).
       find(a => a.y.bpmn_name[String] == a.y.bpmn_name_full[String]) match {
@@ -437,7 +437,7 @@ object ProcessAdd extends BpmnUtils {
       }
     }
     val activityOids = activityBuffer.map(_.getObjectId("_id")).asJava
-    val updateResult2 = BWMongoDB3.processes.updateOne(Map("_id" -> processOid),
+    val updateResult2 = db.processes.updateOne(Map("_id" -> processOid),
       Map("$set" -> Map("activity_ids" -> activityOids, "milestone_activity_id" -> lastActivityOid)))
     if (updateResult2.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
@@ -467,7 +467,8 @@ class ProcessAdd extends HttpServlet with HttpUtils {
         case x => throw new IllegalArgumentException(s"Unknown type: '$x'")
       }
       BWMongoDB3.withTransaction({
-        val processOid = ProcessAdd.addProcess(user, bpmnName, processName, parentPhaseOid, processType, request)
+        val processOid = ProcessAdd.addProcess(user, bpmnName, processName, parentPhaseOid, processType, BWMongoDB3,
+          request)
         optProcessOid = Some(processOid)
       })
       response.getWriter.print(successJson(fields = Map("process_id" -> optProcessOid.get.toString)))

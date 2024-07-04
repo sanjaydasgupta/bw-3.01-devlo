@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, DynDoc}
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
@@ -26,7 +26,9 @@ object ProcessApi {
   def processesByIds(processOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.processes.find(Map("_id" -> Map($in -> processOids)))
 
-  def processById(processOid: ObjectId): DynDoc = BWMongoDB3.processes.find(Map("_id" -> processOid)).head
+  def processById(processOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.processes.find(Map("_id" -> processOid)).head
+  }
 
   def exists(processOid: ObjectId): Boolean = BWMongoDB3.processes.find(Map("_id" -> processOid)).nonEmpty
 

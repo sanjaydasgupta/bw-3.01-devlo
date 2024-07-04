@@ -42,7 +42,7 @@ object ProjectInfoSet extends DateTimeUtils {
   def managers2roles(projectOid: ObjectId, mids: String): Many[Document] = {
     val projMgrOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
         distinct.map(new ObjectId(_)).toSeq
-    val badManagerIds = projMgrOids.filterNot(PersonApi.exists)
+    val badManagerIds = projMgrOids.filterNot(PersonApi.exists(_))
     if (badManagerIds.nonEmpty)
       throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")
     val projectRecord = ProjectApi.projectById(projectOid)

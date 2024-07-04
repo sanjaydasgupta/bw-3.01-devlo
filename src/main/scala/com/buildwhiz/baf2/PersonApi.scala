@@ -1,6 +1,6 @@
 package com.buildwhiz.baf2
 
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, DynDoc}
 import BWMongoDB3._
 import DynDoc._
 import com.buildwhiz.baf3.TeamApi
@@ -23,9 +23,13 @@ object PersonApi {
   def personsByIds(personOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.persons.find(Map("_id" -> Map($in -> personOids)))
 
-  def personById(personOid: ObjectId): DynDoc = BWMongoDB3.persons.find(Map("_id" -> personOid)).head
+  def personById(personOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.persons.find(Map("_id" -> personOid)).head
+  }
 
-  def exists(personOid: ObjectId): Boolean = BWMongoDB3.persons.find(Map("_id" -> personOid)).nonEmpty
+  def exists(personOid: ObjectId, db: BWMongoDB = BWMongoDB3): Boolean = {
+    db.persons.find(Map("_id" -> personOid)).nonEmpty
+  }
 
   def systemUser(): DynDoc = {
     BWMongoDB3.persons.find(Map("first_name" -> "SYSTEM", "last_name" -> "SYSTEM")).headOption match {

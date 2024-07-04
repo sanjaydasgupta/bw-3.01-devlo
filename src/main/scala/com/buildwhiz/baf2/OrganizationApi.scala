@@ -2,7 +2,7 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, DynDoc}
 import org.bson.types.ObjectId
 
 object OrganizationApi {
@@ -10,13 +10,16 @@ object OrganizationApi {
   def organizationsByIds(organizationOids: Seq[ObjectId]): Seq[DynDoc] =
     BWMongoDB3.organizations.find(Map("_id" -> Map($in -> organizationOids)))
 
-  def organizationById(organizationOid: ObjectId): DynDoc =
-    BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).head
+  def organizationById(organizationOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.organizations.find(Map("_id" -> organizationOid)).head
+  }
 
   def organizationByName(orgName: String): Option[DynDoc] =
     BWMongoDB3.organizations.find(Map("name" -> orgName)).headOption
 
-  def exists(organizationOid: ObjectId): Boolean = BWMongoDB3.organizations.find(Map("_id" -> organizationOid)).nonEmpty
+  def exists(organizationOid: ObjectId, db: BWMongoDB = BWMongoDB3): Boolean = {
+    db.organizations.find(Map("_id" -> organizationOid)).nonEmpty
+  }
 
   def fetch(optOid: Option[ObjectId] = None, optName: Option[String] = None, optSkill: Option[String] = None,
             optOrgType: Option[String] = None): Seq[DynDoc] = (optOid, optName, optSkill, optOrgType) match {

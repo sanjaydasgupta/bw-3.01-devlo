@@ -238,7 +238,7 @@ object ActivityApi extends DateTimeUtils {
 
   def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
       percentComplete: Option[String] = None): Unit = {
-    userOid.map(PersonApi.exists) match {
+    userOid.map(PersonApi.exists(_)) match {
       case Some(false) => throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
       case _ => // Ok
     }

@@ -20,7 +20,7 @@ class PhaseInfoSet extends HttpServlet with HttpUtils {
         val phaseManagerOids: Seq[ObjectId] = mids.split(",").map(_.trim).filter(_.nonEmpty).
             distinct.map(new ObjectId(_)).toSeq
 
-        val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)
+        val badManagerIds = phaseManagerOids.filterNot(pmOid => PersonApi.exists(pmOid))
         if (badManagerIds.nonEmpty)
           throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")
 

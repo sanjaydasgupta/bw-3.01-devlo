@@ -37,7 +37,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
         case Some(ids) => ids.split(",").map(_.trim).filter(_.nonEmpty).distinct.map(new ObjectId(_)).toSeq
       }
 
-      val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists)
+      val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists(_))
       if (badManagerIds.nonEmpty)
         throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")
 

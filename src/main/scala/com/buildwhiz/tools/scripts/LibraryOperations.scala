@@ -215,6 +215,10 @@ private object LibraryOperations extends HttpUtils {
     if (teamToClone.has("phase_id")) {
       teamToClone.phase_id = destPhaseOid.toString
     }
+    teamToClone.team_members = Seq.empty[Document].asJava
+    if (!OrganizationApi.exists(teamToClone.organization_id[ObjectId], destDB)) {
+      teamToClone.remove("organization_id")
+    }
     val insertOneResult = destDB.teams.insertOne(teamToClone.asDoc)
     val newTeamOid = insertOneResult.getInsertedId.asObjectId()
     val updateResult = destDB.phases.updateOne(Map("_id" -> destPhaseOid),
@@ -277,17 +281,20 @@ private object LibraryOperations extends HttpUtils {
       }
       registerUser(user)
       if (args.length >= 2) {
-        val phaseSourceOid = new ObjectId(args(1))
         if (args(0).matches("(?i)EXPORT")) {
+          val phaseSourceOid = new ObjectId(args(1))
           transportPhase(phaseSourceOid, None, output, request)
         } else if (args.length == 3 && args(0).matches("(?i)IMPORT")) {
+          val phaseSourceOid = new ObjectId(args(1))
           transportPhase(phaseSourceOid, Some(new ObjectId(args(2))), output, request)
+        } else if (args(0).matches("(?i)CLEAN")) {
+          cleanLibrary(args(1), output)
         } else {
           listLibrary(output)
         }
       } else {
         listLibrary(output)
-        output(s"""<font color="red">${getClass.getName}:main() Usage: ${getClass.getName} op-name src-phase-id [dest-proj-id]</font><br/>""")
+        output(s"""<font color="blue">${getClass.getName}:main() Usage: ${getClass.getName} op-name src-phase-id [dest-proj-id]</font><br/>""")
       }
       output(s"${getClass.getName}:main() EXIT-OK<br/>")
     } catch {
@@ -297,6 +304,25 @@ private object LibraryOperations extends HttpUtils {
     } finally {
       output("</body></html>")
     }
+  }
+
+  private def cleanLibrary(colName: String, output: String => Unit): Unit = {
+    output(s"""${getClass.getName}:cleanLibrary() ENTRY<br/>""")
+    val collNames = BWMongoDBLib.collectionNames
+    if (colName.matches("(?i)ALL")) {
+      for (cn <- collNames) {
+        output(s"Dropping collection: '$cn'<br/>")
+        BWMongoDBLib(cn).drop()
+      }
+    } else {
+      if (collNames.contains(colName)) {
+        output(s"Dropping collection: '$colName'<br/>")
+        BWMongoDBLib(colName).drop()
+      } else {
+        output(s"No such collection: '$colName'<br/>")
+      }
+    }
+    output(s"""${getClass.getName}:cleanLibrary() EXIT<br/>""")
   }
 
   private def listLibrary(output: String => Unit): Unit = {

@@ -18,7 +18,7 @@ private object LibraryOperations extends HttpUtils {
 
   private def replicateConstraints(sourceDB: BWMongoDB, destDB: BWMongoDB, destProcess: DynDoc,
       output: String => Unit): Unit = {
-    output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) ENTRY<br/>""")
+    output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) ENTRY<br/><br/>""")
     val destDeliverables: Seq[DynDoc] = destDB.deliverables.find(Map("process_id" -> destProcess._id[ObjectId]))
     if (destDeliverables.nonEmpty) {
       output(s"""${getClass.getName}:replicateConstraints()found ${destDeliverables.length} deliverables<br/>""")
@@ -69,7 +69,7 @@ private object LibraryOperations extends HttpUtils {
 
   private def replicateDeliverables(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
       destPhase: DynDoc, teamsTable: Map[ObjectId, ObjectId], output: String => Unit): Unit = {
-    output(s"""${getClass.getName}:replicateDeliverables(${destProcess.name[String]}) ENTRY<br/>""")
+    output(s"""${getClass.getName}:replicateDeliverables(${destProcess.name[String]}) ENTRY<br/><br/>""")
     val destPhaseOid = destPhase._id[ObjectId]
     val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
     val srcTasks: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
@@ -120,7 +120,8 @@ private object LibraryOperations extends HttpUtils {
           output(s"""${getClass.getName}:replicateDeliverables()<font color="red"> Cloning (task: ${task.name[String]}) FAILED</font><br/>""")
         }
       } else {
-        output(s"""${getClass.getName}:replicateDeliverables()<font color="blue"> No deliverables! EXITING </font><br/>""")
+        output(s"""${getClass.getName}:replicateDeliverables(${task.full_path_name[String]})""" +
+          s"""<font color="blue"> No deliverables! EXITING </font><br/>""")
       }
     }
     output(s"""${getClass.getName}:replicateDeliverables(${destProcess.name[String]}) EXIT<br/>""")
@@ -128,7 +129,7 @@ private object LibraryOperations extends HttpUtils {
 
   private def cloneOneProcess(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destPhase: DynDoc,
       teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest, output: String => Unit): Unit = {
-    output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) ENTRY<br/>")
+    output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) ENTRY<br/><br/>")
     // create new template process
     val destPhaseManager = PersonApi.personById(PhaseApi.managers(Right(destPhase)).head)
     val newProcessOid = ProcessAdd.addProcess(destPhaseManager, srcProcess.bpmn_name[String], srcProcess.name[String],
@@ -156,7 +157,7 @@ private object LibraryOperations extends HttpUtils {
     replicateDeliverables(sourceDB, srcProcess, destDB, newProcess, destPhase, teamsTable, output)
     // clone constraint records, re-align activity-id values in constraints
     replicateConstraints(sourceDB, destDB, newProcess, output)
-    output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/><br/>")
+    output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
   }
 
   private def getTeamsTable(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc):
@@ -183,33 +184,33 @@ private object LibraryOperations extends HttpUtils {
 
   private def cloneProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
       request: HttpServletRequest, output: String => Unit): Unit = {
-    output(s"${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/>")
+    output(s"${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/><br/>")
     val teamsTable = getTeamsTable(sourceDB, phaseSrc, destDB, phaseDest)
-    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
     val processesToClone: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> srcProcessOids),
       "type" -> Map($in -> Seq("Template", "Primary"))))
-    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Source process names: ${processesToClone.map(_.name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Source process names: ${processesToClone.map(_.name[String]).mkString(", ")}</font><br/>""")
     val destProcessOids = phaseDest.process_ids[Many[Document]]
     val destProcesses: Seq[DynDoc] = BWMongoDB3.processes.find(Map("_id" -> Map($in -> destProcessOids),
       "type" -> "Template"))
     val destProcessNames = destProcesses.map(_.name[String])
-    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Existing Template process names: ${destProcessNames.mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Existing Template process names: ${destProcessNames.mkString(", ")}</font><br/>""")
     val processesToCopy = processesToClone.filterNot(stp => destProcessNames.contains(stp.name[String]))
-    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Processes to copy: ${processesToCopy.map(_.name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Processes to copy: ${processesToCopy.map(_.name[String]).mkString(", ")}</font><br/>""")
     if (go && processesToCopy.nonEmpty) {
       for (processToCopy <- processesToCopy) {
         cloneOneProcess(sourceDB, processToCopy, destDB, phaseDest, teamsTable, request, output)
       }
     } else {
-      output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Nothing to do! EXITING</font><br/><br/>""")
+      output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Nothing to do! EXITING</font><br/>""")
     }
-    output(s"${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) EXIT<br/><br/>")
+    output(s"${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) EXIT<br/>")
   }
 
   private def cloneOneTeam(teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
        output: String => Unit): Unit = {
-    output(s"${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/>")
+    output(s"${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/><br/>")
     teamToClone.remove("_id")
     val destPhaseOid = phaseDest._id[ObjectId]
     if (teamToClone.has("phase_id")) {
@@ -228,30 +229,30 @@ private object LibraryOperations extends HttpUtils {
     } else {
       output(s"""${getClass.getName}:cloneOneTeam()<font color="red"> Cloning FAILED</font><br/>""")
     }
-    output(s"${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) EXIT<br/><br/>")
+    output(s"${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) EXIT<br/>")
   }
 
   private def cloneTeams(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
       output: String => Unit): Unit = {
     output(s"${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) ENTRY<br/><br/>")
     val sourceTeamOids: Seq[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
-    // output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/><br/>""")
+    // output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/>""")
     val sourceTeams: Seq[DynDoc] = sourceDB.teams.find(Map("_id" -> Map($in -> sourceTeamOids)))
-    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Source Team Names: ${sourceTeams.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Source Team Names: ${sourceTeams.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     val destinationTeamOids: Seq[ObjectId] = phaseDest.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     val destinationTeams: Seq[DynDoc] = destDB.teams.find(Map("_id" -> Map($in -> destinationTeamOids)))
     val destinationTeamNames = destinationTeams.map(_.team_name[String]).toSet
-    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Existing Names: ${destinationTeamNames.mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Existing Names: ${destinationTeamNames.mkString(", ")}</font><br/>""")
     val teamsToCopy = sourceTeams.filterNot(t => destinationTeamNames.contains(t.team_name[String]))
-    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/><br/>""")
+    output(s"""${getClass.getName}:cloneTeams()<font color="green"> Teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     if (go && teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
         cloneOneTeam(teamToCopy, destDB, phaseDest, output)
       }
     } else {
-      output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/><br/>""")
+      output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/>""")
     }
-    output(s"${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) EXIT<br/><br/>")
+    output(s"${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) EXIT<br/>")
   }
 
   private def registerUser(user: DynDoc): Unit = {
@@ -283,7 +284,7 @@ private object LibraryOperations extends HttpUtils {
     def output(s: String): Unit = writer.print(s)
     response.setContentType("text/html")
     output(s"<html><body>")
-    output(s"${getClass.getName}:main() ENTRY<br/>")
+    output(s"${getClass.getName}:main() ENTRY<br/><br/>")
     try {
       val user: DynDoc = getUser(request)
       if (!PersonApi.isBuildWhizAdmin(Right(user)) || !user.first_name[String].matches("Prabhas|Sanjay")) {
@@ -317,7 +318,7 @@ private object LibraryOperations extends HttpUtils {
   }
 
   private def cleanLibrary(colName: String, output: String => Unit): Unit = {
-    output(s"""${getClass.getName}:cleanLibrary() ENTRY<br/>""")
+    output(s"""${getClass.getName}:cleanLibrary() ENTRY<br/><br/>""")
     val collNames = BWMongoDBLib.collectionNames
     if (colName.matches("(?i)ALL")) {
       for (cn <- collNames) {
@@ -337,7 +338,7 @@ private object LibraryOperations extends HttpUtils {
 
   private def listLibrary(output: String => Unit): Unit = {
     val margin = "&nbsp;" * 4
-    output(s"""${getClass.getName}:listLibrary() ENTRY<br/>""")
+    output(s"""${getClass.getName}:listLibrary() ENTRY<br/><br/>""")
     val collNames = BWMongoDBLib.collectionNames
     output(s"""${getClass.getName}:listLibrary()$margin Found ${collNames.length} collections<br/>""")
     for (cn <- collNames) {
@@ -358,6 +359,13 @@ private object LibraryOperations extends HttpUtils {
           output(s"""${getClass.getName}:listLibrary()$margin$margin$margin ${org.name[String]} $instNames<br/>""")
         }
       }
+      if (count > 0 && cn == "phases") {
+        val phases: Seq[DynDoc] = BWMongoDBLib(cn).find()
+        for (phase <- phases) {
+          output(s"${getClass.getName}:listLibrary()$margin$margin$margin" +
+            s""" ${phase.name[String]} (${phase._id[ObjectId]}) [${phase.instance_name[String]}]<br/>""")
+        }
+      }
     }
     output(s"""${getClass.getName}:listLibrary() EXIT<br/>""")
   }
@@ -373,7 +381,7 @@ private object LibraryOperations extends HttpUtils {
     }
     val phaseSource = sourceDB.phases.find(Map("_id" -> phaseSourceOid)).head
     val user: DynDoc = getUser(request)
-    output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/>""")
+    output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/><br/>""")
     val phaseDest: DynDoc = {
       val processDest: DynDoc = {
         val processOid = phaseSource.process_ids[Many[ObjectId]].head
@@ -383,6 +391,13 @@ private object LibraryOperations extends HttpUtils {
         phaseSource.description[String], Seq(user._id[ObjectId]), processDest.bpmn_name[String], processDest.name[String],
         destDB, request)
       destDB.phases.find(Map("_id" -> phaseOid)).head
+    }
+    if (optProjectOid.isEmpty) {
+      // For export only
+      val info: DynDoc = BWMongoDB3.instance_info.find().head
+      val instanceName = info.instance[String]
+      destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
+        Map($set -> Map("instance_name" -> instanceName)))
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
     LibraryOperations.cloneProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)

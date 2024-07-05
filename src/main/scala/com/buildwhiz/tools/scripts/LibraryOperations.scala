@@ -255,14 +255,24 @@ private object LibraryOperations extends HttpUtils {
   }
 
   private def registerUser(user: DynDoc): Unit = {
+    val info: DynDoc = BWMongoDB3.instance_info.find().head
+    val instanceName = info.instance[String]
     val orgOid = user.organization_id[ObjectId]
     if (!OrganizationApi.exists(orgOid, BWMongoDBLib)) {
       val orgRecord = OrganizationApi.organizationById(orgOid, BWMongoDB3)
+      orgRecord.instance_names = Seq(instanceName).asJava
       BWMongoDBLib.organizations.insertOne(orgRecord.asDoc)
+    } else {
+      BWMongoDBLib.organizations.updateOne(Map("_id" -> orgOid),
+        Map($addToSet -> Map("instance_names" -> instanceName)))
     }
     val userOid = user._id[ObjectId]
     if (!PersonApi.exists(userOid, BWMongoDBLib)) {
+      user.instance_names = Seq(instanceName).asJava
       BWMongoDBLib.persons.insertOne(user.asDoc)
+    } else {
+      BWMongoDBLib.persons.updateOne(Map("_id" -> userOid),
+        Map($addToSet -> Map("instance_names" -> instanceName)))
     }
   }
 
@@ -326,12 +336,28 @@ private object LibraryOperations extends HttpUtils {
   }
 
   private def listLibrary(output: String => Unit): Unit = {
+    val margin = "&nbsp;" * 4
     output(s"""${getClass.getName}:listLibrary() ENTRY<br/>""")
     val collNames = BWMongoDBLib.collectionNames
-    output(s"""${getClass.getName}:listLibrary() Found ${collNames.length} collections<br/>""")
+    output(s"""${getClass.getName}:listLibrary()$margin Found ${collNames.length} collections<br/>""")
     for (cn <- collNames) {
       val count = BWMongoDBLib(cn).countDocuments()
-      output(s"""${getClass.getName}:listLibrary() Collection '$cn' has $count records<br/>""")
+      output(s"""${getClass.getName}:listLibrary()$margin$margin Collection '$cn' has $count records<br/>""")
+      if (count > 0 && cn == "persons") {
+        val persons: Seq[DynDoc] = BWMongoDBLib(cn).find()
+        for (person <- persons) {
+          val instNames = person.instance_names[Many[String]].mkString("[", ", ", "]")
+          val fullName = PersonApi.fullName(person)
+          output(s"""${getClass.getName}:listLibrary()$margin$margin$margin $fullName $instNames<br/>""")
+        }
+      }
+      if (count > 0 && cn == "organizations") {
+        val orgs: Seq[DynDoc] = BWMongoDBLib(cn).find()
+        for (org <- orgs) {
+          val instNames = org.instance_names[Many[String]].mkString("[", ", ", "]")
+          output(s"""${getClass.getName}:listLibrary()$margin$margin$margin ${org.name[String]} $instNames<br/>""")
+        }
+      }
     }
     output(s"""${getClass.getName}:listLibrary() EXIT<br/>""")
   }

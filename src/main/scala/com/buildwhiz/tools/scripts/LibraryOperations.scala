@@ -16,6 +16,8 @@ import scala.jdk.CollectionConverters._
 @unused
 private object LibraryOperations extends HttpUtils {
 
+  val margin: String = "&nbsp;" * 4
+
   private def replicateConstraints(sourceDB: BWMongoDB, destDB: BWMongoDB, destProcess: DynDoc,
       output: String => Unit): Unit = {
     output(s"""<br/>${getClass.getName}:replicateConstraints(${destProcess.name[String]}) ENTRY<br/>""")
@@ -41,9 +43,16 @@ private object LibraryOperations extends HttpUtils {
       val srcDeliverableOids: Many[ObjectId] = srcDestDeliverablesDict.keys.toSeq
       val srcConstraints: Seq[DynDoc] = sourceDB.constraints.find(Map("owner_deliverable_id" ->
           Map($in -> srcDeliverableOids)))
-      if (srcConstraints.nonEmpty) {
+      val goodBadSrcConstraints = srcConstraints.partition(sc =>
+          srcDeliverableOids.contains(sc.owner_deliverable_id[ObjectId]) &&
+          srcDeliverableOids.contains(sc.constraint_id[ObjectId]))
+      if (goodBadSrcConstraints._2.nonEmpty) {
+        output(s"""${getClass.getName}:replicateConstraints(): <font color="red">""" +
+          s"""${goodBadSrcConstraints._2.length} of ${srcConstraints.length} constraints orphaned - ignored</font><br/>""")
+      }
+      if (goodBadSrcConstraints._1.nonEmpty) {
         output(s"""${getClass.getName}:replicateConstraints()found ${srcConstraints.length} constraints<br/>""")
-        for (constraint <- srcConstraints) {
+        for (constraint <- goodBadSrcConstraints._1) {
           maxCommonInstanceNo += 1
           constraint.common_instance_no = maxCommonInstanceNo
           constraint.owner_deliverable_id = srcDestDeliverablesDict(constraint.owner_deliverable_id[ObjectId])
@@ -77,13 +86,23 @@ private object LibraryOperations extends HttpUtils {
     val destTasks: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> destTaskOids)))
     val destTaskOidByBpmn = destTasks.
         map(dt => ("%s/%s".format(dt.bpmn_name_full[String], dt.bpmn_id[String]), dt._id[ObjectId])).toMap
-    val aggPipe = Seq(new Document("$group", new Document("_id", null).append("max_common_instance_no",
-      new Document("$max", "$common_instance_no"))))
-    val aggResult: Seq[DynDoc] = destDB.deliverables.aggregate(aggPipe)
-    var maxCommonInstanceNo = aggResult.headOption match {
-      case Some(r) => r.max_common_instance_no[Int]
-      case None => 0
+    var maxCommonInstanceNo = {
+      val aggPipe = Seq(new Document("$group", new Document("_id", null).append("max_common_instance_no",
+        new Document("$max", "$common_instance_no"))))
+      val aggResult: Seq[DynDoc] = destDB.deliverables.aggregate(aggPipe)
+      aggResult.headOption match {
+        case Some(r) => r.max_common_instance_no[Int]
+        case None => 0
+      }
     }
+    val destProjectOid: ObjectId = try {
+      val destProject = PhaseApi.parentProject(destPhaseOid, destDB)
+      destProject._id[ObjectId]
+    } catch {
+      case _: Throwable =>
+        new ObjectId("0" * 24)
+    }
+
     for (task <- srcTasks) {
       val taskOid = task._id[ObjectId]
       val srcDeliverables: Seq[DynDoc] = sourceDB.deliverables.find(Map("activity_id" -> taskOid))
@@ -92,13 +111,7 @@ private object LibraryOperations extends HttpUtils {
           val migrationInfo: DynDoc = Map("src_deliverable_id" -> srcDeliverable._id[ObjectId],
               "bpmn_name_full" -> task.bpmn_name_full[String])
           srcDeliverable.migration_info = migrationInfo.asDoc
-          try {
-            val destProject = PhaseApi.parentProject(destPhaseOid, destDB)
-            srcDeliverable.project_id = destProject._id[ObjectId]
-          } catch {
-            case _: Throwable =>
-              srcDeliverable.project_id = new ObjectId("0" * 24)
-          }
+          srcDeliverable.project_id = destProjectOid
           srcDeliverable.phase_id = destPhaseOid
           srcDeliverable.process_id = destProcess._id[ObjectId]
           srcDeliverable.activity_id = destTaskOidByBpmn("%s/%s".format(task.bpmn_name_full[String], task.bpmn_id[String]))
@@ -337,7 +350,6 @@ private object LibraryOperations extends HttpUtils {
   }
 
   private def listLibrary(output: String => Unit): Unit = {
-    val margin = "&nbsp;" * 4
     output(s"""<br/>${getClass.getName}:listLibrary() ENTRY<br/>""")
     val collNames = BWMongoDBLib.collectionNames
     output(s"""${getClass.getName}:listLibrary()$margin Found ${collNames.length} collections<br/>""")

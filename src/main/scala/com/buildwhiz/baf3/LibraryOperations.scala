@@ -343,8 +343,12 @@ object LibraryOperations extends HttpUtils {
       if (count > 0 && cn == "phases") {
         val phases: Seq[DynDoc] = BWMongoDBLib(cn).find()
         for (phase <- phases) {
+          val libraryInfo: DynDoc = phase.library_info[Document]
+          val instanceName = libraryInfo.instance_name[String]
+          val user = libraryInfo.user[String]
+          val orgName = libraryInfo.original_partner[String]
           output(s"${getClass.getName}:listLibrary()$margin$margin$margin" +
-            s""" ${phase.name[String]} (${phase._id[ObjectId]}) [${phase.instance_name[String]}]<br/>""")
+            s""" ${phase.name[String]} (${phase._id[ObjectId]}) [$instanceName, $user, $orgName]<br/>""")
         }
       }
     }
@@ -377,10 +381,20 @@ object LibraryOperations extends HttpUtils {
       // For export only
       val info: DynDoc = BWMongoDB3.instance_info.find().head
       val instanceName = info.instance[String]
+      val parentProject = PhaseApi.parentProject(phaseSourceOid)
+      val partnerOid = parentProject.customer_organization_id[ObjectId]
+      val originalProject = s"${parentProject.name[String]} (${parentProject._id[ObjectId]})"
+      val partner = OrganizationApi.organizationById(partnerOid)
+      val originalPartner = s"${partner.name[String]} ($partnerOid)"
       val libraryInfo: Document = Map("instance_name" -> instanceName, "description" -> optDescription.getOrElse("-"),
-          "user" -> user._id[ObjectId], "timestamp" -> System.currentTimeMillis())
+          "user" -> s"${PersonApi.fullName(user)} (${user._id[ObjectId]})", "timestamp" -> System.currentTimeMillis(),
+          "original_partner" -> originalPartner, "original_project" -> originalProject)
       destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
         Map($set -> Map("library_info" -> libraryInfo)))
+    } else {
+      // For import only
+      // destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
+      //   Map($set -> Map($unset -> "library_info")))
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
     LibraryOperations.cloneProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)

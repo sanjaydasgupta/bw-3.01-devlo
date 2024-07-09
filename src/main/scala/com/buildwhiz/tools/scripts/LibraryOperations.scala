@@ -29,7 +29,7 @@ object LibraryOperations extends HttpUtils {
       if (args.length >= 2) {
         if (args(0).matches("(?i)EXPORT")) {
           val phaseSourceOid = new ObjectId(args(1))
-          LibOps.exportPhase(phaseSourceOid, output, request)
+          LibOps.exportPhase(phaseSourceOid, output, "-", request)
         } else if (args.length == 3 && args(0).matches("(?i)IMPORT")) {
           val phaseSourceOid = new ObjectId(args(1))
           LibOps.importPhase(phaseSourceOid, new ObjectId(args(2)), output, request)

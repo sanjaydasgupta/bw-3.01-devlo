@@ -26,7 +26,8 @@ class LibraryImport extends HttpServlet with HttpUtils {
         case t: Throwable =>
           val returnJson = new Document("ok", 0).append("message", "See details in log")
           response.getWriter.print(returnJson)
-          val messages = t.getStackTrace.map(_.toString).filter(_.contains("at com.buildwhiz.")).mkString("\n")
+          val messages = (t.getMessage +: t.getStackTrace.map(_.toString).filter(_.contains("at com.buildwhiz."))).
+              mkString("<br/>\n")
           BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $messages", request)
       }
     } catch {

@@ -411,7 +411,7 @@ object ProcessAdd extends BpmnUtils {
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
       "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
-      "variables" -> variableBuffer.asJava, "type" -> processType,
+      "variables" -> variableBuffer.asJava, "type" -> processType, "parent_phase_id" -> phaseOid,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
       "assigned_roles" -> assignedRoles, "milestones" -> milestoneBuffer.asJava,
       "end_nodes" -> endNodeBuffer.asJava, "start_nodes" -> startNodeBuffer.asJava)

@@ -290,13 +290,13 @@ object LibraryOperations extends HttpUtils {
     }
   }
 
-  def exportPhase(phaseSourceOid: ObjectId, output: OUTPUT, request: HttpServletRequest): Unit = {
-    transportPhase(phaseSourceOid, None, output, request)
+  def exportPhase(phaseSourceOid: ObjectId, output: OUTPUT, description: String, request: HttpServletRequest): Unit = {
+    transportPhase(phaseSourceOid, None, output, Some(description), request)
   }
 
   def importPhase(phaseSourceOid: ObjectId, projectDestOid: ObjectId, output: OUTPUT, request: HttpServletRequest):
       Unit = {
-    transportPhase(phaseSourceOid, Some(projectDestOid), output, request)
+    transportPhase(phaseSourceOid, Some(projectDestOid), output, None, request)
   }
 
   def cleanLibrary(colName: String, output: OUTPUT): Unit = {
@@ -352,7 +352,7 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def transportPhase(phaseSourceOid: ObjectId, optProjectOid: Option[ObjectId], output: OUTPUT,
-      request: HttpServletRequest): Unit = {
+      optDescription: Option[String], request: HttpServletRequest): Unit = {
     val (sourceDB, destDB) = if (optProjectOid.isDefined) {
       // Import from library
       (BWMongoDBLib, BWMongoDB3)
@@ -377,8 +377,10 @@ object LibraryOperations extends HttpUtils {
       // For export only
       val info: DynDoc = BWMongoDB3.instance_info.find().head
       val instanceName = info.instance[String]
+      val libraryInfo: Document = Map("instance_name" -> instanceName, "description" -> optDescription.getOrElse("-"),
+          "user" -> user._id[ObjectId], "timestamp" -> System.currentTimeMillis())
       destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
-        Map($set -> Map("instance_name" -> instanceName)))
+        Map($set -> Map("library_info" -> libraryInfo)))
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
     LibraryOperations.cloneProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)

@@ -195,14 +195,14 @@ object LibraryOperations extends HttpUtils {
     t2tMap
   }
 
-  private def cloneProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
+  private def cloneTemplateProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
       request: HttpServletRequest, output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/>")
     val teamsTable = getTeamsTable(sourceDB, phaseSrc, destDB, phaseDest)
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
     val processesToClone: Seq[DynDoc] = sourceDB.processes.find(Map("_id" -> Map($in -> srcProcessOids),
-      "type" -> Map($in -> Seq("Template", "Primary"))))
+      "type" -> "Template"))
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Source process names: ${processesToClone.map(_.name[String]).mkString(", ")}</font><br/>""")
     val destProcessOids = phaseDest.process_ids[Many[Document]]
     val destProcesses: Seq[DynDoc] = destDB.processes.find(Map("_id" -> Map($in -> destProcessOids),
@@ -368,12 +368,12 @@ object LibraryOperations extends HttpUtils {
     val user: DynDoc = getUser(request)
     output(s"""<br/>${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/>""")
     val phaseDest: DynDoc = {
-      val processDest: DynDoc = {
+      val processSource: DynDoc = {
         val processOid = phaseSource.process_ids[Many[ObjectId]].head
         sourceDB.processes.find(Map("_id" -> processOid)).head
       }
       val phaseOid = PhaseAdd.addPhaseWithProcess(getUser(request), phaseSource.name[String], optProjectOid,
-        phaseSource.description[String], Seq(user._id[ObjectId]), processDest.bpmn_name[String], processDest.name[String],
+        phaseSource.description[String], Seq(user._id[ObjectId]), processSource.bpmn_name[String], processSource.name[String],
         destDB, request)
       destDB.phases.find(Map("_id" -> phaseOid)).head
     }
@@ -397,7 +397,7 @@ object LibraryOperations extends HttpUtils {
       //   Map($set -> Map($unset -> "library_info")))
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
-    LibraryOperations.cloneProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)
+    LibraryOperations.cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }
 

@@ -29,11 +29,11 @@ class LibraryList extends HttpServlet with HttpUtils {
             "instance_name" -> libInfo.instance_name[String],
             "original_project_name" -> libInfo.original_project[String].split(" ").init.mkString(" "),
             "original_project_id" -> libInfo.original_project[String].split(" ").last,
-            "library_phase_id" -> phase._id[ObjectId].toString, "description" -> phase.description[String])
+            "library_phase_id" -> phase._id[ObjectId].toString, "description" -> libInfo.description[String])
         })
         val retJson: String = phaseList.map(_.asDoc.toJson).mkString("[", ", ", "]")
         response.getWriter.println(retJson)
-        BWLogger.audit(getClass.getName, request.getMethod, s"EXIT-OK (${phases.length})", request)
+        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${phases.length})", request)
       } catch {
         case t: Throwable =>
           val returnJson = new Document("ok", 0).append("message", "See details in log")

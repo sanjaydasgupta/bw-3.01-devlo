@@ -14,6 +14,7 @@ import scala.jdk.CollectionConverters.SeqHasAsJava
 object LibraryContentsUtility {
 
   def flags(db: BWMongoDB, phase: DynDoc): Many[(String, Boolean)] = {
+    val phaseOid = phase._id[ObjectId]
     val procOidList = phase.process_ids[Many[ObjectId]].map(oid => s"""ObjectId("$oid")""").mkString("[", ",", "]")
 
     def hasWorkflowTemplates: Boolean = {
@@ -41,19 +42,50 @@ object LibraryContentsUtility {
     }
 
     def teamsDetails: (Boolean, Boolean, Boolean) = {
-      val teamOids: Many[ObjectId] = phase.team_assignments[Many[Document]].map(_.team_id[ObjectId])
-      val teams: Seq[DynDoc] = db.teams.find(Map("_id" -> Map($in -> teamOids)))
-      val teamsWithPartners = teams.filter(_.has("organization_id"))
-      val teamsWithMembers = teamsWithPartners.filter(t => t.has("team_members") && t.team_members[Many[Document]].nonEmpty)
-      (teams.nonEmpty, teamsWithPartners.nonEmpty, teamsWithMembers.nonEmpty)
+      val teamsOidList = phase.team_assignments[Many[Document]].map(tid => s"""ObjectId("${tid.team_id[ObjectId]}")""").
+        mkString("[", ",", "]")
+      val pipe: Many[Document] = Seq(
+        s"""{$$match: {_id: {$$in: $teamsOidList}}}""",
+        """{$project: {orgs: {$ifNull: ["$organization_id", "X"]}, """ +
+          """members: {$size: {$ifNull: ["$team_members", []]}}}}""",
+        """{$project: {orgs: {$ne: ["$orgs", "X"]}, members: {$ne: ["$members", 0]}}}""",
+        """{$group: {_id: null, count: {$sum: 1}, orgs: {$push: "$orgs"}, members: {$push: "$members"}}}""",
+        """{$project: {count: true, orgs: {$in: [true, "$orgs"]}, members: {$in: [true, "$members"]}}}""",
+      ).map(Document.parse).asJava
+      val teams: Seq[DynDoc] = db.teams.aggregate(pipe)
+      println("teamsDetails: " + teams.map(_.asDoc.toJson).mkString("|"))
+      val tne = teams.nonEmpty
+      (tne, tne && teams.head.orgs[Boolean], tne && teams.head.members[Boolean])
+    }
+
+    def activityDetails: (Boolean, Boolean, Boolean, Boolean) = {
+      val pipe: Many[Document] = Seq(
+        s"""{$$match: {phase_id: ObjectId("$phaseOid")}}""",
+        """{$project: {has_duration: {$gt: ["$duration", 0]}, """ +
+            """has_budget_estimated: {$ne: [{$ifNull: ["$budget_estimated", 0]}, 0]}""" +
+            """has_budget_contracted: {$ne: [{$ifNull: ["$budget_contracted", 0]}, 0]}}}""",
+        """{$group: {_id: null, count: {$sum: 1}, has_duration: {$push: "$has_duration"}, """ +
+            """has_budget_estimated: {$push: "$has_budget_estimated"}, """ +
+            """has_budget_contracted: {$push: "$has_budget_contracted"}}}""",
+        """{$project: {count: true, has_duration: {$in: [true, "$has_duration"]}, """ +
+            """has_budget_estimated: {$in: [true, "$has_budget_estimated"]}, """ +
+            """has_budget_contracted: {$in: [true, "$has_budget_contracted"]}}}""",
+      ).map(Document.parse).asJava
+      val activities: Seq[DynDoc] = db.deliverables.aggregate(pipe)
+      println("activityDetails: " + activities.map(_.asDoc.toJson).mkString("|"))
+      val ane = activities.nonEmpty
+      (ane, ane && activities.head.has_duration[Boolean], ane && activities.head.has_budget_estimated[Boolean],
+            ane && activities.head.has_budget_contracted[Boolean])
     }
 
     val (teams, teamPartners, teamMembers) = teamsDetails
+    val (activities, activityDurations, activityBudgetsEstimated, activityBudgetsContracted) = activityDetails
 
     val flags = Seq(
       "budgets" -> true, "teams" -> teams, "team_partners" -> teamPartners, "team_members" -> teamMembers,
-      "task_durations" -> hasTaskDurations, "activities" -> true, "activity_durations" -> true, "risks" -> true,
-      "workflow_templates" -> hasWorkflowTemplates, "zones" -> true, "spec_documents" -> true)
+      "task_durations" -> hasTaskDurations, "activities" -> activities, "activity_durations" -> activityDurations,
+      "has_budget_estimated" -> activityBudgetsEstimated, "has_budget_contracted" -> activityBudgetsContracted,
+      "risks" -> false, "workflow_templates" -> hasWorkflowTemplates, "zones" -> false, "spec_documents" -> false)
 
     flags
   }

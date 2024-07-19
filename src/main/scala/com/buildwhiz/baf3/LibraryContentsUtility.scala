@@ -96,7 +96,6 @@ object LibraryContentsUtility {
       "activity_duration" -> activityDurations,
       "activity_estimated_budget" -> activityBudgetsEstimated,
       "activity_contracted_budget" -> activityBudgetsContracted,
-      "phase_plan_activities_teams" -> teams,
       "team_partner" -> teamPartners,
       "team_member" -> teamMembers,
       // ...

@@ -28,7 +28,7 @@ class LibraryList extends HttpServlet with HttpUtils {
             "original_partner_name" -> libInfo.original_partner[String].split(" ").init.mkString(" "),
             "original_partner_organization_id" -> libInfo.original_partner[String].split(" ").last,
             "instance_name" -> libInfo.instance_name[String],
-            "flags" -> LibraryContentsUtility.flags(BWMongoDBLib, phase),
+            "flags" -> LibraryContentsUtility.trueFlagsList(BWMongoDBLib, phase),
             "original_project_name" -> libInfo.original_project[String].split(" ").init.mkString(" "),
             "original_project_id" -> libInfo.original_project[String].split(" ").last,
             "library_phase_id" -> phase._id[ObjectId].toString, "description" -> libInfo.description[String])

@@ -27,18 +27,23 @@ object LibraryContentsUtility {
       processes.nonEmpty
     }
 
-    def hasTaskDurations: Boolean = {
+    def taskDetails: (Boolean, Boolean) = {
       val pipe: Many[Document] = Seq(
         s"""{$$match: {_id: {$$in: $procOidList}}}""",
         """{$unwind: "$activity_ids"}""",
         """{$lookup: {from: "tasks", localField: "activity_ids", foreignField: "_id", as: "tasks"}}""",
         """{$unwind: "$tasks"}""",
-        """{$match: {"tasks.timestamps.likely": {$ne: -1}}}""",
-        """{$group: {_id: null, count: {$sum: 1}}}"""
+        """{$replaceWith: "$tasks"}""",
+        """{$project: {duration: {$ne: ["$timestamps.likely", -1]}, """ +
+            """budget: {$ne: [{$ifNull: ["$budget_estimated", 0]}, 0]}}}""",
+        """{$match: {$expr: {$or: [{$eq: ["$duration", true]}, {$eq: ["$budget", true]}]}}}""",
+        """{$group: {_id: null, count: {$sum: 1}, duration: {$push: "$duration"}, budget: {$push: "$budget"}}}""",
       ).map(Document.parse).asJava
       val tasks: Seq[DynDoc] = db.processes.aggregate(pipe)
-      println("hasTaskDurations: " + tasks.map(_.asDoc.toJson).mkString("|"))
-      tasks.nonEmpty
+      println("taskDetails: " + tasks.map(_.asDoc.toJson).mkString("|"))
+      val tne = tasks.nonEmpty
+      (tne && tasks.head.duration[Many[Boolean]].contains(true),
+          tne && tasks.head.budget[Many[Boolean]].contains(true))
     }
 
     def teamsDetails: (Boolean, Boolean, Boolean) = {
@@ -78,16 +83,35 @@ object LibraryContentsUtility {
             ane && activities.head.has_budget_contracted[Boolean])
     }
 
+    val (hasTaskDurations, hasTaskBudgetEstimates) = taskDetails
     val (teams, teamPartners, teamMembers) = teamsDetails
     val (activities, activityDurations, activityBudgetsEstimated, activityBudgetsContracted) = activityDetails
 
     val flags = Seq(
-      "budgets" -> true, "teams" -> teams, "team_partners" -> teamPartners, "team_members" -> teamMembers,
-      "task_durations" -> hasTaskDurations, "activities" -> activities, "activity_durations" -> activityDurations,
-      "has_budget_estimated" -> activityBudgetsEstimated, "has_budget_contracted" -> activityBudgetsContracted,
-      "risks" -> false, "workflow_templates" -> hasWorkflowTemplates, "zones" -> false, "spec_documents" -> false)
+      "phase_estimated_budget" -> true,
+      // ...
+      "task_duration" -> hasTaskDurations,
+      "task_estimated_budget" -> hasTaskBudgetEstimates,
+      "activity" -> activities,
+      "activity_duration" -> activityDurations,
+      "activity_estimated_budget" -> activityBudgetsEstimated,
+      "activity_contracted_budget" -> activityBudgetsContracted,
+      "phase_plan_activities_teams" -> teams,
+      "team_partner" -> teamPartners,
+      "team_member" -> teamMembers,
+      // ...
+      "workflow_template" -> hasWorkflowTemplates,
+      "periodic_issue" -> true,
+      // ...
+      "report" -> true,
+      "risk" -> true,
+      "zone" -> true)
 
     flags
+  }
+
+  def trueFlagsList(db: BWMongoDB, phase: DynDoc): Many[String] = {
+    flags(db, phase).filter(_._2).map(_._1).sorted
   }
 
 }
@@ -107,9 +131,9 @@ class LibraryContentsUtility extends HttpServlet with HttpUtils {
         case _ => throw new IllegalArgumentException(s"Bad direction value: '$direction'")
       }
       val phaseRecord: DynDoc = PhaseApi.phaseById(phaseOid)
-      val flags = LibraryContentsUtility.flags(db, phaseRecord)
-      val trueFlags = flags.filter(_._2).map(_._1)
-      response.getWriter.println(trueFlags.mkString("[", ",", "]"))
+      val flags = LibraryContentsUtility.trueFlagsList(db, phaseRecord)
+      val flagsJson = flags.mkString("""{"flags":["""", """", """", """"]}""")
+      response.getWriter.println(flagsJson)
       response.setContentType("application/json")
       BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {

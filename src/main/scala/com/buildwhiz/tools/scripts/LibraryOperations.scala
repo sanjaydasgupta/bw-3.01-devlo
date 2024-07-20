@@ -27,12 +27,16 @@ object LibraryOperations extends HttpUtils {
       }
       LibOps.registerUser(user)
       if (args.length >= 2) {
+        val flagNames = Seq("phase_estimated_budget", "task_duration", "task_estimated_budget", "workflow_template",
+          "periodic_issue", "activity", "activity_duration", "activity_estimated_budget",
+          "activity_contracted_budget", "team_partner", "team_member", "risk", "zone", "report")
+        val flags = flagNames.map((_, true)).toMap
         if (args(0).matches("(?i)EXPORT")) {
           val phaseSourceOid = new ObjectId(args(1))
-          LibOps.exportPhase(phaseSourceOid, output, "-", request)
+          LibOps.exportPhase(phaseSourceOid, output, "-", flags, request)
         } else if (args.length == 3 && args(0).matches("(?i)IMPORT")) {
           val phaseSourceOid = new ObjectId(args(1))
-          LibOps.importPhase(phaseSourceOid, new ObjectId(args(2)), output, request)
+          LibOps.importPhase(phaseSourceOid, new ObjectId(args(2)), output, flags, request)
         } else if (args(0).matches("(?i)CLEAN")) {
           LibOps.cleanLibrary(args(1), output)
         } else {

@@ -9,30 +9,26 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class LibraryExport extends HttpServlet with HttpUtils {
 
-  private def getBoolean(pname: String, request: HttpServletRequest): Boolean = {
-    val parameters = getParameterMap(request)
-    parameters.get(pname) match {
-      case Some(pv) => pv.toBoolean
-      case None => false
-    }
-  }
-
   override def doPost(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       val parameters = getParameterMap(request)
       val phaseOid = new ObjectId(parameters("phase_id"))
       val description = parameters("description")
-      val includeTaskDurations = getBoolean("task_durations", request)
-      val includeActivities = getBoolean("activities", request)
-      val includeActivityDurations = getBoolean("activity_durations", request)
-      val includeTeams = getBoolean("teams", request)
-      val includePartners = getBoolean("team_partners", request)
-      val includeMembers = getBoolean("team_members", request)
+      val flagNames = Seq("phase_estimated_budget", "task_duration", "task_estimated_budget", "workflow_template",
+        "periodic_issue", "activity", "activity_duration", "activity_estimated_budget",
+        "activity_contracted_budget", "team_partner", "team_member", "risk", "zone", "report")
+      val flags: Map[String, Boolean] = flagNames.map(fn => {
+        val paramValue = parameters.get(fn) match {
+          case Some(pv) => pv.toBoolean
+          case None => false
+        }
+        (fn, paramValue)
+      }).toMap
       val outputBuffer = new mutable.ArrayBuffer[String]()
       response.setContentType("application/json")
       try {
-        LibraryOperations.exportPhase(phaseOid, msg => outputBuffer.append(msg), description, request)
+        LibraryOperations.exportPhase(phaseOid, msg => outputBuffer.append(msg), description, flags, request)
         response.getWriter.print(successJson(fields = Map("html" -> outputBuffer.mkString("\n"))))
         BWLogger.audit(getClass.getName, request.getMethod, s"Phase '$phaseOid' exported successfully", request)
       } catch {

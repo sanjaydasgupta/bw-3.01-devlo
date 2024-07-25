@@ -77,14 +77,14 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def replicateDeliverables(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
-      destPhase: DynDoc, teamsTable: Map[ObjectId, ObjectId], output: OUTPUT): Unit = {
+      destPhase: DynDoc, teamsTable: Map[ObjectId, ObjectId], flags: Map[String, Boolean], output: OUTPUT): Unit = {
     output(s"""<br/>${getClass.getName}:replicateDeliverables(${destProcess.name[String]}) ENTRY<br/>""")
     val destPhaseOid = destPhase._id[ObjectId]
     val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
     val srcTasks: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
     val destTaskOids = destProcess.activity_ids[Many[ObjectId]]
     val destTasks: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> destTaskOids)))
-    val destTaskOidByBpmn = destTasks.
+    val destTaskOidByBpmn: Map[String, ObjectId] = destTasks.
         map(dt => ("%s/%s".format(dt.bpmn_name_full[String], dt.bpmn_id[String]), dt._id[ObjectId])).toMap
     var maxCommonInstanceNo = {
       val aggPipe = Seq(new Document("$group", new Document("_id", null).append("max_common_instance_no",
@@ -141,7 +141,8 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneOneProcess(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destPhase: DynDoc,
-      teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest, output: OUTPUT): Unit = {
+      teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest, flags: Map[String, Boolean], output: OUTPUT):
+      Unit = {
     output(s"<br/>${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) ENTRY<br/>")
     // create new template process
     val destPhaseManager = PersonApi.personById(PhaseApi.managers(Right(destPhase)).head)
@@ -167,7 +168,7 @@ object LibraryOperations extends HttpUtils {
     }
     // set default team-assignments of each task (NOT needed)
     // for each task replicate activities (deliverables) and realign teams
-    replicateDeliverables(sourceDB, srcProcess, destDB, newProcess, destPhase, teamsTable, output)
+    replicateDeliverables(sourceDB, srcProcess, destDB, newProcess, destPhase, teamsTable, flags, output)
     // clone constraint records, re-align activity-id values in constraints
     replicateConstraints(sourceDB, destDB, newProcess, output)
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
@@ -195,8 +196,8 @@ object LibraryOperations extends HttpUtils {
     t2tMap
   }
 
-  private def cloneTemplateProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
-      request: HttpServletRequest, output: OUTPUT): Unit = {
+  private def cloneTemplateProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
+      flags: Map[String, Boolean], go: Boolean, request: HttpServletRequest, output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/>")
     val teamsTable = getTeamsTable(sourceDB, phaseSrc, destDB, phaseDest)
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/>""")
@@ -213,7 +214,7 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Processes to copy: ${processesToCopy.map(_.name[String]).mkString(", ")}</font><br/>""")
     if (go && processesToCopy.nonEmpty) {
       for (processToCopy <- processesToCopy) {
-        cloneOneProcess(sourceDB, processToCopy, destDB, phaseDest, teamsTable, request, output)
+        cloneOneProcess(sourceDB, processToCopy, destDB, phaseDest, teamsTable, request, flags, output)
       }
     } else {
       output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Nothing to do! EXITING</font><br/>""")
@@ -290,13 +291,14 @@ object LibraryOperations extends HttpUtils {
     }
   }
 
-  def exportPhase(phaseSourceOid: ObjectId, output: OUTPUT, description: String, request: HttpServletRequest): Unit = {
-    transportPhase(phaseSourceOid, None, output, Some(description), request)
+  def exportPhase(phaseSourceOid: ObjectId, output: OUTPUT, description: String, flags: Map[String, Boolean],
+      request: HttpServletRequest): Unit = {
+    transportPhase(phaseSourceOid, None, output, Some(description), flags, request)
   }
 
-  def importPhase(phaseSourceOid: ObjectId, projectDestOid: ObjectId, output: OUTPUT, request: HttpServletRequest):
-      Unit = {
-    transportPhase(phaseSourceOid, Some(projectDestOid), output, None, request)
+  def importPhase(phaseSourceOid: ObjectId, projectDestOid: ObjectId, output: OUTPUT, flags: Map[String, Boolean],
+      request: HttpServletRequest): Unit = {
+    transportPhase(phaseSourceOid, Some(projectDestOid), output, None, flags, request)
   }
 
   def cleanLibrary(colName: String, output: OUTPUT): Unit = {
@@ -356,7 +358,7 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def transportPhase(phaseSourceOid: ObjectId, optProjectOid: Option[ObjectId], output: OUTPUT,
-      optDescription: Option[String], request: HttpServletRequest): Unit = {
+      optDescription: Option[String], flags: Map[String, Boolean], request: HttpServletRequest): Unit = {
     val (sourceDB, destDB) = if (optProjectOid.isDefined) {
       // Import from library
       (BWMongoDBLib, BWMongoDB3)
@@ -373,8 +375,8 @@ object LibraryOperations extends HttpUtils {
         sourceDB.processes.find(Map("_id" -> processOid)).head
       }
       val phaseOid = PhaseAdd.addPhaseWithProcess(getUser(request), phaseSource.name[String], optProjectOid,
-        phaseSource.description[String], Seq(user._id[ObjectId]), processSource.bpmn_name[String], processSource.name[String],
-        destDB, request)
+        phaseSource.description[String], Seq(user._id[ObjectId]), processSource.bpmn_name[String],
+        processSource.name[String], destDB, flags, request)
       destDB.phases.find(Map("_id" -> phaseOid)).head
     }
     if (optProjectOid.isEmpty) {
@@ -397,7 +399,8 @@ object LibraryOperations extends HttpUtils {
       //   Map($set -> Map($unset -> "library_info")))
     }
     LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
-    LibraryOperations.cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, go = true, request, output)
+    LibraryOperations.cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, request,
+        output)
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }
 

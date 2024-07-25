@@ -415,7 +415,7 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-      request: HttpServletRequest, phaseManagerOids: Seq[ObjectId], bwMongoDb: BWMongoDB): Unit = {
+      phaseManagerOids: Seq[ObjectId], bwMongoDb: BWMongoDB, flags: Map[String, Boolean], request: HttpServletRequest): Unit = {
     val thePhase = PhaseApi.phaseById(phaseOid, bwMongoDb)
     if (!PersonApi.isBuildWhizAdmin(Right(user)))
       throw new IllegalArgumentException("Not permitted")
@@ -484,7 +484,7 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addPhase(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
-      phaseManagerOids: Seq[ObjectId], db: BWMongoDB): ObjectId = {
+      phaseManagerOids: Seq[ObjectId], db: BWMongoDB, flags: Map[String, Boolean]): ObjectId = {
 
     val userOid = user._id[ObjectId]
     val isParentProjectManager = optProjectOid match {
@@ -545,10 +545,11 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   def addPhaseWithProcess(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
-      phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, db: BWMongoDB, request: HttpServletRequest): ObjectId = {
+      phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, db: BWMongoDB,
+      flags: Map[String, Boolean], request: HttpServletRequest): ObjectId = {
     BWMongoDB3.withTransaction({
-      val phaseOid = addPhase(user, phaseName, optProjectOid, description, phaseManagerOids, db)
-      addProcess(user, bpmnName, processName, phaseOid, request, phaseManagerOids, db)
+      val phaseOid = addPhase(user, phaseName, optProjectOid, description, phaseManagerOids, db, flags)
+      addProcess(user, bpmnName, processName, phaseOid, phaseManagerOids, db, flags, request)
       phaseOid
     })
   }
@@ -632,7 +633,7 @@ class PhaseAdd extends HttpServlet with HttpUtils {
       val processName = s"$phaseName:$bpmnName"
 
       PhaseAdd.addPhaseWithProcess(user, phaseName, Some(parentProjectOid), description, phaseManagerOids, bpmnName,
-        processName, BWMongoDB3, request)
+        processName, BWMongoDB3, Map.empty[String, Boolean], request)
     } catch {
       case t: Throwable =>
         BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)

@@ -128,28 +128,8 @@ object GlobalConfigSetup extends HttpUtils {
     configs
   }
 
-  private def setup(go: Boolean, output: String => Unit): Unit = {
-    val configs = getConfigs
-//    output("""<table border="1" width="100%">""")
-//    output("<tr><td>project</td><td>phase</td><td>site</td><td>control</td><td>enables</td><td>options</td></tr>")
-//    configs.foreach(config => {
-//      val proj_ids = config.project_id[ObjectId]
-//      val ph_ids = config.phase_id[ObjectId]
-//      val site = config.site_name[String]
-//      val controls = config.control_names[Many[String]]
-//      val enables = config.enables[Many[Document]]
-//      val options = config.options[Many[_]]
-//      val optSeq: Seq[String] = options.map {
-//        case doc: Document => doc.toJson()
-//        case manyDocs: Many[Document] => manyDocs.map(_.asDoc.toJson).mkString("[", ", ", "]")
-//        case manyManyDocs: Many[Many[Document]] => manyManyDocs.map(_.map(_.asDoc.toJson).mkString("[", ", ", "]")).mkString(", ")
-//      }
-//      val optStr = optSeq.mkString(", ")
-//      output(s"<tr><td>$proj_ids</td><td>$ph_ids</td><td>$site</td><td>${controls.mkString(", ")}</td><td>${enables.map(_.asDoc.toJson).mkString(", ")}</td><td>$optStr</td></tr>")
-//    })
-//    output("</table>")
-    // Projects ...
-    val allProjects = ProjectApi.listProjects()
+  private def projectMissingConfigs(allProjects: Seq[DynDoc], configs: Seq[DynDoc], output: String => Unit):
+      Seq[(ObjectId, Seq[String])] = {
     val allProjectControlNames: Set[String] = projectConfigs.map(_._1).toSet
     val projectMissingControls: Seq[(ObjectId, Seq[String])] = allProjects.map(project => {
       val projectOid = project._id[ObjectId]
@@ -161,12 +141,17 @@ object GlobalConfigSetup extends HttpUtils {
       }
     })
     output("""<table border="1" width="100%">""")
-    output("<tr><td>project</td><td>missing controls</td></tr>")
+    output("""<tr bgcolor="yellow"><td colspan="2" align="center">Projects</td></tr>""")
+    output("""<tr><td align="center">Project</td><td align="center">Missing Controls</td></tr>""")
     projectMissingControls.foreach(c => {
-      output(s"""<tr><td>${c._1}</td><td>${c._2.mkString(", ")}</td></tr>""")
+      output(s"""<tr><td align="center">${c._1}</td><td align="center">${c._2.mkString(", ")}</td></tr>""")
     })
     output("</table>")
-    // Phases ...
+    projectMissingControls
+  }
+
+  private def phaseMissingConfigs(allProjects: Seq[DynDoc], configs: Seq[DynDoc], output: String => Unit):
+      Seq[(ObjectId, Seq[String])] = {
     val allPhaseControlNames: Set[String] = phaseConfigs.map(_._1).toSet
     val allPhaseOids: Seq[ObjectId] = allProjects.flatMap(_.phase_ids[Many[ObjectId]])
     val phaseMissingControls: Seq[(ObjectId, Seq[String])] = allPhaseOids.map(phaseOid => {
@@ -178,11 +163,22 @@ object GlobalConfigSetup extends HttpUtils {
       }
     })
     output("""<table border="1" width="100%">""")
-    output("<tr><td>phase</td><td>missing controls</td></tr>")
+    output("""<tr bgcolor="yellow"><td colspan="2" align="center">Phases</td></tr>""")
+    output("""<tr><td align="center">Phase</td><td align="center">Missing Controls</td></tr>""")
     phaseMissingControls.foreach(c => {
-      output(s"""<tr><td>${c._1}</td><td>${c._2.mkString(", ")}</td></tr>""")
+      output(s"""<tr><td align="center">${c._1}</td><td align="center">${c._2.mkString(", ")}</td></tr>""")
     })
     output("</table>")
+    phaseMissingControls
+  }
+
+  private def setup(go: Boolean, output: String => Unit): Unit = {
+    val configs = getConfigs
+    val allProjects = ProjectApi.listProjects()
+    // Projects ...
+    val projectsIssues = projectMissingConfigs(allProjects, configs, output)
+    // Phases ...
+    val phaseIssues = phaseMissingConfigs(allProjects, configs, output)
     if (go) {
       // setupProjects(go, output)
       // setupPhases(go, output)

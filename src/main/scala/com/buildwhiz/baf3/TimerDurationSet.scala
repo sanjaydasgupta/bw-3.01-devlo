@@ -23,7 +23,7 @@ class TimerDurationSet extends HttpServlet with HttpUtils with DateTimeUtils {
         throw new IllegalArgumentException("Not permitted")
       val (duration, bpmnName) = (parameters("duration"), parameters("bpmn_name"))
       val (timerId, timerName) = (parameters.get("timer_id"), parameters.get("timer_name"))
-      val theProcess: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
+      val theProcess: DynDoc = PhaseApi.allProcesses2(phaseOid).headOption match {
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
       }

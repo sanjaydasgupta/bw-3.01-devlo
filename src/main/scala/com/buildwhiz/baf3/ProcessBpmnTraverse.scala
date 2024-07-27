@@ -174,7 +174,7 @@ object ProcessBpmnTraverse extends BpmnUtils {
   def processDurationRecalculate(bpmnName: String, phaseOid: ObjectId, bpmnNameFull: String,
       durations: Seq[(String, String, Int)], request: HttpServletRequest): Long = {
 
-    val process = PhaseApi.allProcesses(phaseOid).headOption match {
+    val process = PhaseApi.allProcesses2(phaseOid).headOption match {
       case Some(soloProcess) => soloProcess
       case _ => throw new IllegalArgumentException("Bad phase: mis-configured processes")
     }

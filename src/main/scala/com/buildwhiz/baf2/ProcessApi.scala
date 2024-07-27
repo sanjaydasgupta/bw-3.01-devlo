@@ -19,43 +19,46 @@ import java.util.Calendar
 
 object ProcessApi {
 
-  def listProcesses(): Seq[DynDoc] = {
-    BWMongoDB3.processes.find()
+  def listProcesses(db: BWMongoDB=BWMongoDB3): Seq[DynDoc] = {
+    db.processes.find()
   }
 
-  def processesByIds(processOids: Seq[ObjectId]): Seq[DynDoc] =
-    BWMongoDB3.processes.find(Map("_id" -> Map($in -> processOids)))
+  def processesByIds(processOids: Seq[ObjectId], db: BWMongoDB = BWMongoDB3): Seq[DynDoc] =
+    db.processes.find(Map("_id" -> Map($in -> processOids)))
 
   def processById(processOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
     db.processes.find(Map("_id" -> processOid)).head
   }
 
-  def exists(processOid: ObjectId): Boolean = BWMongoDB3.processes.find(Map("_id" -> processOid)).nonEmpty
+  def exists(processOid: ObjectId, db: BWMongoDB=BWMongoDB3): Boolean = {
+    db.processes.find(Map("_id" -> processOid)).nonEmpty
+  }
 
   def allActivityOids(process: DynDoc): Seq[ObjectId] = process.get[Many[ObjectId]]("activity_ids") match {
     case Some(activityOids) => activityOids
     case None => Seq.empty
   }
 
-  def allActivities(processIn: Either[ObjectId, DynDoc], filter: Map[String, Any] = Map.empty): Seq[DynDoc] = {
+  def allActivities(processIn: Either[ObjectId, DynDoc], filter: Map[String, Any] = Map.empty,
+      db: BWMongoDB=BWMongoDB3): Seq[DynDoc] = {
     val process = processIn match {
       case Right(pr) => pr
-      case Left(oid) => processById(oid)
+      case Left(oid) => processById(oid, db)
     }
     val activityOids = allActivityOids(process)
-    ActivityApi.activitiesByIds(activityOids, filter)
+    ActivityApi.activitiesByIds(activityOids, filter, db)
   }
 
-  def delete(process: DynDoc): Either[String, String] = {
+  def delete(process: DynDoc, db: BWMongoDB = BWMongoDB3): Either[String, String] = {
     val processOid = process._id[ObjectId]
     val isTemplate = process.`type`[String] == "Template"
     val dependantProcessCount: Long = if (isTemplate) {
-      BWMongoDB3.processes.countDocuments(Map("type" -> "Transient", "template_process_id" -> processOid))
+      db.processes.countDocuments(Map("type" -> "Transient", "template_process_id" -> processOid))
     } else {
       0
     }
     val dependantScheduleCount: Long = if (isTemplate) {
-      BWMongoDB3.process_schedules.countDocuments(Map("template_process_id" -> processOid))
+      db.process_schedules.countDocuments(Map("template_process_id" -> processOid))
     } else {
       0
     }
@@ -66,28 +69,28 @@ object ProcessApi {
       if (isActive(process)) {
         Left(s"Process '${process.name[String]}' is still active")
       } else {
-        BWMongoDB3.activity_assignments.deleteMany(Map("process_id" -> processOid))
-        val processDeleteResult = BWMongoDB3.processes.deleteOne(Map("_id" -> processOid))
+        db.activity_assignments.deleteMany(Map("process_id" -> processOid))
+        val processDeleteResult = db.processes.deleteOne(Map("_id" -> processOid))
         if (processDeleteResult.getDeletedCount == 0) {
           Left(s"MongoDB error: $processDeleteResult")
         } else {
-          val phaseUpdateResult = BWMongoDB3.phases.updateOne(Map("process_ids" -> processOid),
+          val phaseUpdateResult = db.phases.updateOne(Map("process_ids" -> processOid),
             Map("$pull" -> Map("process_ids" -> processOid)))
-          val activityOids: Seq[ObjectId] = allActivities(Right(process)).map(_._id[ObjectId])
+          val activityOids: Seq[ObjectId] = allActivities(Right(process), db = db).map(_._id[ObjectId])
           val activityDeleteCount = if (activityOids.nonEmpty) {
-            BWMongoDB3.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
+            db.tasks.deleteMany(Map("_id" -> Map("$in" -> activityOids))).getDeletedCount
           } else {
             0
           }
-          val deliverables: Seq[DynDoc] = BWMongoDB3.deliverables.find(Map("activity_id" -> Map("$in" -> activityOids)))
+          val deliverables: Seq[DynDoc] = db.deliverables.find(Map("activity_id" -> Map("$in" -> activityOids)))
           val deliverableOids = deliverables.map(_._id[ObjectId])
           val deliverableDeleteCount = if (deliverables.nonEmpty) {
-            BWMongoDB3.deliverables.deleteMany(Map("_id" -> Map("$in" -> deliverableOids))).getDeletedCount
+            db.deliverables.deleteMany(Map("_id" -> Map("$in" -> deliverableOids))).getDeletedCount
           } else {
             0
           }
           val constraintDeleteCount = if (deliverables.nonEmpty) {
-            BWMongoDB3.constraints.deleteMany(Map("owner_deliverable_id" -> Map("$in" -> deliverableOids))).getDeletedCount
+            db.constraints.deleteMany(Map("owner_deliverable_id" -> Map("$in" -> deliverableOids))).getDeletedCount
           } else {
             0
           }
@@ -101,8 +104,8 @@ object ProcessApi {
 
   }
 
-  def parentPhase(processOid: ObjectId): DynDoc = {
-    BWMongoDB3.phases.find(Map("process_ids" -> processOid)).head
+  def parentPhase(processOid: ObjectId, db: BWMongoDB=BWMongoDB3): DynDoc = {
+    db.phases.find(Map("process_ids" -> processOid)).head
   }
 
   def canDelete(process: DynDoc): Boolean = !isActive(process)
@@ -184,20 +187,20 @@ object ProcessApi {
     }
   }
 
-  def validateNewName(newName: String, parentPhaseOid: ObjectId): Boolean = {
+  def validateNewName(newName: String, parentPhaseOid: ObjectId, db: BWMongoDB=BWMongoDB3): Boolean = {
     val nameLength = newName.length
     if (newName.trim.length != nameLength)
       throw new IllegalArgumentException(s"Bad process name (has blank padding): '$newName'")
     if (nameLength > 150 || nameLength < 3)
       throw new IllegalArgumentException(s"Bad process name length: $nameLength (must be 3-150)")
     val siblingProcessOids: Seq[ObjectId] = PhaseApi.allProcessOids(PhaseApi.phaseById(parentPhaseOid))
-    val count = BWMongoDB3.processes.countDocuments(Map("name" -> newName, "_id" -> Map($in -> siblingProcessOids)))
+    val count = db.processes.countDocuments(Map("name" -> newName, "_id" -> Map($in -> siblingProcessOids)))
     if (count > 0)
       throw new IllegalArgumentException(s"Process named '$newName' already exists")
     true
   }
 
-  def checkProcessSchedules(scheduleMs: Long): Unit = {
+  def checkProcessSchedules(scheduleMs: Long, db: BWMongoDB=BWMongoDB3): Unit = {
     //BWLogger.log(getClass.getName, "LOCAL", s"ENTRY-checkProcessSchedules")
     def createNewTransientProcess(schedule: DynDoc): Unit = {
       def createRequest(schedule: DynDoc): Option[HttpPost] = {
@@ -292,7 +295,7 @@ object ProcessApi {
           val message: String = s"""Bad value for parameter(s): ${badParamNames.mkString(", ")}"""
           BWLogger.log(getClass.getName, "LOCAL", s"ERROR: checkProcessSchedules " +
             s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $message")
-          BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+          db.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
             Map($set -> Map("timestamps.last_failure" -> scheduleMs,
               "timestamps.last_message" -> message)))
           None
@@ -330,13 +333,13 @@ object ProcessApi {
               case "half-yearly" => calendar.add(Calendar.MONTH, 6); calendar.getTimeInMillis
               case "yearly" => calendar.add(Calendar.YEAR, 1); calendar.getTimeInMillis
             }
-            BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+            db.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
               Map($set -> Map("timestamps.run_next" -> runNext, "timestamps.last_success" -> scheduleMs,
                 "timestamps.last_message" -> nodeEntityDoc.message[String])))
             BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-checkProcessSchedules(time: $delay): " +
               s"${schedule.title[String]} (${schedule._id[ObjectId]}) -> $runNext")
           } else {
-            BWMongoDB3.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
+            db.process_schedules.updateOne(Map("_id" -> schedule._id[ObjectId]),
               Map($set -> Map("timestamps.last_failure" -> scheduleMs,
                 "timestamps.last_message" -> nodeEntityDoc.message[String])))
             BWLogger.log(getClass.getName, "LOCAL", s"ERROR-checkProcessSchedules(time: $delay): " +
@@ -346,7 +349,7 @@ object ProcessApi {
       }
     }
 
-    val readySchedules: Seq[DynDoc] = BWMongoDB3.process_schedules.
+    val readySchedules: Seq[DynDoc] = db.process_schedules.
       find(Map("timestamps.run_next" -> Map($lte -> scheduleMs), "timestamps.end" -> Map($gte -> scheduleMs)))
     //BWLogger.log(getClass.getName, "LOCAL", s"AUDIT-???-checkProcessSchedules ready-schedules: ${readySchedules.length}")
     for (schedule <- readySchedules) {

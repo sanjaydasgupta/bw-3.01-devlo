@@ -214,7 +214,7 @@ object PhaseInfo extends HttpUtils with DateTimeUtils {
       case Some(theGoals) => theGoals
     }
     val goals = new Document("editable", editable).append("value", rawGoals)
-    val bpmnName: String = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+    val bpmnName: String = PhaseApi.allProcesses2(phase._id[ObjectId]).headOption match {
       case Some(theProcess) => theProcess.bpmn_name[String]
       case None => "not-available"
     }

@@ -7,7 +7,7 @@ import org.bson.types.ObjectId
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.utils.BWLogger
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 
@@ -203,6 +203,16 @@ package object baf3 {
       "navIconActive" -> "assets/images/teenyicons/solid-white/list-layout.svg",
       "navLabel" -> "Lists", "routeUrl" -> "/private/lists", "toolTipLabel" -> "Lists")
   )
+
+  def reportFatalException(t: Throwable, className: String, request: HttpServletRequest,
+      response: HttpServletResponse): Unit = {
+    response.setContentType("application/json")
+    val returnJson = new Document("ok", 0).append("message", "See details in log")
+    response.getWriter.print(returnJson)
+    val messages = (t.getMessage +: t.getStackTrace.map(_.toString).filter(_.contains("com.buildwhiz."))).
+        mkString("<br/>\n")
+    BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $messages", request)
+  }
 
   def landingPageInfo(user: DynDoc, request: HttpServletRequest): Document = {
     try {

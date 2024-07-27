@@ -5,8 +5,9 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, BWMongoDBLib, DynDoc}
 import com.buildwhiz.utils.HttpUtils
+import com.mongodb.client.model.UpdateOneModel
 import org.bson.Document
-import org.bson.types.ObjectId
+import org.bson.types.{Decimal128, ObjectId}
 
 import javax.servlet.http.HttpServletRequest
 import scala.annotation.unused
@@ -17,6 +18,8 @@ object LibraryOperations extends HttpUtils {
 
   private type OUTPUT = String => Unit
   val margin: String = "&nbsp;" * 4
+
+  // task_estimated_budget, activity_estimated_budget, activity_contracted_budget
 
   private def replicateConstraints(sourceDB: BWMongoDB, destDB: BWMongoDB, destProcess: DynDoc,
       output: OUTPUT): Unit = {
@@ -74,6 +77,37 @@ object LibraryOperations extends HttpUtils {
       output(s"""${getClass.getName}:replicateConstraints()<font color="blue"> No deliverables! EXITING </font><br/>""")
     }
     output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) EXIT<br/>""")
+  }
+
+  private def replicateActivityBudgets(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB,
+      destProcess: DynDoc, output: OUTPUT): Unit = {
+    output(s"""<br/>${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) ENTRY<br/>""")
+    val srcOids = srcProcess.activity_ids[Many[ObjectId]]
+    val srcActivities: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcOids)))
+    val srcActivitiesWithBudget = srcActivities.filter(_.has("budget_estimated")).
+        map(task => (task.full_path_id[String], task.budget_estimated[Decimal128])).toMap
+    val count = srcActivitiesWithBudget.size
+    if (count != 0) {
+      output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) $count budgets found<br/>""")
+      val allDestOids = destProcess.activity_ids[Many[ObjectId]]
+      val fullPathIds: Many[String] = srcActivitiesWithBudget.keys.toSeq.asJava
+      val destActivities: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> allDestOids),
+          "full_path_id" -> Map($in -> fullPathIds)))
+      if (destActivities.length != count) {
+        throw new IllegalArgumentException(s"Expected $count tasks, found ${destActivities.length}")
+      }
+      val bulkUpdateBuffer = destActivities.map(task => {
+        new UpdateOneModel(new Document("_id", task._id[ObjectId]),
+            new Document($set, new Document("budget_estimated", srcActivitiesWithBudget(task.full_path_id[String]))))
+      })
+      val result = destDB.tasks.bulkWrite(bulkUpdateBuffer)
+      if (result.getModifiedCount != count) {
+        throw new IllegalArgumentException(s"MongoDB update failed: $result")
+      }
+    } else {
+      output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) No budgets found!<br/>""")
+    }
+    output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) EXIT<br/>""")
   }
 
   private def replicateDeliverables(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
@@ -171,6 +205,9 @@ object LibraryOperations extends HttpUtils {
     replicateDeliverables(sourceDB, srcProcess, destDB, newProcess, destPhase, teamsTable, flags, output)
     // clone constraint records, re-align activity-id values in constraints
     replicateConstraints(sourceDB, destDB, newProcess, output)
+    if (flags("task_estimated_budget")) {
+      replicateActivityBudgets(sourceDB, srcProcess, destDB, newProcess, output)
+    }
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
   }
 

@@ -33,7 +33,7 @@ class PhaseDurationCommit extends HttpServlet with HttpUtils {
       val groupLengths = activitiesByBpmnNameFullAndId.values.map(_.length).toSeq
       BWLogger.log(getClass.getName, request.getMethod, s"""takt-unit-counts: ${groupLengths.mkString(", ")}""", request)
       for (durationValue <- durationValues) {
-        val theProcess = PhaseApi.allProcesses(phaseOid).headOption match {
+        val theProcess = PhaseApi.allProcesses2(phaseOid).headOption match {
           case Some(proc) => proc
           case None => throw new IllegalArgumentException(s"Bad phase: $phaseOid")
         }

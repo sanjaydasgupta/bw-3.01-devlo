@@ -84,7 +84,7 @@ class ProcessList extends HttpServlet with HttpUtils with DateTimeUtils {
           val phase = PhaseApi.phaseById(phaseOid)
           val canAddProcess = PhaseApi.canManage(user._id[ObjectId], phase)
           val toolTipText = if (canAddProcess) "" else "No permission"
-          val allProcesses = PhaseApi.allProcesses(phaseOid)
+          val allProcesses = PhaseApi.allProcesses2(phaseOid)
           allProcesses.foreach(_.phase_id = phaseOid)
           (allProcesses, canAddProcess, Some(phase), toolTipText)
         case (None, Some(projectId)) =>

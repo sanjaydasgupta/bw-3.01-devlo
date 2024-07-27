@@ -49,7 +49,7 @@ class PhaseList extends HttpServlet with HttpUtils {
   def phase2json(phase: DynDoc): DynDoc = {
     val managerOids = PhaseApi.managers(Right(phase))
     val managerNames = PersonApi.personsByIds(managerOids).map(PersonApi.fullName).mkString(", ")
-    val (bpmnName, displayStatus) = PhaseApi.allProcesses(phase._id[ObjectId]).headOption match {
+    val (bpmnName, displayStatus) = PhaseApi.allProcesses2(phase._id[ObjectId]).headOption match {
       case Some(theProcess) => (theProcess.bpmn_name[String], PhaseApi.displayStatus(phase))
       case None => ("NA", "error")
     }

@@ -18,7 +18,7 @@ class VariableValueSet extends HttpServlet with HttpUtils {
     try {
       val phaseOid = new ObjectId(parameters("phase_id"))
       val (label, bpmnName, value) = (parameters("label"), parameters("bpmn_name"), parameters("value"))
-      val theProcess: DynDoc = PhaseApi.allProcesses(phaseOid).headOption match {
+      val theProcess: DynDoc = PhaseApi.allProcesses2(phaseOid).headOption match {
         case Some(p) => p
         case None => throw new IllegalArgumentException("Phase has no processes")
       }

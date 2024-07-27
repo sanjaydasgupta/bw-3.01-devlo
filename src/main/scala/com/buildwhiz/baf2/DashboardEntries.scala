@@ -62,7 +62,7 @@ object DashboardEntries extends DateTimeUtils {
       val phaseDisplayStatus = PhaseApi.displayStatus(pair._2)
       val statusTime = pair._2.timestamps[Document].values.asScala.map(_.asInstanceOf[Long]).max
       val statusDate = dateTimeString(statusTime, Some(timeZone))
-      val tasksOverdue = PhaseApi.allProcesses(phaseOid).filter(ProcessApi.isActive).
+      val tasksOverdue = PhaseApi.allProcesses2(phaseOid).filter(ProcessApi.isActive).
         flatMap(proc => ProcessApi.allActivities(Right(proc))).count(proc => ActivityApi.isDelayed(proc))
       Map(
         "project_name" -> projectName,

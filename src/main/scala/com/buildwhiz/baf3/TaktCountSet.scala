@@ -60,7 +60,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
 
     BWMongoDB3.tasks.insertMany(newActivityDocs.toSeq)
     val newOids: Many[ObjectId] = newActivityDocs.map(_.getObjectId("_id")).toSeq
-    val processOid: ObjectId = PhaseApi.allProcesses(phaseOid).headOption match {
+    val processOid: ObjectId = PhaseApi.allProcesses2(phaseOid).headOption match {
       case Some(procOid) => procOid._id
       case _ => throw new IllegalArgumentException("Unable to find process-oid")
     }
@@ -76,7 +76,7 @@ class TaktCountSet extends HttpServlet with HttpUtils {
       request: HttpServletRequest): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"removeTaktUnits($currentCount -> $newCount) Entry", request)
     val oidsToDelete: Many[ObjectId] = activities.filter(_.takt_unit_no[Int] > newCount).map(_._id[ObjectId])
-    val processOid: ObjectId = PhaseApi.allProcesses(phaseOid).headOption match {
+    val processOid: ObjectId = PhaseApi.allProcesses2(phaseOid).headOption match {
       case Some(procOid) => procOid._id
       case _ => throw new IllegalArgumentException("Unable to find process-oid")
     }

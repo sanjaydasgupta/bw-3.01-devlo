@@ -58,7 +58,7 @@ abstract class LoginBaseClass extends HttpServlet with HttpUtils with DateTimeUt
 
   protected def defaultPhase(projectOid: ObjectId, personRecord: DynDoc): Option[DynDoc] = {
     val candidatePhases = ProjectApi.allPhases(projectOid).filter(PhaseApi.hasRole(personRecord._id[ObjectId], _))
-    candidatePhases.find(PhaseApi.isActive) match {
+    candidatePhases.find(PhaseApi.isActive(_, BWMongoDB3)) match {
       case anActivePhase: Some[DynDoc] => anActivePhase
       case None => candidatePhases.headOption
     }

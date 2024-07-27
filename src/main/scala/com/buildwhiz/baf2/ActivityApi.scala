@@ -2,7 +2,7 @@ package com.buildwhiz.baf2
 
 import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
-import com.buildwhiz.infra.{BWMongoDB3, DynDoc}
+import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, DynDoc}
 import com.buildwhiz.utils.DateTimeUtils
 import org.bson.Document
 import org.bson.types.ObjectId
@@ -11,27 +11,32 @@ import scala.annotation.tailrec
 
 object ActivityApi extends DateTimeUtils {
 
-  def activitiesByIds(activityOids: Seq[ObjectId], filter: Map[String, Any] = Map.empty): Seq[DynDoc] =
-    BWMongoDB3.tasks.find(Map("_id" -> Map($in -> activityOids)) ++ filter)
+  def activitiesByIds(activityOids: Seq[ObjectId], filter: Map[String, Any] = Map.empty, db: BWMongoDB = BWMongoDB3):
+      Seq[DynDoc] = {
+    db.tasks.find(Map("_id" -> Map($in -> activityOids)) ++ filter)
+  }
 
-  def activityById(activityOid: ObjectId): DynDoc = {
-    BWMongoDB3.tasks.find(Map("_id" -> activityOid)).headOption match {
+  def activityById(activityOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.tasks.find(Map("_id" -> activityOid)).headOption match {
       case None => throw new IllegalArgumentException(s"Bad activity-id: $activityOid")
       case Some(activity) => activity
     }
   }
 
-  def exists(activityOid: ObjectId): Boolean = BWMongoDB3.tasks.find(Map("_id" -> activityOid)).nonEmpty
+  def exists(activityOid: ObjectId, db: BWMongoDB = BWMongoDB3): Boolean = {
+    db.tasks.find(Map("_id" -> activityOid)).nonEmpty
+  }
 
   def allActions(activity: DynDoc) = Seq.empty[DynDoc] //activity.actions[Many[Document]]
 
   def allActions(activityOid: ObjectId) = Seq.empty[DynDoc] //: Seq[DynDoc] = allActions(activityById(activityOid))
 
-  def allDeliverables3(activityOid: ObjectId): Seq[DynDoc] =
-      BWMongoDB3.deliverables.find(Map("activity_id" -> activityOid))
+  def allDeliverables3(activityOid: ObjectId, db: BWMongoDB = BWMongoDB3): Seq[DynDoc] = {
+      db.deliverables.find(Map("activity_id" -> activityOid))
+  }
 
-  def actionsByUser(userOid: ObjectId): Seq[DynDoc] = {
-    val activities: Seq[DynDoc] = BWMongoDB3.tasks.find()
+  def actionsByUser(userOid: ObjectId, db: BWMongoDB = BWMongoDB3): Seq[DynDoc] = {
+    val activities: Seq[DynDoc] = db.tasks.find()
     val actions: Seq[DynDoc] = activities.flatMap(activity => {
       val actions: Many[Document] = Seq.empty[Document] //= activity.actions[Many[Document]]
       actions.foreach(_.activity_id = activity._id[ObjectId])
@@ -40,8 +45,8 @@ object ActivityApi extends DateTimeUtils {
     actions.filter(_.assignee_person_id[ObjectId] == userOid)
   }
 
-  def parentProcess(activityOid: ObjectId): DynDoc = {
-    BWMongoDB3.processes.find(Map("activity_ids" -> activityOid)).head
+  def parentProcess(activityOid: ObjectId, db: BWMongoDB = BWMongoDB3): DynDoc = {
+    db.processes.find(Map("activity_ids" -> activityOid)).head
   }
 
   def hasRole(personOid: ObjectId, activity: DynDoc): Boolean = {
@@ -69,7 +74,8 @@ object ActivityApi extends DateTimeUtils {
       None
   }
 
-  def scheduledStart31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)]): Option[Long] = {
+  def scheduledStart31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)],
+      db: BWMongoDB = BWMongoDB3): Option[Long] = {
     try {
       val phaseTimestamps: Option[DynDoc] = phase.get[Document]("timestamps")
       val phaseStartDate: Option[Long] = phaseTimestamps.flatMap(_.get[Long]("date_start_estimated"))
@@ -77,13 +83,14 @@ object ActivityApi extends DateTimeUtils {
         case Some(durOff) => Some(durOff._2)
         case None => activity.get[Long]("offset")
       }
-      phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off, PhaseApi.timeZone(phase))))
+      phaseStartDate.flatMap(psd => activityOffset.map(off => addWeekdays(psd, off, PhaseApi.timeZone(phase, db = db))))
     } catch {
       case _: Throwable => None
     }
   }
 
-  def scheduledEnd31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)]): Option[Long] = {
+  def scheduledEnd31(phase: DynDoc, activity: DynDoc, optArchivedActivity: Option[(Int, Long)],
+      db: BWMongoDB = BWMongoDB3): Option[Long] = {
     val activityLikelyDuration: Option[Long] = optArchivedActivity match {
       case Some(durOff) => Some(durOff._1)
       case None =>
@@ -91,14 +98,14 @@ object ActivityApi extends DateTimeUtils {
         activityDurations.flatMap(d => d.likely[Int] match {case -1 => None; case d => Some(d)})
     }
     scheduledStart31(phase, activity, optArchivedActivity).flatMap(startDate => activityLikelyDuration.
-        map(dur => addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase))))
+        map(dur => addWeekdays(startDate, math.max(0, dur - 1), PhaseApi.timeZone(phase, db = db))))
   }
 
-  def scheduledStart3(process: DynDoc, activity: DynDoc): Option[Long] = {
+  def scheduledStart3(process: DynDoc, activity: DynDoc, db: BWMongoDB = BWMongoDB3): Option[Long] = {
     (process.get[Long]("estimated_start_date"), activity.get[Long]("offset")) match {
       case (Some(processStartDate), Some(offset)) =>
-        val phase = ProcessApi.parentPhase(process._id[ObjectId])
-        Some(addWeekdays(processStartDate, offset, PhaseApi.timeZone(phase)))
+        val phase = ProcessApi.parentPhase(process._id[ObjectId], db)
+        Some(addWeekdays(processStartDate, offset, PhaseApi.timeZone(phase, db = db)))
       case _ => None
     }
   }
@@ -114,11 +121,11 @@ object ActivityApi extends DateTimeUtils {
       None
   }
 
-  def scheduledEnd3(process: DynDoc, activity: DynDoc): Option[Long] = {
-    (scheduledStart3(process, activity), activity.get[Long]("duration")) match {
+  def scheduledEnd3(process: DynDoc, activity: DynDoc, db: BWMongoDB = BWMongoDB3): Option[Long] = {
+    (scheduledStart3(process, activity, db), activity.get[Long]("duration")) match {
       case (Some(scheduledStartDate), Some(offset)) =>
-        val phase = ProcessApi.parentPhase(process._id[ObjectId])
-        Some(addWeekdays(scheduledStartDate, math.max(0, offset - 1), PhaseApi.timeZone(phase)))
+        val phase = ProcessApi.parentPhase(process._id[ObjectId], db)
+        Some(addWeekdays(scheduledStartDate, math.max(0, offset - 1), PhaseApi.timeZone(phase, db = db)))
       case _ => None
     }
   }
@@ -205,7 +212,7 @@ object ActivityApi extends DateTimeUtils {
     }
   }
 
-  def changeLogItems(user: DynDoc, theActivity: DynDoc): Seq[Document] = {
+  def changeLogItems(user: DynDoc, theActivity: DynDoc, db: BWMongoDB = BWMongoDB3): Seq[Document] = {
     val changeLogEntries: Seq[DynDoc] = if (theActivity.has("change_log"))
       theActivity.change_log[Many[Document]]
     else
@@ -214,7 +221,7 @@ object ActivityApi extends DateTimeUtils {
       val dateTime = dateTimeString(entry.timestamp[Long], Some(user.tz[String]))
       val updatedBy = if (entry.has("updater_person_id")) {
         val updaterOid = entry.updater_person_id[ObjectId]
-        val updater = PersonApi.personById(updaterOid)
+        val updater = PersonApi.personById(updaterOid, db)
         s"${updater.first_name} ${updater.last_name}"
       } else
         "-"
@@ -237,7 +244,7 @@ object ActivityApi extends DateTimeUtils {
   }
 
   def addChangeLogEntry(activityOid: ObjectId, description: String, userOid: Option[ObjectId] = None,
-      percentComplete: Option[String] = None): Unit = {
+      percentComplete: Option[String] = None, db: BWMongoDB = BWMongoDB3): Unit = {
     userOid.map(PersonApi.exists(_)) match {
       case Some(false) => throw new IllegalArgumentException(s"Bad user-id: '${userOid.get}'")
       case _ => // Ok
@@ -254,8 +261,8 @@ object ActivityApi extends DateTimeUtils {
           "percent_complete" -> pct)
       case (None, Some(_)) => // Never possible!
     }
-    val updateResult = BWMongoDB3.tasks.
-      updateOne(Map("_id" -> activityOid), Map("$push" -> Map("change_log" -> changeLogEntry)))
+    val updateResult = db.tasks.updateOne(Map("_id" -> activityOid),
+        Map("$push" -> Map("change_log" -> changeLogEntry)))
     if (updateResult.getModifiedCount == 0)
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
   }

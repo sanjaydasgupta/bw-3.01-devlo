@@ -115,7 +115,7 @@ class ActivityAssignments extends HttpServlet with HttpUtils {
         case (None, Some(phaseOid), _) =>
           val parentProject = PhaseApi.parentProject(phaseOid)
           val thePhase = PhaseApi.phaseById(phaseOid)
-          val processes = PhaseApi.allProcesses(phaseOid)
+          val processes = PhaseApi.allProcesses2(phaseOid)
           val activityOid2process: Map[ObjectId, DynDoc] =
             processes.flatMap(p => ProcessApi.allActivities(Right(p)).map(a => (a._id[ObjectId], p))).toMap
           val activities = PhaseApi.allActivities(Left(phaseOid))

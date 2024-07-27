@@ -42,7 +42,7 @@ object PhaseInfo extends DateTimeUtils {
   }
 
   private def processInformation(phase: DynDoc, user: DynDoc): Many[Document] = {
-    val processes: Seq[DynDoc] = PhaseApi.allProcesses(phase._id[ObjectId])
+    val processes: Seq[DynDoc] = PhaseApi.allProcesses2(phase._id[ObjectId])
     val returnValue: Seq[Document] = processes.map(process => {
       val timestamps: DynDoc = process.timestamps[Document]
       val timeZone = user.tz[String]

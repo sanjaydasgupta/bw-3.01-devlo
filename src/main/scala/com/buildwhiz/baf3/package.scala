@@ -210,7 +210,7 @@ package object baf3 {
     val returnJson = new Document("ok", 0).append("message", "See details in log")
     response.getWriter.print(returnJson)
     val messages = (t.getMessage +: t.getStackTrace.map(_.toString).filter(_.contains("com.buildwhiz."))).
-        mkString("<br/>\n")
+      filterNot(_.contains("com.buildwhiz.Entry")).mkString("<br/>\n")
     BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $messages", request)
   }
 

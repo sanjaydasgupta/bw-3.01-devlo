@@ -109,25 +109,28 @@ object PhaseApi {
       Map("$match" -> Map("phase_id" -> phaseOid)),
       Map("$group" -> Map("_id" -> null, "deliverable_ids" -> Map($push -> "$_id")))
     )
-    val deliverableOids = db.deliverables.aggregate(deliverablesOidsPipe.map(_.asDoc).asJava).head.
-      deliverable_ids[Many[ObjectId]]
+    val deliverableOids: Many[ObjectId] = db.deliverables.aggregate(deliverablesOidsPipe.map(_.asDoc).asJava).
+        headOption match {
+      case Some(d) => d.deliverable_ids[Many[ObjectId]]
+      case None => Seq.empty[ObjectId]
+    }
     val constraintsDeleteResult = db.constraints.deleteMany(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
     val deliverablesDeleteResult = db.deliverables.deleteMany(Map("phase_id" -> phaseOid))
     val processesDeleteResult = db.processes.deleteOne(Map("parent_phase_id" -> phaseOid))
     val phaseDeleteResult = db.phases.deleteOne(Map("_id" -> phaseOid))
     val projectUpdateResult = if (phaseDeleteResult.getDeletedCount == 1) {
       db.projects.updateOne(Map("phase_ids" -> phaseOid),
-        Map("$pull" -> Map("phase_ids" -> phaseOid))).toString
+        Map("$pull" -> Map("phase_ids" -> phaseOid))).getModifiedCount
     } else {
-      "No update"
+      0
     }
     val updates = Seq(
-      s"teams: $teamsDeleteResult",
-      s"constraints: $constraintsDeleteResult",
-      s"deliverables: $deliverablesDeleteResult",
-      s"processes: $processesDeleteResult",
-      s"phase: $phaseDeleteResult",
-      s"project: $projectUpdateResult"
+      s"teams: ${teamsDeleteResult.getDeletedCount} deleted",
+      s"constraints: ${constraintsDeleteResult.getDeletedCount} deleted",
+      s"deliverables: ${deliverablesDeleteResult.getDeletedCount} deleted",
+      s"processes: ${processesDeleteResult.getDeletedCount} deleted",
+      s"phases: ${phaseDeleteResult.getDeletedCount} deleted",
+      s"projects: $projectUpdateResult updated"
     )
     val where = if (db == BWMongoDB3) "Host" else "Library"
     val message = updates.mkString(s"$where updates: [", "|", "]")

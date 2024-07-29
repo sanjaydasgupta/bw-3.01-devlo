@@ -415,7 +415,8 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
   }
 
   private def addProcess(user: DynDoc, bpmnName: String, processName: String, phaseOid: ObjectId,
-      phaseManagerOids: Seq[ObjectId], bwMongoDb: BWMongoDB, flags: Map[String, Boolean], request: HttpServletRequest): Unit = {
+      phaseManagerOids: Seq[ObjectId], bwMongoDb: BWMongoDB, flags: Map[String, Boolean], request: HttpServletRequest):
+      DynDoc = {
     val thePhase = PhaseApi.phaseById(phaseOid, bwMongoDb)
     if (!PersonApi.isBuildWhizAdmin(Right(user)))
       throw new IllegalArgumentException("Not permitted")
@@ -466,8 +467,11 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val activityOids = activityBuffer.map(_.getObjectId("_id")).asJava
     val updateResult2 = bwMongoDb.processes.updateOne(Map("_id" -> processOid),
       Map("$set" -> Map("activity_ids" -> activityOids, "milestone_activity_id" -> lastActivityOid)))
-    if (updateResult2.getModifiedCount == 0)
+    if (updateResult2.getModifiedCount == 0) {
       throw new IllegalArgumentException(s"MongoDB update failed: $updateResult")
+    }
+    newProcess.append("activity_ids", activityOids)
+    newProcess
   }
 
   private def addTeam(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId, db: BWMongoDB): ObjectId = {
@@ -546,11 +550,11 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
 
   def addPhaseWithProcess(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
       phaseManagerOids: Seq[ObjectId], bpmnName: String, processName: String, db: BWMongoDB,
-      flags: Map[String, Boolean], request: HttpServletRequest): ObjectId = {
+      flags: Map[String, Boolean], request: HttpServletRequest): (ObjectId, DynDoc) = {
     BWMongoDB3.withTransaction({
       val phaseOid = addPhase(user, phaseName, optProjectOid, description, phaseManagerOids, db, flags)
-      addProcess(user, bpmnName, processName, phaseOid, phaseManagerOids, db, flags, request)
-      phaseOid
+      val newProcess = addProcess(user, bpmnName, processName, phaseOid, phaseManagerOids, db, flags, request)
+      (phaseOid, newProcess)
     })
   }
 

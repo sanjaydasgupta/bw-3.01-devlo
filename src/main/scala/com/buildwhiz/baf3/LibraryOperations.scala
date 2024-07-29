@@ -79,35 +79,35 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) EXIT<br/>""")
   }
 
-  private def replicateActivityBudgets(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB,
+  private def replicateTaskBudgets(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB,
       destProcess: DynDoc, output: OUTPUT): Unit = {
-    output(s"""<br/>${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) ENTRY<br/>""")
-    val srcOids = srcProcess.activity_ids[Many[ObjectId]]
-    val srcActivities: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcOids)))
-    val srcActivitiesWithBudget = srcActivities.filter(_.has("budget_estimated")).
-        map(task => (task.full_path_id[String], task.budget_estimated[Decimal128])).toMap
-    val count = srcActivitiesWithBudget.size
-    if (count != 0) {
-      output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) $count budgets found<br/>""")
-      val allDestOids = destProcess.activity_ids[Many[ObjectId]]
-      val fullPathIds: Many[String] = srcActivitiesWithBudget.keys.toSeq.asJava
-      val destActivities: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> allDestOids),
+    output(s"""<br/>${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) ENTRY<br/>""")
+    val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
+    val srcTasks: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
+    val srcTasksWithBudget = srcTasks.filter(_.has("budget_estimated_plan")).
+        map(task => (task.full_path_id[String], task.budget_estimated_plan[Decimal128])).toMap
+    val taskCount = srcTasksWithBudget.size
+    if (taskCount != 0) {
+      output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) $taskCount budgets found<br/>""")
+      val allDestTaskOids = destProcess.activity_ids[Many[ObjectId]]
+      val fullPathIds: Many[String] = srcTasksWithBudget.keys.toSeq.asJava
+      val destActivities: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> allDestTaskOids),
           "full_path_id" -> Map($in -> fullPathIds)))
-      if (destActivities.length != count) {
-        throw new IllegalArgumentException(s"Expected $count tasks, found ${destActivities.length}")
+      if (destActivities.length != taskCount) {
+        throw new IllegalArgumentException(s"Expected $taskCount tasks, found ${destActivities.length}")
       }
       val bulkUpdateBuffer = destActivities.map(task => {
         new UpdateOneModel(new Document("_id", task._id[ObjectId]),
-            new Document($set, new Document("budget_estimated", srcActivitiesWithBudget(task.full_path_id[String]))))
+            new Document($set, new Document("budget_estimated_plan", srcTasksWithBudget(task.full_path_id[String]))))
       })
       val result = destDB.tasks.bulkWrite(bulkUpdateBuffer)
-      if (result.getModifiedCount != count) {
+      if (result.getModifiedCount != taskCount) {
         throw new IllegalArgumentException(s"MongoDB update failed: $result")
       }
     } else {
-      output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) No budgets found!<br/>""")
+      output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) No budgets found!<br/>""")
     }
-    output(s"""${getClass.getName}:replicateActivityBudgets(${destProcess.name[String]}) EXIT<br/>""")
+    output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) EXIT<br/>""")
   }
 
   private def replicateDeliverables(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
@@ -206,7 +206,7 @@ object LibraryOperations extends HttpUtils {
     // clone constraint records, re-align activity-id values in constraints
     replicateConstraints(sourceDB, destDB, newProcess, output)
     if (flags("task_estimated_budget")) {
-      replicateActivityBudgets(sourceDB, srcProcess, destDB, newProcess, output)
+      replicateTaskBudgets(sourceDB, srcProcess, destDB, newProcess, output)
     }
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
   }
@@ -406,15 +406,22 @@ object LibraryOperations extends HttpUtils {
     val phaseSource = sourceDB.phases.find(Map("_id" -> phaseSourceOid)).head
     val user: DynDoc = getUser(request)
     output(s"""<br/>${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) ENTRY<br/>""")
-    val phaseDest: DynDoc = {
-      val processSource: DynDoc = {
-        val processOid = phaseSource.process_ids[Many[ObjectId]].head
-        sourceDB.processes.find(Map("_id" -> processOid)).head
-      }
-      val phaseOid = PhaseAdd.addPhaseWithProcess(getUser(request), phaseSource.name[String], optProjectOid,
+    val processSource: DynDoc = {
+      val processOid = phaseSource.process_ids[Many[ObjectId]].head
+      sourceDB.processes.find(Map("_id" -> processOid)).head
+    }
+    val (phaseDest, procDest) = {
+      val (phaseOid, newProc) = PhaseAdd.addPhaseWithProcess(getUser(request), phaseSource.name[String], optProjectOid,
         phaseSource.description[String], Seq(user._id[ObjectId]), processSource.bpmn_name[String],
         processSource.name[String], destDB, flags, request)
-      destDB.phases.find(Map("_id" -> phaseOid)).head
+      (destDB.phases.find(Map("_id" -> phaseOid)).head, newProc)
+    }
+    if (flags("phase_estimated_budget") && phaseSource.has("budget_estimated")) {
+      destDB.phases.updateOne(Map("_id" -> phaseSourceOid),
+          Map($set -> Map("budget_estimated" -> phaseSource.budget_estimated[Decimal128])))
+    }
+    if (flags("task_estimated_budget")) {
+      replicateTaskBudgets(sourceDB, processSource, destDB, procDest, output)
     }
     if (optProjectOid.isEmpty) {
       // For export only
@@ -435,8 +442,8 @@ object LibraryOperations extends HttpUtils {
       // destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
       //   Map($set -> Map($unset -> "library_info")))
     }
-    LibraryOperations.cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
-    LibraryOperations.cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, request,
+    cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
+    cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, request,
         output)
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }

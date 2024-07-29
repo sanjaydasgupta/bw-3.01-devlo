@@ -35,7 +35,7 @@ object LibraryContentsUtility {
         """{$unwind: "$tasks"}""",
         """{$replaceWith: "$tasks"}""",
         """{$project: {duration: {$ne: ["$timestamps.likely", -1]}, """ +
-            """budget: {$ne: [{$ifNull: ["$budget_estimated", 0]}, 0]}}}""",
+            """budget: {$ne: [{$ifNull: ["$budget_estimated_plan", 0]}, 0]}}}""",
         """{$match: {$expr: {$or: [{$eq: ["$duration", true]}, {$eq: ["$budget", true]}]}}}""",
         """{$group: {_id: null, count: {$sum: 1}, duration: {$push: "$duration"}, budget: {$push: "$budget"}}}""",
       ).map(Document.parse).asJava

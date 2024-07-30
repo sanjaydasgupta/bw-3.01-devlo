@@ -19,8 +19,6 @@ object LibraryOperations extends HttpUtils {
   private type OUTPUT = String => Unit
   val margin: String = "&nbsp;" * 4
 
-  // task_estimated_budget, activity_estimated_budget, activity_contracted_budget
-
   private def replicateConstraints(sourceDB: BWMongoDB, destDB: BWMongoDB, destProcess: DynDoc,
       output: OUTPUT): Unit = {
     output(s"""<br/>${getClass.getName}:replicateConstraints(${destProcess.name[String]}) ENTRY<br/>""")
@@ -157,6 +155,12 @@ object LibraryOperations extends HttpUtils {
               map(t => {t.team_id = teamsTable(t.team_id[ObjectId]); t.remove("contact_person_id"); t})
             srcDeliverable.team_assignments = newTeams.map(_.asDoc).asJava
           }
+          if (srcDeliverable.has("budget_estimated") && !flags("activity_estimated_budget")) {
+            srcDeliverable.remove("budget_estimated")
+          }
+          if (srcDeliverable.has("budget_contracted") && !flags("activity_contracted_budget")) {
+            srcDeliverable.remove("budget_contracted")
+          }
           srcDeliverable.remove("_id")
         }
         val result = destDB.deliverables.insertMany(srcDeliverables.map(_.asDoc).asJava)
@@ -234,9 +238,9 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneTemplateProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
-      flags: Map[String, Boolean], go: Boolean, request: HttpServletRequest, output: OUTPUT): Unit = {
+      flags: Map[String, Boolean], go: Boolean, teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest,
+      output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/>")
-    val teamsTable = getTeamsTable(sourceDB, phaseSrc, destDB, phaseDest)
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
     val processesToClone: Seq[DynDoc] = sourceDB.processes.find(Map("_id" -> Map($in -> srcProcessOids),
@@ -420,8 +424,12 @@ object LibraryOperations extends HttpUtils {
       destDB.phases.updateOne(Map("_id" -> phaseSourceOid),
           Map($set -> Map("budget_estimated" -> phaseSource.budget_estimated[Decimal128])))
     }
+    val teamsTable = getTeamsTable(sourceDB, phaseSource, destDB, phaseDest)
     if (flags("task_estimated_budget")) {
       replicateTaskBudgets(sourceDB, processSource, destDB, procDest, output)
+    }
+    if (flags("activity")) {
+      replicateDeliverables(sourceDB, processSource, destDB, procDest, phaseDest, teamsTable, flags, output)
     }
     if (optProjectOid.isEmpty) {
       // For export only
@@ -443,7 +451,7 @@ object LibraryOperations extends HttpUtils {
       //   Map($set -> Map($unset -> "library_info")))
     }
     cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
-    cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, request,
+    cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, teamsTable, request,
         output)
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }

@@ -67,7 +67,7 @@ object LibraryContentsUtility {
       val pipe: Many[Document] = Seq(
         s"""{$$match: {phase_id: ObjectId("$phaseOid")}}""",
         """{$project: {has_duration: {$gt: ["$duration", 0]}, """ +
-            """has_budget_estimated: {$ne: [{$ifNull: ["$budget_estimated", 0]}, 0]}""" +
+            """has_budget_estimated: {$ne: [{$ifNull: ["$budget_estimated", 0]}, 0]}, """ +
             """has_budget_contracted: {$ne: [{$ifNull: ["$budget_contracted", 0]}, 0]}}}""",
         """{$group: {_id: null, count: {$sum: 1}, has_duration: {$push: "$has_duration"}, """ +
             """has_budget_estimated: {$push: "$has_budget_estimated"}, """ +
@@ -102,9 +102,9 @@ object LibraryContentsUtility {
       "workflow_template" -> hasWorkflowTemplates,
       "periodic_issue" -> true,
       // ...
-      "report" -> true,
-      "risk" -> true,
-      "zone" -> true)
+      "report" -> false,
+      "risk" -> false,
+      "zone" -> false)
 
     flags
   }

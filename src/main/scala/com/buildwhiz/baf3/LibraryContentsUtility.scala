@@ -83,12 +83,15 @@ object LibraryContentsUtility {
             ane && activities.head.has_budget_contracted[Boolean])
     }
 
+    val phaseEstimatedBudget = db.phases.find(Map("_id" -> phaseOid, "budget_estimated" -> Map($exists -> true))).
+        headOption.nonEmpty
+    val periodicIssue = db.process_schedules.find(Map("phase_id" -> phaseOid)).headOption.nonEmpty
     val (hasTaskDurations, hasTaskBudgetEstimates) = taskDetails
-    val (teams, teamPartners, teamMembers) = teamsDetails
+    val (_, teamPartners, teamMembers) = teamsDetails
     val (activities, activityDurations, activityBudgetsEstimated, activityBudgetsContracted) = activityDetails
 
     val flags = Seq(
-      "phase_estimated_budget" -> true,
+      "phase_estimated_budget" -> phaseEstimatedBudget,
       // ...
       "task_duration" -> hasTaskDurations,
       "task_estimated_budget" -> hasTaskBudgetEstimates,
@@ -100,7 +103,7 @@ object LibraryContentsUtility {
       "team_member" -> teamMembers,
       // ...
       "workflow_template" -> hasWorkflowTemplates,
-      "periodic_issue" -> true,
+      "periodic_issue" -> periodicIssue,
       // ...
       "report" -> false,
       "risk" -> false,

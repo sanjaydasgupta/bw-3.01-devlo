@@ -16,6 +16,11 @@ import scala.jdk.CollectionConverters._
 @unused
 object LibraryOperations extends HttpUtils {
 
+  val flagNames: Seq[String] = Seq(
+    "activity", "activity_duration", "activity_contracted_budget", "activity_estimated_budget",
+    "phase_estimated_budget", "task_duration", "task_estimated_budget",
+    "risk", "report", "workflow_template", "periodic_issue", "team_partner", "team_member", "zone")
+
   private type OUTPUT = String => Unit
   val margin: String = "&nbsp;" * 4
 

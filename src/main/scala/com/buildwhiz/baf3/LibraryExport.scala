@@ -15,10 +15,7 @@ class LibraryExport extends HttpServlet with HttpUtils {
       val parameters = getParameterMap(request)
       val phaseOid = new ObjectId(parameters("phase_id"))
       val description = parameters("description")
-      val flagNames = Seq("phase_estimated_budget", "task_duration", "task_estimated_budget", "workflow_template",
-        "periodic_issue", "activity", "activity_duration", "activity_estimated_budget",
-        "activity_contracted_budget", "team_partner", "team_member", "risk", "zone", "report")
-      val flags: Map[String, Boolean] = flagNames.map(fn => {
+      val flags: Map[String, Boolean] = LibraryOperations.flagNames.map(fn => {
         val paramValue = parameters.get(fn) match {
           case Some(pv) => pv.toBoolean
           case None => false

@@ -38,10 +38,7 @@ class LibraryExport extends HttpServlet with HttpUtils {
       }
     } catch {
       case t: Throwable =>
-        t.getStackTrace
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

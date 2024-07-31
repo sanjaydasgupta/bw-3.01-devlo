@@ -17,7 +17,7 @@ object LibraryContentsUtility {
     val phaseOid = phase._id[ObjectId]
     val procOidList = phase.process_ids[Many[ObjectId]].map(oid => s"""ObjectId("$oid")""").mkString("[", ",", "]")
 
-    def hasWorkflowTemplates: Boolean = {
+    def workflowTemplates(): Boolean = {
       val pipe: Many[Document] = Seq(
         s"""{$$match: {_id: {$$in: $procOidList}, type: "Template"}}""",
         """{$group: {_id: null, count: {$sum: 1}}}"""
@@ -27,14 +27,14 @@ object LibraryContentsUtility {
       processes.nonEmpty
     }
 
-    def taskDetails: (Boolean, Boolean) = {
+    def taskDetails(): (Boolean, Boolean) = {
       val pipe: Many[Document] = Seq(
         s"""{$$match: {_id: {$$in: $procOidList}}}""",
         """{$unwind: "$activity_ids"}""",
         """{$lookup: {from: "tasks", localField: "activity_ids", foreignField: "_id", as: "tasks"}}""",
         """{$unwind: "$tasks"}""",
         """{$replaceWith: "$tasks"}""",
-        """{$project: {duration: {$ne: ["$timestamps.likely", -1]}, """ +
+        """{$project: {duration: {$ne: ["$durations.likely", -1]}, """ +
             """budget: {$ne: [{$ifNull: ["$budget_estimated_plan", 0]}, 0]}}}""",
         """{$match: {$expr: {$or: [{$eq: ["$duration", true]}, {$eq: ["$budget", true]}]}}}""",
         """{$group: {_id: null, count: {$sum: 1}, duration: {$push: "$duration"}, budget: {$push: "$budget"}}}""",
@@ -46,7 +46,7 @@ object LibraryContentsUtility {
           tne && tasks.head.budget[Many[Boolean]].contains(true))
     }
 
-    def teamsDetails: (Boolean, Boolean, Boolean) = {
+    def teamsDetails(): (Boolean, Boolean, Boolean) = {
       val teamsOidList = phase.team_assignments[Many[Document]].map(tid => s"""ObjectId("${tid.team_id[ObjectId]}")""").
         mkString("[", ",", "]")
       val pipe: Many[Document] = Seq(
@@ -63,7 +63,7 @@ object LibraryContentsUtility {
       (tne, tne && teams.head.orgs[Boolean], tne && teams.head.members[Boolean])
     }
 
-    def activityDetails: (Boolean, Boolean, Boolean, Boolean) = {
+    def activityDetails(): (Boolean, Boolean, Boolean, Boolean) = {
       val pipe: Many[Document] = Seq(
         s"""{$$match: {phase_id: ObjectId("$phaseOid")}}""",
         """{$project: {has_duration: {$gt: ["$duration", 0]}, """ +
@@ -86,9 +86,9 @@ object LibraryContentsUtility {
     val phaseEstimatedBudget = db.phases.find(Map("_id" -> phaseOid, "budget_estimated" -> Map($exists -> true))).
         headOption.nonEmpty
     val periodicIssue = db.process_schedules.find(Map("phase_id" -> phaseOid)).headOption.nonEmpty
-    val (hasTaskDurations, hasTaskBudgetEstimates) = taskDetails
-    val (_, teamPartners, teamMembers) = teamsDetails
-    val (activities, activityDurations, activityBudgetsEstimated, activityBudgetsContracted) = activityDetails
+    val (hasTaskDurations, hasTaskBudgetEstimates) = taskDetails()
+    val (_, teamPartners, teamMembers) = teamsDetails()
+    val (activities, activityDurations, activityBudgetsEstimated, activityBudgetsContracted) = activityDetails()
 
     val flags = Seq(
       "phase_estimated_budget" -> phaseEstimatedBudget,
@@ -102,7 +102,7 @@ object LibraryContentsUtility {
       "team_partner" -> teamPartners,
       "team_member" -> teamMembers,
       // ...
-      "workflow_template" -> hasWorkflowTemplates,
+      "workflow_template" -> workflowTemplates(),
       "periodic_issue" -> periodicIssue,
       // ...
       "report" -> false,

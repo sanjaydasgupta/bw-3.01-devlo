@@ -281,8 +281,8 @@ object LibraryOperations extends HttpUtils {
     output(s"<br/>${getClass.getName}:cloneOneOrganization(${orgToClone.name[String]}) EXIt<br/>")
   }
 
-  private def cloneOneTeam(teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, flags: Map[String, Boolean],
-       output: OUTPUT): Unit = {
+  private def cloneOneTeam(sourceDB: BWMongoDB, teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
+      flags: Map[String, Boolean], output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/>")
     teamToClone.remove("_id")
     val destPhaseOid = phaseDest._id[ObjectId]
@@ -295,7 +295,7 @@ object LibraryOperations extends HttpUtils {
         teamToClone.remove("organization_id")
       } else {
         if (!OrganizationApi.exists(teamToClone.organization_id[ObjectId], destDB)) {
-          val theOrg = OrganizationApi.organizationById(teamToClone.organization_id[ObjectId], destDB)
+          val theOrg = OrganizationApi.organizationById(teamToClone.organization_id[ObjectId], sourceDB)
           cloneOneOrganization(theOrg, destDB, output)
         }
       }
@@ -327,7 +327,7 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneTeams()<font color="green"> Teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     if (go && teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
-        cloneOneTeam(teamToCopy, destDB, phaseDest, flags, output)
+        cloneOneTeam(sourceDB, teamToCopy, destDB, phaseDest, flags, output)
       }
     } else {
       output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/>""")

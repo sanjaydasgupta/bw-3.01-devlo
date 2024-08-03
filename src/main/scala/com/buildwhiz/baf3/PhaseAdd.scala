@@ -437,7 +437,7 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     ).asJava
 
     val newProcess: Document = Map("name" -> processName, "status" -> "defined", "bpmn_name" -> bpmnName,
-      "admin_person_id" -> user._id[ObjectId], "process_version" -> -1,
+      "admin_person_id" -> user._id[ObjectId], "process_version" -> -1, "parent_phase_id" -> phaseOid,
       "timestamps" -> Map("created" -> System.currentTimeMillis), "timers" -> timerBuffer.asJava,
       "variables" -> variableBuffer.asJava, "type" -> "Primary", "unsaved_changes_exist" -> true,
       "bpmn_timestamps" -> callElementBuffer.asJava, "start" -> "00:00:00", "end" -> "00:00:00",
@@ -474,18 +474,18 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     newProcess
   }
 
-  private def addTeam(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId, db: BWMongoDB): ObjectId = {
-    val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
-      "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
-      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "_id" -> new ObjectId()))
-    val teamRecord: DynDoc = Map("project_id" -> projectOid, "team_name" -> "Default PM Team",
-      "organization_id" -> organizationOid, "group" -> "Project Management",
-      "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",
-      "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))),
-      "own_doc_categories" -> ownDocCategories, "__v" -> 0)
-    db.teams.insertOne(teamRecord.asDoc)
-    teamRecord._id[ObjectId]
-  }
+//  private def addTeam(projectOid: ObjectId, personOid: ObjectId, organizationOid: ObjectId, db: BWMongoDB): ObjectId = {
+//    val ownDocCategories = Seq("Budget", "City-Applications", "City-Approvals", "Contracts", "Deliverables",
+//      "Del-Specs", "Financial-Applications", "Invoices", "Meeting-Notes", "Progress-Reports", "Specification",
+//      "Submittals", "Task-Specs", "Work-Scope").map(c => Map("L1" -> c, "_id" -> new ObjectId()))
+//    val teamRecord: DynDoc = Map("project_id" -> projectOid, "team_name" -> "Default PM Team",
+//      "organization_id" -> organizationOid, "group" -> "Project Management",
+//      "skill" -> Seq("Project-Manager (33-25 BW 11)"), "color" -> "#008000",
+//      "team_members" -> Seq(Map("person_id" -> personOid, "roles" -> Seq("Manager"))),
+//      "own_doc_categories" -> ownDocCategories, "__v" -> 0)
+//    db.teams.insertOne(teamRecord.asDoc)
+//    teamRecord._id[ObjectId]
+//  }
 
   private def addPhase(user: DynDoc, phaseName: String, optProjectOid: Option[ObjectId], description: String,
       phaseManagerOids: Seq[ObjectId], db: BWMongoDB, flags: Map[String, Boolean]): ObjectId = {
@@ -495,12 +495,14 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
       case Some(projectOid) => ProjectApi.isManager(userOid, ProjectApi.projectById(projectOid))
       case None => true
     }
-    if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isParentProjectManager)
+    if (!PersonApi.isBuildWhizAdmin(Right(user)) && !isParentProjectManager) {
       throw new IllegalArgumentException("Not permitted")
+    }
 
     val badManagerIds = phaseManagerOids.filterNot(PersonApi.exists(_))
-    if (badManagerIds.nonEmpty)
+    if (badManagerIds.nonEmpty) {
       throw new IllegalArgumentException(s"""Bad project_manager_ids: ${badManagerIds.mkString(", ")}""")
+    }
 
     val managersInRoles = phaseManagerOids.map(oid =>
       new Document("role_name", "Project-Manager").append("person_id", oid)
@@ -520,20 +522,20 @@ object PhaseAdd extends HttpServlet with HttpUtils with BpmnUtils {
     val startEstimatedMs = calendar.getTimeInMillis
     val timestamps = Map("created" -> createdMs, "date_start_estimated" -> startEstimatedMs)
     val basePhaseRecord = Map("name" -> phaseName, "process_ids" -> Seq.empty[ObjectId],
-      "assigned_roles" -> managersInRoles, "status" -> "defined",
+      "assigned_roles" -> managersInRoles, "status" -> "defined", "team_assignments" -> Seq.empty[Document],
       "timestamps" -> timestamps, "description" -> description, "tz" -> projectTimeZone)
-    val newPhaseRecord = if (phaseManagerOids.nonEmpty) {
-      val projectOid = optProjectOid match {
-        case Some(projOid) => projOid
-        case None => new ObjectId("0" * 24)
-      }
-      val defaultTeamOid = addTeam(projectOid, phaseManagerOids.head, user.organization_id[ObjectId], db)
-      basePhaseRecord ++ Map("team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)),
-          "admin_person_id" -> phaseManagerOids.head)
-    } else {
-      basePhaseRecord ++ Map("team_assignments" -> Seq.empty[Document])
-    }
-    val insertOneResult = db.phases.insertOne(newPhaseRecord)
+//    val newPhaseRecord = if (phaseManagerOids.nonEmpty) {
+//      val projectOid = optProjectOid match {
+//        case Some(projOid) => projOid
+//        case None => new ObjectId("0" * 24)
+//      }
+//      val defaultTeamOid = addTeam(projectOid, phaseManagerOids.head, user.organization_id[ObjectId], db)
+//      basePhaseRecord ++ Map("team_assignments" -> Seq(Map("team_id" -> defaultTeamOid)),
+//          "admin_person_id" -> phaseManagerOids.head)
+//    } else {
+//      basePhaseRecord ++ Map("team_assignments" -> Seq.empty[Document])
+//    }
+    val insertOneResult = db.phases.insertOne(basePhaseRecord)
 
     val newPhaseOid = insertOneResult.getInsertedId.asObjectId().getValue
     optProjectOid match {

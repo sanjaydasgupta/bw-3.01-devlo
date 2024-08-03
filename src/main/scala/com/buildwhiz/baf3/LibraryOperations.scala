@@ -18,7 +18,7 @@ object LibraryOperations extends HttpUtils {
 
   val flagNames: Seq[String] = Seq(
     "activity", "activity_duration", "activity_contracted_budget", "activity_estimated_budget",
-    "phase_estimated_budget", "task_duration", "task_estimated_budget",
+    "phase_estimated_budget", "task_duration", "task_estimated_budget", "export_as_private",
     "risk", "report", "workflow_template", "periodic_issue", "team_partner", "team_member", "zone")
 
   private type OUTPUT = String => Unit
@@ -268,7 +268,20 @@ object LibraryOperations extends HttpUtils {
     output(s"${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) EXIT<br/>")
   }
 
-  private def cloneOneTeam(teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
+  private def cloneOneOrganization(orgToClone: DynDoc, destDB: BWMongoDB, output: OUTPUT): Unit = {
+    output(s"<br/>${getClass.getName}:cloneOneOrganization(${orgToClone.name[String]}) ENTRY<br/>")
+    val orgDoc = orgToClone.asDoc
+    orgDoc.remove("_id")
+    val updateResult = destDB.organizations.insertOne(orgDoc)
+    if (updateResult.wasAcknowledged()) {
+      output(s"""${getClass.getName}:cloneOneOrganization()<font color="green"> insert organization SUCCESS</font><br/>""")
+    } else {
+      output(s"""${getClass.getName}:cloneOneOrganization()<font color="red"> insert organization FAILED</font><br/>""")
+    }
+    output(s"<br/>${getClass.getName}:cloneOneOrganization(${orgToClone.name[String]}) EXIt<br/>")
+  }
+
+  private def cloneOneTeam(teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, flags: Map[String, Boolean],
        output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/>")
     teamToClone.remove("_id")
@@ -277,8 +290,15 @@ object LibraryOperations extends HttpUtils {
       teamToClone.phase_id = destPhaseOid.toString
     }
     teamToClone.team_members = Seq.empty[Document].asJava
-    if (teamToClone.has("organization_id") && !OrganizationApi.exists(teamToClone.organization_id[ObjectId], destDB)) {
-      teamToClone.remove("organization_id")
+    if (teamToClone.has("organization_id")) {
+      if (flags("export_as_private")) {
+        teamToClone.remove("organization_id")
+      } else {
+        if (!OrganizationApi.exists(teamToClone.organization_id[ObjectId], destDB)) {
+          val theOrg = OrganizationApi.organizationById(teamToClone.organization_id[ObjectId], destDB)
+          cloneOneOrganization(theOrg, destDB, output)
+        }
+      }
     }
     val insertOneResult = destDB.teams.insertOne(teamToClone.asDoc)
     val newTeamOid = insertOneResult.getInsertedId.asObjectId()
@@ -293,7 +313,7 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneTeams(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc, go: Boolean,
-      output: OUTPUT): Unit = {
+      flags: Map[String, Boolean], output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) ENTRY<br/>")
     val sourceTeamOids: Seq[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     // output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/>""")
@@ -307,7 +327,7 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneTeams()<font color="green"> Teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     if (go && teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
-        cloneOneTeam(teamToCopy, destDB, phaseDest, output)
+        cloneOneTeam(teamToCopy, destDB, phaseDest, flags, output)
       }
     } else {
       output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/>""")
@@ -447,7 +467,8 @@ object LibraryOperations extends HttpUtils {
       val originalPartner = s"${partner.name[String]} ($partnerOid)"
       val libraryInfo: Document = Map("instance_name" -> instanceName, "description" -> optDescription.getOrElse("-"),
           "user" -> s"${PersonApi.fullName(user)} (${user._id[ObjectId]})", "timestamp" -> System.currentTimeMillis(),
-          "original_partner" -> originalPartner, "original_project" -> originalProject)
+          "original_partner" -> originalPartner, "original_project" -> originalProject,
+          "private" -> flags("export_as_private"))
       destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
         Map($set -> Map("library_info" -> libraryInfo)))
     } else {
@@ -455,7 +476,7 @@ object LibraryOperations extends HttpUtils {
       // destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
       //   Map($set -> Map($unset -> "library_info")))
     }
-    cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, output)
+    cloneTeams(sourceDB, phaseSource, destDB, phaseDest, go = true, flags, output)
     cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, go = true, teamsTable, request,
         output)
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")

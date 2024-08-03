@@ -105,6 +105,7 @@ object PhaseApi {
     }
     val teamOids: Many[ObjectId] = phase.team_assignments[Many[Document]].map(_.team_id[ObjectId]).asJava
     val teamsDeleteResult = db.teams.deleteMany(Map("_id" -> Map($in -> teamOids)))
+
     val deliverablesOidsPipe: Seq[DynDoc] = Seq(
       Map("$match" -> Map("phase_id" -> phaseOid)),
       Map("$group" -> Map("_id" -> null, "deliverable_ids" -> Map($push -> "$_id")))
@@ -115,8 +116,22 @@ object PhaseApi {
       case None => Seq.empty[ObjectId]
     }
     val constraintsDeleteResult = db.constraints.deleteMany(Map("owner_deliverable_id" -> Map($in -> deliverableOids)))
+
+    val tasksOidsPipe: Seq[DynDoc] = Seq(
+      Map("$match" -> Map("parent_phase_id" -> phaseOid)),
+      Map("$project" -> Map("task_ids" -> "$activity_ids")),
+      Map("$unwind" -> "$task_ids"),
+      Map("$group" -> Map("_id" -> null, "task_ids" -> Map($push -> "$task_ids")))
+    )
+    val taskOids: Many[ObjectId] = db.processes.aggregate(tasksOidsPipe.map(_.asDoc).asJava).
+        headOption match {
+      case Some(d) => d.task_ids[Many[ObjectId]]
+      case None => Seq.empty[ObjectId]
+    }
+    val tasksDeleteResult = db.tasks.deleteMany(Map("_id" -> Map($in -> taskOids)))
+
     val deliverablesDeleteResult = db.deliverables.deleteMany(Map("phase_id" -> phaseOid))
-    val processesDeleteResult = db.processes.deleteOne(Map("parent_phase_id" -> phaseOid))
+    val processesDeleteResult = db.processes.deleteMany(Map("parent_phase_id" -> phaseOid))
     val phaseDeleteResult = db.phases.deleteOne(Map("_id" -> phaseOid))
     val projectUpdateResult = if (phaseDeleteResult.getDeletedCount == 1) {
       db.projects.updateOne(Map("phase_ids" -> phaseOid),
@@ -125,6 +140,7 @@ object PhaseApi {
       0
     }
     val updates = Seq(
+      s"tasks: ${tasksDeleteResult.getDeletedCount} deleted",
       s"teams: ${teamsDeleteResult.getDeletedCount} deleted",
       s"constraints: ${constraintsDeleteResult.getDeletedCount} deleted",
       s"deliverables: ${deliverablesDeleteResult.getDeletedCount} deleted",

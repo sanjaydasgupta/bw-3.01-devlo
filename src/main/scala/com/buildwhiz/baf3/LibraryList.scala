@@ -13,24 +13,26 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 class LibraryList extends HttpServlet with HttpUtils {
 
-  private def phaseList(request: HttpServletRequest): Seq[Document] = {
+  private def phaseList(requesting_organization_id: ObjectId, request: HttpServletRequest): Seq[Document] = {
     val user: DynDoc = getUser(request)
     val phases: Seq[DynDoc] = BWMongoDBLib.phases.find()
+    def stripParenthesis(s: String) = s.substring(1).reverse.substring(1).reverse
     val phaseList: Seq[DynDoc] = phases.map(phase => {
       val libInfo: DynDoc = phase.library_info[Document]
       val timestamp = libInfo.timestamp[Long]
       val dateTime = dateTimeStringAmerican(timestamp, Some(user.tz[String]))
       Map("name" -> phase.name[String], "user_name" -> libInfo.user[String].split(" ").init.mkString(" "),
-        "user_person_id" -> libInfo.user[String].split(" ").last, "timestamp" -> dateTime,
+        "user_person_id" -> stripParenthesis(libInfo.user[String].split(" ").last), "timestamp" -> dateTime,
         "original_partner_name" -> libInfo.original_partner[String].split(" ").init.mkString(" "),
-        "original_partner_organization_id" -> libInfo.original_partner[String].split(" ").last,
+        "original_partner_organization_id" -> stripParenthesis(libInfo.original_partner[String].split(" ").last),
         "instance_name" -> libInfo.instance_name[String], "private" -> libInfo.`private`[Boolean],
         "flags" -> LibraryContentsUtility.trueFlagsList(BWMongoDBLib, phase),
         "original_project_name" -> libInfo.original_project[String].split(" ").init.mkString(" "),
-        "original_project_id" -> libInfo.original_project[String].split(" ").last,
+        "original_project_id" -> stripParenthesis(libInfo.original_project[String].split(" ").last),
         "library_phase_id" -> phase._id[ObjectId].toString, "description" -> libInfo.description[String])
     })
-    phaseList.map(_.asDoc)
+    phaseList.filterNot(ph => ph.`private`[Boolean] && ph.original_partner_organization_id[String] !=
+        requesting_organization_id.toString)map(_.asDoc)
   }
 
   private def listAll(detail: Boolean): Seq[Document] = {
@@ -65,6 +67,8 @@ class LibraryList extends HttpServlet with HttpUtils {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
       response.setContentType("application/json")
+      val user: DynDoc = getPersona(request)
+      val userOrgOid = user.organization_id[ObjectId]
       val parameters = getParameterMap(request)
       val (all, detail) = parameters.get("all") match {
         case Some(value) => (true, value.toBoolean)
@@ -73,7 +77,7 @@ class LibraryList extends HttpServlet with HttpUtils {
       val retJson: String = if (all) {
         listAll(detail).map(_.toJson).mkString("[", ", ", "]")
       } else {
-        phaseList(request).map(_.toJson).mkString("[", ", ", "]")
+        phaseList(userOrgOid, request).map(_.toJson).mkString("[", ", ", "]")
       }
       response.getWriter.println(retJson)
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK", request)

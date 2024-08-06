@@ -21,8 +21,37 @@ object LibraryOperations extends HttpUtils {
     "phase_estimated_budget", "task_duration", "task_estimated_budget", "export_as_private",
     "risk", "report", "workflow_template", "periodic_issue", "team_partner", "team_member", "zone")
 
+  private val dummyMongoDbOid = new ObjectId("0" * 24)
+
   private type OUTPUT = String => Unit
   val margin: String = "&nbsp;" * 4
+
+  private def replicatePersons(sourceDB: BWMongoDB, memberOids: Seq[ObjectId], destDB: BWMongoDB,
+      output: LibraryOperations.OUTPUT): Unit = {
+    output(s"""<br/>${getClass.getName}:replicatePersons() ENTRY<br/>""")
+    val members: Seq[DynDoc] = sourceDB.persons.find(Map("_id" -> Map($in -> memberOids.asJava)))
+    val insertResult = destDB.persons.insertMany(members.map(_.asDoc).asJava)
+    val insertCount = insertResult.getInsertedIds.size()
+    output(s"""<br/>${getClass.getName}:replicatePersons() Inserted $insertCount 'persons' records.<br/>""")
+    output(s"""<br/>${getClass.getName}:replicatePersons() EXIT<br/>""")
+  }
+
+  private def cloneProcessSchedules(sourceDB: BWMongoDB, phaseSource: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
+      output: OUTPUT): Unit = {
+    output(s"""<br/>${getClass.getName}:cloneProcessSchedules() ENTRY<br/>""")
+    val schedules: Seq[DynDoc] = sourceDB.process_schedules.find(Map("phase_id" -> phaseSource._id[ObjectId]))
+    val destPhaseOid = phaseDest._id[ObjectId]
+    val parentProjectOid = if (destDB == BWMongoDBLib) {
+      dummyMongoDbOid
+    } else {
+      PhaseApi.parentProject(destPhaseOid, destDB)._id[ObjectId]
+    }
+    for (schedule <- schedules) {
+      schedule.phase_id = destPhaseOid
+      schedule.project_id = parentProjectOid
+    }
+    output(s"""<br/>${getClass.getName}:cloneProcessSchedules() EXIT-OK<br/>""")
+  }
 
   private def replicateConstraints(sourceDB: BWMongoDB, destDB: BWMongoDB, destProcess: DynDoc,
       output: OUTPUT): Unit = {
@@ -82,35 +111,57 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:replicateConstraints(${destProcess.name[String]}) EXIT<br/>""")
   }
 
-  private def replicateTaskBudgets(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB,
-      destProcess: DynDoc, output: OUTPUT): Unit = {
-    output(s"""<br/>${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) ENTRY<br/>""")
+  private def replicateTaskDetails(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB,
+      destProcess: DynDoc, flags: Map[String, Boolean], output: OUTPUT): Unit = {
+    output(s"""<br/>${getClass.getName}:replicateTaskDetails(${destProcess.name[String]}) ENTRY<br/>""")
     val srcTaskOids = srcProcess.activity_ids[Many[ObjectId]]
     val srcTasks: Seq[DynDoc] = sourceDB.tasks.find(Map("_id" -> Map($in -> srcTaskOids)))
-    val srcTasksWithBudget = srcTasks.filter(_.has("budget_estimated_plan")).
-        map(task => (task.full_path_id[String], task.budget_estimated_plan[Decimal128])).toMap
-    val taskCount = srcTasksWithBudget.size
-    if (taskCount != 0) {
-      output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) $taskCount budgets found<br/>""")
-      val allDestTaskOids = destProcess.activity_ids[Many[ObjectId]]
-      val fullPathIds: Many[String] = srcTasksWithBudget.keys.toSeq.asJava
-      val destActivities: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> allDestTaskOids),
-          "full_path_id" -> Map($in -> fullPathIds)))
-      if (destActivities.length != taskCount) {
-        throw new IllegalArgumentException(s"Expected $taskCount tasks, found ${destActivities.length}")
+    val srcTasksWithDuration: Map[String, Int] = if (flags("task_duration")) {
+      def taskDuration(tsk: DynDoc): Int = {
+        val durations: DynDoc = tsk.durations[Document]
+        durations.likely[Int]
       }
-      val bulkUpdateBuffer = destActivities.map(task => {
-        new UpdateOneModel(new Document("_id", task._id[ObjectId]),
-            new Document($set, new Document("budget_estimated_plan", srcTasksWithBudget(task.full_path_id[String]))))
+      srcTasks.filter(taskDuration(_) != -1).
+        map(task => (task.full_path_id[String], taskDuration(task))).toMap
+    } else {
+      Map.empty[String, Int]
+    }
+    val srcTasksWithBudget: Map[String, Decimal128] = if (flags("task_estimated_budget")) {
+      srcTasks.filter(_.has("budget_estimated_plan")).
+        map(task => (task.full_path_id[String], task.budget_estimated_plan[Decimal128])).toMap
+    } else {
+      Map.empty[String, Decimal128]
+    }
+    val budgetCount = srcTasksWithBudget.size
+    val durationCount = srcTasksWithDuration.size
+    if (budgetCount != 0 || durationCount != 0) {
+      output(s"""${getClass.getName}:replicateTaskDetails(${destProcess.name[String]}) $budgetCount budgets, $durationCount durations found<br/>""")
+      val allDestTaskOids = destProcess.activity_ids[Many[ObjectId]]
+      val fullPathIds: Many[String] = (srcTasksWithBudget.keys.toSeq ++ srcTasksWithDuration.keys.toSeq).distinct
+      val destTasks: Seq[DynDoc] = destDB.tasks.find(Map("_id" -> Map($in -> allDestTaskOids),
+          "full_path_id" -> Map($in -> fullPathIds)))
+      // if (destActivities.length != budgetCount) {
+      //   throw new IllegalArgumentException(s"Expected $budgetCount tasks, found ${destActivities.length}")
+      // }
+      val bulkUpdateBuffer = destTasks.map(task => {
+        val setterDoc = new Document()
+        val fpId = task.full_path_id[String]
+        if (srcTasksWithBudget.containsKey(fpId)) {
+          setterDoc.append("budget_estimated_plan", srcTasksWithBudget(fpId))
+        }
+        if (srcTasksWithDuration.containsKey(fpId)) {
+          setterDoc.append("durations.likely", srcTasksWithDuration(fpId))
+        }
+        new UpdateOneModel(new Document("_id", task._id[ObjectId]), new Document($set, setterDoc))
       })
       val result = destDB.tasks.bulkWrite(bulkUpdateBuffer)
-      if (result.getModifiedCount != taskCount) {
+      if (result.getModifiedCount != budgetCount) {
         throw new IllegalArgumentException(s"MongoDB update failed: $result")
       }
     } else {
-      output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) No budgets found!<br/>""")
+      output(s"""${getClass.getName}:replicateTaskDetails(${destProcess.name[String]}) No budgets found!<br/>""")
     }
-    output(s"""${getClass.getName}:replicateTaskBudgets(${destProcess.name[String]}) EXIT<br/>""")
+    output(s"""${getClass.getName}:replicateTaskDetails(${destProcess.name[String]}) EXIT<br/>""")
   }
 
   private def replicateDeliverables(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
@@ -137,7 +188,7 @@ object LibraryOperations extends HttpUtils {
       destProject._id[ObjectId]
     } catch {
       case _: Throwable =>
-        new ObjectId("0" * 24)
+        dummyMongoDbOid
     }
 
     for (task <- srcTasks) {
@@ -165,6 +216,9 @@ object LibraryOperations extends HttpUtils {
           }
           if (srcDeliverable.has("budget_contracted") && !flags("activity_contracted_budget")) {
             srcDeliverable.remove("budget_contracted")
+          }
+          if (!flags("activity_duration")) {
+            srcDeliverable.duration = 0
           }
           srcDeliverable.remove("_id")
         }
@@ -214,8 +268,8 @@ object LibraryOperations extends HttpUtils {
     replicateDeliverables(sourceDB, srcProcess, destDB, newProcess, destPhase, teamsTable, flags, output)
     // clone constraint records, re-align activity-id values in constraints
     replicateConstraints(sourceDB, destDB, newProcess, output)
-    if (flags("task_estimated_budget")) {
-      replicateTaskBudgets(sourceDB, srcProcess, destDB, newProcess, output)
+    if (flags("task_estimated_budget") || flags("task_duration")) {
+      replicateTaskDetails(sourceDB, srcProcess, destDB, newProcess, flags, output)
     }
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
   }
@@ -286,18 +340,23 @@ object LibraryOperations extends HttpUtils {
     output(s"<br/>${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/>")
     teamToClone.remove("_id")
     val destPhaseOid = phaseDest._id[ObjectId]
-    if (teamToClone.has("phase_id")) {
-      teamToClone.phase_id = destPhaseOid.toString
-    }
-    teamToClone.team_members = Seq.empty[Document].asJava
-    if (teamToClone.has("organization_id")) {
-      if (flags("export_as_private")) {
+    if (flags("export_as_private")) {
+      if (flags("team_partner") && teamToClone.has("organization_id")) {
         if (!OrganizationApi.exists(teamToClone.organization_id[ObjectId], destDB)) {
           val theOrg = OrganizationApi.organizationById(teamToClone.organization_id[ObjectId], sourceDB)
           cloneOneOrganization(theOrg, destDB, output)
         }
-      } else {
+      }
+      if (flags("team_member") && teamToClone.has("team_members")) {
+        val teamMemberOids = teamToClone.team_members[Many[Document]].map(_.person_id[ObjectId])
+        replicatePersons(sourceDB, teamMemberOids, destDB, output)
+      }
+    } else {
+      if (!flags("team_partner") && teamToClone.has("organization_id")) {
         teamToClone.remove("organization_id")
+      }
+      if (!flags("team_member") && teamToClone.has("team_members")) {
+        teamToClone.remove("team_members")
       }
     }
     val insertOneResult = destDB.teams.insertOne(teamToClone.asDoc)
@@ -450,8 +509,8 @@ object LibraryOperations extends HttpUtils {
           Map($set -> Map("budget_estimated" -> phaseSource.budget_estimated[Decimal128])))
     }
     val teamsTable = getTeamsTable(sourceDB, phaseSource, destDB, phaseDest)
-    if (flags("task_estimated_budget")) {
-      replicateTaskBudgets(sourceDB, processSource, destDB, procDest, output)
+    if (flags("task_estimated_budget") || flags("task_duration")) {
+      replicateTaskDetails(sourceDB, processSource, destDB, procDest, flags, output)
     }
     if (flags("activity")) {
       replicateDeliverables(sourceDB, processSource, destDB, procDest, phaseDest, teamsTable, flags, output)
@@ -477,8 +536,12 @@ object LibraryOperations extends HttpUtils {
       //   Map($set -> Map($unset -> "library_info")))
     }
     cloneTeams(sourceDB, phaseSource, destDB, phaseDest, flags, output)
-    cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, teamsTable, request,
-        output)
+    if (flags("workflow_template")) {
+      cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, teamsTable, request, output)
+    }
+    if (flags("periodic_issue")) {
+      cloneProcessSchedules(sourceDB, phaseSource, destDB, phaseDest, output)
+    }
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }
 

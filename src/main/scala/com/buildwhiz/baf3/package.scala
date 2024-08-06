@@ -206,12 +206,28 @@ package object baf3 {
 
   def reportFatalException(t: Throwable, className: String, request: HttpServletRequest,
       response: HttpServletResponse): Unit = {
+    try {
+      val stackTrace = t.getStackTrace.filter(_ != null).map(_.toString).filter(_.contains("com.buildwhiz."))
+      val stackMessages = t.getMessage match {
+        case null => stackTrace
+        case msg => msg +: stackTrace
+      }
+//      val (entryMessages, appMessages) = stackMessages.partition(_.contains("com.buildwhiz.Entry"))
+//      val errorMessage = if (appMessages.isEmpty) {
+//        entryMessages.mkString("<br/>\n")
+//      } else {
+//        appMessages.mkString("<br/>\n")
+//      }
+      val errorMessage = stackMessages.mkString("<br/>\n")
+      BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $errorMessage", request)
+    } catch {
+      case t: Throwable =>
+        val errorMessage = (t.getMessage +: t.getStackTrace.toSeq.map(_.toString)).mkString("<br/>\n")
+        BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $errorMessage", request)
+    }
     response.setContentType("application/json")
-    val returnJson = new Document("ok", 0).append("message", "See details in log")
+    val returnJson = new Document("ok", 0).append("message", "See details in log").toJson
     response.getWriter.print(returnJson)
-    val messages = (t.getMessage +: t.getStackTrace.map(_.toString).filter(_.contains("com.buildwhiz."))).
-      filterNot(_.contains("com.buildwhiz.Entry")).mkString("<br/>\n")
-    BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $messages", request)
   }
 
   def landingPageInfo(user: DynDoc, request: HttpServletRequest): Document = {

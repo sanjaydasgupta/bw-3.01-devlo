@@ -63,6 +63,21 @@ class LibraryList extends HttpServlet with HttpUtils {
     })
   }
 
+  private def deleteLibrary(request: HttpServletRequest): String = {
+    val user = getUser(request)
+    val isAdmin = PersonApi.isBuildWhizAdmin(Right(user))
+    if (isAdmin) {
+      val deleteCounts = BWMongoDBLib.collectionNames.map(collName => (collName, BWMongoDBLib(collName))).map(t => {
+        val deleteResult = t._2.deleteMany(new Document())
+        (t._1, deleteResult.getDeletedCount)
+      }).toMap
+      val deletesJson = new Document(deleteCounts).toJson
+      deletesJson
+    } else {
+      """{"ok": 0, "message": "Not permitted"}"""
+    }
+  }
+
   override def doGet(request: HttpServletRequest, response: HttpServletResponse): Unit = {
     BWLogger.log(getClass.getName, request.getMethod, s"ENTRY", request)
     try {
@@ -74,8 +89,14 @@ class LibraryList extends HttpServlet with HttpUtils {
         case Some(value) => (true, value.toBoolean)
         case None => (false, false)
       }
+      val delete = parameters.get("delete") match {
+        case Some(value) => value.toBoolean
+        case None => false
+      }
       val retJson: String = if (all) {
         listAll(detail).map(_.toJson).mkString("[", ", ", "]")
+      } else if (delete) {
+        deleteLibrary(request)
       } else {
         phaseList(userOrgOid, request).map(_.toJson).mkString("[", ", ", "]")
       }

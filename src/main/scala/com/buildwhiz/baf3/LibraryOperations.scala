@@ -5,7 +5,7 @@ import com.buildwhiz.infra.BWMongoDB3._
 import com.buildwhiz.infra.DynDoc._
 import com.buildwhiz.infra.{BWMongoDB, BWMongoDB3, BWMongoDBLib, DynDoc}
 import com.buildwhiz.utils.HttpUtils
-import com.mongodb.client.model.UpdateOneModel
+import com.mongodb.client.model.{UpdateOneModel, UpdateOptions}
 import org.bson.Document
 import org.bson.types.{Decimal128, ObjectId}
 
@@ -30,9 +30,16 @@ object LibraryOperations extends HttpUtils {
       output: LibraryOperations.OUTPUT): Unit = {
     output(s"""<br/>${getClass.getName}:replicatePersons() ENTRY<br/>""")
     val members: Seq[DynDoc] = sourceDB.persons.find(Map("_id" -> Map($in -> memberOids.asJava)))
-    val insertResult = destDB.persons.insertMany(members.map(_.asDoc).asJava)
-    val insertCount = insertResult.getInsertedIds.size()
-    output(s"""<br/>${getClass.getName}:replicatePersons() Inserted $insertCount 'persons' records.<br/>""")
+    val upsertEnable = new UpdateOptions().upsert(true)
+    val updaters = members.map(m => {
+      val oid = m._id[ObjectId]
+      m.remove("_id")
+      new UpdateOneModel[Document](new Document("_id", oid), new Document($set, m.asDoc), upsertEnable)
+    })
+    val updateResult = destDB.persons.bulkWrite(updaters.asJava)
+    val insertCount = updateResult.getInsertedCount
+    val updateCount = updateResult.getModifiedCount
+    output(s"""<br/>${getClass.getName}:replicatePersons() Inserted $insertCount, Updated $updateCount 'persons' records.<br/>""")
     output(s"""<br/>${getClass.getName}:replicatePersons() EXIT<br/>""")
   }
 
@@ -143,6 +150,7 @@ object LibraryOperations extends HttpUtils {
       // if (destActivities.length != budgetCount) {
       //   throw new IllegalArgumentException(s"Expected $budgetCount tasks, found ${destActivities.length}")
       // }
+      val updateTaskCount = destTasks.length
       val bulkUpdateBuffer = destTasks.map(task => {
         val setterDoc = new Document()
         val fpId = task.full_path_id[String]
@@ -155,7 +163,7 @@ object LibraryOperations extends HttpUtils {
         new UpdateOneModel(new Document("_id", task._id[ObjectId]), new Document($set, setterDoc))
       })
       val result = destDB.tasks.bulkWrite(bulkUpdateBuffer)
-      if (result.getModifiedCount != budgetCount) {
+      if (result.getModifiedCount != updateTaskCount) {
         throw new IllegalArgumentException(s"MongoDB update failed: $result")
       }
     } else {

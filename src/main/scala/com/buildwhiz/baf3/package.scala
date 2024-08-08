@@ -212,13 +212,13 @@ package object baf3 {
         case null => stackTrace
         case msg => msg +: stackTrace
       }
-//      val (entryMessages, appMessages) = stackMessages.partition(_.contains("com.buildwhiz.Entry"))
-//      val errorMessage = if (appMessages.isEmpty) {
-//        entryMessages.mkString("<br/>\n")
-//      } else {
-//        appMessages.mkString("<br/>\n")
-//      }
-      val errorMessage = stackMessages.mkString("<br/>\n")
+      val (entryMessages, appMessages) = stackMessages.partition(_.contains("com.buildwhiz.Entry"))
+      val errorMessage = if (appMessages.isEmpty) {
+        entryMessages.mkString("<br/>\n")
+      } else {
+        appMessages.mkString("<br/>\n")
+      }
+      // val errorMessage = stackMessages.mkString("<br/>\n")
       BWLogger.log(className, request.getMethod, s"EXIT-ERROR: $errorMessage", request)
     } catch {
       case t: Throwable =>

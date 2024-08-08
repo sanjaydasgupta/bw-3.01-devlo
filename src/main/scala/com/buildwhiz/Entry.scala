@@ -4,7 +4,7 @@ import com.buildwhiz.baf3.{MediaServer, NodeConnector, reportFatalException}
 
 import javax.servlet.annotation.MultipartConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
-import com.buildwhiz.utils.{BWLogger, HttpUtils}
+import com.buildwhiz.utils.HttpUtils
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
@@ -15,7 +15,11 @@ class Entry extends HttpServlet with HttpUtils {
 
   private def permitted(request: HttpServletRequest): Boolean = {
     val uriParts = request.getRequestURI.split("/")
-    val internalCall = request.getRemoteAddr == request.getLocalAddr
+    val clientIp = request.getHeader("X-FORWARDED-FOR") match {
+      case null => request.getRemoteAddr
+      case ips => ips.split(",").head
+    }
+    val internalCall = clientIp == request.getLocalAddr
     val loggingIn = (uriParts.last, uriParts.init.last, internalCall) match {
       case (_, _, true) => true
       case ("Status", "etc", _) => true
@@ -34,7 +38,6 @@ class Entry extends HttpServlet with HttpUtils {
       case (_, "media", _) => true
       case _ => false
     }
-    BWLogger.log(getClass.getName, request.getMethod, s"INFO - permitted() - internalCall: $internalCall, loggingIn: $loggingIn", request)
     try {
       val session: HttpSession = getSessionAlternatives(request)
       session.getAttribute("bw-user") != null || loggingIn
@@ -46,7 +49,6 @@ class Entry extends HttpServlet with HttpUtils {
   private def handleRequest(request: HttpServletRequest, delegateTo: Entry.BWServlet => Unit,
       response: HttpServletResponse): Unit = {
     if (permitted(request)) {
-      BWLogger.log(getClass.getName, request.getMethod, "INFO - handleRequest()", request)
       val urlParts = request.getRequestURL.toString.split("/")
       val pkgIdx = urlParts.zipWithIndex.find(_._1.matches(
           "api|baf[23]?|dot|etc|graphql|media|slack|tools|web")).head._2

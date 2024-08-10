@@ -130,6 +130,7 @@ object PhaseApi {
     }
     val tasksDeleteResult = db.tasks.deleteMany(Map("_id" -> Map($in -> taskOids)))
 
+    val schedulesDeleteResult = db.process_schedules.deleteMany(Map("phase_id" -> phaseOid))
     val deliverablesDeleteResult = db.deliverables.deleteMany(Map("phase_id" -> phaseOid))
     val processesDeleteResult = db.processes.deleteMany(Map("parent_phase_id" -> phaseOid))
     val phaseDeleteResult = db.phases.deleteOne(Map("_id" -> phaseOid))
@@ -140,6 +141,7 @@ object PhaseApi {
       0
     }
     val updates = Seq(
+      s"scheduless: ${schedulesDeleteResult.getDeletedCount} deleted",
       s"tasks: ${tasksDeleteResult.getDeletedCount} deleted",
       s"teams: ${teamsDeleteResult.getDeletedCount} deleted",
       s"constraints: ${constraintsDeleteResult.getDeletedCount} deleted",

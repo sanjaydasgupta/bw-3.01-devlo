@@ -43,19 +43,27 @@ object LibraryOperations extends HttpUtils {
     output(s"""<br/>${getClass.getName}:replicatePersons() EXIT<br/>""")
   }
 
-  private def cloneProcessSchedules(sourceDB: BWMongoDB, phaseSource: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
-      output: OUTPUT): Unit = {
+  private def cloneProcessSchedules(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destProcess: DynDoc,
+      optProjectOid: Option[ObjectId], output: OUTPUT): Unit = {
     output(s"""<br/>${getClass.getName}:cloneProcessSchedules() ENTRY<br/>""")
-    val schedules: Seq[DynDoc] = sourceDB.process_schedules.find(Map("phase_id" -> phaseSource._id[ObjectId]))
-    val destPhaseOid = phaseDest._id[ObjectId]
-    val parentProjectOid = if (destDB == BWMongoDBLib) {
-      dummyMongoDbOid
-    } else {
-      PhaseApi.parentProject(destPhaseOid, destDB)._id[ObjectId]
-    }
-    for (schedule <- schedules) {
-      schedule.phase_id = destPhaseOid
-      schedule.project_id = parentProjectOid
+    val schedules: Seq[DynDoc] = sourceDB.process_schedules.
+      find(Map("template_process_id" -> srcProcess._id[ObjectId]))
+    if (schedules.nonEmpty) {
+      val newSchedules = schedules.map(schedule => {
+        schedule.template_process_id = destProcess._id[ObjectId]
+        schedule.project_id = optProjectOid match {
+          case Some(oid) => oid
+          case None => dummyMongoDbOid
+        }
+        schedule.phase_id = destProcess.parent_phase_id[ObjectId]
+        schedule.remove("_id")
+        schedule
+      })
+      val result = destDB.process_schedules.insertMany(newSchedules.map(_.asDoc).asJava)
+      if (result.getInsertedIds.size() != newSchedules.length) {
+        val message = s"Failed for process '${srcProcess.name[String]}' (${srcProcess._id[ObjectId]})"
+        throw new IllegalArgumentException(message)
+      }
     }
     output(s"""<br/>${getClass.getName}:cloneProcessSchedules() EXIT-OK<br/>""")
   }
@@ -246,7 +254,8 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneOneProcess(sourceDB: BWMongoDB, srcProcess: DynDoc, destDB: BWMongoDB, destPhase: DynDoc,
-      teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest, flags: Map[String, Boolean], output: OUTPUT):
+      teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest, flags: Map[String, Boolean],
+      optProjectOid: Option[ObjectId], output: OUTPUT):
       Unit = {
     output(s"<br/>${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) ENTRY<br/>")
     // create new template process
@@ -279,6 +288,9 @@ object LibraryOperations extends HttpUtils {
     if (flags("task_estimated_budget") || flags("task_duration")) {
       replicateTaskDetails(sourceDB, srcProcess, destDB, newProcess, flags, output)
     }
+    if (flags("periodic_issue")) {
+      cloneProcessSchedules(sourceDB, srcProcess, destDB, newProcess, optProjectOid, output)
+    }
     output(s"${getClass.getName}:cloneOneProcess(${srcProcess.name[String]}) EXIT<br/>")
   }
 
@@ -306,7 +318,7 @@ object LibraryOperations extends HttpUtils {
 
   private def cloneTemplateProcesses(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
       flags: Map[String, Boolean], teamsTable: Map[ObjectId, ObjectId], request: HttpServletRequest,
-      output: OUTPUT): Unit = {
+      optProjectOid: Option[ObjectId], output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneProcesses(${phaseSrc.name[String]}) ENTRY<br/>")
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Teams-Table size: ${teamsTable.size}</font><br/>""")
     val srcProcessOids = phaseSrc.process_ids[Many[Document]]
@@ -322,7 +334,7 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Processes to copy: ${processesToCopy.map(_.name[String]).mkString(", ")}</font><br/>""")
     if (processesToCopy.nonEmpty) {
       for (processToCopy <- processesToCopy) {
-        cloneOneProcess(sourceDB, processToCopy, destDB, phaseDest, teamsTable, request, flags, output)
+        cloneOneProcess(sourceDB, processToCopy, destDB, phaseDest, teamsTable, request, flags, optProjectOid, output)
       }
     } else {
       output(s"""${getClass.getName}:cloneProcesses()<font color="green"> Nothing to do! EXITING</font><br/>""")
@@ -344,9 +356,8 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneOneTeam(sourceDB: BWMongoDB, teamToClone: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
-      flags: Map[String, Boolean], output: OUTPUT): Unit = {
+      flags: Map[String, Boolean], optProjectOid: Option[ObjectId], output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneOneTeam(${teamToClone.team_name[String]}) ENTRY<br/>")
-    teamToClone.remove("_id")
     val destPhaseOid = phaseDest._id[ObjectId]
     if (flags("export_as_private")) {
       if (flags("team_partner") && teamToClone.has("organization_id")) {
@@ -367,6 +378,11 @@ object LibraryOperations extends HttpUtils {
         teamToClone.remove("team_members")
       }
     }
+    teamToClone.remove("_id")
+    teamToClone.project_id = optProjectOid match {
+      case Some(oid) => oid
+      case None => dummyMongoDbOid
+    }
     val insertOneResult = destDB.teams.insertOne(teamToClone.asDoc)
     val newTeamOid = insertOneResult.getInsertedId.asObjectId()
     val updateResult = destDB.phases.updateOne(Map("_id" -> destPhaseOid),
@@ -380,7 +396,7 @@ object LibraryOperations extends HttpUtils {
   }
 
   private def cloneTeams(sourceDB: BWMongoDB, phaseSrc: DynDoc, destDB: BWMongoDB, phaseDest: DynDoc,
-      flags: Map[String, Boolean], output: OUTPUT): Unit = {
+      flags: Map[String, Boolean], optProjectOid: Option[ObjectId], output: OUTPUT): Unit = {
     output(s"<br/>${getClass.getName}:cloneTeams(${phaseSrc.name[String]}) ENTRY<br/>")
     val sourceTeamOids: Seq[ObjectId] = phaseSrc.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     // output(s"""<font color="green">${getClass.getName}:cloneTeams() sourceTeam Oids: ${sourceTeamOids.mkString(", ")}</font><br/>""")
@@ -388,13 +404,13 @@ object LibraryOperations extends HttpUtils {
     output(s"""${getClass.getName}:cloneTeams()<font color="green"> Source Team Names: ${sourceTeams.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     val destinationTeamOids: Seq[ObjectId] = phaseDest.team_assignments[Many[Document]].map(_.team_id[ObjectId])
     val destinationTeams: Seq[DynDoc] = destDB.teams.find(Map("_id" -> Map($in -> destinationTeamOids)))
-    val destinationTeamNames = destinationTeams.map(_.team_name[String]).toSet
+    val destinationTeamNames = destinationTeams.map(team => s"${team.group[String]}/${team.team_name[String]}").toSet
     output(s"""${getClass.getName}:cloneTeams()<font color="green"> Existing Names: ${destinationTeamNames.mkString(", ")}</font><br/>""")
-    val teamsToCopy = sourceTeams.filterNot(t => destinationTeamNames.contains(t.team_name[String]))
+    val teamsToCopy = sourceTeams.filterNot(t => destinationTeamNames.contains(s"${t.group[String]}/${t.team_name[String]}"))
     output(s"""${getClass.getName}:cloneTeams()<font color="green"> Teams to copy: ${teamsToCopy.map(_.team_name[String]).mkString(", ")}</font><br/>""")
     if (teamsToCopy.nonEmpty) {
       for (teamToCopy <- teamsToCopy) {
-        cloneOneTeam(sourceDB, teamToCopy, destDB, phaseDest, flags, output)
+        cloneOneTeam(sourceDB, teamToCopy, destDB, phaseDest, flags, optProjectOid, output)
       }
     } else {
       output(s"""${getClass.getName}:cloneTeams()<font color="green"> EXITING - Nothing to do</font><br/>""")
@@ -513,8 +529,12 @@ object LibraryOperations extends HttpUtils {
       (destDB.phases.find(Map("_id" -> phaseOid)).head, newProc)
     }
     if (flags("phase_estimated_budget") && phaseSource.has("budget_estimated")) {
-      destDB.phases.updateOne(Map("_id" -> phaseSourceOid),
-          Map($set -> Map("budget_estimated" -> phaseSource.budget_estimated[Decimal128])))
+      val budgetEstimated = phaseSource.budget_estimated[Decimal128]
+      destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
+          Map($set -> Map("budget_estimated" -> budgetEstimated, "goals" -> phaseSource.goals[String])))
+    } else {
+      destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
+        Map($set -> Map("goals" -> phaseSource.goals[String])))
     }
     val teamsTable = getTeamsTable(sourceDB, phaseSource, destDB, phaseDest)
     if (flags("task_estimated_budget") || flags("task_duration")) {
@@ -532,10 +552,12 @@ object LibraryOperations extends HttpUtils {
       val originalProject = s"${parentProject.name[String]} (${parentProject._id[ObjectId]})"
       val partner = OrganizationApi.organizationById(partnerOid)
       val originalPartner = s"${partner.name[String]} ($partnerOid)"
+      val userOrganization = OrganizationApi.organizationById(user.organization_id[ObjectId])
       val libraryInfo: Document = Map("instance_name" -> instanceName, "description" -> optDescription.getOrElse("-"),
           "user" -> s"${PersonApi.fullName(user)} (${user._id[ObjectId]})", "timestamp" -> System.currentTimeMillis(),
           "original_partner" -> originalPartner, "original_project" -> originalProject,
-          "private" -> flags("export_as_private"))
+          "private" -> flags("export_as_private"),
+          "user_organization" -> s"${userOrganization.name[String]} (${userOrganization._id[ObjectId]})")
       destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
         Map($set -> Map("library_info" -> libraryInfo)))
     } else {
@@ -543,12 +565,10 @@ object LibraryOperations extends HttpUtils {
       // destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
       //   Map($set -> Map($unset -> "library_info")))
     }
-    cloneTeams(sourceDB, phaseSource, destDB, phaseDest, flags, output)
+    cloneTeams(sourceDB, phaseSource, destDB, phaseDest, flags, optProjectOid, output)
     if (flags("workflow_template")) {
-      cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, teamsTable, request, output)
-    }
-    if (flags("periodic_issue")) {
-      cloneProcessSchedules(sourceDB, phaseSource, destDB, phaseDest, output)
+      cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, teamsTable, request, optProjectOid,
+          output)
     }
     output(s"""${getClass.getName}:transportPhase(${phaseSource.name[String]} -> $optProjectOid) EXIT<br/>""")
   }

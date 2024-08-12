@@ -235,7 +235,7 @@ package object baf3 {
       val userProjects = ProjectApi.projectsByUser30(user._id[ObjectId])
       val siteConfigInfos = request.getSession.getAttribute("siteConfigInfos").asInstanceOf[Seq[DynDoc]]
       BWLogger.log(getClass.getName, request.getMethod,
-        s"INFO landingPageInfo() found ${siteConfigInfos.length} global_configs records", request)
+        s"landingPageInfo() found ${siteConfigInfos.length} global_configs records", request)
       siteConfigInfos.headOption match {
         case None =>
           userProjects match {
@@ -302,7 +302,7 @@ package object baf3 {
         Nil
       case scInfo =>
         BWLogger.log(getClass.getName, request.getMethod,
-          s"INFO displayedMenuItems(): found ${scInfo.length} global_configs records", request)
+          s"displayedMenuItems(): found ${scInfo.length} global_configs records", request)
         scInfo
     }
     val menuItemsList0 = siteConfigInfos.headOption match {

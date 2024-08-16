@@ -546,6 +546,7 @@ object LibraryOperations extends HttpUtils {
     }
     if (flags("activity")) {
       replicateDeliverables(sourceDB, processSource, destDB, procDest, phaseDest, teamsTable, flags, output)
+      replicateConstraints(sourceDB, destDB, procDest, output)
     }
     if (flags("workflow_template")) {
       cloneTemplateProcesses(sourceDB, phaseSource, destDB, phaseDest, flags, teamsTable, request, optProjectOid,

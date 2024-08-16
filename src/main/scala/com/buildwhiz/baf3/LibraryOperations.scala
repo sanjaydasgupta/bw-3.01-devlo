@@ -530,14 +530,17 @@ object LibraryOperations extends HttpUtils {
       //   Map($set -> Map($unset -> "library_info")))
     }
     val teamsTable = cloneTeams(sourceDB, phaseSource, destDB, phaseDest, flags, optProjectOid, output)
-    if (flags("phase_estimated_budget") && phaseSource.has("budget_estimated")) {
-      val budgetEstimated = phaseSource.budget_estimated[Decimal128]
-      destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
-          Map($set -> Map("budget_estimated" -> budgetEstimated, "goals" -> phaseSource.goals[String])))
-    } else {
-      destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]),
-        Map($set -> Map("goals" -> phaseSource.goals[String])))
+    val goals = phaseSource.get[String]("goals") match {
+      case None => ""
+      case Some(g) => g
     }
+    val setter = if (flags("phase_estimated_budget") && phaseSource.has("budget_estimated")) {
+      val budgetEstimated = phaseSource.budget_estimated[Decimal128]
+      Map($set -> Map("budget_estimated" -> budgetEstimated, "goals" -> goals))
+    } else {
+      Map($set -> Map("goals" -> goals))
+    }
+    destDB.phases.updateOne(Map("_id" -> phaseDest._id[ObjectId]), setter)
     if (flags("task_estimated_budget") || flags("task_duration")) {
       replicateTaskDetails(sourceDB, processSource, destDB, procDest, flags, output)
     }

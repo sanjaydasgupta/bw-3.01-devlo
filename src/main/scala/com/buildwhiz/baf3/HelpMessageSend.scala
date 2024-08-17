@@ -35,9 +35,7 @@ class HelpMessageSend extends HttpServlet with HttpUtils with MailUtils3 {
       BWLogger.audit(getClass.getName, request.getMethod, message, request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

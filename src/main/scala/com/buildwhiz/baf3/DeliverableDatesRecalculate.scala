@@ -349,9 +349,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace(writer)
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 
@@ -374,9 +372,7 @@ class DeliverableDatesRecalculate extends HttpServlet with HttpUtils with DateTi
       response.getWriter.print(successJson(fields = Map("messages" -> messages, "delay" -> delay)))
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace(response.getWriter)
-      throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

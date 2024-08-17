@@ -70,9 +70,7 @@ class DocumentGroupDownload extends HttpServlet with HttpUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${docAndProjTuples.length} documents)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

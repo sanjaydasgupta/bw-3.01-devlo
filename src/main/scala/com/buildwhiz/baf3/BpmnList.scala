@@ -23,9 +23,7 @@ class BpmnList extends HttpServlet with BpmnUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${phaseNames.length})", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

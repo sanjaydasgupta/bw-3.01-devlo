@@ -640,15 +640,13 @@ class PhaseAdd extends HttpServlet with HttpUtils {
 
       PhaseAdd.addPhaseWithProcess(user, phaseName, Some(parentProjectOid), description, phaseManagerOids, bpmnName,
         processName, BWMongoDB3, Map.empty[String, Boolean], request)
+      response.getWriter.print(successJson())
+      response.setContentType("application/json")
+      BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
-    response.getWriter.print(successJson())
-    response.setContentType("application/json")
-    BWLogger.log(getClass.getName, request.getMethod, "EXIT-OK", request)
   }
 
 }

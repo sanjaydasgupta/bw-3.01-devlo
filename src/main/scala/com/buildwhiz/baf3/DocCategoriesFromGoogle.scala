@@ -38,13 +38,7 @@ class DocCategoriesFromGoogle extends HttpServlet with HttpUtils with MailUtils 
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms, count: $count)", request)
     } catch {
       case t: Throwable =>
-        val returnJson = new Document("ok", 0).append("message", s"${t.getClass.getSimpleName}").toJson
-        response.getWriter.print(returnJson)
-        val trace = (s"${t.getClass.getSimpleName}(${t.getMessage})" +:
-            t.getStackTrace.map(_.toString).filter(_.contains(getClass.getSimpleName))).mkString("\n")
-        BWLogger.log(getClass.getName, request.getMethod, s"EXIT-ERROR: $trace", request)
-        //t.printStackTrace()
-        //throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 }

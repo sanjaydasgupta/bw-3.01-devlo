@@ -64,10 +64,9 @@ class ProcessDurationRecalculate extends HttpServlet with HttpUtils with DateTim
     } catch {
       case t: Throwable =>
         val message = s"${t.getClass.getName}(${t.getMessage})"
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: $message", request)
+        // BWLogger.log(getClass.getName, request.getMethod, s"ERROR: $message", request)
         response.getWriter.print(new Document("ok", 2).append("message", message).toJson)
-        //t.printStackTrace()
-        //throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

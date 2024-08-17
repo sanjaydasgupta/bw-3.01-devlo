@@ -124,9 +124,7 @@ class PartnerList extends HttpServlet with HttpUtils with DateTimeUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (${partners.length}, time: $delay ms)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 

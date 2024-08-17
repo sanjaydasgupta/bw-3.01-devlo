@@ -43,9 +43,7 @@ class ProjectInfoImage extends HttpServlet with HttpUtils with ImageUtils {
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (length: $imageLength)", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getSimpleName}(${t.getMessage})", request)
-        //t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 }

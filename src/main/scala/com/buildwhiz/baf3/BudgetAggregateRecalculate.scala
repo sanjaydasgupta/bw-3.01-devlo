@@ -174,9 +174,7 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       response.getWriter.println(s"EXIT-OK (time: $delay ms) Updated: $message")
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace()
-        throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 
@@ -189,9 +187,7 @@ class BudgetAggregateRecalculate extends HttpServlet with HttpUtils with DateTim
       BWLogger.log(getClass.getName, request.getMethod, s"EXIT-OK (time: $delay ms) Updated: $message", request)
     } catch {
       case t: Throwable =>
-        BWLogger.log(getClass.getName, request.getMethod, s"ERROR: ${t.getClass.getName}(${t.getMessage})", request)
-        t.printStackTrace(response.getWriter)
-      throw t
+        reportFatalException(t, getClass.getName, request, response)
     }
   }
 
